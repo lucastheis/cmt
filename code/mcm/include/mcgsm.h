@@ -48,6 +48,7 @@ class MCGSM : public ConditionalDistribution {
 
 		virtual void normalize();
 		virtual bool train(const MatrixXd& input, const MatrixXd& output, int maxIter = 100, double tol = 1e-5);
+		virtual double checkGradient(const MatrixXd& input, const MatrixXd& output, double epsilon = 1e-5);
 
 		virtual MatrixXd sample(const MatrixXd& input);
 		virtual Array<double, 1, Dynamic> samplePosterior(const MatrixXd& input, const MatrixXd& output);
