@@ -46,7 +46,7 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 
 	for(int i = 0; i < mcgsm->numComponents(); ++i) {
 		choleskyFactors.push_back(MatrixXd::Zero(mcgsm->dimOut(), mcgsm->dimOut()));
-		choleskyFactorsGrad.push_back(MatrixXd(mcgsm->dimOut(), mcgsm->dimOut()));
+		choleskyFactorsGrad.push_back(MatrixXd::Zero(mcgsm->dimOut(), mcgsm->dimOut()));
 		choleskyFactors[i](0, 0) = 1.;
 		for(int m = 1; m < mcgsm->dimOut(); ++m)
 			for(int n = 0; n <= m; ++n, ++offset)
@@ -72,14 +72,17 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 	vector<ArrayXXd> logPosteriorOut;
 	vector<MatrixXd> predError;
 	vector<Array<double, 1, Dynamic> > predErrorSqNorm;
+	vector<MatrixXd> featuresGradScales;
 
 	for(int i = 0; i < mcgsm->numComponents(); ++i) {
 		logPosteriorIn.push_back(ArrayXXd(mcgsm->numScales(), input.cols()));
 		logPosteriorOut.push_back(ArrayXXd(mcgsm->numScales(), input.cols()));
 		predError.push_back(MatrixXd(mcgsm->dimOut(), input.cols()));
 		predErrorSqNorm.push_back(Array<double, 1, Dynamic>(input.cols()));
+		featuresGradScales.push_back(MatrixXd(mcgsm->dimIn(), mcgsm->numFeatures()));
 	}
 
+	// partial normalization constants
 	ArrayXXd logNormInScales(mcgsm->numComponents(), input.cols());
 	ArrayXXd logNormOutScales(mcgsm->numComponents(), input.cols());
 
@@ -89,8 +92,8 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 		MatrixXd negEnergyGate = -scalesSqr / 2. * weightsOutput.row(i);
 		negEnergyGate.colwise() += priors.row(i).transpose();
 
-		predError[i] = choleskyFactors[i].transpose() * (output - predictors[i] * input);
-		predErrorSqNorm[i] = predError[i].colwise().squaredNorm();
+		predError[i] = output - predictors[i] * input;
+		predErrorSqNorm[i] = (choleskyFactors[i].transpose() * predError[i]).colwise().squaredNorm();
 
 		MatrixXd negEnergyExpert = -scalesSqr / 2. * predErrorSqNorm[i].matrix();
 
@@ -118,8 +121,10 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 	Array<double, 1, Dynamic> logProb = logNormOut - logNormIn;
 
 	if(!g)
+		// don't compute gradients; return average log-likelihood
 		return -logProb.mean();
 
+	// compute gradients
 	#pragma omp parallel for
 	for(int i = 0; i < mcgsm->numComponents(); ++i) {
 		MatrixXd scalesSqr = scales.row(i).transpose().array().square();
@@ -130,22 +135,48 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 
 		MatrixXd posteriorDiff = logPosteriorIn[i].exp() - logPosteriorOut[i].exp();
 
+		// gradient of prior variables
 		priorsGrad.row(i) = posteriorDiff.rowwise().mean();
 
 		Array<double, 1, Dynamic> tmp0 = -scalesSqr.transpose() * posteriorDiff;
 		Array<double, 1, Dynamic> tmp2 = (featureOutputSqr.array().rowwise() * tmp0).rowwise().mean();
 
+		// gradient of weights
 		weightsGrad.row(i) = tmp2 * weights.row(i).array();
 
 		Array<double, 1, Dynamic> tmp3 = -(posteriorDiff.array().rowwise() * weightsOutput.row(i).array()).rowwise().mean();
 		Array<double, 1, Dynamic> tmp4 = -logPosteriorOut[i].exp().rowwise().mean();
 		Array<double, 1, Dynamic> tmp5 = (logPosteriorOut[i].exp().rowwise() * predErrorSqNorm[i]).rowwise().mean();
 
+		// gradient of scale variables
 		scalesGrad.row(i) =
 			tmp3 * scales.row(i).array() +
 			tmp4 / scales.row(i).array() * mcgsm->dimOut() +
 			tmp5 * scales.row(i).array();
+
+		MatrixXd tmp6 = input.array().rowwise() * tmp0;
+		ArrayXXd tmp7 = tmp6 * featureOutput.transpose() / input.cols();
+
+		// gradient of linear features
+		featuresGradScales[i] = tmp7.rowwise() * weightsSqr.row(i).array();
+
+		Array<double, 1, Dynamic> tmp8 = scalesSqr.transpose() * logPosteriorOut[i].exp().matrix();
+		MatrixXd tmp9 = predError[i].array().rowwise() * tmp8;
+		MatrixXd tmp10 = choleskyFactors[i].diagonal().cwiseInverse().asDiagonal();
+
+		choleskyFactorsGrad[i] = tmp9 * predError[i].transpose() * choleskyFactors[i].transpose() / input.cols()
+			+ tmp4.sum() * tmp10;
+
+		MatrixXd precision = choleskyFactors[i] * choleskyFactors[i].transpose();
+
+		// gradient of linear predictor
+		predictorsGrad[i] = -precision * tmp9 * input.transpose() / input.cols();
 	}
+
+	featuresGrad.setZero();
+
+	for(int i = 0; i < mcgsm->numComponents(); ++i)
+		featuresGrad += featuresGradScales[i];
 
 	// write back gradients of Cholesky factors
 	for(int i = 0; i < mcgsm->numComponents(); ++i)
@@ -153,6 +184,7 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 			for(int n = 0; n <= m; ++n, ++cholFacOffset)
 				g[cholFacOffset] = choleskyFactorsGrad[i](m, n);
 
+	// return average log-likelihood
 	return -logProb.mean();
 }
 
@@ -203,26 +235,41 @@ static bool checkLBFGS(int numParams, void* instance, const lbfgsfloatval_t* x) 
 	int numParamsScales = mcgsm->numComponents() * mcgsm->numScales();
 	int numParamsWeights = mcgsm->numComponents() * mcgsm->numFeatures();
 	int numParamsFeatures = mcgsm->dimIn() * mcgsm->numFeatures();
+	int numParamsCholeskyFactors = mcgsm->numComponents() * mcgsm->dimOut() * 
+		(mcgsm->dimOut() + 1) / 2 - mcgsm->numComponents();
+	int numParamsPredictors = mcgsm->numComponents() * mcgsm->dimIn() * mcgsm->dimOut();
 	int j = 0;
 	double err;
 
 	err = 0.;
 	for(int i = 0; i < numParamsPriors; ++i, ++j)
 		err += (g[j] - n[j]) * (g[j] - n[j]);
-
 	cout << "Error in priorsGrad (" << numParamsPriors << " parameters): " << sqrt(err) << endl;
 
 	err = 0.;
 	for(int i = 0; i < numParamsScales; ++i, ++j)
 		err += (g[j] - n[j]) * (g[j] - n[j]);
-
 	cout << "Error in scalesGrad (" << numParamsScales << " parameters): " << sqrt(err) << endl;
 
 	err = 0.;
 	for(int i = 0; i < numParamsWeights; ++i, ++j)
 		err += (g[j] - n[j]) * (g[j] - n[j]);
-
 	cout << "Error in weightsGrad (" << numParamsWeights << " parameters): " << sqrt(err) << endl;
+
+	err = 0.;
+	for(int i = 0; i < numParamsFeatures; ++i, ++j)
+		err += (g[j] - n[j]) * (g[j] - n[j]);
+	cout << "Error in featuresGrad (" << numParamsFeatures << " parameters): " << sqrt(err) << endl;
+
+	err = 0.;
+	for(int i = 0; i < numParamsCholeskyFactors; ++i, ++j)
+		err += (g[j] - n[j]) * (g[j] - n[j]);
+	cout << "Error in choleskyFactorsGrad (" << numParamsCholeskyFactors << " parameters): " << sqrt(err) << endl;
+
+	err = 0.;
+	for(int i = 0; i < numParamsPredictors; ++i, ++j)
+		err += (g[j] - n[j]) * (g[j] - n[j]);
+	cout << "Error in predictorsGrad (" << numParamsPredictors << " parameters): " << sqrt(err) << endl;
 }
 
 
