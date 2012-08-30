@@ -11,14 +11,14 @@
 
 using namespace std;
 
-Array<double, 1, Dynamic> logsumexp(const ArrayXXd& array) {
+Array<double, 1, Dynamic> logSumExp(const ArrayXXd& array) {
 	Array<double, 1, Dynamic> arrayMax = array.colwise().maxCoeff() - 1.;
 	return arrayMax + (array.rowwise() - arrayMax).exp().colwise().sum().log();
 }
 
 
 
-Array<double, 1, Dynamic> logmeanexp(const ArrayXXd& array) {
+Array<double, 1, Dynamic> logMeanExp(const ArrayXXd& array) {
 	Array<double, 1, Dynamic> arrayMax = array.colwise().maxCoeff() - 1.;
 	return arrayMax + (array.rowwise() - arrayMax).exp().colwise().mean().log();
 }
@@ -59,7 +59,7 @@ ArrayXXd sampleGamma(int m, int n, int k) {
 
 
 
-VectorXi argsort(const VectorXd& data) {
+VectorXi argSort(const VectorXd& data) {
 	// create pairs of values and indices
 	vector<pair<double, int> > pairs(data.size());
 	for(int i = 0; i < data.size(); ++i) {
@@ -87,7 +87,7 @@ MatrixXd covariance(const MatrixXd& data) {
 
 
 
-MatrixXd corrcoef(const MatrixXd& data) {
+MatrixXd corrCoef(const MatrixXd& data) {
 	MatrixXd C = covariance(data);
 	VectorXd c = C.diagonal();
 	return C.array() / (c * c.transpose()).array().sqrt();

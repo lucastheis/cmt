@@ -20,6 +20,7 @@ class MCGSM : public ConditionalDistribution {
 			int numComponents = 8,
 			int numScales = 6,
 			int numFeatures = -1);
+		virtual ~MCGSM();
 
 		inline int dimIn();
 		inline int dimOut();

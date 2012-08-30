@@ -9,15 +9,15 @@ using std::vector;
 
 #define PI 3.141592653589793
 
-Array<double, 1, Dynamic> logsumexp(const ArrayXXd& array);
-Array<double, 1, Dynamic> logmeanexp(const ArrayXXd& array);
+Array<double, 1, Dynamic> logSumExp(const ArrayXXd& array);
+Array<double, 1, Dynamic> logMeanExp(const ArrayXXd& array);
 
 ArrayXXd sampleNormal(int m = 1, int n = 1);
 ArrayXXd sampleGamma(int m = 1, int n = 1, int k = 1);
 
-VectorXi argsort(const VectorXd& data);
+VectorXi argSort(const VectorXd& data);
 MatrixXd covariance(const MatrixXd& data);
-MatrixXd corrcoef(const MatrixXd& data);
+MatrixXd corrCoef(const MatrixXd& data);
 MatrixXd normalize(const MatrixXd& matrix);
 
 double logDetPD(const MatrixXd& matrix);
