@@ -70,10 +70,14 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 
 	vector<ArrayXXd> logPosteriorIn;
 	vector<ArrayXXd> logPosteriorOut;
+	vector<MatrixXd> predError;
+	vector<Array<double, 1, Dynamic> > predErrorSqNorm;
 
 	for(int i = 0; i < mcgsm->numComponents(); ++i) {
 		logPosteriorIn.push_back(ArrayXXd(mcgsm->numScales(), input.cols()));
 		logPosteriorOut.push_back(ArrayXXd(mcgsm->numScales(), input.cols()));
+		predError.push_back(MatrixXd(mcgsm->dimOut(), input.cols()));
+		predErrorSqNorm.push_back(Array<double, 1, Dynamic>(input.cols()));
 	}
 
 	ArrayXXd logNormInScales(mcgsm->numComponents(), input.cols());
@@ -85,8 +89,10 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 		MatrixXd negEnergyGate = -scalesSqr / 2. * weightsOutput.row(i);
 		negEnergyGate.colwise() += priors.row(i).transpose();
 
-		MatrixXd predError = choleskyFactors[i].transpose() * (output - predictors[i] * input);
-		MatrixXd negEnergyExpert = -scalesSqr / 2. * predError.colwise().squaredNorm();
+		predError[i] = choleskyFactors[i].transpose() * (output - predictors[i] * input);
+		predErrorSqNorm[i] = predError[i].colwise().squaredNorm();
+
+		MatrixXd negEnergyExpert = -scalesSqr / 2. * predErrorSqNorm[i].matrix();
 
 		// normalize expert energy
 		double logDet = choleskyFactors[i].diagonal().array().abs().log().sum();
@@ -122,19 +128,23 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 		logPosteriorIn[i].rowwise() -= logNormIn;
 		logPosteriorOut[i].rowwise() -= logNormOut;
 
-		priorsGrad.row(i) = (logPosteriorIn[i].exp() - logPosteriorOut[i].exp()).rowwise().mean();
+		MatrixXd posteriorDiff = logPosteriorIn[i].exp() - logPosteriorOut[i].exp();
 
-		// 1 x NUM_DATA
-		Array<double, 1, Dynamic> tmp0In = -scalesSqr.transpose() * logPosteriorIn[i].exp().matrix();
-		Array<double, 1, Dynamic> tmp0Out = -scalesSqr.transpose() * logPosteriorOut[i].exp().matrix();
+		priorsGrad.row(i) = posteriorDiff.rowwise().mean();
 
+		Array<double, 1, Dynamic> tmp0 = -scalesSqr.transpose() * posteriorDiff;
+		Array<double, 1, Dynamic> tmp2 = (featureOutputSqr.array().rowwise() * tmp0).rowwise().mean();
 
-		Array<double, 1, Dynamic> tmp2 = (
-			featureOutputSqr.array().rowwise() * tmp0In -
-			featureOutputSqr.array().rowwise() * tmp0Out).rowwise().mean();
-
-		// 1 x NUM_FEATURES
 		weightsGrad.row(i) = tmp2 * weights.row(i).array();
+
+		Array<double, 1, Dynamic> tmp3 = -(posteriorDiff.array().rowwise() * weightsOutput.row(i).array()).rowwise().mean();
+		Array<double, 1, Dynamic> tmp4 = -logPosteriorOut[i].exp().rowwise().mean();
+		Array<double, 1, Dynamic> tmp5 = (logPosteriorOut[i].exp().rowwise() * predErrorSqNorm[i]).rowwise().mean();
+
+		scalesGrad.row(i) =
+			tmp3 * scales.row(i).array() +
+			tmp4 / scales.row(i).array() * mcgsm->dimOut() +
+			tmp5 * scales.row(i).array();
 	}
 
 	// write back gradients of Cholesky factors
@@ -155,7 +165,7 @@ static bool checkLBFGS(int numParams, void* instance, const lbfgsfloatval_t* x) 
 	lbfgsfloatval_t val1;
 	lbfgsfloatval_t val2;
 
-	double epsilon = 0.0001;
+	double epsilon = 0.00001;
 
 	// copy parameters
 	for(int i = 0; i < numParams; ++i)
