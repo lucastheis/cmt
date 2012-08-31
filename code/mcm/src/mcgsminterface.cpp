@@ -235,8 +235,6 @@ PyObject* MCGSM_cholesky_factors(MCGSMObject* self, PyObject*, void*) {
 
 
 int MCGSM_set_cholesky_factors(MCGSMObject* self, PyObject* value, void*) {
-	const char* kwlist[] = {"cholesky_factors", 0};
-
 	if(!PyList_Check(value)) {
 		PyErr_SetString(PyExc_TypeError, "Cholesky factors should be given in a list.");
 		return 0;
@@ -293,8 +291,6 @@ PyObject* MCGSM_predictors(MCGSMObject* self, PyObject*, void*) {
 
 
 int MCGSM_set_predictors(MCGSMObject* self, PyObject* value, void*) {
-	const char* kwlist[] = {"predictors", 0};
-
 	if(!PyList_Check(value)) {
 		PyErr_SetString(PyExc_TypeError, "Predictors should be given in a list.");
 		return 0;
@@ -378,6 +374,45 @@ PyObject* MCGSM_train(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 			Py_INCREF(Py_False);
 			return Py_False;
 		}
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+PyObject* MCGSM_check_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", "output", "epsilon", 0};
+
+	PyObject* input;
+	PyObject* output;
+	double epsilon = 1e-5;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|d", const_cast<char**>(kwlist), &input, &output, &epsilon))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		double err = self->mcgsm->checkGradient(
+			PyArray_ToMatrixXd(input),
+			PyArray_ToMatrixXd(output), epsilon);
+		Py_DECREF(input);
+		Py_DECREF(output);
+		return PyFloat_FromDouble(err);
 	} catch(Exception exception) {
 		Py_DECREF(input);
 		Py_DECREF(output);

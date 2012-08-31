@@ -24,9 +24,11 @@ modules = [
 		libraries=[
 			'gomp'],
 		extra_link_args=[
+			'-fPIC',
 			'code/liblbfgs/lib/.libs/liblbfgs.a'],
 		extra_compile_args=[
 			'-fopenmp',
+			'-Wno-sign-compare',
 			'-Wno-parentheses',
 			'-Wno-write-strings'] + ['-std=c++0x'] if sys.platform != 'darwin' else [])]
 

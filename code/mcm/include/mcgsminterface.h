@@ -46,6 +46,7 @@ int MCGSM_set_predictors(MCGSMObject*, PyObject*, void*);
 
 PyObject* MCGSM_normalize(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_train(MCGSMObject*, PyObject*, PyObject*);
+PyObject* MCGSM_check_gradient(MCGSMObject*, PyObject*, PyObject*);
 
 PyObject* MCGSM_sample(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_sample_posterior(MCGSMObject*, PyObject*, PyObject*);

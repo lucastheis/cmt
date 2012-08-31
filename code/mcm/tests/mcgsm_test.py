@@ -69,6 +69,17 @@ class Tests(unittest.TestCase):
 
 
 
+	def test_gradient(self):
+		mcgsm = MCGSM(5, 2, 2, 4, 10)
+
+		err = mcgsm.check_gradient(
+			randn(mcgsm.dim_in, 1000),
+			randn(mcgsm.dim_out, 1000), 1e-5)
+
+		self.assertLess(err, 1e-8)
+
+
+
 	def test_pickle(self):
 		mcgsm0 = MCGSM(11, 2, 4, 7, 21)
 
