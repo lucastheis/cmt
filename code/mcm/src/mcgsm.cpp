@@ -78,11 +78,12 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 	}
 
 	// split data into batches for better performance
-	int batchSize = min(10000, static_cast<int>(inputCompl.cols()));
+	int numData = static_cast<int>(inputCompl.cols());
+	int batchSize = min(10000, numData);
 
-	for(int b = 0; b + batchSize <= inputCompl.cols(); b += batchSize) {
-		const MatrixXd input = inputCompl.middleCols(b, batchSize);
-		const MatrixXd output = outputCompl.middleCols(b, batchSize);
+	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
+		const MatrixXd input = inputCompl.middleCols(b, min(batchSize, numData - b));
+		const MatrixXd output = outputCompl.middleCols(b, min(batchSize, numData - b));
 
 		// compute unnormalized posterior
 		MatrixXd featureOutput = features.transpose() * input;
@@ -95,7 +96,7 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 		vector<ArrayXXd> logPosteriorOut(mcgsm->numComponents());
 		vector<MatrixXd> predError(mcgsm->numComponents());
 		vector<Array<double, 1, Dynamic> > predErrorSqNorm(mcgsm->numComponents());
-		vector<MatrixXd> featuresGradScales(mcgsm->numComponents());
+		vector<MatrixXd> scalesSqr(mcgsm->numComponents());
 
 		// partial normalization constants
 		ArrayXXd logNormInScales(mcgsm->numComponents(), input.cols());
@@ -103,14 +104,15 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 
 		#pragma omp parallel for
 		for(int i = 0; i < mcgsm->numComponents(); ++i) {
-			MatrixXd scalesSqr = scales.row(i).transpose().array().square();
-			MatrixXd negEnergyGate = -scalesSqr / 2. * weightsOutput.row(i);
+			scalesSqr[i] = scales.row(i).transpose().array().square();
+
+			MatrixXd negEnergyGate = -scalesSqr[i] / 2. * weightsOutput.row(i);
 			negEnergyGate.colwise() += priors.row(i).transpose();
 
 			predError[i] = output - predictors[i] * input;
 			predErrorSqNorm[i] = (choleskyFactors[i].transpose() * predError[i]).colwise().squaredNorm();
 
-			MatrixXd negEnergyExpert = -scalesSqr / 2. * predErrorSqNorm[i].matrix();
+			MatrixXd negEnergyExpert = -scalesSqr[i] / 2. * predErrorSqNorm[i].matrix();
 
 			// normalize expert energy
 			double logDet = choleskyFactors[i].diagonal().array().abs().log().sum();
@@ -133,7 +135,7 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 		Array<double, 1, Dynamic> logNormOut = logSumExp(logNormOutScales);
 
 		// predictive probability
-		logLik += (logNormOut - logNormIn).mean();
+		logLik += (logNormOut - logNormIn).sum();
 
 		if(!g)
 			// don't compute gradients
@@ -142,8 +144,6 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 		// compute gradients
 		#pragma omp parallel for
 		for(int i = 0; i < mcgsm->numComponents(); ++i) {
-			MatrixXd scalesSqr = scales.row(i).transpose().array().square();
-
 			// normalize posterior
 			logPosteriorIn[i].rowwise() -= logNormIn;
 			logPosteriorOut[i].rowwise() -= logNormOut;
@@ -154,17 +154,17 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 			MatrixXd posteriorDiff = posteriorIn - posteriorOut;
 
 			// gradient of prior variables
-			priorsGrad.row(i) += posteriorDiff.rowwise().mean();
+			priorsGrad.row(i) += posteriorDiff.rowwise().sum();
 
-			Array<double, 1, Dynamic> tmp0 = -scalesSqr.transpose() * posteriorDiff;
-			Array<double, 1, Dynamic> tmp1 = (featureOutputSqr.array().rowwise() * tmp0).rowwise().mean();
+			Array<double, 1, Dynamic> tmp0 = -scalesSqr[i].transpose() * posteriorDiff;
+			Array<double, 1, Dynamic> tmp1 = (featureOutputSqr.array().rowwise() * tmp0).rowwise().sum();
 
 			// gradient of weights
  			weightsGrad.row(i) += (tmp1 * weights.row(i).array()).matrix();
 
-			Array<double, 1, Dynamic> tmp2 = (posteriorDiff.array().rowwise() * weightsOutput.row(i).array()).rowwise().mean();
-			Array<double, 1, Dynamic> tmp3 = posteriorOut.rowwise().mean();
-			Array<double, 1, Dynamic> tmp4 = (posteriorOut.rowwise() * predErrorSqNorm[i]).rowwise().mean();
+			Array<double, 1, Dynamic> tmp2 = (posteriorDiff.array().rowwise() * weightsOutput.row(i).array()).rowwise().sum();
+			Array<double, 1, Dynamic> tmp3 = posteriorOut.rowwise().sum();
+			Array<double, 1, Dynamic> tmp4 = (posteriorOut.rowwise() * predErrorSqNorm[i]).rowwise().sum();
 
 			// gradient of scale variables
  			scalesGrad.row(i) += (
@@ -175,28 +175,22 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 			MatrixXd tmp5 = input.array().rowwise() * tmp0;
 			ArrayXXd tmp6 = tmp5 * featureOutput.transpose();
 
-			// partial gradient of linear features
-			featuresGradScales[i] = tmp6.rowwise() * (weightsSqr.row(i).array() / input.cols());
+			#pragma omp critical
+			featuresGrad += (tmp6.rowwise() * weightsSqr.row(i).array()).matrix();
 
-			Array<double, 1, Dynamic> tmp7 = scalesSqr.transpose() * posteriorOut.matrix();
+			Array<double, 1, Dynamic> tmp7 = scalesSqr[i].transpose() * posteriorOut.matrix();
 			MatrixXd tmp8 = predError[i].array().rowwise() * tmp7;
 			MatrixXd tmp9 = choleskyFactors[i].diagonal().cwiseInverse().asDiagonal();
 
-			choleskyFactorsGrad[i] += tmp8 * predError[i].transpose() * choleskyFactors[i].transpose() / input.cols()
+			choleskyFactorsGrad[i] += tmp8 * predError[i].transpose() * choleskyFactors[i].transpose()
 				- tmp3.sum() * tmp9;
 
 			MatrixXd precision = choleskyFactors[i] * choleskyFactors[i].transpose();
 
 			// gradient of linear predictor
-			predictorsGrad[i] -= precision * tmp8 * input.transpose() / input.cols();
+			predictorsGrad[i] -= precision * tmp8 * input.transpose();
 		}
-
-		for(int i = 0; i < mcgsm->numComponents(); ++i)
-			featuresGrad += featuresGradScales[i];
 	}
-
-	// number of batches
-	lbfgsfloatval_t numBatches = static_cast<lbfgsfloatval_t>(inputCompl.cols() / batchSize);
 
 	if(g) {
 		// write back gradients of Cholesky factors
@@ -206,11 +200,11 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 					g[cholFacOffset] = choleskyFactorsGrad[i](m, n);
 
 		for(int i = 0; i < offset; ++i)
-			g[i] /= numBatches;
+			g[i] /= inputCompl.cols();
 	}
 
 	// return average log-likelihood
-	return -logLik / numBatches;
+	return -logLik / inputCompl.cols();
 }
 
 
