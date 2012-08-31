@@ -15,8 +15,11 @@ typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
 static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, lbfgsfloatval_t* g, int, double) {
 	// unpack user data
 	MCGSM* mcgsm = static_cast<ParamsLBFGS*>(instance)->first;
-	const MatrixXd& input = *static_cast<ParamsLBFGS*>(instance)->second.first;
-	const MatrixXd& output = *static_cast<ParamsLBFGS*>(instance)->second.second;
+	const MatrixXd& inputCompl = *static_cast<ParamsLBFGS*>(instance)->second.first;
+	const MatrixXd& outputCompl = *static_cast<ParamsLBFGS*>(instance)->second.second;
+
+	// average log-likelihood
+	double logLik = 0.;
 
 	// interpret memory for parameters and gradients
 	lbfgsfloatval_t* y = const_cast<lbfgsfloatval_t*>(x);
@@ -63,125 +66,151 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 		offset += predictors[i].size();
 	}
 
-	// compute unnormalized posterior
-	MatrixXd featureOutput = features.transpose() * input;
-	MatrixXd featureOutputSqr = featureOutput.array().square();
-	MatrixXd weightsSqr = weights.array().square();
-	MatrixXd weightsOutput = weightsSqr * featureOutputSqr;
+	if(g) {
+		// initialize gradients
+		featuresGrad.setZero();
+		weightsGrad.setZero();
+		priorsGrad.setZero();
+		scalesGrad.setZero();
 
-	// containers for intermediate results
-	vector<ArrayXXd> logPosteriorIn(mcgsm->numComponents());
-	vector<ArrayXXd> logPosteriorOut(mcgsm->numComponents());
-	vector<MatrixXd> predError(mcgsm->numComponents());
-	vector<Array<double, 1, Dynamic> > predErrorSqNorm(mcgsm->numComponents());
-	vector<MatrixXd> featuresGradScales(mcgsm->numComponents());
-
-	// partial normalization constants
-	ArrayXXd logNormInScales(mcgsm->numComponents(), input.cols());
-	ArrayXXd logNormOutScales(mcgsm->numComponents(), input.cols());
-
-	#pragma omp parallel for
-	for(int i = 0; i < mcgsm->numComponents(); ++i) {
-		MatrixXd scalesSqr = scales.row(i).transpose().array().square();
-		MatrixXd negEnergyGate = -scalesSqr / 2. * weightsOutput.row(i);
-		negEnergyGate.colwise() += priors.row(i).transpose();
-
-		predError[i] = output - predictors[i] * input;
-		predErrorSqNorm[i] = (choleskyFactors[i].transpose() * predError[i]).colwise().squaredNorm();
-
-		MatrixXd negEnergyExpert = -scalesSqr / 2. * predErrorSqNorm[i].matrix();
-
-		// normalize expert energy
-		double logDet = choleskyFactors[i].diagonal().array().abs().log().sum();
-		VectorXd logPartf = mcgsm->dimOut() * scales.row(i).transpose().array().abs().log()
-			+ logDet - mcgsm->dimOut() / 2. * log(2. * PI);
-
-		negEnergyExpert.colwise() += logPartf;
-
-		// unnormalized posterior
-		logPosteriorIn[i] = negEnergyGate;
-		logPosteriorOut[i] = negEnergyGate + negEnergyExpert;
-
-		// compute normalization constants for posterior over scales
-		logNormInScales.row(i) = logSumExp(logPosteriorIn[i]);
-		logNormOutScales.row(i) = logSumExp(logPosteriorOut[i]);
+		for(int i = 0; i < mcgsm->numComponents(); ++i)
+			predictorsGrad[i].setZero();
 	}
 
-	// compute normalization constants
-	Array<double, 1, Dynamic> logNormIn = logSumExp(logNormInScales);
-	Array<double, 1, Dynamic> logNormOut = logSumExp(logNormOutScales);
+	// split data into batches for better performance
+	int batchSize = min(10000, static_cast<int>(inputCompl.cols()));
 
-	// predictive probability
-	Array<double, 1, Dynamic> logProb = logNormOut - logNormIn;
+	for(int b = 0; b + batchSize <= inputCompl.cols(); b += batchSize) {
+		const MatrixXd input = inputCompl.middleCols(b, batchSize);
+		const MatrixXd output = outputCompl.middleCols(b, batchSize);
 
-	if(!g)
-		// don't compute gradients; return average log-likelihood
-		return -logProb.mean();
+		// compute unnormalized posterior
+		MatrixXd featureOutput = features.transpose() * input;
+		MatrixXd featureOutputSqr = featureOutput.array().square();
+		MatrixXd weightsSqr = weights.array().square();
+		MatrixXd weightsOutput = weightsSqr * featureOutputSqr;
 
-	// compute gradients
-	#pragma omp parallel for
-	for(int i = 0; i < mcgsm->numComponents(); ++i) {
-		MatrixXd scalesSqr = scales.row(i).transpose().array().square();
+		// containers for intermediate results
+		vector<ArrayXXd> logPosteriorIn(mcgsm->numComponents());
+		vector<ArrayXXd> logPosteriorOut(mcgsm->numComponents());
+		vector<MatrixXd> predError(mcgsm->numComponents());
+		vector<Array<double, 1, Dynamic> > predErrorSqNorm(mcgsm->numComponents());
+		vector<MatrixXd> featuresGradScales(mcgsm->numComponents());
 
-		// normalize posterior
-		logPosteriorIn[i].rowwise() -= logNormIn;
-		logPosteriorOut[i].rowwise() -= logNormOut;
+		// partial normalization constants
+		ArrayXXd logNormInScales(mcgsm->numComponents(), input.cols());
+		ArrayXXd logNormOutScales(mcgsm->numComponents(), input.cols());
 
-		ArrayXXd posteriorIn = logPosteriorIn[i].exp();
-		ArrayXXd posteriorOut = logPosteriorOut[i].exp();
+		#pragma omp parallel for
+		for(int i = 0; i < mcgsm->numComponents(); ++i) {
+			MatrixXd scalesSqr = scales.row(i).transpose().array().square();
+			MatrixXd negEnergyGate = -scalesSqr / 2. * weightsOutput.row(i);
+			negEnergyGate.colwise() += priors.row(i).transpose();
 
-		MatrixXd posteriorDiff = posteriorIn - posteriorOut;
+			predError[i] = output - predictors[i] * input;
+			predErrorSqNorm[i] = (choleskyFactors[i].transpose() * predError[i]).colwise().squaredNorm();
 
-		// gradient of prior variables
-		priorsGrad.row(i) = posteriorDiff.rowwise().mean();
+			MatrixXd negEnergyExpert = -scalesSqr / 2. * predErrorSqNorm[i].matrix();
 
-		Array<double, 1, Dynamic> tmp0 = -scalesSqr.transpose() * posteriorDiff;
-		Array<double, 1, Dynamic> tmp1 = (featureOutputSqr.array().rowwise() * tmp0).rowwise().mean();
+			// normalize expert energy
+			double logDet = choleskyFactors[i].diagonal().array().abs().log().sum();
+			VectorXd logPartf = mcgsm->dimOut() * scales.row(i).transpose().array().abs().log()
+				+ logDet - mcgsm->dimOut() / 2. * log(2. * PI);
 
-		// gradient of weights
-		weightsGrad.row(i) = tmp1 * weights.row(i).array();
+			negEnergyExpert.colwise() += logPartf;
 
-		Array<double, 1, Dynamic> tmp2 = (posteriorDiff.array().rowwise() * weightsOutput.row(i).array()).rowwise().mean();
-		Array<double, 1, Dynamic> tmp3 = posteriorOut.rowwise().mean();
-		Array<double, 1, Dynamic> tmp4 = (posteriorOut.rowwise() * predErrorSqNorm[i]).rowwise().mean();
+			// unnormalized posterior
+			logPosteriorIn[i] = negEnergyGate;
+			logPosteriorOut[i] = negEnergyGate + negEnergyExpert;
 
-		// gradient of scale variables
-		scalesGrad.row(i) =
-			tmp4 * scales.row(i).array() - 
-			tmp3 / scales.row(i).array() * mcgsm->dimOut() -
-			tmp2 * scales.row(i).array();
+			// compute normalization constants for posterior over scales
+			logNormInScales.row(i) = logSumExp(logPosteriorIn[i]);
+			logNormOutScales.row(i) = logSumExp(logPosteriorOut[i]);
+		}
 
-		MatrixXd tmp5 = input.array().rowwise() * tmp0;
-		ArrayXXd tmp6 = tmp5 * featureOutput.transpose();
+		// compute normalization constants
+		Array<double, 1, Dynamic> logNormIn = logSumExp(logNormInScales);
+		Array<double, 1, Dynamic> logNormOut = logSumExp(logNormOutScales);
 
-		// gradient of linear features
-		featuresGradScales[i] = tmp6.rowwise() * (weightsSqr.row(i).array() / input.cols());
+		// predictive probability
+		logLik += (logNormOut - logNormIn).mean();
 
-		Array<double, 1, Dynamic> tmp7 = scalesSqr.transpose() * posteriorOut.matrix();
-		MatrixXd tmp8 = predError[i].array().rowwise() * tmp7;
-		MatrixXd tmp9 = choleskyFactors[i].diagonal().cwiseInverse().asDiagonal();
+		if(!g)
+			// don't compute gradients
+			continue;
 
-		choleskyFactorsGrad[i] = tmp8 * predError[i].transpose() * choleskyFactors[i].transpose() / input.cols()
-			- tmp3.sum() * tmp9;
+		// compute gradients
+		#pragma omp parallel for
+		for(int i = 0; i < mcgsm->numComponents(); ++i) {
+			MatrixXd scalesSqr = scales.row(i).transpose().array().square();
 
-		MatrixXd precision = choleskyFactors[i] * choleskyFactors[i].transpose();
+			// normalize posterior
+			logPosteriorIn[i].rowwise() -= logNormIn;
+			logPosteriorOut[i].rowwise() -= logNormOut;
 
-		// gradient of linear predictor
-		predictorsGrad[i] = -precision * tmp8 * input.transpose() / input.cols();
+			ArrayXXd posteriorIn = logPosteriorIn[i].exp();
+			ArrayXXd posteriorOut = logPosteriorOut[i].exp();
+
+			MatrixXd posteriorDiff = posteriorIn - posteriorOut;
+
+			// gradient of prior variables
+			priorsGrad.row(i) += posteriorDiff.rowwise().mean();
+
+			Array<double, 1, Dynamic> tmp0 = -scalesSqr.transpose() * posteriorDiff;
+			Array<double, 1, Dynamic> tmp1 = (featureOutputSqr.array().rowwise() * tmp0).rowwise().mean();
+
+			// gradient of weights
+ 			weightsGrad.row(i) += (tmp1 * weights.row(i).array()).matrix();
+
+			Array<double, 1, Dynamic> tmp2 = (posteriorDiff.array().rowwise() * weightsOutput.row(i).array()).rowwise().mean();
+			Array<double, 1, Dynamic> tmp3 = posteriorOut.rowwise().mean();
+			Array<double, 1, Dynamic> tmp4 = (posteriorOut.rowwise() * predErrorSqNorm[i]).rowwise().mean();
+
+			// gradient of scale variables
+ 			scalesGrad.row(i) += (
+ 				tmp4 * scales.row(i).array() - 
+ 				tmp3 / scales.row(i).array() * mcgsm->dimOut() -
+ 				tmp2 * scales.row(i).array()).matrix();
+
+			MatrixXd tmp5 = input.array().rowwise() * tmp0;
+			ArrayXXd tmp6 = tmp5 * featureOutput.transpose();
+
+			// partial gradient of linear features
+			featuresGradScales[i] = tmp6.rowwise() * (weightsSqr.row(i).array() / input.cols());
+
+			Array<double, 1, Dynamic> tmp7 = scalesSqr.transpose() * posteriorOut.matrix();
+			MatrixXd tmp8 = predError[i].array().rowwise() * tmp7;
+			MatrixXd tmp9 = choleskyFactors[i].diagonal().cwiseInverse().asDiagonal();
+
+			choleskyFactorsGrad[i] += tmp8 * predError[i].transpose() * choleskyFactors[i].transpose() / input.cols()
+				- tmp3.sum() * tmp9;
+
+			MatrixXd precision = choleskyFactors[i] * choleskyFactors[i].transpose();
+
+			// gradient of linear predictor
+			predictorsGrad[i] -= precision * tmp8 * input.transpose() / input.cols();
+		}
+
+		for(int i = 0; i < mcgsm->numComponents(); ++i)
+			featuresGrad += featuresGradScales[i];
 	}
 
-	featuresGrad.setZero();
-	for(int i = 0; i < mcgsm->numComponents(); ++i)
-		featuresGrad += featuresGradScales[i];
+	// number of batches
+	lbfgsfloatval_t numBatches = static_cast<lbfgsfloatval_t>(inputCompl.cols() / batchSize);
 
-	// write back gradients of Cholesky factors
-	for(int i = 0; i < mcgsm->numComponents(); ++i)
-		for(int m = 1; m < mcgsm->dimOut(); ++m)
-			for(int n = 0; n <= m; ++n, ++cholFacOffset)
-				g[cholFacOffset] = choleskyFactorsGrad[i](m, n);
+	if(g) {
+		// write back gradients of Cholesky factors
+		for(int i = 0; i < mcgsm->numComponents(); ++i)
+			for(int m = 1; m < mcgsm->dimOut(); ++m)
+				for(int n = 0; n <= m; ++n, ++cholFacOffset)
+					g[cholFacOffset] = choleskyFactorsGrad[i](m, n);
+
+		for(int i = 0; i < offset; ++i)
+			g[i] /= numBatches;
+	}
 
 	// return average log-likelihood
-	return -logProb.mean();
+	return -logLik / numBatches;
 }
 
 
