@@ -201,11 +201,21 @@ inline void MCGSM::setCholeskyFactors(vector<MatrixXd> choleskyFactors) {
 	if(choleskyFactors.size() != mNumComponents)
 		throw Exception("Wrong number of Cholesky factors.");
 
-	for(int i = 0; i < choleskyFactors.size(); ++i)
+	for(int i = 0; i < mNumComponents; ++i)
 		if(choleskyFactors[i].rows() != mDimOut || choleskyFactors[i].cols() != mDimOut)
 			throw Exception("Cholesky factor has wrong dimensionality.");
 
 	mCholeskyFactors = choleskyFactors;
+
+	#pragma omp parallel for
+	for(int i = 0; i < mNumComponents; ++i) {
+		double prec = mCholeskyFactors[i](0, 0);
+
+		// normalize representation
+		mCholeskyFactors[i] /= prec;
+		mScales.row(i) *= prec;
+		mWeights.row(i) /= prec;
+	}
 }
 
 

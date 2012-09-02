@@ -97,7 +97,7 @@ class Tests(unittest.TestCase):
 		# make sure training doesn't throw any errors
 		mcgsm.train(
 			randn(mcgsm.dim_in, 20000),
-			randn(mcgsm.dim_out, 20000),
+			randn(mcgsm.dim_out, 10000),
 			parameters={
 				'verbosity': 0,
 				'max_iter': 1,

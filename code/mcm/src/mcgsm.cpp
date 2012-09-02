@@ -2,6 +2,7 @@
 #include "utils.h"
 #include <sys/time.h>
 #include <iostream>
+#include <iomanip>
 #include <cmath>
 #include <cstdlib>
 #include <utility>
@@ -11,7 +12,35 @@ using namespace std;
 typedef pair<pair<const MCGSM*, const MCGSM::Parameters*>, pair<const MatrixXd*, const MatrixXd*> > ParamsLBFGS;
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
 
-static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, lbfgsfloatval_t* g, int, double) {
+static int callbackLBFGS(
+	void *instance,
+	const lbfgsfloatval_t *x,
+	const lbfgsfloatval_t *g,
+	const lbfgsfloatval_t fx,
+	const lbfgsfloatval_t xnorm,
+	const lbfgsfloatval_t gnorm,
+	const lbfgsfloatval_t, int,
+	int iteration,
+	int)
+{
+	// unpack user data
+//	const MCGSM& mcgsm = *static_cast<ParamsLBFGS*>(instance)->first.first;
+	const MCGSM::Parameters& params = *static_cast<ParamsLBFGS*>(instance)->first.second;
+
+	if(params.verbosity > 0)
+		cout << setw(6) << iteration << setw(10) << setprecision(5) << fx << endl;
+
+	return 0;
+}
+
+
+
+static lbfgsfloatval_t evaluateLBFGS(
+	void* instance, 
+	const lbfgsfloatval_t* x, 
+	lbfgsfloatval_t* g, 
+	int, double) 
+{
 	// unpack user data
 	const MCGSM& mcgsm = *static_cast<ParamsLBFGS*>(instance)->first.first;
 	const MCGSM::Parameters& params = *static_cast<ParamsLBFGS*>(instance)->first.second;
@@ -130,9 +159,17 @@ static lbfgsfloatval_t evaluateLBFGS(void* instance, const lbfgsfloatval_t* x, l
 			logNormOutScales.row(i) = logSumExp(logPosteriorOut[i]);
 		}
 
+		Array<double, 1, Dynamic> logNormIn;
+		Array<double, 1, Dynamic> logNormOut;
+
 		// compute normalization constants
-		Array<double, 1, Dynamic> logNormIn = logSumExp(logNormInScales);
-		Array<double, 1, Dynamic> logNormOut = logSumExp(logNormOutScales);
+		#pragma omp parallel sections
+		{
+			#pragma omp section
+			logNormIn = logSumExp(logNormInScales);
+			#pragma omp section
+			logNormOut = logSumExp(logNormOutScales);
+		}
 
 		// predictive probability
 		logLik += (logNormOut - logNormIn).sum();
@@ -282,6 +319,7 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters para
 	lbfgs_parameter_init(&paramsLBFGS);
 	paramsLBFGS.max_iterations = params.maxIter;
 	paramsLBFGS.m = params.numGrad;
+	paramsLBFGS.epsilon = params.tol;
 
 	// wrap additional arguments
 	ParamsLBFGS instance;
@@ -292,7 +330,7 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters para
 
 	// start LBFGS optimization
 	if(params.maxIter > 0)
-		lbfgs(numParams, x, 0, &evaluateLBFGS, 0, &instance, &paramsLBFGS);
+		lbfgs(numParams, x, 0, &evaluateLBFGS, &callbackLBFGS, &instance, &paramsLBFGS);
 
 	// copy parameters back
 	int offset = 0;
