@@ -4,6 +4,7 @@
 #include "Eigen/Core"
 #include "conditionaldistribution.h"
 #include "exception.h"
+#include "lbfgs.h"
 #include <iostream>
 #include <cmath>
 #include <vector>
@@ -14,6 +15,17 @@ using std::vector;
 
 class MCGSM : public ConditionalDistribution {
 	public:
+		struct Parameters {
+			public:
+				int verbosity;
+				int maxIter;
+				double tol;
+				int numGrad;
+				int batchSize;
+
+				Parameters();
+		};
+
 		MCGSM(
 			int dimIn, 
 			int dimOut = 1,
@@ -47,8 +59,21 @@ class MCGSM : public ConditionalDistribution {
 		inline void setPredictors(vector<MatrixXd> predictors);
 
 		virtual void normalize();
-		virtual bool train(const MatrixXd& input, const MatrixXd& output, int maxIter = 100, double tol = 1e-5);
-		virtual double checkGradient(const MatrixXd& input, const MatrixXd& output, double epsilon = 1e-5);
+		virtual bool train(
+			const MatrixXd& input,
+			const MatrixXd& output,
+			Parameters params = Parameters());
+
+		virtual double checkGradient(
+			const MatrixXd& input,
+			const MatrixXd& output,
+			double epsilon = 1e-5,
+			Parameters params = Parameters());
+		virtual double checkPerformance(
+			const MatrixXd& input,
+			const MatrixXd& output,
+			int repetitions = 2,
+			Parameters params = Parameters());
 
 		virtual MatrixXd sample(const MatrixXd& input);
 		virtual Array<double, 1, Dynamic> samplePosterior(const MatrixXd& input, const MatrixXd& output);
@@ -71,6 +96,9 @@ class MCGSM : public ConditionalDistribution {
 		MatrixXd mFeatures;
 		vector<MatrixXd> mCholeskyFactors;
 		vector<MatrixXd> mPredictors;
+
+		int numParameters();
+		void copyParameters(lbfgsfloatval_t* x);
 };
 
 

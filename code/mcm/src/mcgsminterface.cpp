@@ -4,6 +4,65 @@
 
 using namespace Eigen;
 
+MCGSM::Parameters PyObject_ToParameters(PyObject* parameters) {
+	MCGSM::Parameters params;
+
+	// read parameters from dictionary
+	if(parameters) {
+		if(!PyDict_Check(parameters))
+			throw Exception("Parameters should be stored in a dictionary.");
+
+		PyObject* verbosity = PyDict_GetItemString(parameters, "verbosity");
+		if(verbosity)
+			if(PyInt_Check(verbosity))
+				params.verbosity = PyInt_AsLong(verbosity);
+			else if(PyFloat_Check(verbosity))
+				params.verbosity = static_cast<int>(PyFloat_AsDouble(verbosity));
+			else
+				throw Exception("verbosity should be of type `int`.");
+
+		PyObject* max_iter = PyDict_GetItemString(parameters, "max_iter");
+		if(max_iter)
+			if(PyInt_Check(max_iter))
+				params.maxIter = PyInt_AsLong(max_iter);
+			else if(PyFloat_Check(max_iter))
+				params.maxIter = static_cast<int>(PyFloat_AsDouble(max_iter));
+			else
+				throw Exception("max_iter should be of type `int`.");
+		
+
+		PyObject* tol = PyDict_GetItemString(parameters, "tol");
+		if(tol)
+			if(PyFloat_Check(tol))
+				params.tol = PyFloat_AsDouble(tol);
+			else if(PyInt_Check(tol))
+				params.tol = static_cast<double>(PyFloat_AsDouble(tol));
+			else
+				throw Exception("tol should be of type `float`.");
+
+		PyObject* num_grad = PyDict_GetItemString(parameters, "num_grad");
+		if(num_grad)
+			if(PyInt_Check(num_grad))
+				params.numGrad = PyInt_AsLong(num_grad);
+			else if(PyFloat_Check(num_grad))
+				params.numGrad = static_cast<int>(PyFloat_AsDouble(num_grad));
+			else
+				throw Exception("num_grad should be of type `int`.");
+
+		PyObject* batch_size = PyDict_GetItemString(parameters, "batch_size");
+		if(batch_size)
+			if(PyInt_Check(batch_size))
+				params.batchSize = PyInt_AsLong(batch_size);
+			else if(PyFloat_Check(batch_size))
+				params.batchSize = static_cast<int>(PyFloat_AsDouble(batch_size));
+			else
+				throw Exception("batch_size should be of type `int`.");
+	}
+
+	return params;
+}
+
+
 PyObject* MCGSM_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	PyObject* self = type->tp_alloc(type, 0);
 
@@ -342,15 +401,17 @@ PyObject* MCGSM_normalize(MCGSMObject* self, PyObject*, PyObject*) {
 
 
 PyObject* MCGSM_train(MCGSMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", "max_iter", "tol", 0};
+	const char* kwlist[] = {"input", "output", "parameters", 0};
 
 	PyObject* input;
 	PyObject* output;
-	int max_iter = 100;
-	double tol = 1e-5;
+	PyObject* parameters = 0;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|id", const_cast<char**>(kwlist), &input, &output, &max_iter, &tol))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|O", const_cast<char**>(kwlist),
+		&input,
+		&output,
+		&parameters))
 		return 0;
 
 	// make sure data is stored in NumPy array
@@ -363,7 +424,11 @@ PyObject* MCGSM_train(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	}
 
 	try {
-		if(self->mcgsm->train(PyArray_ToMatrixXd(input), PyArray_ToMatrixXd(output), max_iter, tol)) {
+		if(self->mcgsm->train(
+				PyArray_ToMatrixXd(input), 
+				PyArray_ToMatrixXd(output), 
+				PyObject_ToParameters(parameters)))
+		{
 			Py_DECREF(input);
 			Py_DECREF(output);
 			Py_INCREF(Py_True);
@@ -386,15 +451,66 @@ PyObject* MCGSM_train(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 
 
 
+PyObject* MCGSM_check_performance(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", "output", "repetitions", "parameters", 0};
+
+	PyObject* input;
+	PyObject* output;
+	int repetitions = 2;
+	PyObject* parameters = 0;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|iO", const_cast<char**>(kwlist),
+		&input,
+		&output,
+		&repetitions,
+		&parameters))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		double err = self->mcgsm->checkPerformance(
+			PyArray_ToMatrixXd(input),
+			PyArray_ToMatrixXd(output),
+			repetitions, 
+			PyObject_ToParameters(parameters));
+		Py_DECREF(input);
+		Py_DECREF(output);
+		return PyFloat_FromDouble(err);
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
 PyObject* MCGSM_check_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", "epsilon", 0};
+	const char* kwlist[] = {"input", "output", "epsilon", "parameters", 0};
 
 	PyObject* input;
 	PyObject* output;
 	double epsilon = 1e-5;
+	PyObject* parameters = 0;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|d", const_cast<char**>(kwlist), &input, &output, &epsilon))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|dO", const_cast<char**>(kwlist),
+		&input,
+		&output,
+		&epsilon,
+		&parameters))
 		return 0;
 
 	// make sure data is stored in NumPy array
@@ -409,7 +525,9 @@ PyObject* MCGSM_check_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds
 	try {
 		double err = self->mcgsm->checkGradient(
 			PyArray_ToMatrixXd(input),
-			PyArray_ToMatrixXd(output), epsilon);
+			PyArray_ToMatrixXd(output),
+			epsilon,
+			PyObject_ToParameters(parameters));
 		Py_DECREF(input);
 		Py_DECREF(output);
 		return PyFloat_FromDouble(err);

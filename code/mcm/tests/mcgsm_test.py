@@ -69,6 +69,43 @@ class Tests(unittest.TestCase):
 
 
 
+	def test_train(self):
+		mcgsm = MCGSM(8, 3, 4, 2, 20)
+
+		priors = mcgsm.priors
+		scales = mcgsm.scales
+		weights = mcgsm.weights
+		features = mcgsm.features
+		predictor = mcgsm.predictors[0]
+
+		mcgsm.train(
+			randn(mcgsm.dim_in, 20000),
+			randn(mcgsm.dim_out, 20000),
+			parameters={
+				'verbosity': 0,
+				'max_iter': 0,
+				'batch_size': 1999,
+				})
+
+		# parameters should not have changed
+		self.assertLess(max(abs(mcgsm.priors - priors)), 1e-20)
+		self.assertLess(max(abs(mcgsm.scales - scales)), 1e-20)
+		self.assertLess(max(abs(mcgsm.weights - weights)), 1e-20)
+		self.assertLess(max(abs(mcgsm.features - features)), 1e-20)
+		self.assertLess(max(abs(mcgsm.predictors[0] - predictor)), 1e-20)
+
+		# make sure training doesn't throw any errors
+		mcgsm.train(
+			randn(mcgsm.dim_in, 20000),
+			randn(mcgsm.dim_out, 20000),
+			parameters={
+				'verbosity': 0,
+				'max_iter': 1,
+				'batch_size': 1999,
+				})
+
+
+
 	def test_gradient(self):
 		mcgsm = MCGSM(5, 2, 2, 4, 10)
 
