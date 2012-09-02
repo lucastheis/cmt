@@ -34,28 +34,28 @@ class MCGSM : public ConditionalDistribution {
 			int numFeatures = -1);
 		virtual ~MCGSM();
 
-		inline int dimIn();
-		inline int dimOut();
-		inline int numComponents();
-		inline int numScales();
-		inline int numFeatures();
+		inline int dimIn() const;
+		inline int dimOut() const;
+		inline int numComponents() const;
+		inline int numScales() const;
+		inline int numFeatures() const;
 
-		inline ArrayXXd priors();
+		inline ArrayXXd priors() const;
 		inline void setPriors(ArrayXXd priors);
 
-		inline ArrayXXd scales();
+		inline ArrayXXd scales() const;
 		inline void setScales(ArrayXXd scales);
 
-		inline ArrayXXd weights();
+		inline ArrayXXd weights() const;
 		inline void setWeights(ArrayXXd weights);
 
-		inline MatrixXd features();
+		inline MatrixXd features() const;
 		inline void setFeatures(MatrixXd features);
 
-		inline vector<MatrixXd> choleskyFactors();
+		inline vector<MatrixXd> choleskyFactors() const;
 		inline void setCholeskyFactors(vector<MatrixXd> choleskyFactors);
 
-		inline vector<MatrixXd> predictors();
+		inline vector<MatrixXd> predictors() const;
 		inline void setPredictors(vector<MatrixXd> predictors);
 
 		virtual void normalize();
@@ -68,18 +68,18 @@ class MCGSM : public ConditionalDistribution {
 			const MatrixXd& input,
 			const MatrixXd& output,
 			double epsilon = 1e-5,
-			Parameters params = Parameters());
+			Parameters params = Parameters()) const;
 		virtual double checkPerformance(
 			const MatrixXd& input,
 			const MatrixXd& output,
 			int repetitions = 2,
-			Parameters params = Parameters());
+			Parameters params = Parameters()) const;
 
-		virtual MatrixXd sample(const MatrixXd& input);
-		virtual Array<double, 1, Dynamic> samplePosterior(const MatrixXd& input, const MatrixXd& output);
+		virtual MatrixXd sample(const MatrixXd& input) const;
+		virtual Array<double, 1, Dynamic> samplePosterior(const MatrixXd& input, const MatrixXd& output) const;
 
-		virtual ArrayXXd posterior(const MatrixXd& input, const MatrixXd& output);
-		virtual Array<double, 1, Dynamic> logLikelihood(const MatrixXd& input, const MatrixXd& output);
+		virtual ArrayXXd posterior(const MatrixXd& input, const MatrixXd& output) const;
+		virtual Array<double, 1, Dynamic> logLikelihood(const MatrixXd& input, const MatrixXd& output) const;
 
 	protected:
 		// hyperparameters
@@ -97,43 +97,43 @@ class MCGSM : public ConditionalDistribution {
 		vector<MatrixXd> mCholeskyFactors;
 		vector<MatrixXd> mPredictors;
 
-		int numParameters();
-		void copyParameters(lbfgsfloatval_t* x);
+		int numParameters() const;
+		void copyParameters(lbfgsfloatval_t* x) const;
 };
 
 
 
-inline int MCGSM::dimIn() {
+inline int MCGSM::dimIn() const {
 	return mDimIn;
 }
 
 
 
-inline int MCGSM::dimOut() {
+inline int MCGSM::dimOut() const {
 	return mDimOut;
 }
 
 
 
-inline int MCGSM::numComponents() {
+inline int MCGSM::numComponents() const {
 	return mNumComponents;
 }
 
 
 
-inline int MCGSM::numScales() {
+inline int MCGSM::numScales() const {
 	return mNumScales;
 }
 
 
 
-inline int MCGSM::numFeatures() {
+inline int MCGSM::numFeatures() const {
 	return mNumFeatures;
 }
 
 
 
-inline ArrayXXd MCGSM::scales() {
+inline ArrayXXd MCGSM::scales() const {
 	return mScales;
 }
 
@@ -147,7 +147,7 @@ inline void MCGSM::setScales(ArrayXXd scales) {
 
 
 
-inline ArrayXXd MCGSM::weights() {
+inline ArrayXXd MCGSM::weights() const {
 	return mWeights;
 }
 
@@ -161,7 +161,7 @@ inline void MCGSM::setWeights(ArrayXXd weights) {
 
 
 
-inline ArrayXXd MCGSM::priors() {
+inline ArrayXXd MCGSM::priors() const {
 	return mPriors;
 }
 
@@ -175,7 +175,7 @@ inline void MCGSM::setPriors(ArrayXXd priors) {
 
 
 
-inline MatrixXd MCGSM::features() {
+inline MatrixXd MCGSM::features() const {
 	return mFeatures;
 }
 
@@ -191,7 +191,7 @@ inline void MCGSM::setFeatures(MatrixXd features) {
 
 
 
-inline vector<MatrixXd> MCGSM::choleskyFactors() {
+inline vector<MatrixXd> MCGSM::choleskyFactors() const {
 	return mCholeskyFactors;
 }
 
@@ -210,7 +210,7 @@ inline void MCGSM::setCholeskyFactors(vector<MatrixXd> choleskyFactors) {
 
 
 
-inline vector<MatrixXd> MCGSM::predictors() {
+inline vector<MatrixXd> MCGSM::predictors() const {
 	return mPredictors;
 }
 
