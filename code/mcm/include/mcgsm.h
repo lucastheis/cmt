@@ -19,7 +19,7 @@ class MCGSM : public ConditionalDistribution {
 			public:
 				int verbosity;
 				int maxIter;
-				double tol;
+				double threshold;
 				int numGrad;
 				int batchSize;
 

@@ -251,7 +251,7 @@ static lbfgsfloatval_t evaluateLBFGS(
 MCGSM::Parameters::Parameters() {
 	verbosity = 0;
 	maxIter = 1000;
-	tol = 1e-5;
+	threshold = 1e-5;
 	numGrad = 20;
 	batchSize = 2000;
 };
@@ -319,7 +319,7 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters para
 	lbfgs_parameter_init(&paramsLBFGS);
 	paramsLBFGS.max_iterations = params.maxIter;
 	paramsLBFGS.m = params.numGrad;
-	paramsLBFGS.epsilon = params.tol;
+	paramsLBFGS.epsilon = params.threshold;
 
 	// wrap additional arguments
 	ParamsLBFGS instance;

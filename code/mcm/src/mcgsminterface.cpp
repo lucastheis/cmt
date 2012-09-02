@@ -31,14 +31,14 @@ MCGSM::Parameters PyObject_ToParameters(PyObject* parameters) {
 				throw Exception("max_iter should be of type `int`.");
 		
 
-		PyObject* tol = PyDict_GetItemString(parameters, "tol");
-		if(tol)
-			if(PyFloat_Check(tol))
-				params.tol = PyFloat_AsDouble(tol);
-			else if(PyInt_Check(tol))
-				params.tol = static_cast<double>(PyFloat_AsDouble(tol));
+		PyObject* threshold = PyDict_GetItemString(parameters, "threshold");
+		if(threshold)
+			if(PyFloat_Check(threshold))
+				params.threshold = PyFloat_AsDouble(threshold);
+			else if(PyInt_Check(threshold))
+				params.threshold = static_cast<double>(PyFloat_AsDouble(threshold));
 			else
-				throw Exception("tol should be of type `float`.");
+				throw Exception("threshold should be of type `float`.");
 
 		PyObject* num_grad = PyDict_GetItemString(parameters, "num_grad");
 		if(num_grad)
