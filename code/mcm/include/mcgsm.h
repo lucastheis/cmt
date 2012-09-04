@@ -39,6 +39,7 @@ class MCGSM : public ConditionalDistribution {
 		inline int numComponents() const;
 		inline int numScales() const;
 		inline int numFeatures() const;
+		inline int numParameters() const;
 
 		inline ArrayXXd priors() const;
 		inline void setPriors(ArrayXXd priors);
@@ -97,8 +98,8 @@ class MCGSM : public ConditionalDistribution {
 		vector<MatrixXd> mCholeskyFactors;
 		vector<MatrixXd> mPredictors;
 
-		int numParameters() const;
-		void copyParameters(lbfgsfloatval_t* x) const;
+		virtual lbfgsfloatval_t* parameters() const;
+		virtual void setParameters(const lbfgsfloatval_t* x);
 };
 
 
@@ -129,6 +130,14 @@ inline int MCGSM::numScales() const {
 
 inline int MCGSM::numFeatures() const {
 	return mNumFeatures;
+}
+
+
+
+inline int MCGSM::numParameters() const {
+	return mPriors.size() + mScales.size() + mWeights.size() + mFeatures.size()
+		+ mNumComponents * mDimOut * (mDimOut + 1) / 2 - mNumComponents
+		+ mNumComponents * mPredictors[0].size();
 }
 
 

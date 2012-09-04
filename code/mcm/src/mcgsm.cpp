@@ -308,11 +308,8 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters para
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
 
-	int numParams = numParameters();
-
-	// request memory for LBFGS and copy parameters
-	lbfgsfloatval_t* x = lbfgs_malloc(numParams);
-	copyParameters(x);
+	// copy parameters for L-BFGS
+	lbfgsfloatval_t* x = parameters();
 
 	// optimization hyperparameters
 	lbfgs_parameter_t paramsLBFGS;
@@ -330,35 +327,10 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters para
 
 	// start LBFGS optimization
 	if(params.maxIter > 0)
-		lbfgs(numParams, x, 0, &evaluateLBFGS, &callbackLBFGS, &instance, &paramsLBFGS);
+		lbfgs(numParameters(), x, 0, &evaluateLBFGS, &callbackLBFGS, &instance, &paramsLBFGS);
 
 	// copy parameters back
-	int offset = 0;
-
-	mPriors = MatrixLBFGS(x, mNumComponents, mNumScales);
-	offset += mPriors.size();
-
-	mScales = MatrixLBFGS(x + offset, mNumComponents, mNumScales);
-	offset += mScales.size();
-
-	mWeights = MatrixLBFGS(x + offset, mNumComponents, mNumFeatures);
-	offset += mWeights.size();
-
-	mFeatures = MatrixLBFGS(x + offset, mDimIn, mNumFeatures);
-	offset += mFeatures.size();
-
-	for(int i = 0; i < mNumComponents; ++i) {
-		mCholeskyFactors[i].setZero();
-		mCholeskyFactors[i](0, 0) = 1.;
-		for(int m = 1; m < mDimOut; ++m)
-			for(int n = 0; n <= m; ++n, ++offset)
-				mCholeskyFactors[i](m, n) = x[offset];
-	}
-
-	for(int i = 0; i < mNumComponents; ++i) {
-		mPredictors[i] = MatrixLBFGS(x + offset, mDimOut, mDimIn);
-		offset += mPredictors[i].size();
-	}
+	setParameters(x);
 
 	// free memory used by LBFGS
 	lbfgs_free(x);
@@ -377,11 +349,10 @@ double MCGSM::checkGradient(
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
 
-	int numParams = numParameters();
-
 	// request memory for LBFGS and copy parameters
-	lbfgsfloatval_t x[numParams];
-	copyParameters(x);
+	lbfgsfloatval_t* x = parameters();
+
+	int numParams = numParameters();
 
 	lbfgsfloatval_t y[numParams];
 	lbfgsfloatval_t g[numParams];
@@ -432,11 +403,8 @@ double MCGSM::checkPerformance(
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
 
-	int numParams = numParameters();
-
 	// request memory for LBFGS and copy parameters
-	lbfgsfloatval_t* x = lbfgs_malloc(numParams);
-	copyParameters(x);
+	lbfgsfloatval_t* x = parameters();
 
 	// optimization hyperparameters
 	lbfgs_parameter_t paramsLBFGS;
@@ -452,7 +420,7 @@ double MCGSM::checkPerformance(
 	instance.second.second = &output;
 
 	// measure time it takes to evaluate gradient
-	lbfgsfloatval_t* g = lbfgs_malloc(numParams);
+	lbfgsfloatval_t* g = lbfgs_malloc(numParameters());
 	timeval from, to;
 
 	gettimeofday(&from, 0);
@@ -492,15 +460,9 @@ Array<double, 1, Dynamic> MCGSM::logLikelihood(const MatrixXd& input, const Matr
 
 
 
-int MCGSM::numParameters() const {
-	return mPriors.size() + mScales.size() + mWeights.size() + mFeatures.size()
-		+ mNumComponents * mDimOut * (mDimOut + 1) / 2 - mNumComponents
-		+ mNumComponents * mPredictors[0].size();
-}
+lbfgsfloatval_t* MCGSM::parameters() const {
+	lbfgsfloatval_t* x = lbfgs_malloc(numParameters());
 
-
-
-void MCGSM::copyParameters(lbfgsfloatval_t* x) const {
 	int k = 0;
 	for(int i = 0; i < mPriors.size(); ++i, ++k)
 		x[k] = mPriors.data()[i];
@@ -517,4 +479,36 @@ void MCGSM::copyParameters(lbfgsfloatval_t* x) const {
 	for(int i = 0; i < mPredictors.size(); ++i)
 		for(int j = 0; j < mPredictors[i].size(); ++j, ++k)
 			x[k] = mPredictors[i].data()[j];
+
+	return x;
+}
+
+
+void MCGSM::setParameters(const lbfgsfloatval_t* x) {
+	int offset = 0;
+
+	mPriors = MatrixLBFGS(const_cast<double*>(x), mNumComponents, mNumScales);
+	offset += mPriors.size();
+
+	mScales = MatrixLBFGS(const_cast<double*>(x) + offset, mNumComponents, mNumScales);
+	offset += mScales.size();
+
+	mWeights = MatrixLBFGS(const_cast<double*>(x) + offset, mNumComponents, mNumFeatures);
+	offset += mWeights.size();
+
+	mFeatures = MatrixLBFGS(const_cast<double*>(x) + offset, mDimIn, mNumFeatures);
+	offset += mFeatures.size();
+
+	for(int i = 0; i < mNumComponents; ++i) {
+		mCholeskyFactors[i].setZero();
+		mCholeskyFactors[i](0, 0) = 1.;
+		for(int m = 1; m < mDimOut; ++m)
+			for(int n = 0; n <= m; ++n, ++offset)
+				mCholeskyFactors[i](m, n) = x[offset];
+	}
+
+	for(int i = 0; i < mNumComponents; ++i) {
+		mPredictors[i] = MatrixLBFGS(const_cast<double*>(x) + offset, mDimOut, mDimIn);
+		offset += mPredictors[i].size();
+	}
 }
