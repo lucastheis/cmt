@@ -24,11 +24,19 @@ static int callbackLBFGS(
 	int)
 {
 	// unpack user data
-//	const MCGSM& mcgsm = *static_cast<ParamsLBFGS*>(instance)->first.first;
+	const MCGSM& mcgsm = *static_cast<ParamsLBFGS*>(instance)->first.first;
 	const MCGSM::Parameters& params = *static_cast<ParamsLBFGS*>(instance)->first.second;
 
 	if(params.verbosity > 0)
 		cout << setw(6) << iteration << setw(10) << setprecision(5) << fx << endl;
+
+	if(params.callback && iteration % params.cbIter == 0) {
+		MCGSM mcgsmCopy(mcgsm);
+		mcgsmCopy.setParameters(x);
+
+		if(!(*params.callback)(iteration, mcgsmCopy))
+			return 1;
+	}
 
 	return 0;
 }
@@ -248,13 +256,56 @@ static lbfgsfloatval_t evaluateLBFGS(
 
 
 
+MCGSM::Callback::~Callback() {
+}
+
+
+
 MCGSM::Parameters::Parameters() {
 	verbosity = 0;
 	maxIter = 1000;
 	threshold = 1e-5;
 	numGrad = 20;
 	batchSize = 2000;
-};
+	callback = 0;
+	cbIter = 25;
+}
+
+
+
+MCGSM::Parameters::Parameters(const Parameters& params) :
+	verbosity(params.verbosity),
+	maxIter(params.maxIter),
+	threshold(params.threshold),
+	numGrad(params.numGrad),
+	batchSize(params.batchSize),
+	callback(0),
+	cbIter(params.cbIter)
+{
+	if(params.callback)
+		callback = params.callback->copy();
+}
+
+
+
+MCGSM::Parameters::~Parameters() {
+	if(callback)
+		delete callback;
+}
+
+
+
+MCGSM::Parameters& MCGSM::Parameters::operator=(const Parameters& params) {
+	verbosity = params.verbosity;
+	maxIter = params.maxIter;
+	threshold = params.threshold;
+	numGrad = params.numGrad;
+	batchSize = params.batchSize;
+	callback = params.callback ? params.callback->copy() : 0;
+	cbIter = params.cbIter;
+
+	return *this;
+}
 
 
 
@@ -307,6 +358,8 @@ void MCGSM::normalize() {
 bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters params) {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("The number of inputs and outputs should be the same.");
 
 	// copy parameters for L-BFGS
 	lbfgsfloatval_t* x = parameters();
@@ -348,6 +401,8 @@ double MCGSM::checkGradient(
 {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("The number of inputs and outputs should be the same.");
 
 	// request memory for LBFGS and copy parameters
 	lbfgsfloatval_t* x = parameters();
@@ -402,6 +457,8 @@ double MCGSM::checkPerformance(
 {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("The number of inputs and outputs should be the same.");
 
 	// request memory for LBFGS and copy parameters
 	lbfgsfloatval_t* x = parameters();
@@ -443,18 +500,33 @@ MatrixXd MCGSM::sample(const MatrixXd& input) const {
 
 
 Array<double, 1, Dynamic> MCGSM::samplePosterior(const MatrixXd& input, const MatrixXd& output) const {
+	if(input.rows() != mDimIn || output.rows() != mDimOut)
+		throw Exception("Data has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("The number of inputs and outputs should be the same.");
+
 	return Array<double, 1, Dynamic>::Random(1, input.cols());
 }
 
 
 
 ArrayXXd MCGSM::posterior(const MatrixXd& input, const MatrixXd& output) const {
+	if(input.rows() != mDimIn || output.rows() != mDimOut)
+		throw Exception("Data has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("The number of inputs and outputs should be the same.");
+
 	return ArrayXXd::Random(mNumComponents, input.cols());
 }
 
 
 
 Array<double, 1, Dynamic> MCGSM::logLikelihood(const MatrixXd& input, const MatrixXd& output) const {
+	if(input.rows() != mDimIn || output.rows() != mDimOut)
+		throw Exception("Data has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("The number of inputs and outputs should be the same.");
+
 	return ArrayXXd::Random(1, input.cols());
 }
 

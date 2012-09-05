@@ -9,6 +9,7 @@ modules = [
 	Extension('mcm',
 		language='c++',
 		sources=[
+			'code/mcm/src/callbacktrain.cpp',
 			'code/mcm/src/mcgsminterface.cpp',
 			'code/mcm/src/mcgsm.cpp',
 			'code/mcm/src/pyutils.cpp',

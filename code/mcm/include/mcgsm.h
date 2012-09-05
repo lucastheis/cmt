@@ -15,6 +15,13 @@ using std::vector;
 
 class MCGSM : public ConditionalDistribution {
 	public:
+		class Callback {
+			public:
+				virtual ~Callback();
+				virtual Callback* copy() = 0;
+				virtual bool operator()(int iter, const MCGSM& isa) = 0;
+		};
+
 		struct Parameters {
 			public:
 				int verbosity;
@@ -22,8 +29,13 @@ class MCGSM : public ConditionalDistribution {
 				double threshold;
 				int numGrad;
 				int batchSize;
+				Callback* callback;
+				int cbIter;
 
 				Parameters();
+				Parameters(const Parameters& params);
+				virtual ~Parameters();
+				virtual Parameters& operator=(const Parameters& params);
 		};
 
 		MCGSM(
@@ -82,6 +94,9 @@ class MCGSM : public ConditionalDistribution {
 		virtual ArrayXXd posterior(const MatrixXd& input, const MatrixXd& output) const;
 		virtual Array<double, 1, Dynamic> logLikelihood(const MatrixXd& input, const MatrixXd& output) const;
 
+		virtual lbfgsfloatval_t* parameters() const;
+		virtual void setParameters(const lbfgsfloatval_t* x);
+
 	protected:
 		// hyperparameters
 		int mDimIn;
@@ -97,9 +112,6 @@ class MCGSM : public ConditionalDistribution {
 		MatrixXd mFeatures;
 		vector<MatrixXd> mCholeskyFactors;
 		vector<MatrixXd> mPredictors;
-
-		virtual lbfgsfloatval_t* parameters() const;
-		virtual void setParameters(const lbfgsfloatval_t* x);
 };
 
 

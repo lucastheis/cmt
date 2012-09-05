@@ -84,7 +84,6 @@ class Tests(unittest.TestCase):
 			parameters={
 				'verbosity': 0,
 				'max_iter': 0,
-				'batch_size': 1999,
 				})
 
 		# parameters should not have changed
@@ -94,14 +93,20 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(mcgsm.features - features)), 1e-20)
 		self.assertLess(max(abs(mcgsm.predictors[0] - predictor)), 1e-20)
 
+		def callback(i, mcgsm):
+			print i
+
 		# make sure training doesn't throw any errors
 		mcgsm.train(
-			randn(mcgsm.dim_in, 20000),
+			randn(mcgsm.dim_in, 10000),
 			randn(mcgsm.dim_out, 10000),
 			parameters={
 				'verbosity': 0,
-				'max_iter': 1,
+				'max_iter': 10,
+				'threshold': 0.,
 				'batch_size': 1999,
+				'callback': callback,
+				'cb_iter': 1,
 				})
 
 

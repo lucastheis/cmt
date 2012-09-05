@@ -1,10 +1,11 @@
 #include "mcgsminterface.h"
 #include "Eigen/Core"
 #include "exception.h"
+#include "callbacktrain.h"
 
 using namespace Eigen;
 
-MCGSM::Parameters PyObject_ToParameters(PyObject* parameters) {
+MCGSM::Parameters PyObject_ToParameters(MCGSMObject* self, PyObject* parameters) {
 	MCGSM::Parameters params;
 
 	// read parameters from dictionary
@@ -57,6 +58,22 @@ MCGSM::Parameters PyObject_ToParameters(PyObject* parameters) {
 				params.batchSize = static_cast<int>(PyFloat_AsDouble(batch_size));
 			else
 				throw Exception("batch_size should be of type `int`.");
+
+		PyObject* callback = PyDict_GetItemString(parameters, "callback");
+		if(callback)
+			if(PyCallable_Check(callback))
+				params.callback = new CallbackTrain(self, callback);
+			else if(callback != Py_None)
+				throw Exception("callback should be a function or callable object.");
+
+		PyObject* cb_iter = PyDict_GetItemString(parameters, "cb_iter");
+		if(cb_iter)
+			if(PyInt_Check(cb_iter))
+				params.cbIter = PyInt_AsLong(cb_iter);
+			else if(PyFloat_Check(cb_iter))
+				params.cbIter = static_cast<int>(PyFloat_AsDouble(cb_iter));
+			else
+				throw Exception("cb_iter should be of type `int`.");
 	}
 
 	return params;
@@ -427,7 +444,7 @@ PyObject* MCGSM_train(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 		if(self->mcgsm->train(
 				PyArray_ToMatrixXd(input), 
 				PyArray_ToMatrixXd(output), 
-				PyObject_ToParameters(parameters)))
+				PyObject_ToParameters(self, parameters)))
 		{
 			Py_DECREF(input);
 			Py_DECREF(output);
@@ -481,7 +498,7 @@ PyObject* MCGSM_check_performance(MCGSMObject* self, PyObject* args, PyObject* k
 			PyArray_ToMatrixXd(input),
 			PyArray_ToMatrixXd(output),
 			repetitions, 
-			PyObject_ToParameters(parameters));
+			PyObject_ToParameters(self, parameters));
 		Py_DECREF(input);
 		Py_DECREF(output);
 		return PyFloat_FromDouble(err);
@@ -527,7 +544,7 @@ PyObject* MCGSM_check_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds
 			PyArray_ToMatrixXd(input),
 			PyArray_ToMatrixXd(output),
 			epsilon,
-			PyObject_ToParameters(parameters));
+			PyObject_ToParameters(self, parameters));
 		Py_DECREF(input);
 		Py_DECREF(output);
 		return PyFloat_FromDouble(err);
