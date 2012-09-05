@@ -89,8 +89,12 @@ class MCGSM : public ConditionalDistribution {
 			Parameters params = Parameters()) const;
 
 		virtual MatrixXd sample(const MatrixXd& input) const;
-		virtual Array<double, 1, Dynamic> samplePosterior(const MatrixXd& input, const MatrixXd& output) const;
+		virtual MatrixXd sample(const MatrixXd& input, const Array<int, 1, Dynamic>& labels) const;
+		virtual MatrixXd reconstruct(const MatrixXd& input, const MatrixXd& output) const;
+		virtual Array<int, 1, Dynamic> samplePrior(const MatrixXd& input) const;
+		virtual Array<int, 1, Dynamic> samplePosterior(const MatrixXd& input, const MatrixXd& output) const;
 
+		virtual ArrayXXd prior(const MatrixXd& input) const;
 		virtual ArrayXXd posterior(const MatrixXd& input, const MatrixXd& output) const;
 		virtual Array<double, 1, Dynamic> logLikelihood(const MatrixXd& input, const MatrixXd& output) const;
 

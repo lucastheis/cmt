@@ -251,7 +251,7 @@ static lbfgsfloatval_t evaluateLBFGS(
 	}
 
 	// return average log-likelihood
-	return -logLik / inputCompl.cols();
+	return -logLik / inputCompl.cols() / log(2.);
 }
 
 
@@ -494,18 +494,104 @@ double MCGSM::checkPerformance(
 
 
 MatrixXd MCGSM::sample(const MatrixXd& input) const {
-	return MatrixXd::Random(mDimOut, input.cols());
+	return sample(input, samplePrior(input));
 }
 
 
 
-Array<double, 1, Dynamic> MCGSM::samplePosterior(const MatrixXd& input, const MatrixXd& output) const {
+MatrixXd MCGSM::sample(const MatrixXd& input, const Array<int, 1, Dynamic>& labels) const {
+	if(input.rows() != mDimIn)
+		throw Exception("Data has wrong dimensionality.");
+	if(input.cols() != labels.cols())
+		throw Exception("The number of inputs and labels should be the same.");
+
+	MatrixXd output = MatrixXd::Random(mDimOut, input.cols());
+	return output;
+}
+
+
+
+MatrixXd MCGSM::reconstruct(const MatrixXd& input, const MatrixXd& output) const {
+	// reconstruct output from labels
+	return sample(input, samplePosterior(input, output));
+}
+
+
+
+Array<int, 1, Dynamic> MCGSM::samplePrior(const MatrixXd& input) const {
+	if(input.rows() != mDimIn)
+		throw Exception("Data has wrong dimensionality.");
+
+	Array<int, 1, Dynamic> labels(input.cols());
+	ArrayXXd pmf = prior(input);
+
+	#pragma omp parallel for
+	for(int j = 0; j < input.cols(); ++j) {
+		int i = 0;
+		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double cdf;
+
+		// compute index
+		for(cdf = pmf(0, j); cdf < urand; cdf += pmf(i, j))
+			++i;
+
+		labels[j] = i;
+	}
+
+	return labels;
+}
+
+
+
+Array<int, 1, Dynamic> MCGSM::samplePosterior(const MatrixXd& input, const MatrixXd& output) const {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
 	if(input.cols() != output.cols())
 		throw Exception("The number of inputs and outputs should be the same.");
 
-	return Array<double, 1, Dynamic>::Random(1, input.cols());
+	Array<int, 1, Dynamic> labels(input.cols());
+	ArrayXXd pmf = posterior(input, output);
+
+	#pragma omp parallel for
+	for(int j = 0; j < input.cols(); ++j) {
+		int i = 0;
+		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double cdf;
+
+		// compute index
+		for(cdf = pmf(0, j); cdf < urand; cdf += pmf(i, j))
+			++i;
+
+		labels[j] = i;
+	}
+
+	return labels;
+}
+
+
+
+ArrayXXd MCGSM::prior(const MatrixXd& input) const {
+	if(input.rows() != mDimIn)
+		throw Exception("Data has wrong dimensionality.");
+
+	ArrayXXd prior(mNumComponents, input.cols());
+
+	ArrayXXd featuresOutput = mFeatures.transpose() * input;
+	MatrixXd weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix();
+	MatrixXd scalesSqr = mScales.array().square().transpose();
+
+	#pragma omp parallel for
+	for(int i = 0; i < mNumComponents; ++i) {
+		// compute unnormalized posterior
+		ArrayXXd negEnergy = -scalesSqr.col(i) / 2. * weightsOutput.row(i);
+		negEnergy.colwise() += mPriors.row(i).transpose();
+
+		// marginalize out scales
+		prior.row(i) = logSumExp(negEnergy);
+	}
+
+	// return normalized prior
+	return (prior.rowwise() - logSumExp(prior)).exp();
 }
 
 
@@ -516,7 +602,31 @@ ArrayXXd MCGSM::posterior(const MatrixXd& input, const MatrixXd& output) const {
 	if(input.cols() != output.cols())
 		throw Exception("The number of inputs and outputs should be the same.");
 
-	return ArrayXXd::Random(mNumComponents, input.cols());
+	ArrayXXd posterior(mNumComponents, input.cols());
+
+	ArrayXXd featuresOutput = mFeatures.transpose() * input;
+	MatrixXd weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix();
+	MatrixXd scalesSqr = mScales.array().square().transpose();
+
+	#pragma omp parallel for
+	for(int i = 0; i < mNumComponents; ++i) {
+		Matrix<double, 1, Dynamic> errorSqr = 
+			(mCholeskyFactors[i].transpose() * (output - mPredictors[i] * input)).colwise().squaredNorm();
+
+		// compute unnormalized posterior
+		ArrayXXd negEnergy = -scalesSqr.col(i) / 2. * (weightsOutput.row(i) + errorSqr);
+
+		// normalization constants of experts
+		double logDet = mCholeskyFactors[i].diagonal().array().abs().log().sum();
+		ArrayXd logPartf = mDimOut * mScales.row(i).array().abs().log() + logDet;
+		negEnergy.colwise() += mPriors.row(i).transpose() + logPartf;
+
+		// marginalize out scales
+		posterior.row(i) = logSumExp(negEnergy);
+	}
+
+	// return normalized prior
+	return (posterior.rowwise() - logSumExp(posterior)).exp();
 }
 
 
@@ -527,7 +637,32 @@ Array<double, 1, Dynamic> MCGSM::logLikelihood(const MatrixXd& input, const Matr
 	if(input.cols() != output.cols())
 		throw Exception("The number of inputs and outputs should be the same.");
 
-	return ArrayXXd::Random(1, input.cols());
+	ArrayXXd logLikelihood(mNumComponents, input.cols());
+
+	ArrayXXd featuresOutput = mFeatures.transpose() * input;
+	MatrixXd weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix();
+	MatrixXd scalesSqr = mScales.array().square().transpose();
+
+	#pragma omp parallel for
+	for(int i = 0; i < mNumComponents; ++i) {
+		Matrix<double, 1, Dynamic> errorSqr = 
+			(mCholeskyFactors[i].transpose() * (output - mPredictors[i] * input)).colwise().squaredNorm();
+
+		// compute unnormalized joint density
+		ArrayXXd negEnergy = -scalesSqr.col(i) / 2. * (weightsOutput.row(i) + errorSqr);
+
+		// normalization constants of experts
+		double logDet = mCholeskyFactors[i].diagonal().array().abs().log().sum();
+		ArrayXd logPartf = mDimOut * mScales.row(i).array().abs().log() +
+			logDet - mDimOut / 2. * log(2. * PI);
+		negEnergy.colwise() += mPriors.row(i).transpose() + logPartf;
+
+		// marginalize out scales
+		logLikelihood.row(i) = logSumExp(negEnergy);
+	}
+
+	// marginalize out components
+	return logSumExp(logLikelihood);
 }
 
 
