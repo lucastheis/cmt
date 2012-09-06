@@ -506,6 +506,33 @@ MatrixXd MCGSM::sample(const MatrixXd& input, const Array<int, 1, Dynamic>& labe
 		throw Exception("The number of inputs and labels should be the same.");
 
 	MatrixXd output = MatrixXd::Random(mDimOut, input.cols());
+
+	ArrayXXd featuresOutput = mFeatures.transpose() * input;
+	MatrixXd scalesSqr = mScales.square().transpose();
+	MatrixXd weightsSqr = mWeights.square();
+
+	#pragma omp parallel for
+	for(int i = 0; i < input.cols(); ++i) {
+		// distribution over scales
+		ArrayXd pmf = mPriors.row(labels[i]).transpose().matrix() - scalesSqr.col(labels[i]) / 2. * 
+			(weightsSqr.row(labels[i]) * featuresOutput.col(i).square().matrix());
+		pmf = (pmf - logSumExp(pmf)[0]).exp();
+
+		// sample scale
+		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double cdf;
+		int j = 0;
+
+		for(cdf = pmf(0); cdf < urand; cdf += pmf(j))
+			++j;
+
+		// apply precision matrix
+		mCholeskyFactors[labels[i]].transpose().triangularView<Eigen::Upper>().solveInPlace(output.col(i));
+
+		// apply scale
+		output.col(i) /= mScales(labels[i], j);
+	}
+
 	return output;
 }
 
@@ -578,7 +605,7 @@ ArrayXXd MCGSM::prior(const MatrixXd& input) const {
 
 	ArrayXXd featuresOutput = mFeatures.transpose() * input;
 	MatrixXd weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix();
-	MatrixXd scalesSqr = mScales.array().square().transpose();
+	MatrixXd scalesSqr = mScales.square().transpose();
 
 	#pragma omp parallel for
 	for(int i = 0; i < mNumComponents; ++i) {
