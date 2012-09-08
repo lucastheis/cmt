@@ -229,7 +229,7 @@ static lbfgsfloatval_t evaluateLBFGS(
 			MatrixXd tmp9 = choleskyFactors[i].diagonal().cwiseInverse().asDiagonal();
 
 			// gradient of cholesky factor
-			choleskyFactorsGrad[i] += tmp8 * predError[i].transpose() * choleskyFactors[i].transpose()
+			choleskyFactorsGrad[i] += tmp8 * predError[i].transpose() * choleskyFactors[i]
 				- tmp3.sum() * tmp9;
 
 			MatrixXd precision = choleskyFactors[i] * choleskyFactors[i].transpose();
@@ -239,6 +239,8 @@ static lbfgsfloatval_t evaluateLBFGS(
 		}
 	}
 
+	double normConst = inputCompl.cols() * log(2.);
+
 	if(g) {
 		// write back gradients of Cholesky factors
 		for(int i = 0; i < mcgsm.numComponents(); ++i)
@@ -247,11 +249,11 @@ static lbfgsfloatval_t evaluateLBFGS(
 					g[cholFacOffset] = choleskyFactorsGrad[i](m, n);
 
 		for(int i = 0; i < offset; ++i)
-			g[i] /= inputCompl.cols();
+			g[i] /= normConst;
 	}
 
 	// return average log-likelihood
-	return -logLik / inputCompl.cols() / log(2.);
+	return -logLik / normConst;
 }
 
 
@@ -370,6 +372,7 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters para
 	paramsLBFGS.max_iterations = params.maxIter;
 	paramsLBFGS.m = params.numGrad;
 	paramsLBFGS.epsilon = params.threshold;
+	paramsLBFGS.linesearch = LBFGS_LINESEARCH_BACKTRACKING_STRONG_WOLFE;
 
 	// wrap additional arguments
 	ParamsLBFGS instance;
@@ -444,6 +447,47 @@ double MCGSM::checkGradient(
 	for(int i = 0; i < numParams; ++i)
 		err += (g[i] - n[i]) * (g[i] - n[i]);
 
+	if(params.verbosity > 1) {
+		int numParamsPriors = mNumComponents * mNumScales;
+		int numParamsScales = mNumComponents * mNumScales;
+		int numParamsWeights = mNumComponents * mNumFeatures;
+		int numParamsFeatures = mDimIn * mNumFeatures;
+		int numParamsCholeskyFactors = mNumComponents * mDimOut * 
+			(mDimOut + 1) / 2 - mNumComponents;
+		int numParamsPredictors = mNumComponents * mDimIn * mDimOut;
+		int j = 0;
+
+		err = 0.;
+		for(int i = 0; i < numParamsPriors; ++i, ++j)
+			err += (g[j] - n[j]) * (g[j] - n[j]);
+		cout << "Error in priorsGrad (" << numParamsPriors << " parameters): " << sqrt(err) << endl;
+
+		err = 0.;
+		for(int i = 0; i < numParamsScales; ++i, ++j)
+			err += (g[j] - n[j]) * (g[j] - n[j]);
+		cout << "Error in scalesGrad (" << numParamsScales << " parameters): " << sqrt(err) << endl;
+
+		err = 0.;
+		for(int i = 0; i < numParamsWeights; ++i, ++j)
+			err += (g[j] - n[j]) * (g[j] - n[j]);
+		cout << "Error in weightsGrad (" << numParamsWeights << " parameters): " << sqrt(err) << endl;
+
+		err = 0.;
+		for(int i = 0; i < numParamsFeatures; ++i, ++j)
+			err += (g[j] - n[j]) * (g[j] - n[j]);
+		cout << "Error in featuresGrad (" << numParamsFeatures << " parameters): " << sqrt(err) << endl;
+
+		err = 0.;
+		for(int i = 0; i < numParamsCholeskyFactors; ++i, ++j)
+			err += (g[j] - n[j]) * (g[j] - n[j]);
+		cout << "Error in choleskyFactorsGrad (" << numParamsCholeskyFactors << " parameters): " << sqrt(err) << endl;
+
+		err = 0.;
+		for(int i = 0; i < numParamsPredictors; ++i, ++j)
+			err += (g[j] - n[j]) * (g[j] - n[j]);
+		cout << "Error in predictorsGrad (" << numParamsPredictors << " parameters): " << sqrt(err) << endl;
+	}
+
 	return sqrt(err);
 }
 
@@ -505,7 +549,7 @@ MatrixXd MCGSM::sample(const MatrixXd& input, const Array<int, 1, Dynamic>& labe
 	if(input.cols() != labels.cols())
 		throw Exception("The number of inputs and labels should be the same.");
 
-	MatrixXd output = MatrixXd::Random(mDimOut, input.cols());
+	MatrixXd output = sampleNormal(mDimOut, input.cols());
 
 	ArrayXXd featuresOutput = mFeatures.transpose() * input;
 	MatrixXd scalesSqr = mScales.square().transpose();
@@ -665,6 +709,7 @@ Array<double, 1, Dynamic> MCGSM::logLikelihood(const MatrixXd& input, const Matr
 		throw Exception("The number of inputs and outputs should be the same.");
 
 	ArrayXXd logLikelihood(mNumComponents, input.cols());
+	ArrayXXd normConsts(mNumComponents, input.cols());
 
 	ArrayXXd featuresOutput = mFeatures.transpose() * input;
 	MatrixXd weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix();
@@ -672,24 +717,30 @@ Array<double, 1, Dynamic> MCGSM::logLikelihood(const MatrixXd& input, const Matr
 
 	#pragma omp parallel for
 	for(int i = 0; i < mNumComponents; ++i) {
+		// compute gate energy
+		ArrayXXd negEnergy = -scalesSqr.col(i) / 2. * weightsOutput.row(i);
+		negEnergy.colwise() += mPriors.row(i).transpose();
+
+		// normalization constants of gates
+		normConsts.row(i) = logSumExp(negEnergy);
+
+		// expert energy
 		Matrix<double, 1, Dynamic> errorSqr = 
 			(mCholeskyFactors[i].transpose() * (output - mPredictors[i] * input)).colwise().squaredNorm();
-
-		// compute unnormalized joint density
-		ArrayXXd negEnergy = -scalesSqr.col(i) / 2. * (weightsOutput.row(i) + errorSqr);
+		negEnergy -= (scalesSqr.col(i) / 2. * errorSqr).array();
 
 		// normalization constants of experts
 		double logDet = mCholeskyFactors[i].diagonal().array().abs().log().sum();
 		ArrayXd logPartf = mDimOut * mScales.row(i).array().abs().log() +
 			logDet - mDimOut / 2. * log(2. * PI);
-		negEnergy.colwise() += mPriors.row(i).transpose() + logPartf;
+		negEnergy.colwise() += logPartf;
 
 		// marginalize out scales
 		logLikelihood.row(i) = logSumExp(negEnergy);
 	}
 
 	// marginalize out components
-	return logSumExp(logLikelihood);
+	return logSumExp(logLikelihood) - logSumExp(normConsts);
 }
 
 

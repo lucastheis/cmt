@@ -11,6 +11,8 @@
 using namespace Eigen;
 
 PyObject* PyArray_FromMatrixXd(const MatrixXd& mat);
+PyObject* PyArray_FromMatrixXi(const MatrixXi& mat);
 MatrixXd PyArray_ToMatrixXd(PyObject* array);
+MatrixXi PyArray_ToMatrixXi(PyObject* array);
 
 #endif

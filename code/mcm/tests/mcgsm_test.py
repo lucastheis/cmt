@@ -94,7 +94,7 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(mcgsm.predictors[0] - predictor)), 1e-20)
 
 		def callback(i, mcgsm):
-			print i
+			return
 
 		# make sure training doesn't throw any errors
 		mcgsm.train(

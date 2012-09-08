@@ -108,7 +108,12 @@ int MCGSM_init(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 		num_features = dim_in;
 
 	// create actual GSM instance
-	self->mcgsm = new MCGSM(dim_in, dim_out, num_components, num_scales, num_features);
+	try {
+		self->mcgsm = new MCGSM(dim_in, dim_out, num_components, num_scales, num_features);
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
 
 	return 0;
 }
@@ -642,7 +647,7 @@ PyObject* MCGSM_sample_posterior(MCGSMObject* self, PyObject* args, PyObject* kw
 	}
 
 	try {
-		PyObject* result = PyArray_FromMatrixXd(
+		PyObject* result = PyArray_FromMatrixXi(
 			self->mcgsm->samplePosterior(PyArray_ToMatrixXd(input), PyArray_ToMatrixXd(output)));
 		Py_DECREF(input);
 		Py_DECREF(output);
