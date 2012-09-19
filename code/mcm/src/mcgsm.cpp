@@ -133,7 +133,7 @@ static lbfgsfloatval_t evaluateLBFGS(
 		vector<ArrayXXd> logPosteriorOut(mcgsm.numComponents());
 		vector<MatrixXd> predError(mcgsm.numComponents());
 		vector<Array<double, 1, Dynamic> > predErrorSqNorm(mcgsm.numComponents());
-		vector<MatrixXd> scalesSqr(mcgsm.numComponents());
+		vector<MatrixXd> scalesExp(mcgsm.numComponents());
 
 		// partial normalization constants
 		ArrayXXd logNormInScales(mcgsm.numComponents(), input.cols());
@@ -141,19 +141,19 @@ static lbfgsfloatval_t evaluateLBFGS(
 
 		#pragma omp parallel for
 		for(int i = 0; i < mcgsm.numComponents(); ++i) {
-			scalesSqr[i] = scales.row(i).transpose().array().square();
+			scalesExp[i] = scales.row(i).transpose().array().exp();
 
-			MatrixXd negEnergyGate = -scalesSqr[i] / 2. * weightsOutput.row(i);
+			MatrixXd negEnergyGate = -scalesExp[i] / 2. * weightsOutput.row(i);
 			negEnergyGate.colwise() += priors.row(i).transpose();
 
 			predError[i] = output - predictors[i] * input;
 			predErrorSqNorm[i] = (choleskyFactors[i].transpose() * predError[i]).colwise().squaredNorm();
 
-			MatrixXd negEnergyExpert = -scalesSqr[i] / 2. * predErrorSqNorm[i].matrix();
+			MatrixXd negEnergyExpert = -scalesExp[i] / 2. * predErrorSqNorm[i].matrix();
 
 			// normalize expert energy
 			double logDet = choleskyFactors[i].diagonal().array().abs().log().sum();
-			VectorXd logPartf = mcgsm.dimOut() * scales.row(i).transpose().array().abs().log()
+			VectorXd logPartf = mcgsm.dimOut() / 2. * scales.row(i).transpose().array()
 				+ logDet - mcgsm.dimOut() / 2. * log(2. * PI);
 
 			negEnergyExpert.colwise() += logPartf;
@@ -201,7 +201,7 @@ static lbfgsfloatval_t evaluateLBFGS(
 			// gradient of prior variables
 			priorsGrad.row(i) += posteriorDiff.rowwise().sum();
 
-			Array<double, 1, Dynamic> tmp0 = -scalesSqr[i].transpose() * posteriorDiff;
+			Array<double, 1, Dynamic> tmp0 = -scalesExp[i].transpose() * posteriorDiff;
 			Array<double, 1, Dynamic> tmp1 = (featureOutputSqr.array().rowwise() * tmp0).rowwise().sum();
 
 			// gradient of weights
@@ -213,9 +213,9 @@ static lbfgsfloatval_t evaluateLBFGS(
 
 			// gradient of scale variables
  			scalesGrad.row(i) += (
- 				tmp4 * scales.row(i).array() - 
- 				tmp3 / scales.row(i).array() * mcgsm.dimOut() -
- 				tmp2 * scales.row(i).array()).matrix();
+ 				tmp4 * scales.row(i).array().exp() / 2. - 
+ 				tmp3 * mcgsm.dimOut() / 2. -
+ 				tmp2 * scales.row(i).array().exp() / 2.).matrix();
 
 			MatrixXd tmp5 = input.array().rowwise() * tmp0;
 			ArrayXXd tmp6 = tmp5 * featureOutput.transpose();
@@ -224,7 +224,7 @@ static lbfgsfloatval_t evaluateLBFGS(
 			#pragma omp critical
 			featuresGrad += (tmp6.rowwise() * weightsSqr.row(i).array()).matrix();
 
-			Array<double, 1, Dynamic> tmp7 = scalesSqr[i].transpose() * posteriorOut.matrix();
+			Array<double, 1, Dynamic> tmp7 = scalesExp[i].transpose() * posteriorOut.matrix();
 			MatrixXd tmp8 = predError[i].array().rowwise() * tmp7;
 			MatrixXd tmp9 = choleskyFactors[i].diagonal().cwiseInverse().asDiagonal();
 
@@ -334,8 +334,10 @@ MCGSM::MCGSM(
 		throw Exception("The number of features has to be positive.");
 
 	// initialize parameters
-	mPriors = ArrayXXd::Random(mNumComponents, mNumScales) / 10.;
-	mScales = ArrayXXd::Random(mNumComponents, mNumScales).abs() / 2. + 0.75;
+	mPriors = ArrayXXd::Zero(mNumComponents, mNumScales);
+//	mPriors = ArrayXXd::Random(mNumComponents, mNumScales) / 10.;
+//	mScales = ArrayXXd::Random(mNumComponents, mNumScales).abs() / 2. + 0.75;
+	mScales = ArrayXXd::Random(mNumComponents, mNumScales) / 2.;
 	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 10. + 0.01;
 	mFeatures = ArrayXXd::Random(mDimIn, mNumFeatures) / 10.;
 
