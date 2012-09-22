@@ -238,7 +238,7 @@ inline void MCGSM::setCholeskyFactors(vector<MatrixXd> choleskyFactors) {
 
 		// normalize representation
 		mCholeskyFactors[i] /= prec;
-		mScales.row(i) *= prec;
+		mScales.row(i) += 2. * log(prec);
 		mWeights.row(i) /= prec;
 	}
 }

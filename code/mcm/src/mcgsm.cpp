@@ -459,7 +459,7 @@ double MCGSM::checkGradient(
 		int numParamsPredictors = mNumComponents * mDimIn * mDimOut;
 		int j = 0;
 
-		err = 0.;
+		double err = 0.;
 		for(int i = 0; i < numParamsPriors; ++i, ++j)
 			err += (g[j] - n[j]) * (g[j] - n[j]);
 		cout << "Error in priorsGrad (" << numParamsPriors << " parameters): " << sqrt(err) << endl;
@@ -554,13 +554,13 @@ MatrixXd MCGSM::sample(const MatrixXd& input, const Array<int, 1, Dynamic>& labe
 	MatrixXd output = sampleNormal(mDimOut, input.cols());
 
 	ArrayXXd featuresOutput = mFeatures.transpose() * input;
-	MatrixXd scalesSqr = mScales.square().transpose();
+	MatrixXd scalesExp = mScales.exp().transpose();
 	MatrixXd weightsSqr = mWeights.square();
 
 	#pragma omp parallel for
 	for(int i = 0; i < input.cols(); ++i) {
 		// distribution over scales
-		ArrayXd pmf = mPriors.row(labels[i]).transpose().matrix() - scalesSqr.col(labels[i]) / 2. * 
+		ArrayXd pmf = mPriors.row(labels[i]).transpose().matrix() - scalesExp.col(labels[i]) / 2. * 
 			(weightsSqr.row(labels[i]) * featuresOutput.col(i).square().matrix());
 		pmf = (pmf - logSumExp(pmf)[0]).exp();
 
@@ -576,7 +576,7 @@ MatrixXd MCGSM::sample(const MatrixXd& input, const Array<int, 1, Dynamic>& labe
 		mCholeskyFactors[labels[i]].transpose().triangularView<Eigen::Upper>().solveInPlace(output.col(i));
 
 		// apply scale
-		output.col(i) /= mScales(labels[i], j);
+		output.col(i) /= sqrt(scalesExp(labels[i], j));
 	}
 
 	return output;
@@ -651,12 +651,12 @@ ArrayXXd MCGSM::prior(const MatrixXd& input) const {
 
 	ArrayXXd featuresOutput = mFeatures.transpose() * input;
 	MatrixXd weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix();
-	MatrixXd scalesSqr = mScales.square().transpose();
+	MatrixXd scalesExp = mScales.exp().transpose();
 
 	#pragma omp parallel for
 	for(int i = 0; i < mNumComponents; ++i) {
 		// compute unnormalized posterior
-		ArrayXXd negEnergy = -scalesSqr.col(i) / 2. * weightsOutput.row(i);
+		ArrayXXd negEnergy = -scalesExp.col(i) / 2. * weightsOutput.row(i);
 		negEnergy.colwise() += mPriors.row(i).transpose();
 
 		// marginalize out scales
@@ -679,7 +679,7 @@ ArrayXXd MCGSM::posterior(const MatrixXd& input, const MatrixXd& output) const {
 
 	ArrayXXd featuresOutput = mFeatures.transpose() * input;
 	MatrixXd weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix();
-	MatrixXd scalesSqr = mScales.array().square().transpose();
+	MatrixXd scalesExp = mScales.array().exp().transpose();
 
 	#pragma omp parallel for
 	for(int i = 0; i < mNumComponents; ++i) {
@@ -687,11 +687,11 @@ ArrayXXd MCGSM::posterior(const MatrixXd& input, const MatrixXd& output) const {
 			(mCholeskyFactors[i].transpose() * (output - mPredictors[i] * input)).colwise().squaredNorm();
 
 		// compute unnormalized posterior
-		ArrayXXd negEnergy = -scalesSqr.col(i) / 2. * (weightsOutput.row(i) + errorSqr);
+		ArrayXXd negEnergy = -scalesExp.col(i) / 2. * (weightsOutput.row(i) + errorSqr);
 
 		// normalization constants of experts
 		double logDet = mCholeskyFactors[i].diagonal().array().abs().log().sum();
-		ArrayXd logPartf = mDimOut * mScales.row(i).array().abs().log() + logDet;
+		ArrayXd logPartf = mDimOut * mScales.row(i).array() / 2. + logDet;
 		negEnergy.colwise() += mPriors.row(i).transpose() + logPartf;
 
 		// marginalize out scales
@@ -715,12 +715,12 @@ Array<double, 1, Dynamic> MCGSM::logLikelihood(const MatrixXd& input, const Matr
 
 	ArrayXXd featuresOutput = mFeatures.transpose() * input;
 	MatrixXd weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix();
-	MatrixXd scalesSqr = mScales.array().square().transpose();
+	MatrixXd scalesExp = mScales.array().exp().transpose();
 
 	#pragma omp parallel for
 	for(int i = 0; i < mNumComponents; ++i) {
 		// compute gate energy
-		ArrayXXd negEnergy = -scalesSqr.col(i) / 2. * weightsOutput.row(i);
+		ArrayXXd negEnergy = -scalesExp.col(i) / 2. * weightsOutput.row(i);
 		negEnergy.colwise() += mPriors.row(i).transpose();
 
 		// normalization constants of gates
@@ -729,11 +729,11 @@ Array<double, 1, Dynamic> MCGSM::logLikelihood(const MatrixXd& input, const Matr
 		// expert energy
 		Matrix<double, 1, Dynamic> errorSqr = 
 			(mCholeskyFactors[i].transpose() * (output - mPredictors[i] * input)).colwise().squaredNorm();
-		negEnergy -= (scalesSqr.col(i) / 2. * errorSqr).array();
+		negEnergy -= (scalesExp.col(i) / 2. * errorSqr).array();
 
 		// normalization constants of experts
 		double logDet = mCholeskyFactors[i].diagonal().array().abs().log().sum();
-		ArrayXd logPartf = mDimOut * mScales.row(i).array().abs().log() +
+		ArrayXd logPartf = mDimOut * mScales.row(i).array() / 2. +
 			logDet - mDimOut / 2. * log(2. * PI);
 		negEnergy.colwise() += logPartf;
 
