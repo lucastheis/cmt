@@ -44,7 +44,7 @@ int MCGSM_set_cholesky_factors(MCGSMObject*, PyObject*, void*);
 PyObject* MCGSM_predictors(MCGSMObject*, PyObject*, void*);
 int MCGSM_set_predictors(MCGSMObject*, PyObject*, void*);
 
-PyObject* MCGSM_normalize(MCGSMObject*, PyObject*, PyObject*);
+//PyObject* MCGSM_normalize(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_train(MCGSMObject*, PyObject*, PyObject*);
 
 PyObject* MCGSM_check_gradient(MCGSMObject*, PyObject*, PyObject*);
@@ -55,6 +55,10 @@ PyObject* MCGSM_sample_posterior(MCGSMObject*, PyObject*, PyObject*);
 
 PyObject* MCGSM_posterior(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_loglikelihood(MCGSMObject*, PyObject*, PyObject*);
+
+PyObject* MCGSM_parameters(MCGSMObject*, PyObject*, PyObject*);
+PyObject* MCGSM_set_parameters(MCGSMObject*, PyObject*, PyObject*);
+PyObject* MCGSM_compute_gradient(MCGSMObject*, PyObject*, PyObject*);
 
 PyObject* MCGSM_reduce(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_setstate(MCGSMObject*, PyObject*, PyObject*);

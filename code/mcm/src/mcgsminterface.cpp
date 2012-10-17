@@ -74,6 +74,48 @@ MCGSM::Parameters PyObject_ToParameters(MCGSMObject* self, PyObject* parameters)
 				params.cbIter = static_cast<int>(PyFloat_AsDouble(cb_iter));
 			else
 				throw Exception("cb_iter should be of type `int`.");
+
+		PyObject* train_priors = PyDict_GetItemString(parameters, "train_priors");
+		if(train_priors)
+			if(PyBool_Check(train_priors))
+				params.trainPriors = (train_priors == Py_True);
+			else
+				throw Exception("train_priors should be of type `bool`.");
+
+		PyObject* train_scales = PyDict_GetItemString(parameters, "train_scales");
+		if(train_scales)
+			if(PyBool_Check(train_scales))
+				params.trainScales = (train_scales == Py_True);
+			else
+				throw Exception("train_scales should be of type `bool`.");
+
+		PyObject* train_weights = PyDict_GetItemString(parameters, "train_weights");
+		if(train_weights)
+			if(PyBool_Check(train_weights))
+				params.trainWeights = (train_weights == Py_True);
+			else
+				throw Exception("train_weights should be of type `bool`.");
+
+		PyObject* train_features = PyDict_GetItemString(parameters, "train_features");
+		if(train_features)
+			if(PyBool_Check(train_features))
+				params.trainFeatures = (train_features == Py_True);
+			else
+				throw Exception("train_features should be of type `bool`.");
+
+		PyObject* train_cholesky_factors = PyDict_GetItemString(parameters, "train_cholesky_factors");
+		if(train_cholesky_factors)
+			if(PyBool_Check(train_cholesky_factors))
+				params.trainCholeskyFactors = (train_cholesky_factors == Py_True);
+			else
+				throw Exception("train_cholesky_factors should be of type `bool`.");
+
+		PyObject* train_predictors = PyDict_GetItemString(parameters, "train_predictors");
+		if(train_predictors)
+			if(PyBool_Check(train_predictors))
+				params.trainPredictors = (train_predictors == Py_True);
+			else
+				throw Exception("train_predictors should be of type `bool`.");
 	}
 
 	return params;
@@ -408,17 +450,17 @@ int MCGSM_set_predictors(MCGSMObject* self, PyObject* value, void*) {
 
 
 
-PyObject* MCGSM_normalize(MCGSMObject* self, PyObject*, PyObject*) {
-	try {
-		self->mcgsm->normalize();
-	} catch(Exception exception) {
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	Py_INCREF(Py_None);
-	return Py_None;
-}
+//PyObject* MCGSM_normalize(MCGSMObject* self, PyObject*, PyObject*) {
+//	try {
+//		self->mcgsm->normalize();
+//	} catch(Exception exception) {
+//		PyErr_SetString(PyExc_RuntimeError, exception.message());
+//		return 0;
+//	}
+//
+//	Py_INCREF(Py_None);
+//	return Py_None;
+//}
 
 
 
@@ -596,6 +638,8 @@ PyObject* MCGSM_posterior(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}
+
+	return 0;
 }
 
 
@@ -623,6 +667,8 @@ PyObject* MCGSM_sample(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}
+
+	return 0;
 }
 
 
@@ -658,6 +704,8 @@ PyObject* MCGSM_sample_posterior(MCGSMObject* self, PyObject* args, PyObject* kw
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}
+
+	return 0;
 }
 
 
@@ -690,6 +738,132 @@ PyObject* MCGSM_loglikelihood(MCGSMObject* self, PyObject* args, PyObject* kwds)
 	} catch(Exception exception) {
 		Py_DECREF(input);
 		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+PyObject* MCGSM_parameters(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"parameters", 0};
+
+	PyObject* parameters = 0;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|O", const_cast<char**>(kwlist), &parameters))
+		return 0;
+
+	try {
+		MCGSM::Parameters params = PyObject_ToParameters(self, parameters);
+
+		lbfgsfloatval_t* x = self->mcgsm->parameters(params);
+
+		PyObject* xObj = PyArray_FromMatrixXd(
+			Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> >(
+				x, self->mcgsm->numParameters(params), 1));
+
+		lbfgs_free(x);
+
+		return xObj;
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+PyObject* MCGSM_set_parameters(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"x", "parameters", 0};
+
+	PyObject* x;
+	PyObject* parameters = 0;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", const_cast<char**>(kwlist),
+		&x,
+		&parameters))
+		return 0;
+
+	x = PyArray_FROM_OTF(x, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!x) {
+		PyErr_SetString(PyExc_TypeError, "Parameters have to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		self->mcgsm->setParameters(
+			PyArray_ToMatrixXd(x).data(), // TODO: PyArray_ToMatrixXd unnecessary
+			PyObject_ToParameters(self, parameters));
+
+		Py_DECREF(x);
+		Py_INCREF(Py_None);
+
+		return Py_None;
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		Py_DECREF(x);
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+PyObject* MCGSM_compute_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", "output", "x", "parameters", 0};
+
+	PyObject* input;
+	PyObject* output;
+	PyObject* x;
+	PyObject* parameters = 0;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOO|O", const_cast<char**>(kwlist),
+		&input,
+		&output,
+		&x,
+		&parameters))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	x = PyArray_FROM_OTF(x, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output || !x) {
+		PyErr_SetString(PyExc_TypeError, "Data and parameters have to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		MCGSM::Parameters params = PyObject_ToParameters(self, parameters);
+
+		MatrixXd gradient(self->mcgsm->numParameters(params), 1);
+
+		self->mcgsm->computeGradient(
+			PyArray_ToMatrixXd(input), 
+			PyArray_ToMatrixXd(output), 
+			PyArray_ToMatrixXd(x).data(), // TODO: PyArray_ToMatrixXd unnecessary
+			gradient.data(), // TODO: don't use MatrixXd
+			params);
+
+		Py_DECREF(input);
+		Py_DECREF(output);
+		Py_DECREF(x);
+
+		return PyArray_FromMatrixXd(gradient);
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
+		Py_DECREF(x);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}

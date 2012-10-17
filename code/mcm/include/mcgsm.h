@@ -19,7 +19,7 @@ class MCGSM : public ConditionalDistribution {
 			public:
 				virtual ~Callback();
 				virtual Callback* copy() = 0;
-				virtual bool operator()(int iter, const MCGSM& isa) = 0;
+				virtual bool operator()(int iter, const MCGSM& mcgsm) = 0;
 		};
 
 		struct Parameters {
@@ -31,6 +31,12 @@ class MCGSM : public ConditionalDistribution {
 				int batchSize;
 				Callback* callback;
 				int cbIter;
+				bool trainPriors;
+				bool trainScales;
+				bool trainWeights;
+				bool trainFeatures;
+				bool trainCholeskyFactors;
+				bool trainPredictors;
 
 				Parameters();
 				Parameters(const Parameters& params);
@@ -51,7 +57,7 @@ class MCGSM : public ConditionalDistribution {
 		inline int numComponents() const;
 		inline int numScales() const;
 		inline int numFeatures() const;
-		inline int numParameters() const;
+		inline int numParameters(Parameters params) const;
 
 		inline ArrayXXd priors() const;
 		inline void setPriors(ArrayXXd priors);
@@ -71,7 +77,7 @@ class MCGSM : public ConditionalDistribution {
 		inline vector<MatrixXd> predictors() const;
 		inline void setPredictors(vector<MatrixXd> predictors);
 
-		virtual void normalize();
+//		virtual void normalize();
 		virtual bool train(
 			const MatrixXd& input,
 			const MatrixXd& output,
@@ -97,9 +103,15 @@ class MCGSM : public ConditionalDistribution {
 		virtual ArrayXXd prior(const MatrixXd& input) const;
 		virtual ArrayXXd posterior(const MatrixXd& input, const MatrixXd& output) const;
 		virtual Array<double, 1, Dynamic> logLikelihood(const MatrixXd& input, const MatrixXd& output) const;
-
-		virtual lbfgsfloatval_t* parameters() const;
-		virtual void setParameters(const lbfgsfloatval_t* x);
+	
+		lbfgsfloatval_t* parameters(const Parameters& params) const;
+		void setParameters(const lbfgsfloatval_t* x, const Parameters& params);
+		double computeGradient(
+			const MatrixXd& input,
+			const MatrixXd& output,
+			const lbfgsfloatval_t* x,
+			lbfgsfloatval_t* g,
+			const Parameters& params) const;
 
 	protected:
 		// hyperparameters
@@ -150,10 +162,21 @@ inline int MCGSM::numFeatures() const {
 
 
 
-inline int MCGSM::numParameters() const {
-	return mPriors.size() + mScales.size() + mWeights.size() + mFeatures.size()
-		+ mNumComponents * mDimOut * (mDimOut + 1) / 2 - mNumComponents
-		+ mNumComponents * mPredictors[0].size();
+inline int MCGSM::numParameters(Parameters params) const {
+	int numParams = 0;
+	if(params.trainPriors)
+		numParams += mPriors.size();
+	if(params.trainScales)
+		numParams += mScales.size();
+	if(params.trainWeights)
+		numParams += mWeights.size();
+	if(params.trainFeatures)
+		numParams += mFeatures.size();
+	if(params.trainCholeskyFactors)
+		numParams += mNumComponents * mDimOut * (mDimOut + 1) / 2 - mNumComponents;
+	if(params.trainPredictors)
+		numParams += mNumComponents * mPredictors[0].size();
+	return numParams;
 }
 
 

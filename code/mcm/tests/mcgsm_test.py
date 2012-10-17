@@ -117,8 +117,22 @@ class Tests(unittest.TestCase):
 		err = mcgsm.check_gradient(
 			randn(mcgsm.dim_in, 1000),
 			randn(mcgsm.dim_out, 1000), 1e-5)
-
 		self.assertLess(err, 1e-8)
+
+		for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred']:
+			err = mcgsm.check_gradient(
+				randn(mcgsm.dim_in, 1000),
+				randn(mcgsm.dim_out, 1000),
+				1e-5,
+				parameters={
+					'train_prior': param == 'priors',
+					'train_scales': param == 'scales',
+					'train_weights': param == 'weights',
+					'train_features': param == 'features',
+					'train_cholesky_factors': param == 'chol',
+					'train_predictors': param == 'pred',
+				})
+			self.assertLess(err, 1e-8)
 
 
 

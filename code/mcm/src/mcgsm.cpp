@@ -31,10 +31,10 @@ static int callbackLBFGS(
 		cout << setw(6) << iteration << setw(10) << setprecision(5) << fx << endl;
 
 	if(params.callback && iteration % params.cbIter == 0) {
-		MCGSM mcgsmCopy(mcgsm);
-		mcgsmCopy.setParameters(x);
+		// TODO: fix this nasty hack
+		const_cast<MCGSM&>(mcgsm).setParameters(x, params);
 
-		if(!(*params.callback)(iteration, mcgsmCopy))
+		if(!(*params.callback)(iteration, mcgsm))
 			return 1;
 	}
 
@@ -43,7 +43,7 @@ static int callbackLBFGS(
 
 
 
-static lbfgsfloatval_t evaluateLBFGS(
+lbfgsfloatval_t evaluateLBFGS(
 	void* instance, 
 	const lbfgsfloatval_t* x, 
 	lbfgsfloatval_t* g, 
@@ -52,208 +52,10 @@ static lbfgsfloatval_t evaluateLBFGS(
 	// unpack user data
 	const MCGSM& mcgsm = *static_cast<ParamsLBFGS*>(instance)->first.first;
 	const MCGSM::Parameters& params = *static_cast<ParamsLBFGS*>(instance)->first.second;
-	const MatrixXd& inputCompl = *static_cast<ParamsLBFGS*>(instance)->second.first;
-	const MatrixXd& outputCompl = *static_cast<ParamsLBFGS*>(instance)->second.second;
+	const MatrixXd& input = *static_cast<ParamsLBFGS*>(instance)->second.first;
+	const MatrixXd& output = *static_cast<ParamsLBFGS*>(instance)->second.second;
 
-	// average log-likelihood
-	double logLik = 0.;
-
-	// interpret memory for parameters and gradients
-	lbfgsfloatval_t* y = const_cast<lbfgsfloatval_t*>(x);
-
-	int offset = 0;
-
-	MatrixLBFGS priors = MatrixLBFGS(y, mcgsm.numComponents(), mcgsm.numScales());
-	MatrixLBFGS priorsGrad(g, mcgsm.numComponents(), mcgsm.numScales());
-	offset += priors.size();
-
-	MatrixLBFGS scales(y + offset, mcgsm.numComponents(), mcgsm.numScales());
-	MatrixLBFGS scalesGrad(g + offset, mcgsm.numComponents(), mcgsm.numScales());
-	offset += scales.size();
-
-	MatrixLBFGS weights(y + offset, mcgsm.numComponents(), mcgsm.numFeatures());
-	MatrixLBFGS weightsGrad(g + offset, mcgsm.numComponents(), mcgsm.numFeatures());
-	offset += weights.size();
-
-	MatrixLBFGS features(y + offset, mcgsm.dimIn(), mcgsm.numFeatures());
-	MatrixLBFGS featuresGrad(g + offset, mcgsm.dimIn(), mcgsm.numFeatures());
-	offset += features.size();
-
-	vector<MatrixXd> choleskyFactors;
-	vector<MatrixXd> choleskyFactorsGrad;
-
-	// store memory position of Cholesky factors for later
-	int cholFacOffset = offset;
-
-	for(int i = 0; i < mcgsm.numComponents(); ++i) {
-		choleskyFactors.push_back(MatrixXd::Zero(mcgsm.dimOut(), mcgsm.dimOut()));
-		choleskyFactorsGrad.push_back(MatrixXd::Zero(mcgsm.dimOut(), mcgsm.dimOut()));
-		choleskyFactors[i](0, 0) = 1.;
-		for(int m = 1; m < mcgsm.dimOut(); ++m)
-			for(int n = 0; n <= m; ++n, ++offset)
-				choleskyFactors[i](m, n) = x[offset];
-	}
-
-	vector<MatrixLBFGS> predictors;
-	vector<MatrixLBFGS> predictorsGrad;
-
-	for(int i = 0; i < mcgsm.numComponents(); ++i) {
-		predictors.push_back(MatrixLBFGS(y + offset, mcgsm.dimOut(), mcgsm.dimIn()));
-		predictorsGrad.push_back(MatrixLBFGS(g + offset, mcgsm.dimOut(), mcgsm.dimIn()));
-		offset += predictors[i].size();
-	}
-
-	if(g) {
-		// initialize gradients
-		featuresGrad.setZero();
-		weightsGrad.setZero();
-		priorsGrad.setZero();
-		scalesGrad.setZero();
-
-		for(int i = 0; i < mcgsm.numComponents(); ++i)
-			predictorsGrad[i].setZero();
-	}
-
-	// split data into batches for better performance
-	int numData = static_cast<int>(inputCompl.cols());
-	int batchSize = min(params.batchSize, numData);
-
-	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
-		const MatrixXd input = inputCompl.middleCols(b, min(batchSize, numData - b));
-		const MatrixXd output = outputCompl.middleCols(b, min(batchSize, numData - b));
-
-		// compute unnormalized posterior
-		MatrixXd featureOutput = features.transpose() * input;
-		MatrixXd featureOutputSqr = featureOutput.array().square();
-		MatrixXd weightsSqr = weights.array().square();
-		MatrixXd weightsOutput = weightsSqr * featureOutputSqr;
-
-		// containers for intermediate results
-		vector<ArrayXXd> logPosteriorIn(mcgsm.numComponents());
-		vector<ArrayXXd> logPosteriorOut(mcgsm.numComponents());
-		vector<MatrixXd> predError(mcgsm.numComponents());
-		vector<Array<double, 1, Dynamic> > predErrorSqNorm(mcgsm.numComponents());
-		vector<MatrixXd> scalesExp(mcgsm.numComponents());
-
-		// partial normalization constants
-		ArrayXXd logNormInScales(mcgsm.numComponents(), input.cols());
-		ArrayXXd logNormOutScales(mcgsm.numComponents(), input.cols());
-
-		#pragma omp parallel for
-		for(int i = 0; i < mcgsm.numComponents(); ++i) {
-			scalesExp[i] = scales.row(i).transpose().array().exp();
-
-			MatrixXd negEnergyGate = -scalesExp[i] / 2. * weightsOutput.row(i);
-			negEnergyGate.colwise() += priors.row(i).transpose();
-
-			predError[i] = output - predictors[i] * input;
-			predErrorSqNorm[i] = (choleskyFactors[i].transpose() * predError[i]).colwise().squaredNorm();
-
-			MatrixXd negEnergyExpert = -scalesExp[i] / 2. * predErrorSqNorm[i].matrix();
-
-			// normalize expert energy
-			double logDet = choleskyFactors[i].diagonal().array().abs().log().sum();
-			VectorXd logPartf = mcgsm.dimOut() / 2. * scales.row(i).transpose().array()
-				+ logDet - mcgsm.dimOut() / 2. * log(2. * PI);
-
-			negEnergyExpert.colwise() += logPartf;
-
-			// unnormalized posterior
-			logPosteriorIn[i] = negEnergyGate;
-			logPosteriorOut[i] = negEnergyGate + negEnergyExpert;
-
-			// compute normalization constants for posterior over scales
-			logNormInScales.row(i) = logSumExp(logPosteriorIn[i]);
-			logNormOutScales.row(i) = logSumExp(logPosteriorOut[i]);
-		}
-
-		Array<double, 1, Dynamic> logNormIn;
-		Array<double, 1, Dynamic> logNormOut;
-
-		// compute normalization constants
-		#pragma omp parallel sections
-		{
-			#pragma omp section
-			logNormIn = logSumExp(logNormInScales);
-			#pragma omp section
-			logNormOut = logSumExp(logNormOutScales);
-		}
-
-		// predictive probability
-		logLik += (logNormOut - logNormIn).sum();
-
-		if(!g)
-			// don't compute gradients
-			continue;
-
-		// compute gradients
-		#pragma omp parallel for
-		for(int i = 0; i < mcgsm.numComponents(); ++i) {
-			// normalize posterior
-			logPosteriorIn[i].rowwise() -= logNormIn;
-			logPosteriorOut[i].rowwise() -= logNormOut;
-
-			ArrayXXd posteriorIn = logPosteriorIn[i].exp();
-			ArrayXXd posteriorOut = logPosteriorOut[i].exp();
-
-			MatrixXd posteriorDiff = posteriorIn - posteriorOut;
-
-			// gradient of prior variables
-			priorsGrad.row(i) += posteriorDiff.rowwise().sum();
-
-			Array<double, 1, Dynamic> tmp0 = -scalesExp[i].transpose() * posteriorDiff;
-			Array<double, 1, Dynamic> tmp1 = (featureOutputSqr.array().rowwise() * tmp0).rowwise().sum();
-
-			// gradient of weights
- 			weightsGrad.row(i) += (tmp1 * weights.row(i).array()).matrix();
-
-			Array<double, 1, Dynamic> tmp2 = (posteriorDiff.array().rowwise() * weightsOutput.row(i).array()).rowwise().sum();
-			Array<double, 1, Dynamic> tmp3 = posteriorOut.rowwise().sum();
-			Array<double, 1, Dynamic> tmp4 = (posteriorOut.rowwise() * predErrorSqNorm[i]).rowwise().sum();
-
-			// gradient of scale variables
- 			scalesGrad.row(i) += (
- 				tmp4 * scales.row(i).array().exp() / 2. - 
- 				tmp3 * mcgsm.dimOut() / 2. -
- 				tmp2 * scales.row(i).array().exp() / 2.).matrix();
-
-			MatrixXd tmp5 = input.array().rowwise() * tmp0;
-			ArrayXXd tmp6 = tmp5 * featureOutput.transpose();
-
-			// partial gradient of features
-			#pragma omp critical
-			featuresGrad += (tmp6.rowwise() * weightsSqr.row(i).array()).matrix();
-
-			Array<double, 1, Dynamic> tmp7 = scalesExp[i].transpose() * posteriorOut.matrix();
-			MatrixXd tmp8 = predError[i].array().rowwise() * tmp7;
-			MatrixXd tmp9 = choleskyFactors[i].diagonal().cwiseInverse().asDiagonal();
-
-			// gradient of cholesky factor
-			choleskyFactorsGrad[i] += tmp8 * predError[i].transpose() * choleskyFactors[i]
-				- tmp3.sum() * tmp9;
-
-			MatrixXd precision = choleskyFactors[i] * choleskyFactors[i].transpose();
-
-			// gradient of linear predictor
-			predictorsGrad[i] -= precision * tmp8 * input.transpose();
-		}
-	}
-
-	double normConst = inputCompl.cols() * log(2.);
-
-	if(g) {
-		// write back gradients of Cholesky factors
-		for(int i = 0; i < mcgsm.numComponents(); ++i)
-			for(int m = 1; m < mcgsm.dimOut(); ++m)
-				for(int n = 0; n <= m; ++n, ++cholFacOffset)
-					g[cholFacOffset] = choleskyFactorsGrad[i](m, n);
-
-		for(int i = 0; i < offset; ++i)
-			g[i] /= normConst;
-	}
-
-	// return average log-likelihood
-	return -logLik / normConst;
+	return mcgsm.computeGradient(input, output, x, g, params);
 }
 
 
@@ -271,6 +73,12 @@ MCGSM::Parameters::Parameters() {
 	batchSize = 2000;
 	callback = 0;
 	cbIter = 25;
+	trainPriors = true;
+	trainScales = true;
+	trainWeights = true;
+	trainFeatures = true;
+	trainCholeskyFactors = true;
+	trainPredictors = true;
 }
 
 
@@ -282,7 +90,13 @@ MCGSM::Parameters::Parameters(const Parameters& params) :
 	numGrad(params.numGrad),
 	batchSize(params.batchSize),
 	callback(0),
-	cbIter(params.cbIter)
+	cbIter(params.cbIter),
+	trainPriors(params.trainPriors),
+	trainScales(params.trainScales),
+	trainWeights(params.trainWeights),
+	trainFeatures(params.trainFeatures),
+	trainCholeskyFactors(params.trainCholeskyFactors),
+	trainPredictors(params.trainPredictors)
 {
 	if(params.callback)
 		callback = params.callback->copy();
@@ -305,6 +119,12 @@ MCGSM::Parameters& MCGSM::Parameters::operator=(const Parameters& params) {
 	batchSize = params.batchSize;
 	callback = params.callback ? params.callback->copy() : 0;
 	cbIter = params.cbIter;
+	trainPriors = params.trainPriors;
+	trainScales = params.trainScales;
+	trainWeights = params.trainWeights;
+	trainFeatures = params.trainFeatures;
+	trainCholeskyFactors = params.trainCholeskyFactors;
+	trainPredictors = params.trainPredictors;
 
 	return *this;
 }
@@ -335,8 +155,6 @@ MCGSM::MCGSM(
 
 	// initialize parameters
 	mPriors = ArrayXXd::Zero(mNumComponents, mNumScales);
-//	mPriors = ArrayXXd::Random(mNumComponents, mNumScales) / 10.;
-//	mScales = ArrayXXd::Random(mNumComponents, mNumScales).abs() / 2. + 0.75;
 	mScales = ArrayXXd::Random(mNumComponents, mNumScales) / 2.;
 	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 10. + 0.01;
 	mFeatures = ArrayXXd::Random(mDimIn, mNumFeatures) / 10.;
@@ -354,8 +172,8 @@ MCGSM::~MCGSM() {
 
 
 
-void MCGSM::normalize() {
-}
+//void MCGSM::normalize() {
+//}
 
 
 
@@ -366,7 +184,7 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters para
 		throw Exception("The number of inputs and outputs should be the same.");
 
 	// copy parameters for L-BFGS
-	lbfgsfloatval_t* x = parameters();
+	lbfgsfloatval_t* x = parameters(params);
 
 	// optimization hyperparameters
 	lbfgs_parameter_t paramsLBFGS;
@@ -374,7 +192,8 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters para
 	paramsLBFGS.max_iterations = params.maxIter;
 	paramsLBFGS.m = params.numGrad;
 	paramsLBFGS.epsilon = params.threshold;
-	paramsLBFGS.linesearch = LBFGS_LINESEARCH_BACKTRACKING_STRONG_WOLFE;
+//	paramsLBFGS.linesearch = LBFGS_LINESEARCH_BACKTRACKING_ARMIJO;
+	paramsLBFGS.ftol = 1e-5;
 
 	// wrap additional arguments
 	ParamsLBFGS instance;
@@ -385,10 +204,10 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters para
 
 	// start LBFGS optimization
 	if(params.maxIter > 0)
-		lbfgs(numParameters(), x, 0, &evaluateLBFGS, &callbackLBFGS, &instance, &paramsLBFGS);
+		std::cout << lbfgs(numParameters(params), x, 0, &evaluateLBFGS, &callbackLBFGS, &instance, &paramsLBFGS) << std::endl;
 
 	// copy parameters back
-	setParameters(x);
+	setParameters(x, params);
 
 	// free memory used by LBFGS
 	lbfgs_free(x);
@@ -410,9 +229,9 @@ double MCGSM::checkGradient(
 		throw Exception("The number of inputs and outputs should be the same.");
 
 	// request memory for LBFGS and copy parameters
-	lbfgsfloatval_t* x = parameters();
+	lbfgsfloatval_t* x = parameters(params);
 
-	int numParams = numParameters();
+	int numParams = numParameters(params);
 
 	lbfgsfloatval_t y[numParams];
 	lbfgsfloatval_t g[numParams];
@@ -431,7 +250,7 @@ double MCGSM::checkGradient(
 	instance.second.first = &input;
 	instance.second.second = &output;
 
-	// compute numerical gradient
+	// compute numerical gradient using central differences
 	for(int i = 0; i < numParams; ++i) {
 		y[i] = x[i] + epsilon;
 		val1 = evaluateLBFGS(&instance, y, 0, 0, 0.);
@@ -448,47 +267,6 @@ double MCGSM::checkGradient(
 	double err = 0.;
 	for(int i = 0; i < numParams; ++i)
 		err += (g[i] - n[i]) * (g[i] - n[i]);
-
-	if(params.verbosity > 1) {
-		int numParamsPriors = mNumComponents * mNumScales;
-		int numParamsScales = mNumComponents * mNumScales;
-		int numParamsWeights = mNumComponents * mNumFeatures;
-		int numParamsFeatures = mDimIn * mNumFeatures;
-		int numParamsCholeskyFactors = mNumComponents * mDimOut * 
-			(mDimOut + 1) / 2 - mNumComponents;
-		int numParamsPredictors = mNumComponents * mDimIn * mDimOut;
-		int j = 0;
-
-		double err = 0.;
-		for(int i = 0; i < numParamsPriors; ++i, ++j)
-			err += (g[j] - n[j]) * (g[j] - n[j]);
-		cout << "Error in priorsGrad (" << numParamsPriors << " parameters): " << sqrt(err) << endl;
-
-		err = 0.;
-		for(int i = 0; i < numParamsScales; ++i, ++j)
-			err += (g[j] - n[j]) * (g[j] - n[j]);
-		cout << "Error in scalesGrad (" << numParamsScales << " parameters): " << sqrt(err) << endl;
-
-		err = 0.;
-		for(int i = 0; i < numParamsWeights; ++i, ++j)
-			err += (g[j] - n[j]) * (g[j] - n[j]);
-		cout << "Error in weightsGrad (" << numParamsWeights << " parameters): " << sqrt(err) << endl;
-
-		err = 0.;
-		for(int i = 0; i < numParamsFeatures; ++i, ++j)
-			err += (g[j] - n[j]) * (g[j] - n[j]);
-		cout << "Error in featuresGrad (" << numParamsFeatures << " parameters): " << sqrt(err) << endl;
-
-		err = 0.;
-		for(int i = 0; i < numParamsCholeskyFactors; ++i, ++j)
-			err += (g[j] - n[j]) * (g[j] - n[j]);
-		cout << "Error in choleskyFactorsGrad (" << numParamsCholeskyFactors << " parameters): " << sqrt(err) << endl;
-
-		err = 0.;
-		for(int i = 0; i < numParamsPredictors; ++i, ++j)
-			err += (g[j] - n[j]) * (g[j] - n[j]);
-		cout << "Error in predictorsGrad (" << numParamsPredictors << " parameters): " << sqrt(err) << endl;
-	}
 
 	return sqrt(err);
 }
@@ -507,7 +285,7 @@ double MCGSM::checkPerformance(
 		throw Exception("The number of inputs and outputs should be the same.");
 
 	// request memory for LBFGS and copy parameters
-	lbfgsfloatval_t* x = parameters();
+	lbfgsfloatval_t* x = parameters(params);
 
 	// optimization hyperparameters
 	lbfgs_parameter_t paramsLBFGS;
@@ -523,7 +301,7 @@ double MCGSM::checkPerformance(
 	instance.second.second = &output;
 
 	// measure time it takes to evaluate gradient
-	lbfgsfloatval_t* g = lbfgs_malloc(numParameters());
+	lbfgsfloatval_t* g = lbfgs_malloc(numParameters(params));
 	timeval from, to;
 
 	gettimeofday(&from, 0);
@@ -747,55 +525,319 @@ Array<double, 1, Dynamic> MCGSM::logLikelihood(const MatrixXd& input, const Matr
 
 
 
-lbfgsfloatval_t* MCGSM::parameters() const {
-	lbfgsfloatval_t* x = lbfgs_malloc(numParameters());
+lbfgsfloatval_t* MCGSM::parameters(const Parameters& params) const {
+	lbfgsfloatval_t* x = lbfgs_malloc(numParameters(params));
 
 	int k = 0;
-	for(int i = 0; i < mPriors.size(); ++i, ++k)
-		x[k] = mPriors.data()[i];
-	for(int i = 0; i < mScales.size(); ++i, ++k)
-		x[k] = mScales.data()[i];
-	for(int i = 0; i < mWeights.size(); ++i, ++k)
-		x[k] = mWeights.data()[i];
-	for(int i = 0; i < mFeatures.size(); ++i, ++k)
-		x[k] = mFeatures.data()[i];
-	for(int i = 0; i < mCholeskyFactors.size(); ++i)
-		for(int m = 1; m < mDimOut; ++m)
-			for(int n = 0; n <= m; ++n, ++k)
-				x[k] = mCholeskyFactors[i](m, n);
-	for(int i = 0; i < mPredictors.size(); ++i)
-		for(int j = 0; j < mPredictors[i].size(); ++j, ++k)
-			x[k] = mPredictors[i].data()[j];
+	if(params.trainPriors)
+		for(int i = 0; i < mPriors.size(); ++i, ++k)
+			x[k] = mPriors.data()[i];
+	if(params.trainScales)
+		for(int i = 0; i < mScales.size(); ++i, ++k)
+			x[k] = mScales.data()[i];
+	if(params.trainWeights)
+		for(int i = 0; i < mWeights.size(); ++i, ++k)
+			x[k] = mWeights.data()[i];
+	if(params.trainFeatures)
+		for(int i = 0; i < mFeatures.size(); ++i, ++k)
+			x[k] = mFeatures.data()[i];
+	if(params.trainCholeskyFactors)
+		for(int i = 0; i < mCholeskyFactors.size(); ++i)
+			for(int m = 1; m < mDimOut; ++m)
+				for(int n = 0; n <= m; ++n, ++k)
+					x[k] = mCholeskyFactors[i](m, n);
+	if(params.trainPredictors)
+		for(int i = 0; i < mPredictors.size(); ++i)
+			for(int j = 0; j < mPredictors[i].size(); ++j, ++k)
+				x[k] = mPredictors[i].data()[j];
 
 	return x;
 }
 
 
-void MCGSM::setParameters(const lbfgsfloatval_t* x) {
+
+void MCGSM::setParameters(const lbfgsfloatval_t* x, const Parameters& params) {
 	int offset = 0;
 
-	mPriors = MatrixLBFGS(const_cast<double*>(x), mNumComponents, mNumScales);
-	offset += mPriors.size();
-
-	mScales = MatrixLBFGS(const_cast<double*>(x) + offset, mNumComponents, mNumScales);
-	offset += mScales.size();
-
-	mWeights = MatrixLBFGS(const_cast<double*>(x) + offset, mNumComponents, mNumFeatures);
-	offset += mWeights.size();
-
-	mFeatures = MatrixLBFGS(const_cast<double*>(x) + offset, mDimIn, mNumFeatures);
-	offset += mFeatures.size();
-
-	for(int i = 0; i < mNumComponents; ++i) {
-		mCholeskyFactors[i].setZero();
-		mCholeskyFactors[i](0, 0) = 1.;
-		for(int m = 1; m < mDimOut; ++m)
-			for(int n = 0; n <= m; ++n, ++offset)
-				mCholeskyFactors[i](m, n) = x[offset];
+	if(params.trainPriors) {
+		mPriors = MatrixLBFGS(const_cast<double*>(x), mNumComponents, mNumScales);
+		offset += mPriors.size();
 	}
 
-	for(int i = 0; i < mNumComponents; ++i) {
-		mPredictors[i] = MatrixLBFGS(const_cast<double*>(x) + offset, mDimOut, mDimIn);
-		offset += mPredictors[i].size();
+	if(params.trainScales) {
+		mScales = MatrixLBFGS(const_cast<double*>(x) + offset, mNumComponents, mNumScales);
+		offset += mScales.size();
 	}
+
+	if(params.trainWeights) {
+		mWeights = MatrixLBFGS(const_cast<double*>(x) + offset, mNumComponents, mNumFeatures);
+		offset += mWeights.size();
+	}
+
+	if(params.trainFeatures) {
+		mFeatures = MatrixLBFGS(const_cast<double*>(x) + offset, mDimIn, mNumFeatures);
+		offset += mFeatures.size();
+	}
+
+	if(params.trainCholeskyFactors)
+		for(int i = 0; i < mNumComponents; ++i) {
+			mCholeskyFactors[i].setZero();
+			mCholeskyFactors[i](0, 0) = 1.;
+			for(int m = 1; m < mDimOut; ++m)
+				for(int n = 0; n <= m; ++n, ++offset)
+					mCholeskyFactors[i](m, n) = x[offset];
+		}
+
+	if(params.trainPredictors)
+		for(int i = 0; i < mNumComponents; ++i) {
+			mPredictors[i] = MatrixLBFGS(const_cast<double*>(x) + offset, mDimOut, mDimIn);
+			offset += mPredictors[i].size();
+		}
+}
+
+
+
+double MCGSM::computeGradient(
+	const MatrixXd& inputCompl,
+	const MatrixXd& outputCompl,
+	const lbfgsfloatval_t* x,
+	lbfgsfloatval_t* g,
+	const Parameters& params) const
+{
+	// average log-likelihood
+	double logLik = 0.;
+
+	// interpret memory for parameters and gradients
+	lbfgsfloatval_t* y = const_cast<lbfgsfloatval_t*>(x);
+
+	int offset = 0;
+
+	MatrixLBFGS priors(params.trainPriors ? y : const_cast<double*>(mPriors.data()), mNumComponents, mNumScales);
+	MatrixLBFGS priorsGrad = MatrixLBFGS(g, mNumComponents, mNumScales);
+	if(params.trainPriors)
+		offset += priors.size();
+
+	MatrixLBFGS scales(params.trainScales ? y + offset : const_cast<double*>(mScales.data()), mNumComponents, mNumScales);
+	MatrixLBFGS scalesGrad(g + offset, mNumComponents, mNumScales);
+	if(params.trainScales)
+		offset += scales.size();
+
+	MatrixLBFGS weights(params.trainWeights ? y + offset : const_cast<double*>(mWeights.data()), mNumComponents, mNumFeatures);
+	MatrixLBFGS weightsGrad(g + offset, mNumComponents, mNumFeatures);
+	if(params.trainWeights)
+		offset += weights.size();
+
+	MatrixLBFGS features(params.trainFeatures ? y + offset : const_cast<double*>(mFeatures.data()), mDimIn, mNumFeatures);
+	MatrixLBFGS featuresGrad(g + offset, mDimIn, mNumFeatures);
+	if(params.trainFeatures)
+		offset += features.size();
+
+	vector<MatrixXd> choleskyFactors;
+	vector<MatrixXd> choleskyFactorsGrad;
+
+	// store memory position of Cholesky factors for later
+	int cholFacOffset = offset;
+
+	if(params.trainCholeskyFactors)
+		for(int i = 0; i < mNumComponents; ++i) {
+			choleskyFactors.push_back(MatrixXd::Zero(mDimOut, mDimOut));
+			choleskyFactorsGrad.push_back(MatrixXd::Zero(mDimOut, mDimOut));
+			choleskyFactors[i](0, 0) = 1.;
+			for(int m = 1; m < mDimOut; ++m)
+				for(int n = 0; n <= m; ++n, ++offset)
+					choleskyFactors[i](m, n) = x[offset];
+		}
+	else
+		for(int i = 0; i < mNumComponents; ++i)
+			choleskyFactors.push_back(mCholeskyFactors[i]);
+
+	vector<MatrixLBFGS> predictors;
+	vector<MatrixLBFGS> predictorsGrad;
+
+	if(params.trainPredictors)
+		for(int i = 0; i < mNumComponents; ++i) {
+			predictors.push_back(MatrixLBFGS(y + offset, mDimOut, mDimIn));
+			predictorsGrad.push_back(MatrixLBFGS(g + offset, mDimOut, mDimIn));
+			offset += predictors[i].size();
+		}
+	else
+		for(int i = 0; i < mNumComponents; ++i)
+			predictors.push_back(MatrixLBFGS(const_cast<double*>(mPredictors[i].data()), mDimOut, mDimIn));
+
+	if(g) {
+		// initialize gradients
+		if(params.trainFeatures)
+			featuresGrad.setZero();
+		if(params.trainWeights)
+			weightsGrad.setZero();
+		if(params.trainPriors)
+			priorsGrad.setZero();
+		if(params.trainScales)
+			scalesGrad.setZero();
+		if(params.trainPredictors)
+			for(int i = 0; i < mNumComponents; ++i)
+				predictorsGrad[i].setZero();
+	}
+
+	// split data into batches for better performance
+	int numData = static_cast<int>(inputCompl.cols());
+	int batchSize = min(params.batchSize, numData);
+
+	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
+		const MatrixXd input = inputCompl.middleCols(b, min(batchSize, numData - b));
+		const MatrixXd output = outputCompl.middleCols(b, min(batchSize, numData - b));
+
+		// compute unnormalized posterior
+		MatrixXd featureOutput = features.transpose() * input;
+		MatrixXd featureOutputSqr = featureOutput.array().square();
+		MatrixXd weightsSqr = weights.array().square();
+		MatrixXd weightsOutput = weightsSqr * featureOutputSqr;
+
+		// containers for intermediate results
+		vector<ArrayXXd> logPosteriorIn(mNumComponents);
+		vector<ArrayXXd> logPosteriorOut(mNumComponents);
+		vector<MatrixXd> predError(mNumComponents);
+		vector<Array<double, 1, Dynamic> > predErrorSqNorm(mNumComponents);
+		vector<MatrixXd> scalesExp(mNumComponents);
+
+		// partial normalization constants
+		ArrayXXd logNormInScales(mNumComponents, input.cols());
+		ArrayXXd logNormOutScales(mNumComponents, input.cols());
+
+		#pragma omp parallel for
+		for(int i = 0; i < mNumComponents; ++i) {
+			scalesExp[i] = scales.row(i).transpose().array().exp();
+
+			MatrixXd negEnergyGate = -scalesExp[i] / 2. * weightsOutput.row(i);
+			negEnergyGate.colwise() += priors.row(i).transpose();
+
+			predError[i] = output - predictors[i] * input;
+			predErrorSqNorm[i] = (choleskyFactors[i].transpose() * predError[i]).colwise().squaredNorm();
+
+			MatrixXd negEnergyExpert = -scalesExp[i] / 2. * predErrorSqNorm[i].matrix();
+
+			// normalize expert energy
+			double logDet = choleskyFactors[i].diagonal().array().abs().log().sum();
+			VectorXd logPartf = mDimOut / 2. * scales.row(i).transpose().array()
+				+ logDet - mDimOut / 2. * log(2. * PI);
+
+			negEnergyExpert.colwise() += logPartf;
+
+			// unnormalized posterior
+			logPosteriorIn[i] = negEnergyGate;
+			logPosteriorOut[i] = negEnergyGate + negEnergyExpert;
+
+			// compute normalization constants for posterior over scales
+			logNormInScales.row(i) = logSumExp(logPosteriorIn[i]);
+			logNormOutScales.row(i) = logSumExp(logPosteriorOut[i]);
+		}
+
+		Array<double, 1, Dynamic> logNormIn;
+		Array<double, 1, Dynamic> logNormOut;
+
+		// compute normalization constants
+		#pragma omp parallel sections
+		{
+			#pragma omp section
+			logNormIn = logSumExp(logNormInScales);
+			#pragma omp section
+			logNormOut = logSumExp(logNormOutScales);
+		}
+
+		// predictive probability
+		logLik += (logNormOut - logNormIn).sum();
+
+		if(!g)
+			// don't compute gradients
+			continue;
+
+		// compute gradients
+		#pragma omp parallel for
+		for(int i = 0; i < mNumComponents; ++i) {
+			// normalize posterior
+			logPosteriorIn[i].rowwise() -= logNormIn;
+			logPosteriorOut[i].rowwise() -= logNormOut;
+
+			ArrayXXd posteriorIn = logPosteriorIn[i].exp();
+			ArrayXXd posteriorOut = logPosteriorOut[i].exp();
+			MatrixXd posteriorDiff = posteriorIn - posteriorOut;
+
+			// gradient of prior variables
+			if(params.trainPriors)
+				priorsGrad.row(i) += posteriorDiff.rowwise().sum();// + 1. * priors;
+
+			Array<double, 1, Dynamic> tmp0 = -scalesExp[i].transpose() * posteriorDiff;
+
+			if(params.trainWeights) {
+				Array<double, 1, Dynamic> tmp1 = (featureOutputSqr.array().rowwise() * tmp0).rowwise().sum();
+
+				// gradient of weights
+				weightsGrad.row(i) += (tmp1 * weights.row(i).array()).matrix();
+			}
+
+			Array<double, 1, Dynamic> tmp3 = posteriorOut.rowwise().sum();
+
+			// gradient of scale variables
+			if(params.trainScales) {
+				Array<double, 1, Dynamic> tmp2 = (posteriorDiff.array().rowwise() * weightsOutput.row(i).array()).rowwise().sum();
+				Array<double, 1, Dynamic> tmp4 = (posteriorOut.rowwise() * predErrorSqNorm[i]).rowwise().sum();
+
+				scalesGrad.row(i) += (
+					tmp4 * scales.row(i).array().exp() / 2. - 
+					tmp3 * mDimOut / 2. -
+					tmp2 * scales.row(i).array().exp() / 2.).matrix();
+			}
+
+			// partial gradient of features
+			if(params.trainFeatures) {
+				MatrixXd tmp5 = input.array().rowwise() * tmp0;
+				ArrayXXd tmp6 = tmp5 * featureOutput.transpose();
+
+				#pragma omp critical
+				featuresGrad += (tmp6.rowwise() * weightsSqr.row(i).array()).matrix();
+			}
+
+			Array<double, 1, Dynamic> tmp7 = scalesExp[i].transpose() * posteriorOut.matrix();
+			MatrixXd tmp8 = predError[i].array().rowwise() * tmp7;
+
+			// gradient of cholesky factor
+			if(params.trainCholeskyFactors) {
+				MatrixXd tmp9 = choleskyFactors[i].diagonal().cwiseInverse().asDiagonal();
+
+				choleskyFactorsGrad[i] += tmp8 * predError[i].transpose() * choleskyFactors[i]
+					- tmp3.sum() * tmp9;
+			}
+
+			// gradient of linear predictor
+			if(params.trainPredictors) {
+				MatrixXd precision = choleskyFactors[i] * choleskyFactors[i].transpose();
+
+				predictorsGrad[i] -= precision * tmp8 * input.transpose();
+			}
+		}
+	}
+
+	double normConst = inputCompl.cols() * log(2.);
+
+	Array<double, 1, Dynamic> featureNorm = features.colwise().norm();
+	double priorSum = priors.sum();
+
+	if(g) {
+//		if(params.trainFeatures)
+//			featuresGrad += 1. * (normalize(features).array().rowwise() * (featureNorm - 1.)).matrix();
+
+		// write back gradients of Cholesky factors
+		if(params.trainCholeskyFactors)
+			for(int i = 0; i < mNumComponents; ++i)
+				for(int m = 1; m < mDimOut; ++m)
+					for(int n = 0; n <= m; ++n, ++cholFacOffset)
+						g[cholFacOffset] = choleskyFactorsGrad[i](m, n);
+
+		for(int i = 0; i < offset; ++i)
+			g[i] /= normConst;
+	}
+
+	// return average log-likelihood
+	return -logLik / normConst; 
+//	return (-logLik + 0.5 * priorSum * priorSum + 0.5 * (featureNorm - 1.).square().sum()) / normConst; 
 }

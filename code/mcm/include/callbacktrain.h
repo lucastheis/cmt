@@ -16,7 +16,7 @@ class CallbackTrain : public MCGSM::Callback {
 		virtual bool operator()(int iter, const MCGSM&);
 
 	private:
-		MCGSMObject* mMcgsm;
+		MCGSMObject* mMCGSM;
 		PyObject* mCallback;
 };
 
