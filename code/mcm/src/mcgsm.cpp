@@ -318,8 +318,43 @@ double MCGSM::checkPerformance(
 
 
 MatrixXd MCGSM::sample(const MatrixXd& input) const {
-	// pick predictor at random and sample
-	return sample(input, samplePrior(input));
+	ArrayXXd prior(mNumComponents, input.cols());
+
+	MatrixXd output = sampleNormal(mDimOut, input.cols());
+
+	ArrayXXd featuresOutput = mFeatures.transpose() * input;
+	MatrixXd weightsSqr = mWeights.square();
+	ArrayXXd weightsOutput = weightsSqr * featuresOutput.square().matrix();
+	ArrayXXd scalesExp = mScales.exp();
+
+	for(int k = 0; k < input.cols(); ++k) {
+		// compute joint distribution over components and scales
+		ArrayXXd pmf = (mPriors - scalesExp.colwise() * weightsOutput.col(k) / 2.).exp();
+		pmf /= pmf.sum();
+
+		// sample component and scale
+		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double cdf;
+		int l = 0;
+
+		for(cdf = pmf(0, 0); cdf < urand; cdf += pmf(l / mNumScales, l % mNumScales))
+			l++;
+
+		// component and scale index
+		int i = l / mNumScales;
+		int j = l % mNumScales;
+
+		// apply precision matrix
+		mCholeskyFactors[i].transpose().triangularView<Eigen::Upper>().solveInPlace(output.col(k));
+
+		// apply scale
+		output.col(k) /= sqrt(scalesExp(i, j));
+
+		// add predicted mean
+		output.col(k) += mPredictors[i] * input.col(k);
+	}
+
+	return output;
 }
 
 
@@ -333,14 +368,14 @@ MatrixXd MCGSM::sample(const MatrixXd& input, const Array<int, 1, Dynamic>& labe
 	MatrixXd output = sampleNormal(mDimOut, input.cols());
 
 	ArrayXXd featuresOutput = mFeatures.transpose() * input;
-	MatrixXd scalesExp = mScales.exp().transpose();
+	MatrixXd scalesExp = mScales.exp();
 	MatrixXd weightsSqr = mWeights.square();
 
 	#pragma omp parallel for
 	for(int i = 0; i < input.cols(); ++i) {
 		// distribution over scales
-		ArrayXd pmf = mPriors.row(labels[i]).transpose().matrix() - scalesExp.col(labels[i]) / 2. * 
-			(weightsSqr.row(labels[i]) * featuresOutput.col(i).square().matrix());
+		ArrayXd pmf = mPriors.row(labels[i]).matrix() - scalesExp.row(labels[i])
+			* (weightsSqr.row(labels[i]) * featuresOutput.col(i).square().matrix()) / 2.;
 		pmf = (pmf - logSumExp(pmf)[0]).exp();
 
 		// sample scale
@@ -824,7 +859,7 @@ double MCGSM::computeGradient(
 	double normConst = inputCompl.cols() * log(2.);
 
 	Array<double, 1, Dynamic> featureNorm = features.colwise().norm();
-	double priorSum = priors.sum();
+//	double priorSum = priors.sum();
 
 	if(g) {
 //		if(params.trainFeatures)

@@ -9,14 +9,14 @@ modules = [
 	Extension('mcm',
 		language='c++',
 		sources=[
+			'code/mcm/src/mcgsm.cpp',
+			'code/mcm/src/mcgsminterface.cpp',
 			'code/mcm/src/tools.cpp',
 			'code/mcm/src/toolsinterface.cpp',
-			'code/mcm/src/callbacktrain.cpp',
-			'code/mcm/src/mcgsminterface.cpp',
-			'code/mcm/src/mcgsm.cpp',
 			'code/mcm/src/pyutils.cpp',
 			'code/mcm/src/utils.cpp',
 			'code/mcm/src/module.cpp',
+			'code/mcm/src/callbacktrain.cpp',
 			'code/mcm/src/conditionaldistribution.cpp'],
 		include_dirs=[
 			'code',
