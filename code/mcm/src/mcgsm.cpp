@@ -155,7 +155,7 @@ MCGSM::MCGSM(
 
 	// initialize parameters
 	mPriors = ArrayXXd::Zero(mNumComponents, mNumScales);
-	mScales = ArrayXXd::Random(mNumComponents, mNumScales) / 2.;
+	mScales = ArrayXXd::Random(mNumComponents, mNumScales);
 	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 10. + 0.01;
 	mFeatures = ArrayXXd::Random(mDimIn, mNumFeatures) / 10.;
 
@@ -192,7 +192,7 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters para
 	paramsLBFGS.max_iterations = params.maxIter;
 	paramsLBFGS.m = params.numGrad;
 	paramsLBFGS.epsilon = params.threshold;
-//	paramsLBFGS.linesearch = LBFGS_LINESEARCH_BACKTRACKING_ARMIJO;
+	paramsLBFGS.linesearch = LBFGS_LINESEARCH_BACKTRACKING_ARMIJO;
 	paramsLBFGS.ftol = 1e-5;
 
 	// wrap additional arguments
@@ -318,6 +318,7 @@ double MCGSM::checkPerformance(
 
 
 MatrixXd MCGSM::sample(const MatrixXd& input) const {
+	// pick predictor at random and sample
 	return sample(input, samplePrior(input));
 }
 
@@ -355,6 +356,9 @@ MatrixXd MCGSM::sample(const MatrixXd& input, const Array<int, 1, Dynamic>& labe
 
 		// apply scale
 		output.col(i) /= sqrt(scalesExp(labels[i], j));
+
+		// add predicted mean
+		output.col(i) += mPredictors[labels[i]] * input.col(i);
 	}
 
 	return output;
