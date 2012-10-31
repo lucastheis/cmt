@@ -318,8 +318,7 @@ double MCGSM::checkPerformance(
 
 
 MatrixXd MCGSM::sample(const MatrixXd& input) const {
-	ArrayXXd prior(mNumComponents, input.cols());
-
+	// initialize samples with Gaussian noise
 	MatrixXd output = sampleNormal(mDimOut, input.cols());
 
 	ArrayXXd featuresOutput = mFeatures.transpose() * input;
@@ -327,6 +326,7 @@ MatrixXd MCGSM::sample(const MatrixXd& input) const {
 	ArrayXXd weightsOutput = weightsSqr * featuresOutput.square().matrix();
 	ArrayXXd scalesExp = mScales.exp();
 
+	#pragma omp parallel for
 	for(int k = 0; k < input.cols(); ++k) {
 		// compute joint distribution over components and scales
 		ArrayXXd pmf = (mPriors - scalesExp.colwise() * weightsOutput.col(k) / 2.).exp();
@@ -347,10 +347,8 @@ MatrixXd MCGSM::sample(const MatrixXd& input) const {
 		// apply precision matrix
 		mCholeskyFactors[i].transpose().triangularView<Eigen::Upper>().solveInPlace(output.col(k));
 
-		// apply scale
+		// apply scale and add mean
 		output.col(k) /= sqrt(scalesExp(i, j));
-
-		// add predicted mean
 		output.col(k) += mPredictors[i] * input.col(k);
 	}
 

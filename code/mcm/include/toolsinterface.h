@@ -15,5 +15,6 @@ struct CDObject {
 };
 
 PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds);
+PyObject* shuffle(PyObject* self, PyObject* args, PyObject* kwds);
 
 #endif

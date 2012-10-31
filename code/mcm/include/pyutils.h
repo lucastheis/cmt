@@ -6,9 +6,11 @@
 
 #include <Python.h>
 #include <arrayobject.h>
+#include <vector>
 #include "Eigen/Core"
 
 using namespace Eigen;
+using std::vector;
 
 typedef Matrix<bool, Dynamic, Dynamic> MatrixXb;
 
@@ -18,5 +20,7 @@ PyObject* PyArray_FromMatrixXb(const MatrixXb& mat);
 MatrixXd PyArray_ToMatrixXd(PyObject* array);
 MatrixXi PyArray_ToMatrixXi(PyObject* array);
 MatrixXb PyArray_ToMatrixXb(PyObject* array);
+vector<ArrayXXd> PyArray_ToArraysXXd(PyObject* array);
+PyObject* PyArray_FromArraysXXd(const vector<ArrayXXd>& channels);
 
 #endif
