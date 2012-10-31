@@ -35,26 +35,28 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 	}
 
 	try {
-//		if(PyArray_NDIM(img) > 2) {
-//			vector<ArrayXXd> imgSampleChannels = sampleImage(
-//				imgChannels,
-//				cd,
-//				PyArray_ToMatrixXb(xmask),
-//				PyArray_ToMatrixXb(ymask));
-//		} else {
-			PyObject* imgSample = PyArray_FromMatrixXd(
+		PyObject*  imgSample;
+		if(PyArray_NDIM(img) > 2)
+			imgSample = PyArray_FromArraysXXd(
+				sampleImage(
+					PyArray_ToArraysXXd(img),
+					cd,
+					PyArray_ToMatrixXb(xmask),
+					PyArray_ToMatrixXb(ymask)));
+		else
+			imgSample = PyArray_FromMatrixXd(
 				sampleImage(
 					PyArray_ToMatrixXd(img),
 					cd,
 					PyArray_ToMatrixXb(xmask),
 					PyArray_ToMatrixXb(ymask)));
 
-			Py_DECREF(img);
-			Py_DECREF(xmask);
-			Py_DECREF(ymask);
+		Py_DECREF(img);
+		Py_DECREF(xmask);
+		Py_DECREF(ymask);
 
-			return imgSample;
-//		}
+		return imgSample;
+
 	} catch(Exception exception) {
 		Py_DECREF(img);
 		Py_DECREF(xmask);
