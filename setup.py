@@ -9,6 +9,8 @@ modules = [
 	Extension('mcm',
 		language='c++',
 		sources=[
+			'code/mcm/src/tools.cpp',
+			'code/mcm/src/toolsinterface.cpp',
 			'code/mcm/src/callbacktrain.cpp',
 			'code/mcm/src/mcgsminterface.cpp',
 			'code/mcm/src/mcgsm.cpp',
@@ -29,6 +31,7 @@ modules = [
 			'code/liblbfgs/lib/.libs/liblbfgs.a'],
 		extra_compile_args=[
 			'-fopenmp',
+			'-pg',
 			'-Wno-sign-compare',
 			'-Wno-parentheses',
 			'-Wno-write-strings'] + ['-std=c++0x'] if sys.platform != 'darwin' else [])]

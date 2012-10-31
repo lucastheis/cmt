@@ -135,6 +135,7 @@ PyObject* MCGSM_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 
 int MCGSM_init(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"dim_in", "dim_out", "num_components", "num_scales", "num_features", 0};
+
 	int dim_in;
 	int dim_out = 1;
 	int num_components = 8;
@@ -483,6 +484,8 @@ PyObject* MCGSM_train(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	if(!input || !output) {
+		Py_XDECREF(input);
+		Py_XDECREF(output);
 		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
 		return 0;
 	}

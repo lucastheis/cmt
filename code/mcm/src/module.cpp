@@ -5,6 +5,7 @@
 #include <structmember.h>
 #include <stdlib.h>
 #include <time.h>
+#include "toolsinterface.h"
 #include "mcgsminterface.h"
 #include "Eigen/Core"
 
@@ -43,7 +44,6 @@ static PyMethodDef MCGSM_methods[] = {
 	{"__setstate__", (PyCFunction)MCGSM_setstate, METH_VARARGS, 0},
 	{0}
 };
-
 
 
 PyTypeObject MCGSM_type = {
@@ -90,6 +90,13 @@ PyTypeObject MCGSM_type = {
 
 
 
+static PyMethodDef mcm_methods[] = {
+	{"sample_image", (PyCFunction)sample_image, METH_VARARGS|METH_KEYWORDS, 0},
+	{0}
+};
+
+
+
 PyMODINIT_FUNC initmcm() {
 	// set random seed
 	timeval time;
@@ -100,7 +107,7 @@ PyMODINIT_FUNC initmcm() {
 	import_array();
 
 	// create module object
-	PyObject* module = Py_InitModule("mcm", 0);
+	PyObject* module = Py_InitModule("mcm", mcm_methods);
 
 	// initialize types
 	if(PyType_Ready(&MCGSM_type) < 0)

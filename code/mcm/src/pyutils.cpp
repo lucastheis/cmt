@@ -55,6 +55,31 @@ PyObject* PyArray_FromMatrixXi(const MatrixXi& mat) {
 
 
 
+PyObject* PyArray_FromMatrixXb(const MatrixXb& mat) {
+	// matrix dimensionality
+	npy_intp dims[2];
+	dims[0] = mat.rows();
+	dims[1] = mat.cols();
+
+	// allocate PyArray
+	#ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
+	PyObject* array = PyArray_New(&PyArray_Type, 2, dims, NPY_BOOL, 0, 0, sizeof(bool), NPY_C_CONTIGUOUS, 0);
+	#else
+	PyObject* array = PyArray_New(&PyArray_Type, 2, dims, NPY_BOOL, 0, 0, sizeof(bool), NPY_F_CONTIGUOUS, 0);
+	#endif
+
+	// copy data
+	const bool* data = mat.data();
+	bool* dataCopy = reinterpret_cast<bool*>(PyArray_DATA(array));
+
+	for(int i = 0; i < mat.size(); ++i)
+		dataCopy[i] = data[i];
+
+	return array;
+}
+
+
+
 MatrixXd PyArray_ToMatrixXd(PyObject* array) {
 	if(PyArray_DESCR(array)->type != PyArray_DescrFromType(NPY_DOUBLE)->type)
 		throw Exception("Can only handle arrays of double values.");
@@ -90,7 +115,7 @@ MatrixXd PyArray_ToMatrixXd(PyObject* array) {
 			throw Exception("Data must be stored in contiguous memory.");
 
 	} else {
-		throw Exception("Can only handle one- or two-dimensional arrays.");
+		throw Exception("Can only handle one- and two-dimensional arrays.");
 	}
 }
 
@@ -132,6 +157,47 @@ MatrixXi PyArray_ToMatrixXi(PyObject* array) {
 			throw Exception("Data must be stored in contiguous memory.");
 
 	} else {
-		throw Exception("Can only handle one- or two-dimensional arrays.");
+		throw Exception("Can only handle one- and two-dimensional arrays.");
+	}
+}
+
+
+
+MatrixXb PyArray_ToMatrixXb(PyObject* array) {
+	if(PyArray_DESCR(array)->type != PyArray_DescrFromType(NPY_BOOL)->type)
+		throw Exception("Can only handle arrays of Boolean values.");
+
+	if(PyArray_NDIM(array) == 1) {
+		if(PyArray_FLAGS(array) & NPY_F_CONTIGUOUS)
+			return Map<Matrix<bool, Dynamic, Dynamic, ColMajor> >(
+				reinterpret_cast<bool*>(PyArray_DATA(array)),
+				PyArray_DIM(array, 0), 1);
+
+		else if(PyArray_FLAGS(array) & NPY_C_CONTIGUOUS)
+			return Map<Matrix<bool, Dynamic, Dynamic, ColMajor> >(
+				reinterpret_cast<bool*>(PyArray_DATA(array)),
+				PyArray_DIM(array, 0), 1);
+
+		else
+			throw Exception("Data must be stored in contiguous memory.");
+
+	} else if(PyArray_NDIM(array) == 2) {
+		if(PyArray_FLAGS(array) & NPY_F_CONTIGUOUS)
+			return Map<Matrix<bool, Dynamic, Dynamic, ColMajor> >(
+				reinterpret_cast<bool*>(PyArray_DATA(array)),
+				PyArray_DIM(array, 0),
+				PyArray_DIM(array, 1));
+
+		else if(PyArray_FLAGS(array) & NPY_C_CONTIGUOUS)
+			return Map<Matrix<bool, Dynamic, Dynamic, RowMajor> >(
+				reinterpret_cast<bool*>(PyArray_DATA(array)),
+				PyArray_DIM(array, 0),
+				PyArray_DIM(array, 1));
+
+		else
+			throw Exception("Data must be stored in contiguous memory.");
+
+	} else {
+		throw Exception("Can only handle one- and two-dimensional arrays.");
 	}
 }

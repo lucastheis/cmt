@@ -10,9 +10,13 @@
 
 using namespace Eigen;
 
+typedef Matrix<bool, Dynamic, Dynamic> MatrixXb;
+
 PyObject* PyArray_FromMatrixXd(const MatrixXd& mat);
 PyObject* PyArray_FromMatrixXi(const MatrixXi& mat);
+PyObject* PyArray_FromMatrixXb(const MatrixXb& mat);
 MatrixXd PyArray_ToMatrixXd(PyObject* array);
 MatrixXi PyArray_ToMatrixXi(PyObject* array);
+MatrixXb PyArray_ToMatrixXb(PyObject* array);
 
 #endif
