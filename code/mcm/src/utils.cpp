@@ -1,5 +1,6 @@
 #include "Eigen/Cholesky"
 #include "utils.h"
+#include "exception.h"
 #include <algorithm>
 #include <vector>
 #include <iostream>
@@ -83,6 +84,17 @@ VectorXi argSort(const VectorXd& data) {
 MatrixXd covariance(const MatrixXd& data) {
 	MatrixXd data_centered = data.colwise() - data.rowwise().mean().eval();
 	return data_centered * data_centered.transpose() / data.cols();
+}
+
+
+
+MatrixXd covariance(const MatrixXd& input, const MatrixXd& output) {
+	if(input.cols() != output.cols())
+		throw Exception("Number of inputs and outputs must be the same.");
+
+	MatrixXd input_centered = input.colwise() - input.rowwise().mean().eval();
+	MatrixXd output_centered = output.colwise() - output.rowwise().mean().eval();
+	return input_centered * output_centered.transpose() / output.cols();
 }
 
 

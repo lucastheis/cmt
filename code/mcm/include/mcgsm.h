@@ -77,7 +77,10 @@ class MCGSM : public ConditionalDistribution {
 		inline vector<MatrixXd> predictors() const;
 		inline void setPredictors(vector<MatrixXd> predictors);
 
-//		virtual void normalize();
+		virtual void initialize(
+			const MatrixXd& input,
+			const MatrixXd& output,
+			Parameters params = Parameters());
 		virtual bool train(
 			const MatrixXd& input,
 			const MatrixXd& output,

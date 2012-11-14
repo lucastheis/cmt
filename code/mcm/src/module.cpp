@@ -29,7 +29,7 @@ static PyGetSetDef MCGSM_getset[] = {
 
 
 static PyMethodDef MCGSM_methods[] = {
-//	{"normalize", (PyCFunction)MCGSM_normalize, METH_NOARGS, 0},
+	{"initialize", (PyCFunction)MCGSM_initialize, METH_VARARGS|METH_KEYWORDS, 0},
 	{"train", (PyCFunction)MCGSM_train, METH_VARARGS|METH_KEYWORDS, 0},
 	{"check_gradient", (PyCFunction)MCGSM_check_gradient, METH_VARARGS|METH_KEYWORDS, 0},
 	{"check_performance", (PyCFunction)MCGSM_check_performance, METH_VARARGS|METH_KEYWORDS, 0},

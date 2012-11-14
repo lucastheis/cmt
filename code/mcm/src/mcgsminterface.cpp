@@ -451,17 +451,49 @@ int MCGSM_set_predictors(MCGSMObject* self, PyObject* value, void*) {
 
 
 
-//PyObject* MCGSM_normalize(MCGSMObject* self, PyObject*, PyObject*) {
-//	try {
-//		self->mcgsm->normalize();
-//	} catch(Exception exception) {
-//		PyErr_SetString(PyExc_RuntimeError, exception.message());
-//		return 0;
-//	}
-//
-//	Py_INCREF(Py_None);
-//	return Py_None;
-//}
+PyObject* MCGSM_initialize(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", "output", "parameters", 0};
+
+	PyObject* input;
+	PyObject* output;
+	PyObject* parameters = 0;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|O", const_cast<char**>(kwlist),
+		&input,
+		&output,
+		&parameters))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output) {
+		Py_XDECREF(input);
+		Py_XDECREF(output);
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		self->mcgsm->initialize(
+			PyArray_ToMatrixXd(input), 
+			PyArray_ToMatrixXd(output), 
+			PyObject_ToParameters(self, parameters));
+		Py_DECREF(input);
+		Py_DECREF(output);
+		Py_INCREF(Py_None);
+		return Py_None;
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
 
 
 
@@ -825,11 +857,11 @@ PyObject* MCGSM_compute_gradient(MCGSMObject* self, PyObject* args, PyObject* kw
 
 	PyObject* input;
 	PyObject* output;
-	PyObject* x;
+	PyObject* x = 0;
 	PyObject* parameters = 0;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOO|O", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO", const_cast<char**>(kwlist),
 		&input,
 		&output,
 		&x,
@@ -839,34 +871,44 @@ PyObject* MCGSM_compute_gradient(MCGSMObject* self, PyObject* args, PyObject* kw
 	// make sure data is stored in NumPy array
 	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	x = PyArray_FROM_OTF(x, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
-	if(!input || !output || !x) {
-		PyErr_SetString(PyExc_TypeError, "Data and parameters have to be stored in NumPy arrays.");
+	if(!input || !output) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
 		return 0;
 	}
+
+	if(x)
+		x = PyArray_FROM_OTF(x, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	try {
 		MCGSM::Parameters params = PyObject_ToParameters(self, parameters);
 
 		MatrixXd gradient(self->mcgsm->numParameters(params), 1);
 
-		self->mcgsm->computeGradient(
-			PyArray_ToMatrixXd(input), 
-			PyArray_ToMatrixXd(output), 
-			PyArray_ToMatrixXd(x).data(), // TODO: PyArray_ToMatrixXd unnecessary
-			gradient.data(), // TODO: don't use MatrixXd
-			params);
+		if(x)
+			self->mcgsm->computeGradient(
+				PyArray_ToMatrixXd(input), 
+				PyArray_ToMatrixXd(output), 
+				PyArray_ToMatrixXd(x).data(), // TODO: PyArray_ToMatrixXd unnecessary
+				gradient.data(), // TODO: don't use MatrixXd
+				params);
+		else
+			self->mcgsm->computeGradient(
+				PyArray_ToMatrixXd(input), 
+				PyArray_ToMatrixXd(output), 
+				self->mcgsm->parameters(params), // TODO: PyArray_ToMatrixXd unnecessary
+				gradient.data(), // TODO: don't use MatrixXd
+				params);
 
 		Py_DECREF(input);
 		Py_DECREF(output);
-		Py_DECREF(x);
+		Py_XDECREF(x);
 
 		return PyArray_FromMatrixXd(gradient);
 	} catch(Exception exception) {
 		Py_DECREF(input);
 		Py_DECREF(output);
-		Py_DECREF(x);
+		Py_XDECREF(x);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}

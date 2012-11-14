@@ -3,7 +3,12 @@
 import os
 import sys
 import numpy
+
+sys.path.append('./code')
+
 from distutils.core import setup, Extension
+from distutils import ccompiler
+from tools import parallelCCompiler
 
 modules = [
 	Extension('mcm',
@@ -36,6 +41,9 @@ modules = [
 			'-Wno-parentheses',
 			'-Wno-write-strings'] + ['-std=c++0x'] if sys.platform != 'darwin' else [])]
 
+# enable parallel compiler
+ccompiler.CCompiler.compile = parallelCCompiler
+
 setup(
 	name='mcm',
 	version='0.0.1',
@@ -45,3 +53,4 @@ setup(
 	url='http://github.com/lucastheis/mcm',
 	license='MIT',
 	ext_modules=modules)
+

@@ -17,6 +17,7 @@ ArrayXXd sampleGamma(int m = 1, int n = 1, int k = 1);
 
 VectorXi argSort(const VectorXd& data);
 MatrixXd covariance(const MatrixXd& data);
+MatrixXd covariance(const MatrixXd& input, const MatrixXd& output);
 MatrixXd corrCoef(const MatrixXd& data);
 MatrixXd normalize(const MatrixXd& matrix);
 

@@ -1,5 +1,6 @@
 #include "mcgsm.h"
 #include "utils.h"
+#include "Eigen/Eigenvalues"
 #include <sys/time.h>
 #include <iostream>
 #include <iomanip>
@@ -37,6 +38,7 @@ static int callbackLBFGS(
 		if(!(*params.callback)(iteration, mcgsm))
 			return 1;
 	}
+
 
 	return 0;
 }
@@ -156,12 +158,12 @@ MCGSM::MCGSM(
 	// initialize parameters
 	mPriors = ArrayXXd::Zero(mNumComponents, mNumScales);
 	mScales = ArrayXXd::Random(mNumComponents, mNumScales);
-	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 10. + 0.01;
-	mFeatures = ArrayXXd::Random(mDimIn, mNumFeatures) / 10.;
+	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100. + 0.01;
+	mFeatures = sampleNormal(mDimIn, mNumFeatures) / 100.;
 
 	for(int i = 0; i < mNumComponents; ++i) {
-		mCholeskyFactors.push_back(VectorXd::Ones(mDimOut).asDiagonal());
-		mPredictors.push_back(ArrayXXd::Random(mDimOut, mDimIn) / 10.);
+		mCholeskyFactors.push_back(MatrixXd::Identity(mDimOut, mDimOut));
+		mPredictors.push_back(sampleNormal(mDimOut, mDimIn) / 10.);
 	}
 }
 
@@ -172,8 +174,28 @@ MCGSM::~MCGSM() {
 
 
 
-//void MCGSM::normalize() {
-//}
+void MCGSM::initialize(const MatrixXd& input, const MatrixXd& output, Parameters params) {
+	MatrixXd covXX = covariance(input);
+	MatrixXd covXY = covariance(input, output);
+
+	MatrixXd whitening = SelfAdjointEigenSolver<MatrixXd>(covXX).operatorInverseSqrt();
+
+	mScales = sampleNormal(mNumComponents, mNumScales) / 20.;
+	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100. + 0.01;
+	mFeatures = whitening.transpose() * sampleNormal(mDimIn, mNumFeatures).matrix() / 100.;
+
+	// optimal linear predictor and precision
+	MatrixXd predictor = covXY.transpose() * covXX.inverse();
+	MatrixXd choleskyFactor = covariance(output - predictor * input).inverse().llt().matrixL();
+	vector<MatrixXd> choleskyFactors;
+
+	for(int i = 0; i < mNumComponents; ++i) {
+		mPredictors[i] = predictor + sampleNormal(mDimOut, mDimIn).matrix() / 10.;
+		choleskyFactors.push_back(choleskyFactor);
+	}
+
+	setCholeskyFactors(choleskyFactors);
+}
 
 
 
@@ -192,8 +214,10 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters para
 	paramsLBFGS.max_iterations = params.maxIter;
 	paramsLBFGS.m = params.numGrad;
 	paramsLBFGS.epsilon = params.threshold;
-	paramsLBFGS.linesearch = LBFGS_LINESEARCH_BACKTRACKING_ARMIJO;
-	paramsLBFGS.ftol = 1e-5;
+	paramsLBFGS.linesearch = LBFGS_LINESEARCH_MORETHUENTE;
+ 	paramsLBFGS.max_linesearch = 100;
+ 	paramsLBFGS.ftol = 1e-4;
+ 	paramsLBFGS.xtol = 1e-32;
 
 	// wrap additional arguments
 	ParamsLBFGS instance;
@@ -856,13 +880,7 @@ double MCGSM::computeGradient(
 
 	double normConst = inputCompl.cols() * log(2.);
 
-	Array<double, 1, Dynamic> featureNorm = features.colwise().norm();
-//	double priorSum = priors.sum();
-
 	if(g) {
-//		if(params.trainFeatures)
-//			featuresGrad += 1. * (normalize(features).array().rowwise() * (featureNorm - 1.)).matrix();
-
 		// write back gradients of Cholesky factors
 		if(params.trainCholeskyFactors)
 			for(int i = 0; i < mNumComponents; ++i)
@@ -876,5 +894,4 @@ double MCGSM::computeGradient(
 
 	// return average log-likelihood
 	return -logLik / normConst; 
-//	return (-logLik + 0.5 * priorSum * priorSum + 0.5 * (featureNorm - 1.).square().sum()) / normConst; 
 }
