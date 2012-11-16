@@ -1,4 +1,5 @@
 #include "Eigen/Cholesky"
+#include "Eigen/SVD"
 #include "utils.h"
 #include "exception.h"
 #include <algorithm>
@@ -109,6 +110,20 @@ MatrixXd corrCoef(const MatrixXd& data) {
 
 MatrixXd normalize(const MatrixXd& matrix) {
 	return matrix.array().rowwise() / matrix.colwise().norm().eval().array();
+}
+
+
+
+MatrixXd pInverse(const MatrixXd& matrix) {
+	JacobiSVD<MatrixXd> svd(matrix, ComputeThinU | ComputeThinV);
+
+	VectorXd svInv = svd.singularValues();
+
+	for(int i = 0; i < svInv.size(); ++i)
+		if(svInv[i] > 1e-8)
+			svInv[i] = 1. / svInv[i];
+
+	return svd.matrixV() * svInv.asDiagonal() * svd.matrixU().transpose();
 }
 
 

@@ -20,6 +20,7 @@ MatrixXd covariance(const MatrixXd& data);
 MatrixXd covariance(const MatrixXd& input, const MatrixXd& output);
 MatrixXd corrCoef(const MatrixXd& data);
 MatrixXd normalize(const MatrixXd& matrix);
+MatrixXd pInverse(const MatrixXd& matrix);
 
 double logDetPD(const MatrixXd& matrix);
 
