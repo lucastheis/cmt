@@ -164,10 +164,10 @@ int MCGSM_init(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 
 
 void MCGSM_dealloc(MCGSMObject* self) {
-	// delete actual GSM instance
+	// delete actual MCGSM instance
 	delete self->mcgsm;
 
-	// delete GSM object
+	// delete MCGSM object
 	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
 }
 

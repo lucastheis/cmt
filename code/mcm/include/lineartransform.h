@@ -8,6 +8,9 @@ namespace MCM {
 		public:
 			LinearTransform(MatrixXd mat);
 
+			inline MatrixXd matrix() const;
+			inline void setMatrix(MatrixXd mat);
+
 			virtual ArrayXXd operator()(ArrayXXd input) const;
 			virtual ArrayXXd inverse(ArrayXXd output) const;
 
@@ -15,6 +18,19 @@ namespace MCM {
 			MatrixXd mMat;
 			mutable MatrixXd mMatInverse;
 	};
+}
+
+
+
+MatrixXd MCM::LinearTransform::matrix() const {
+	return mMat;
+}
+
+
+
+void MCM::LinearTransform::setMatrix(MatrixXd mat) {
+	mMat = mat;
+	mMatInverse = MatrixXd();
 }
 
 #endif

@@ -14,6 +14,9 @@ modules = [
 	Extension('mcm',
 		language='c++',
 		sources=[
+			'code/mcm/src/lineartransform.cpp',
+			'code/mcm/src/whiteningtransform.cpp',
+			'code/mcm/src/transforminterface.cpp',
 			'code/mcm/src/mcgsm.cpp',
 			'code/mcm/src/mcgsminterface.cpp',
 			'code/mcm/src/tools.cpp',

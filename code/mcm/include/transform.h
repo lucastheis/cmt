@@ -3,6 +3,9 @@
 
 #include "Eigen/Core"
 
+using Eigen::ArrayXXd;
+using Eigen::MatrixXd;
+
 namespace MCM {
 	class Transform {
 		public:
