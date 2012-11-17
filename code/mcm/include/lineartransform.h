@@ -6,13 +6,13 @@
 namespace MCM {
 	class LinearTransform : public Transform {
 		public:
-			LinearTransform(MatrixXd mat);
+			LinearTransform(const MatrixXd& mat);
 
 			inline MatrixXd matrix() const;
-			inline void setMatrix(MatrixXd mat);
+			inline void setMatrix(const MatrixXd& mat);
 
-			virtual ArrayXXd operator()(ArrayXXd input) const;
-			virtual ArrayXXd inverse(ArrayXXd output) const;
+			virtual ArrayXXd operator()(const ArrayXXd& input) const;
+			virtual ArrayXXd inverse(const ArrayXXd& output) const;
 
 		protected:
 			MatrixXd mMat;
@@ -28,7 +28,7 @@ MatrixXd MCM::LinearTransform::matrix() const {
 
 
 
-void MCM::LinearTransform::setMatrix(MatrixXd mat) {
+void MCM::LinearTransform::setMatrix(const MatrixXd& mat) {
 	mMat = mat;
 	mMatInverse = MatrixXd();
 }

@@ -6,7 +6,7 @@
 namespace MCM {
 	class WhiteningTransform : public LinearTransform {
 		public:
-			WhiteningTransform(ArrayXXd data); 
+			WhiteningTransform(const ArrayXXd& data); 
 	};
 }
 

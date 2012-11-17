@@ -1,17 +1,19 @@
 #ifndef MCGSM_H
 #define MCGSM_H
 
+#include <cmath>
+using std::sqrt;
+
+#include <vector>
+using std::vector;
+
 #include "Eigen/Core"
+using Eigen::MatrixXd;
+using Eigen::ArrayXXd;
+
 #include "conditionaldistribution.h"
 #include "exception.h"
 #include "lbfgs.h"
-#include <iostream>
-#include <cmath>
-#include <vector>
-
-using namespace Eigen;
-using std::sqrt;
-using std::vector;
 
 class MCGSM : public ConditionalDistribution {
 	public:

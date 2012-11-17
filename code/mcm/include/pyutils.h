@@ -6,11 +6,17 @@
 
 #include <Python.h>
 #include <arrayobject.h>
-#include <vector>
-#include "Eigen/Core"
 
-using namespace Eigen;
+#include <vector>
 using std::vector;
+
+#include "Eigen/Core"
+using Eigen::Matrix;
+using Eigen::MatrixXd;
+using Eigen::MatrixXi;
+using Eigen::Array;
+using Eigen::ArrayXXd;
+using Eigen::Dynamic;
 
 typedef Matrix<bool, Dynamic, Dynamic> MatrixXb;
 

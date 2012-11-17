@@ -9,6 +9,7 @@
 #include <utility>
 
 using namespace std;
+using namespace Eigen;
 
 typedef pair<pair<const MCGSM*, const MCGSM::Parameters*>, pair<const MatrixXd*, const MatrixXd*> > ParamsLBFGS;
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;

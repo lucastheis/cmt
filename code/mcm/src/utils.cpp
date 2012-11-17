@@ -11,6 +11,7 @@
 #include <random>
 #endif
 
+using namespace Eigen;
 using namespace std;
 
 Array<double, 1, Dynamic> logSumExp(const ArrayXXd& array) {

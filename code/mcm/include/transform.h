@@ -2,7 +2,6 @@
 #define TRANSFORM_H
 
 #include "Eigen/Core"
-
 using Eigen::ArrayXXd;
 using Eigen::MatrixXd;
 
@@ -11,8 +10,8 @@ namespace MCM {
 		public:
 			virtual ~Transform() { }
 
-			virtual ArrayXXd operator()(ArrayXXd input) const = 0;
-			virtual ArrayXXd inverse(ArrayXXd output) const = 0;
+			virtual ArrayXXd operator()(const ArrayXXd& input) const = 0;
+			virtual ArrayXXd inverse(const ArrayXXd& output) const = 0;
 //			virtual ArrayXXd logJacobian(ArrayXXd input) const = 0;
 	};
 }

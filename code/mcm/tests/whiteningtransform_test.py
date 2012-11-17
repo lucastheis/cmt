@@ -22,6 +22,9 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(cov(wt(X), bias=1) - eye(5))), 1e-10)
 		self.assertLess(max(abs(wt.inverse(wt.A) - eye(5))), 1e-10)
 
+		# whitening transform should be symmetric
+		self.assertLess(max(abs(wt.A - wt.A.T)), 1e-10)
+
 
 
 	def test_pickle(self):

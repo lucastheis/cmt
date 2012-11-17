@@ -21,7 +21,8 @@ ArrayXXd sampleImage(
 	ArrayXXd img,
 	const ConditionalDistribution& model,
 	ArrayXXb inputMask,
-	ArrayXXb outputMask)
+	ArrayXXb outputMask,
+	const Transform& preconditioner)
 {
 	if(inputMask.cols() != outputMask.cols() || inputMask.rows() != outputMask.rows())
 		throw Exception("Input and output masks should be of the same size.");
@@ -73,7 +74,7 @@ ArrayXXd sampleImage(
 				img.block(i, j, inputMask.rows(), inputMask.cols()), inputIndices);
 
 			// sample output
-			VectorXd output = model.sample(input);
+			VectorXd output = model.sample(preconditioner(input));
 
 			// replace pixels in image by output
 			for(int k = 0; k < outputIndices.size(); ++k)
@@ -89,7 +90,8 @@ vector<ArrayXXd> sampleImage(
 	vector<ArrayXXd> img,
 	const ConditionalDistribution& model,
 	ArrayXXb inputMask,
-	ArrayXXb outputMask)
+	ArrayXXb outputMask,
+	const Transform& preconditioner)
 {
 	if(!img.size())
 		throw Exception("Image should have at least one channel.");
@@ -111,8 +113,16 @@ vector<ArrayXXd> sampleImage(
 		for(int j = 0; j < inputMask.cols(); ++j) {
 			if(inputMask(i, j))
 				inputIndices.push_back(make_pair(i, j));
-			if(outputMask(i, j))
+			if(outputMask(i, j)) {
 				outputIndices.push_back(make_pair(i, j));
+
+				// update boundaries
+				iMax = max(iMax, i);
+				iMin = min(iMin, i);
+				jMax = max(jMax, j);
+				jMin = min(jMin, j);
+			}
+
 			if(inputMask(i, j) && outputMask(i, j))
 				throw Exception("Input and output mask should not overlap.");
 		}
@@ -128,6 +138,7 @@ vector<ArrayXXd> sampleImage(
 	int numOutputs = outputIndices.size();
 	int numChannels = img.size();
 
+	// TODO: allow for non-invertible preconditioners
 	if(numInputs * numChannels != model.dimIn() || numOutputs * numChannels != model.dimOut())
 		throw Exception("Model and masks are incompatible.");
 
@@ -141,8 +152,7 @@ vector<ArrayXXd> sampleImage(
 					img[m].block(i, j, inputMask.rows(), inputMask.cols()), inputIndices);
 
 			// sample output
-			VectorXd output = model.sample(input);
-
+			VectorXd output = model.sample(preconditioner(input));
 			// replace pixels in image by output
 			for(int m = 0; m < numChannels; ++m)
 				for(int k = 0; k < outputIndices.size(); ++k)

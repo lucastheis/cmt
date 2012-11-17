@@ -2,9 +2,14 @@
 #define UTILS_H
 
 #include "Eigen/Core"
-#include <vector>
+using Eigen::Array;
+using Eigen::ArrayXXd;
+using Eigen::Dynamic;
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
+using Eigen::VectorXi;
 
-using namespace Eigen;
+#include <vector>
 using std::vector;
 
 #define PI 3.141592653589793

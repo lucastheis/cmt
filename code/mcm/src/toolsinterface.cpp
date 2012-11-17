@@ -1,17 +1,20 @@
 #include "toolsinterface.h"
 #include "mcgsminterface.h"
+#include "transforminterface.h"
 #include "exception.h"
+#include <iostream>
 
 PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"img", "model", "xmask", "ymask", 0};
+	const char* kwlist[] = {"img", "model", "xmask", "ymask", "preconditioner", 0};
 
 	PyObject* img;
 	PyObject* model;
 	PyObject* xmask;
 	PyObject* ymask;
+	PyObject* preconditioner = 0;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOOO", const_cast<char**>(kwlist),
-		&img, &model, &xmask, &ymask))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOOO|O", const_cast<char**>(kwlist),
+		&img, &model, &xmask, &ymask, &preconditioner))
 		return 0;
 
 	// make sure data is stored in NumPy array
@@ -19,6 +22,8 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
+	// TODO: make sure preconditioner is of type TransformObject or similar
+	// TODO: make sure that model is of type CDObject or similar
 	const ConditionalDistribution& cd = *reinterpret_cast<CDObject*>(model)->cd;
 
 	if(!img) {
@@ -36,20 +41,41 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 
 	try {
 		PyObject*  imgSample;
-		if(PyArray_NDIM(img) > 2)
-			imgSample = PyArray_FromArraysXXd(
-				sampleImage(
-					PyArray_ToArraysXXd(img),
-					cd,
-					PyArray_ToMatrixXb(xmask),
-					PyArray_ToMatrixXb(ymask)));
-		else
-			imgSample = PyArray_FromMatrixXd(
-				sampleImage(
-					PyArray_ToMatrixXd(img),
-					cd,
-					PyArray_ToMatrixXb(xmask),
-					PyArray_ToMatrixXb(ymask)));
+		if(PyArray_NDIM(img) > 2) {
+			if(preconditioner) {
+				imgSample = PyArray_FromArraysXXd(
+					sampleImage(
+						PyArray_ToArraysXXd(img),
+						cd,
+						PyArray_ToMatrixXb(xmask),
+						PyArray_ToMatrixXb(ymask),
+						*reinterpret_cast<TransformObject*>(preconditioner)->transform));
+			} else {
+				imgSample = PyArray_FromArraysXXd(
+					sampleImage(
+						PyArray_ToArraysXXd(img),
+						cd,
+						PyArray_ToMatrixXb(xmask),
+						PyArray_ToMatrixXb(ymask)));
+			}
+		} else {
+			if(preconditioner) {
+				imgSample = PyArray_FromMatrixXd(
+					sampleImage(
+						PyArray_ToMatrixXd(img),
+						cd,
+						PyArray_ToMatrixXb(xmask),
+						PyArray_ToMatrixXb(ymask),
+						*reinterpret_cast<TransformObject*>(preconditioner)->transform));
+			} else {
+				imgSample = PyArray_FromMatrixXd(
+					sampleImage(
+						PyArray_ToMatrixXd(img),
+						cd,
+						PyArray_ToMatrixXb(xmask),
+						PyArray_ToMatrixXb(ymask)));
+			}
+		}
 
 		Py_DECREF(img);
 		Py_DECREF(xmask);

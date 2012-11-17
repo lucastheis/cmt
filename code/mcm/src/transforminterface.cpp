@@ -1,7 +1,7 @@
 #include "transforminterface.h"
-#include "Eigen/Core"
 #include "exception.h"
 
+#include "Eigen/Core"
 using Eigen::MatrixXd;
 
 PyObject* Transform_call(LinearTransformObject* self, PyObject* args, PyObject* kwds) {

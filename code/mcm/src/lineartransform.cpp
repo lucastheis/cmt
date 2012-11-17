@@ -2,12 +2,12 @@
 #include "utils.h"
 #include "lineartransform.h"
 
-MCM::LinearTransform::LinearTransform(MatrixXd mat) : mMat(mat) {
+MCM::LinearTransform::LinearTransform(const MatrixXd& mat) : mMat(mat) {
 }
 
 
 
-ArrayXXd MCM::LinearTransform::operator()(ArrayXXd input) const {
+ArrayXXd MCM::LinearTransform::operator()(const ArrayXXd& input) const {
 	if(input.rows() != mMat.cols())
 		throw Exception("Data has wrong dimensionality.");
 	return mMat * input.matrix();
@@ -15,7 +15,7 @@ ArrayXXd MCM::LinearTransform::operator()(ArrayXXd input) const {
 
 
 
-ArrayXXd MCM::LinearTransform::inverse(ArrayXXd input) const {
+ArrayXXd MCM::LinearTransform::inverse(const ArrayXXd& input) const {
 	if(input.rows() != mMat.rows())
 		throw Exception("Data has wrong dimensionality.");
 	if(!mMatInverse.size())

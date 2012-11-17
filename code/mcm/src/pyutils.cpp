@@ -1,8 +1,10 @@
 #include "pyutils.h"
 #include "exception.h"
-#include <cinttypes>
 
+#include <cinttypes>
 using std::int64_t;
+
+using namespace Eigen;
 
 PyObject* PyArray_FromMatrixXd(const MatrixXd& mat) {
 	// matrix dimensionality
@@ -225,7 +227,6 @@ PyObject* PyArray_FromArraysXXd(const vector<ArrayXXd>& channels) {
 		const double* data = channels[m].data();
 
 		for(int i = 0; i < channels[m].size(); ++i)
-//			dataCopy[m + i * channels.size()] = data[i];
 			dataCopy[m * channels[m].size() + i] = data[i];
 	}
 
@@ -261,7 +262,6 @@ vector<ArrayXXd> PyArray_ToArraysXXd(PyObject* array) {
 		for(int m = 0; m < channels.size(); ++m)
 			for(int i = 0; i < channels[m].size(); ++i)
 				channels[m].data()[i] = data[m * channels[m].size() + i];
-//				channels[m].data()[i] = data[m + i * channels.size()];
 
 		return channels;
 	} else {
