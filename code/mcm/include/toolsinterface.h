@@ -6,15 +6,17 @@
 
 #include <Python.h>
 #include <arrayobject.h>
-#include "tools.h"
 #include "pyutils.h"
+#include "conditionaldistribution.h"
 
 struct CDObject {
 	PyObject_HEAD
 	ConditionalDistribution* cd;
 };
 
-PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds);
-PyObject* shuffle(PyObject* self, PyObject* args, PyObject* kwds);
+PyObject* random_select(PyObject*, PyObject*, PyObject*);
+PyObject* generate_data_from_image(PyObject*, PyObject*, PyObject*);
+PyObject* sample_image(PyObject*, PyObject*, PyObject*);
+PyObject* shuffle(PyObject*, PyObject*, PyObject*);
 
 #endif

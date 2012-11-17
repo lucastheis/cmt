@@ -62,6 +62,35 @@ ArrayXXd sampleGamma(int m, int n, int k) {
 
 
 
+set<int> randomSelect(int k, int n) {
+	if(k > n)
+		throw Exception("k must be smaller than n.");
+	if(k < 1 || n < 1)
+		throw Exception("n and k must be positive.");
+
+	// TODO: a hash map could be more efficient
+	set<int> indices;
+
+	if(k <= n / 2) {
+		for(int i = 0; i < k; ++i)
+			while(indices.insert(rand() % n).second != true) {
+				// repeat until insertion successful
+			}
+	} else {
+		// fill set with all indices
+		for(int i = 0; i < n; ++i)
+			indices.insert(i);
+		for(int i = 0; i < n - k; ++i)
+			while(!indices.erase(rand() % n)) {
+				// repeat until deletion successful
+			}
+	}
+
+	return indices;
+}
+
+
+
 VectorXi argSort(const VectorXd& data) {
 	// create pairs of values and indices
 	vector<pair<double, int> > pairs(data.size());

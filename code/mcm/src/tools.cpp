@@ -1,10 +1,15 @@
-#include <iostream>
 #include <algorithm>
-#include "tools.h"
-#include "exception.h"
-
 using std::max;
 using std::min;
+
+#include <cstdio>
+using std::rand;
+
+#include "tools.h"
+#include "utils.h"
+#include "exception.h"
+
+using Eigen::Block;
 
 VectorXd extractFromImage(ArrayXXd img, Tuples indices) {
 	VectorXd pixels(indices.size());
@@ -13,6 +18,59 @@ VectorXd extractFromImage(ArrayXXd img, Tuples indices) {
 		pixels[i] = img(indices[i].first, indices[i].second);
 
 	return pixels;
+}
+
+
+
+pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+	ArrayXXd img,
+	ArrayXXb inputMask,
+	ArrayXXb outputMask,
+	int numSamples)
+{
+	if(inputMask.cols() != outputMask.cols() || inputMask.rows() != outputMask.rows())
+		throw Exception("Input and output masks should be of the same size.");
+
+	int w = img.cols() - inputMask.cols() + 1;
+	int h = img.rows() - inputMask.rows() + 1;
+
+	if(numSamples > w * h)
+		throw Exception("Image not large enough for this many samples.");
+
+	Tuples inputIndices;
+	Tuples outputIndices;
+
+	// precompute indices of active pixels in masks
+	for(int i = 0; i < inputMask.rows(); ++i)
+		for(int j = 0; j < inputMask.cols(); ++j) {
+			if(inputMask(i, j))
+				inputIndices.push_back(make_pair(i, j));
+			if(outputMask(i, j))
+				outputIndices.push_back(make_pair(i, j));
+			if(inputMask(i, j) && outputMask(i, j))
+				throw Exception("Input and output mask should not overlap.");
+		}
+
+	set<int> indices = randomSelect(numSamples, w * h);
+
+	pair<ArrayXXd, ArrayXXd> data = make_pair(
+		ArrayXXd(inputMask.size(), numSamples),
+		ArrayXXd(outputMask.size(), numSamples));
+
+	int k = 0;
+
+	for(set<int>::iterator iter = indices.begin(); iter != indices.end(); ++iter, ++k) {
+		// extract input and output
+		int i = *iter / w;
+		int j = *iter % w;
+
+		MatrixXd patch = img.block(i, j, inputMask.rows(), inputMask.cols());
+
+		data.first.col(k) = extractFromImage(patch, inputIndices);
+		data.second.col(k) = extractFromImage(patch, outputIndices);
+	}
+
+	return data;
 }
 
 
@@ -67,8 +125,8 @@ ArrayXXd sampleImage(
 	if(inputIndices.size() != model.dimIn() || outputIndices.size() != model.dimOut())
 		throw Exception("Model and masks are incompatible.");
 
-	for(int i = 0; i + inputMask.rows() < img.rows(); i += h)
-		for(int j = 0; j + inputMask.cols() < img.cols(); j += w) {
+	for(int i = 0; i + inputMask.rows() <= img.rows(); i += h)
+		for(int j = 0; j + inputMask.cols() <= img.cols(); j += w) {
 			// extract causal neighborhood
 			VectorXd input = extractFromImage(
 				img.block(i, j, inputMask.rows(), inputMask.cols()), inputIndices);
@@ -142,8 +200,8 @@ vector<ArrayXXd> sampleImage(
 	if(numInputs * numChannels != model.dimIn() || numOutputs * numChannels != model.dimOut())
 		throw Exception("Model and masks are incompatible.");
 
-	for(int i = 0; i + inputMask.rows() < img[0].rows(); i += h)
-		for(int j = 0; j + inputMask.cols() < img[0].cols(); j += w) {
+	for(int i = 0; i + inputMask.rows() <= img[0].rows(); i += h)
+		for(int j = 0; j + inputMask.cols() <= img[0].cols(); j += w) {
 			VectorXd input(numInputs * numChannels);
 
 			// extract causal neighborhood

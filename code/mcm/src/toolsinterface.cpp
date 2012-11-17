@@ -2,7 +2,100 @@
 #include "mcgsminterface.h"
 #include "transforminterface.h"
 #include "exception.h"
-#include <iostream>
+#include "utils.h"
+#include "tools.h"
+
+#include <set>
+using std::set;
+
+PyObject* random_select(PyObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"k", "n", 0};
+
+	int n;
+	int k;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "ii", const_cast<char**>(kwlist), &k, &n))
+		return 0;
+
+	try {
+		set<int> indices = randomSelect(k, n);
+
+		PyObject* list = PyList_New(indices.size());
+		
+		int i = 0;
+
+		for(set<int>::iterator iter = indices.begin(); iter != indices.end(); ++iter, ++i)
+			PyList_SetItem(list, i, PyInt_FromLong(*iter));
+
+		return list;
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+	
+	return 0;
+}
+
+
+
+PyObject* generate_data_from_image(PyObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"img", "xmask", "ymask", "num_samples", 0};
+
+	PyObject* img;
+	PyObject* xmask;
+	PyObject* ymask;
+	int num_samples;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOOi", const_cast<char**>(kwlist),
+		&img, &xmask, &ymask, &num_samples))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	img = PyArray_FROM_OTF(img, NPY_DOUBLE, NPY_ALIGNED);
+	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_ALIGNED);
+	ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_ALIGNED);
+
+	if(!img) {
+		PyErr_SetString(PyExc_TypeError, "The initial image has to be given as an array.");
+		return 0;
+	}
+
+	if(!xmask || !ymask) {
+		Py_DECREF(img);
+		Py_XDECREF(xmask);
+		Py_XDECREF(ymask);
+		PyErr_SetString(PyExc_TypeError, "Masks have to be given as Boolean arrays.");
+		return 0;
+	}
+
+	try {
+		pair<ArrayXXd, ArrayXXd> dataPair = generateDataFromImage(
+			PyArray_ToMatrixXd(img),
+			PyArray_ToMatrixXb(xmask),
+			PyArray_ToMatrixXb(ymask),
+			num_samples);
+
+		PyObject* data = Py_BuildValue("(OO)",
+			PyArray_FromMatrixXd(dataPair.first),
+			PyArray_FromMatrixXd(dataPair.second));
+
+		Py_DECREF(img);
+		Py_DECREF(xmask);
+		Py_DECREF(ymask);
+
+		return data;
+	} catch(Exception exception) {
+		Py_DECREF(img);
+		Py_DECREF(xmask);
+		Py_DECREF(ymask);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
 
 PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"img", "model", "xmask", "ymask", "preconditioner", 0};
@@ -40,7 +133,7 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 	}
 
 	try {
-		PyObject*  imgSample;
+		PyObject* imgSample;
 		if(PyArray_NDIM(img) > 2) {
 			if(preconditioner) {
 				imgSample = PyArray_FromArraysXXd(

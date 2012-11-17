@@ -211,6 +211,8 @@ PyTypeObject WhiteningTransform_type = {
 
 
 static PyMethodDef mcm_methods[] = {
+	{"random_select", (PyCFunction)random_select, METH_VARARGS|METH_KEYWORDS, 0},
+	{"generate_data_from_image", (PyCFunction)generate_data_from_image, METH_VARARGS|METH_KEYWORDS, 0},
 	{"sample_image", (PyCFunction)sample_image, METH_VARARGS|METH_KEYWORDS, 0},
 	{"shuffle", (PyCFunction)shuffle, METH_VARARGS|METH_KEYWORDS, 0},
 	{0}

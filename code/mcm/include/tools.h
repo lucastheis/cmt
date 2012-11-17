@@ -25,6 +25,11 @@ typedef Array<bool, Dynamic, Dynamic> ArrayXXb;
 typedef vector<pair<int, int> > Tuples;
 
 VectorXd extractFromImage(ArrayXXd img, Tuples indices);
+pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+	ArrayXXd img,
+	ArrayXXb inputMask,
+	ArrayXXb outputMask,
+	int numSamples);
 
 ArrayXXd sampleImage(
 	ArrayXXd img,
@@ -32,7 +37,6 @@ ArrayXXd sampleImage(
 	ArrayXXb inputMask,
 	ArrayXXb outputMask,
 	const Transform& preconditioner = IdentityTransform());
-
 vector<ArrayXXd> sampleImage(
 	vector<ArrayXXd> img,
 	const ConditionalDistribution& model,
