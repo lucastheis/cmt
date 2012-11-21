@@ -8,6 +8,8 @@
 #include <set>
 using std::set;
 
+#include <iostream>
+
 PyObject* random_select(PyObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"k", "n", 0};
 
@@ -69,21 +71,37 @@ PyObject* generate_data_from_image(PyObject* self, PyObject* args, PyObject* kwd
 	}
 
 	try {
-		pair<ArrayXXd, ArrayXXd> dataPair = generateDataFromImage(
-			PyArray_ToMatrixXd(img),
-			PyArray_ToMatrixXb(xmask),
-			PyArray_ToMatrixXb(ymask),
-			num_samples);
+		pair<ArrayXXd, ArrayXXd> dataPair;
+		
+		if(PyArray_NDIM(img) > 2)
+			dataPair = generateDataFromImage(
+				PyArray_ToArraysXXd(img),
+				PyArray_ToMatrixXb(xmask),
+				PyArray_ToMatrixXb(ymask),
+				num_samples);
+		else
+			dataPair = generateDataFromImage(
+				PyArray_ToMatrixXd(img),
+				PyArray_ToMatrixXb(xmask),
+				PyArray_ToMatrixXb(ymask),
+				num_samples);
+
+		PyObject* xvalues = PyArray_FromMatrixXd(dataPair.first);
+		PyObject* yvalues = PyArray_FromMatrixXd(dataPair.second);
 
 		PyObject* data = Py_BuildValue("(OO)",
-			PyArray_FromMatrixXd(dataPair.first),
+			xvalues,
+			yvalues,
 			PyArray_FromMatrixXd(dataPair.second));
 
 		Py_DECREF(img);
+		Py_DECREF(xvalues);
+		Py_DECREF(yvalues);
 		Py_DECREF(xmask);
 		Py_DECREF(ymask);
 
 		return data;
+
 	} catch(Exception exception) {
 		Py_DECREF(img);
 		Py_DECREF(xmask);

@@ -169,8 +169,8 @@ static PyGetSetDef WhiteningTransform_getset[] = {
 PyTypeObject WhiteningTransform_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                   /*ob_size*/
-	"mcm.WhiteningTransform",               /*tp_name*/
-	sizeof(WhiteningTransformObject),       /*tp_basicsize*/
+	"mcm.WhiteningTransform",            /*tp_name*/
+	sizeof(WhiteningTransformObject),    /*tp_basicsize*/
 	0,                                   /*tp_itemsize*/
 	(destructor)Transform_dealloc,       /*tp_dealloc*/
 	0,                                   /*tp_print*/

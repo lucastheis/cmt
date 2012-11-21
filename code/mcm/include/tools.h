@@ -30,6 +30,11 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 	ArrayXXb inputMask,
 	ArrayXXb outputMask,
 	int numSamples);
+pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+	vector<ArrayXXd> img,
+	ArrayXXb inputMask,
+	ArrayXXb outputMask,
+	int numSamples);
 
 ArrayXXd sampleImage(
 	ArrayXXd img,

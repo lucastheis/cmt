@@ -51,23 +51,85 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 				throw Exception("Input and output mask should not overlap.");
 		}
 
+	// sample random image locations
 	set<int> indices = randomSelect(numSamples, w * h);
 
 	pair<ArrayXXd, ArrayXXd> data = make_pair(
-		ArrayXXd(inputMask.size(), numSamples),
-		ArrayXXd(outputMask.size(), numSamples));
+		ArrayXXd(inputIndices.size(), numSamples),
+		ArrayXXd(outputIndices.size(), numSamples));
 
 	int k = 0;
 
 	for(set<int>::iterator iter = indices.begin(); iter != indices.end(); ++iter, ++k) {
-		// extract input and output
+		// compute indices of image location
 		int i = *iter / w;
 		int j = *iter % w;
 
+		// extract input and output
 		MatrixXd patch = img.block(i, j, inputMask.rows(), inputMask.cols());
 
 		data.first.col(k) = extractFromImage(patch, inputIndices);
 		data.second.col(k) = extractFromImage(patch, outputIndices);
+	}
+
+	return data;
+}
+
+
+
+pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+	vector<ArrayXXd> img,
+	ArrayXXb inputMask,
+	ArrayXXb outputMask,
+	int numSamples)
+{
+	if(inputMask.cols() != outputMask.cols() || inputMask.rows() != outputMask.rows())
+		throw Exception("Input and output masks should be of the same size.");
+
+	int w = img[0].cols() - inputMask.cols() + 1;
+	int h = img[0].rows() - inputMask.rows() + 1;
+
+	if(numSamples > w * h)
+		throw Exception("Image not large enough for this many samples.");
+
+	Tuples inputIndices;
+	Tuples outputIndices;
+
+	// precompute indices of active pixels in masks
+	for(int i = 0; i < inputMask.rows(); ++i)
+		for(int j = 0; j < inputMask.cols(); ++j) {
+			if(inputMask(i, j))
+				inputIndices.push_back(make_pair(i, j));
+			if(outputMask(i, j))
+				outputIndices.push_back(make_pair(i, j));
+			if(inputMask(i, j) && outputMask(i, j))
+				throw Exception("Input and output mask should not overlap.");
+		}
+
+	// sample random image locations
+	set<int> indices = randomSelect(numSamples, w * h);
+
+	int numInputs = inputIndices.size();
+	int numOutputs = outputIndices.size();
+	int numChannels = img.size();
+
+	pair<ArrayXXd, ArrayXXd> data = make_pair(
+		ArrayXXd(numChannels * numInputs, numSamples),
+		ArrayXXd(numChannels * numOutputs, numSamples));
+
+	int k = 0;
+
+	for(set<int>::iterator iter = indices.begin(); iter != indices.end(); ++iter, ++k) {
+		// compute indices of image location
+		int i = *iter / w;
+		int j = *iter % w;
+
+		// extract input and output
+		for(int m = 0; m < numChannels; ++m) {
+			MatrixXd patch = img[m].block(i, j, inputMask.rows(), inputMask.cols());
+			data.first.block(m * numInputs, k, numInputs, 1) = extractFromImage(patch, inputIndices);
+			data.second.block(m * numOutputs, k, numOutputs, 1) = extractFromImage(patch, outputIndices);
+		}
 	}
 
 	return data;
