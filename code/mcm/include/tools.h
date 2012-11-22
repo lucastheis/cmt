@@ -35,6 +35,11 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 	ArrayXXb inputMask,
 	ArrayXXb outputMask,
 	int numSamples);
+pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+	vector<ArrayXXd> img,
+	vector<ArrayXXb> inputMask,
+	vector<ArrayXXb> outputMask,
+	int numSamples);
 
 ArrayXXd sampleImage(
 	ArrayXXd img,
@@ -47,6 +52,12 @@ vector<ArrayXXd> sampleImage(
 	const ConditionalDistribution& model,
 	ArrayXXb inputMask,
 	ArrayXXb outputMask,
+	const Transform& preconditioner = IdentityTransform());
+vector<ArrayXXd> sampleImage(
+	vector<ArrayXXd> img,
+	const ConditionalDistribution& model,
+	vector<ArrayXXb> inputMask,
+	vector<ArrayXXb> outputMask,
 	const Transform& preconditioner = IdentityTransform());
 
 #endif
