@@ -267,13 +267,16 @@ vector<ArrayXXd> sampleImage(
 			VectorXd input(numInputs * numChannels);
 
 			// extract causal neighborhood
+			#pragma omp parallel for
 			for(int m = 0; m < numChannels; ++m)
 				input.segment(m * numInputs, numInputs) = extractFromImage(
 					img[m].block(i, j, inputMask.rows(), inputMask.cols()), inputIndices);
 
 			// sample output
 			VectorXd output = model.sample(preconditioner(input));
+
 			// replace pixels in image by output
+			#pragma omp parallel for
 			for(int m = 0; m < numChannels; ++m)
 				for(int k = 0; k < outputIndices.size(); ++k)
 					img[m](i + outputIndices[k].first, j + outputIndices[k].second) = output[m * numOutputs + k];

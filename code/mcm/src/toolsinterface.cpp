@@ -53,9 +53,9 @@ PyObject* generate_data_from_image(PyObject* self, PyObject* args, PyObject* kwd
 		return 0;
 
 	// make sure data is stored in NumPy array
-	img = PyArray_FROM_OTF(img, NPY_DOUBLE, NPY_ALIGNED);
-	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_ALIGNED);
-	ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_ALIGNED);
+	img = PyArray_FROM_OTF(img, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	if(!img) {
 		PyErr_SetString(PyExc_TypeError, "The initial image has to be given as an array.");
