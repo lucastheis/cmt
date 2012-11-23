@@ -11,6 +11,8 @@ using std::rand;
 
 using Eigen::Block;
 
+#include <iostream>
+
 VectorXd extractFromImage(ArrayXXd img, Tuples indices) {
 	VectorXd pixels(indices.size());
 
@@ -171,6 +173,10 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 	for(int m = 0; m < numChannels; ++m) {
 		if(inputMask[m].cols() != outputMask[m].cols() || inputMask[m].rows() != outputMask[m].rows())
 			throw Exception("Input and output masks should be of the same size.");
+		if(inputMask[m].cols() != inputMask[0].cols() || inputMask[m].rows() != outputMask[0].rows())
+			throw Exception("Input and output masks should be of the same size.");
+		if(img[m].cols() != img[0].cols() || img[m].rows() != img[0].rows())
+			throw Exception("All channels should be of the same size.");
 
 		inputIndices.push_back(Tuples());
 		outputIndices.push_back(Tuples());
@@ -403,6 +409,10 @@ vector<ArrayXXd> sampleImage(
 	for(int m = 0; m < numChannels; ++m) {
 		if(inputMask[m].cols() != outputMask[m].cols() || inputMask[m].rows() != outputMask[m].rows())
 			throw Exception("Input and output masks should be of the same size.");
+		if(inputMask[m].cols() != inputMask[0].cols() || inputMask[m].rows() != outputMask[0].rows())
+			throw Exception("Input and output masks should be of the same size.");
+		if(img[m].cols() != img[0].cols() || img[m].rows() != img[0].cols())
+			throw Exception("All channels should be of the same size.");
 
 		inputIndices.push_back(Tuples());
 		outputIndices.push_back(Tuples());
@@ -446,9 +456,8 @@ vector<ArrayXXd> sampleImage(
 			VectorXd input(numInputs);
 
 			// extract causal neighborhood
-			// TODO: parallelize
 			for(int m = 0, offset = 0; m < numChannels; ++m) {
-				input.segment(offset, inputMask[m].size()) = extractFromImage(
+				input.segment(offset, inputIndices[m].size()) = extractFromImage(
 					img[m].block(i, j, inputMask[m].rows(), inputMask[m].cols()), inputIndices[m]);
 				offset += inputIndices[m].size();
 			}
@@ -457,7 +466,6 @@ vector<ArrayXXd> sampleImage(
 			VectorXd output = model.sample(preconditioner(input));
 
 			// replace pixels in image by output
-			// TODO: parallelize
 			for(int m = 0, offset = 0; m < numChannels; ++m) {
 				for(int k = 0; k < outputIndices[m].size(); ++k)
 					img[m](i + outputIndices[m][k].first, j + outputIndices[m][k].second) = output[offset + k];

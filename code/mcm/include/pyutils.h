@@ -19,6 +19,7 @@ using Eigen::ArrayXXd;
 using Eigen::Dynamic;
 
 typedef Matrix<bool, Dynamic, Dynamic> MatrixXb;
+typedef Array<bool, Dynamic, Dynamic> ArrayXXb;
 
 PyObject* PyArray_FromMatrixXd(const MatrixXd& mat);
 PyObject* PyArray_FromMatrixXi(const MatrixXi& mat);
@@ -27,6 +28,7 @@ MatrixXd PyArray_ToMatrixXd(PyObject* array);
 MatrixXi PyArray_ToMatrixXi(PyObject* array);
 MatrixXb PyArray_ToMatrixXb(PyObject* array);
 vector<ArrayXXd> PyArray_ToArraysXXd(PyObject* array);
+vector<ArrayXXb> PyArray_ToArraysXXb(PyObject* array);
 PyObject* PyArray_FromArraysXXd(const vector<ArrayXXd>& channels);
 
 #endif

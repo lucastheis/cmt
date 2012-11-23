@@ -74,12 +74,22 @@ PyObject* generate_data_from_image(PyObject* self, PyObject* args, PyObject* kwd
 		pair<ArrayXXd, ArrayXXd> dataPair;
 		
 		if(PyArray_NDIM(img) > 2)
-			dataPair = generateDataFromImage(
-				PyArray_ToArraysXXd(img),
-				PyArray_ToMatrixXb(xmask),
-				PyArray_ToMatrixXb(ymask),
-				num_samples);
+			if(PyArray_NDIM(xmask) > 2 && PyArray_NDIM(ymask) > 2)
+				// multi-channel image and multi-channel masks
+				dataPair = generateDataFromImage(
+					PyArray_ToArraysXXd(img),
+					PyArray_ToArraysXXb(xmask),
+					PyArray_ToArraysXXb(ymask),
+					num_samples);
+			else
+				// multi-channel image and single-channel masks
+				dataPair = generateDataFromImage(
+					PyArray_ToArraysXXd(img),
+					PyArray_ToMatrixXb(xmask),
+					PyArray_ToMatrixXb(ymask),
+					num_samples);
 		else
+			// single-channel image and single-channel masks
 			dataPair = generateDataFromImage(
 				PyArray_ToMatrixXd(img),
 				PyArray_ToMatrixXb(xmask),
@@ -153,23 +163,45 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 	try {
 		PyObject* imgSample;
 		if(PyArray_NDIM(img) > 2) {
-			if(preconditioner) {
-				imgSample = PyArray_FromArraysXXd(
-					sampleImage(
-						PyArray_ToArraysXXd(img),
-						cd,
-						PyArray_ToMatrixXb(xmask),
-						PyArray_ToMatrixXb(ymask),
-						*reinterpret_cast<TransformObject*>(preconditioner)->transform));
+			if(PyArray_NDIM(xmask) > 2 && PyArray_NDIM(ymask) > 2) {
+				// multi-channel image and multi-channel masks
+				if(preconditioner) {
+					imgSample = PyArray_FromArraysXXd(
+						sampleImage(
+							PyArray_ToArraysXXd(img),
+							cd,
+							PyArray_ToArraysXXb(xmask),
+							PyArray_ToArraysXXb(ymask),
+							*reinterpret_cast<TransformObject*>(preconditioner)->transform));
+				} else {
+					imgSample = PyArray_FromArraysXXd(
+						sampleImage(
+							PyArray_ToArraysXXd(img),
+							cd,
+							PyArray_ToArraysXXb(xmask),
+							PyArray_ToArraysXXb(ymask)));
+				}
 			} else {
-				imgSample = PyArray_FromArraysXXd(
-					sampleImage(
-						PyArray_ToArraysXXd(img),
-						cd,
-						PyArray_ToMatrixXb(xmask),
-						PyArray_ToMatrixXb(ymask)));
+				// multi-channel image and single-channel masks
+				if(preconditioner) {
+					imgSample = PyArray_FromArraysXXd(
+						sampleImage(
+							PyArray_ToArraysXXd(img),
+							cd,
+							PyArray_ToMatrixXb(xmask),
+							PyArray_ToMatrixXb(ymask),
+							*reinterpret_cast<TransformObject*>(preconditioner)->transform));
+				} else {
+					imgSample = PyArray_FromArraysXXd(
+						sampleImage(
+							PyArray_ToArraysXXd(img),
+							cd,
+							PyArray_ToMatrixXb(xmask),
+							PyArray_ToMatrixXb(ymask)));
+				}
 			}
 		} else {
+			// single-channel image and single-channel masks
 			if(preconditioner) {
 				imgSample = PyArray_FromMatrixXd(
 					sampleImage(

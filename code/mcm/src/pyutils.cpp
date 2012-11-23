@@ -206,35 +206,6 @@ MatrixXb PyArray_ToMatrixXb(PyObject* array) {
 
 
 
-PyObject* PyArray_FromArraysXXd(const vector<ArrayXXd>& channels) {
-	// matrix dimensionality
-	npy_intp dims[3];
-	dims[0] = channels[0].rows();
-	dims[1] = channels[0].cols();
-	dims[2] = channels.size();
-
-	// allocate PyArray
-	#ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
-	PyObject* array = PyArray_New(&PyArray_Type, 3, dims, NPY_DOUBLE, 0, 0, sizeof(double), NPY_C_CONTIGUOUS, 0);
-	#else
-	PyObject* array = PyArray_New(&PyArray_Type, 3, dims, NPY_DOUBLE, 0, 0, sizeof(double), NPY_F_CONTIGUOUS, 0);
-	#endif
-
-	// copy data
-	double* dataCopy = reinterpret_cast<double*>(PyArray_DATA(array));
-
-	for(int m = 0; m < channels.size(); ++m) {
-		const double* data = channels[m].data();
-
-		for(int i = 0; i < channels[m].size(); ++i)
-			dataCopy[m * channels[m].size() + i] = data[i];
-	}
-
-	return array;
-}
-
-
-
 vector<ArrayXXd> PyArray_ToArraysXXd(PyObject* array) {
 	if(PyArray_DESCR(array)->type != PyArray_DescrFromType(NPY_DOUBLE)->type)
 		throw Exception("Can only handle arrays of double values.");
@@ -265,6 +236,71 @@ vector<ArrayXXd> PyArray_ToArraysXXd(PyObject* array) {
 
 		return channels;
 	} else {
-		throw Exception("This function only deals with three-dimensional arrays.");
+		throw Exception("Can only handle three-dimensional arrays.");
 	}
+}
+
+
+
+vector<ArrayXXb> PyArray_ToArraysXXb(PyObject* array) {
+	if(PyArray_DESCR(array)->type != PyArray_DescrFromType(NPY_BOOL)->type)
+		throw Exception("Can only handle arrays of bool values.");
+
+	if(PyArray_NDIM(array) == 3) {
+		vector<ArrayXXb> channels;
+
+		if(PyArray_FLAGS(array) & NPY_F_CONTIGUOUS)
+			for(int m = 0; m < PyArray_DIM(array, 2); ++m)
+				channels.push_back(Matrix<bool, Dynamic, Dynamic, ColMajor>(
+					PyArray_DIM(array, 0),
+					PyArray_DIM(array, 1)));
+
+		else if(PyArray_FLAGS(array) & NPY_C_CONTIGUOUS)
+			for(int m = 0; m < PyArray_DIM(array, 2); ++m)
+				channels.push_back(Matrix<bool, Dynamic, Dynamic, RowMajor>(
+					PyArray_DIM(array, 0),
+					PyArray_DIM(array, 1)));
+
+		else
+			throw Exception("Data must be stored in contiguous memory.");
+
+		bool* data = reinterpret_cast<bool*>(PyArray_DATA(array));
+
+		for(int m = 0; m < channels.size(); ++m)
+			for(int i = 0; i < channels[m].size(); ++i)
+				channels[m].data()[i] = data[m * channels[m].size() + i];
+
+		return channels;
+	} else {
+		throw Exception("Can only handle three-dimensional arrays.");
+	}
+}
+
+
+
+PyObject* PyArray_FromArraysXXd(const vector<ArrayXXd>& channels) {
+	// matrix dimensionality
+	npy_intp dims[3];
+	dims[0] = channels[0].rows();
+	dims[1] = channels[0].cols();
+	dims[2] = channels.size();
+
+	// allocate PyArray
+	#ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
+	PyObject* array = PyArray_New(&PyArray_Type, 3, dims, NPY_DOUBLE, 0, 0, sizeof(double), NPY_C_CONTIGUOUS, 0);
+	#else
+	PyObject* array = PyArray_New(&PyArray_Type, 3, dims, NPY_DOUBLE, 0, 0, sizeof(double), NPY_F_CONTIGUOUS, 0);
+	#endif
+
+	// copy data
+	double* dataCopy = reinterpret_cast<double*>(PyArray_DATA(array));
+
+	for(int m = 0; m < channels.size(); ++m) {
+		const double* data = channels[m].data();
+
+		for(int i = 0; i < channels[m].size(); ++i)
+			dataCopy[m * channels[m].size() + i] = data[i];
+	}
+
+	return array;
 }
