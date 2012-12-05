@@ -244,7 +244,7 @@ int PCATransform_init(PCATransformObject* self, PyObject* args, PyObject* kwds) 
 	int num_pcs = -1;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "Oi", const_cast<char**>(kwlist), &data, &num_pcs))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|i", const_cast<char**>(kwlist), &data, &num_pcs))
 		return -1;
 
 	data = PyArray_FROM_OTF(data, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);

@@ -456,14 +456,14 @@ vector<ArrayXXd> sampleImage(
 		throw Exception("There needs to be at least one active pixel in the output mask.");
 
 	if(preconditioner.dimIn() < 0) {
-		if(numInputs * numChannels != model.dimIn() || numOutputs * numChannels != model.dimOut())
+		if(numInputs != model.dimIn() || numOutputs * numChannels != model.dimOut())
 			throw Exception("Model and masks are incompatible.");
 	} else {
-		if(numInputs * numChannels != preconditioner.dimIn())
+		if(numInputs != preconditioner.dimIn())
 			throw Exception("Preconditioner and input mask are incompatible.");
 		if(preconditioner.dimOut() != model.dimIn())
 			throw Exception("Model and preconditioner are incompatible.");
-		if(numOutputs * numChannels != model.dimOut())
+		if(numOutputs != model.dimOut())
 			throw Exception("Model and output mask are incompatible.");
 	}
 

@@ -58,4 +58,3 @@ setup(
 	url='http://github.com/lucastheis/mcm',
 	license='MIT',
 	ext_modules=modules)
-
