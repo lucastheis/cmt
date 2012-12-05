@@ -8,6 +8,7 @@
 #include <arrayobject.h>
 #include "lineartransform.h"
 #include "whiteningtransform.h"
+#include "pcatransform.h"
 #include "pyutils.h"
 
 struct TransformObject {
@@ -25,11 +26,19 @@ struct WhiteningTransformObject {
 	MCM::WhiteningTransform* transform;
 };
 
+struct PCATransformObject {
+	PyObject_HEAD
+	MCM::PCATransform* transform;
+};
+
 PyObject* Transform_call(LinearTransformObject*, PyObject*, PyObject*);
 PyObject* Transform_inverse(LinearTransformObject*, PyObject*, PyObject*);
 
 PyObject* Transform_new(PyTypeObject*, PyObject*, PyObject*);
 void Transform_dealloc(TransformObject*);
+
+PyObject* Transform_dim_in(TransformObject*, PyObject*, void*);
+PyObject* Transform_dim_out(TransformObject*, PyObject*, void*);
 
 int LinearTransform_init(LinearTransformObject*, PyObject*, PyObject*);
 
@@ -43,5 +52,9 @@ int WhiteningTransform_init(WhiteningTransformObject*, PyObject*, PyObject*);
 
 PyObject* WhiteningTransform_reduce(LinearTransformObject*, PyObject*, PyObject*);
 PyObject* WhiteningTransform_setstate(LinearTransformObject*, PyObject*, PyObject*);
+
+int PCATransform_init(PCATransformObject*, PyObject*, PyObject*);
+
+PyObject* PCATransform_eigenvalues(PCATransformObject*, PyObject*, PyObject*);
 
 #endif

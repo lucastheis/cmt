@@ -85,6 +85,18 @@ void Transform_dealloc(TransformObject* self) {
 
 
 
+PyObject* Transform_dim_in(TransformObject* self, PyObject*, void*) {
+	return PyInt_FromLong(self->transform->dimIn());
+}
+
+
+
+PyObject* Transform_dim_out(TransformObject* self, PyObject*, void*) {
+	return PyInt_FromLong(self->transform->dimOut());
+}
+
+
+
 int LinearTransform_init(LinearTransformObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"matrix", 0};
 
@@ -221,4 +233,42 @@ PyObject* WhiteningTransform_setstate(LinearTransformObject* self, PyObject* sta
 
 	Py_INCREF(Py_None);
 	return Py_None;
+}
+
+
+
+int PCATransform_init(PCATransformObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"data", "num_pcs", 0};
+
+	PyObject* data;
+	int num_pcs = -1;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "Oi", const_cast<char**>(kwlist), &data, &num_pcs))
+		return -1;
+
+	data = PyArray_FROM_OTF(data, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!data) {
+		PyErr_SetString(PyExc_TypeError, "Data should be of type `ndarray`.");
+		return -1;
+	}
+
+	// create actual instance
+	self->transform = new MCM::PCATransform(PyArray_ToMatrixXd(data), num_pcs);
+
+	Py_DECREF(data);
+
+	return 0;
+}
+
+
+
+PyObject* PCATransform_eigenvalues(PCATransformObject* self, PyObject*, PyObject*) {
+	PyObject* array = PyArray_FromMatrixXd(self->transform->eigenvalues());
+
+	// make array immutable
+	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
+
+	return array;
 }

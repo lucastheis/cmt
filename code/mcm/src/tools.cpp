@@ -350,9 +350,17 @@ vector<ArrayXXd> sampleImage(
 	int numOutputs = outputIndices.size();
 	int numChannels = img.size();
 
-	// TODO: allow for non-invertible preconditioners
-	if(numInputs * numChannels != model.dimIn() || numOutputs * numChannels != model.dimOut())
-		throw Exception("Model and masks are incompatible.");
+	if(preconditioner.dimIn() < 0) {
+		if(numInputs * numChannels != model.dimIn() || numOutputs * numChannels != model.dimOut())
+			throw Exception("Model and masks are incompatible.");
+	} else {
+		if(numInputs * numChannels != preconditioner.dimIn())
+			throw Exception("Preconditioner and input mask are incompatible.");
+		if(preconditioner.dimOut() != model.dimIn())
+			throw Exception("Model and preconditioner are incompatible.");
+		if(numOutputs * numChannels != model.dimOut())
+			throw Exception("Model and output mask are incompatible.");
+	}
 
 	for(int i = 0; i + inputMask.rows() <= img[0].rows(); i += h)
 		for(int j = 0; j + inputMask.cols() <= img[0].cols(); j += w) {
@@ -447,9 +455,17 @@ vector<ArrayXXd> sampleImage(
 	if(w < 1)
 		throw Exception("There needs to be at least one active pixel in the output mask.");
 
-	// TODO: allow for non-invertible preconditioners
-	if(numInputs != model.dimIn() || numOutputs != model.dimOut())
-		throw Exception("Model and masks are incompatible.");
+	if(preconditioner.dimIn() < 0) {
+		if(numInputs * numChannels != model.dimIn() || numOutputs * numChannels != model.dimOut())
+			throw Exception("Model and masks are incompatible.");
+	} else {
+		if(numInputs * numChannels != preconditioner.dimIn())
+			throw Exception("Preconditioner and input mask are incompatible.");
+		if(preconditioner.dimOut() != model.dimIn())
+			throw Exception("Model and preconditioner are incompatible.");
+		if(numOutputs * numChannels != model.dimOut())
+			throw Exception("Model and output mask are incompatible.");
+	}
 
 	for(int i = 0; i + inputMask[0].rows() <= img[0].rows(); i += h)
 		for(int j = 0; j + inputMask[0].cols() <= img[0].cols(); j += w) {

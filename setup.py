@@ -14,6 +14,7 @@ modules = [
 	Extension('mcm',
 		language='c++',
 		sources=[
+			'code/mcm/src/pcatransform.cpp',
 			'code/mcm/src/mcgsm.cpp',
 			'code/mcm/src/mcgsminterface.cpp',
 			'code/mcm/src/identitytransform.cpp',
@@ -45,7 +46,7 @@ modules = [
 			'-Wno-parentheses',
 			'-Wno-write-strings'] + ['-std=c++0x'] if sys.platform != 'darwin' else [])]
 
-# enable parallel compiler
+# enable parallel compilation
 ccompiler.CCompiler.compile = parallelCCompiler
 
 setup(

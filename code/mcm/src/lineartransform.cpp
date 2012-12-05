@@ -7,6 +7,18 @@ MCM::LinearTransform::LinearTransform(const MatrixXd& mat) : mMat(mat) {
 
 
 
+int MCM::LinearTransform::dimIn() const {
+	return mMat.cols();
+}
+
+
+
+int MCM::LinearTransform::dimOut() const {
+	return mMat.rows();
+}
+
+
+
 ArrayXXd MCM::LinearTransform::operator()(const ArrayXXd& input) const {
 	if(input.rows() != mMat.cols())
 		throw Exception("Data has wrong dimensionality.");

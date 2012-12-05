@@ -11,6 +11,9 @@ namespace MCM {
 			inline MatrixXd matrix() const;
 			inline void setMatrix(const MatrixXd& mat);
 
+			virtual int dimIn() const;
+			virtual int dimOut() const;
+
 			virtual ArrayXXd operator()(const ArrayXXd& input) const;
 			virtual ArrayXXd inverse(const ArrayXXd& output) const;
 
