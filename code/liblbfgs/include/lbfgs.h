@@ -88,7 +88,7 @@ enum {
     /** The minimization process has been canceled. */
     LBFGSERR_CANCELED,
     /** Invalid number of variables specified. */
-    LBFGSERR_INVALID_N, // -1020
+    LBFGSERR_INVALID_N,
     /** Invalid number of variables (for SSE) specified. */
     LBFGSERR_INVALID_N_SSE,
     /** The array x must be aligned to 16 (for SSE). */
@@ -108,7 +108,7 @@ enum {
     /** Invalid parameter lbfgs_parameter_t::ftol specified. */
     LBFGSERR_INVALID_FTOL,
     /** Invalid parameter lbfgs_parameter_t::wolfe specified. */
-    LBFGSERR_INVALID_WOLFE, // -1010
+    LBFGSERR_INVALID_WOLFE,
     /** Invalid parameter lbfgs_parameter_t::gtol specified. */
     LBFGSERR_INVALID_GTOL,
     /** Invalid parameter lbfgs_parameter_t::xtol specified. */
@@ -130,7 +130,7 @@ enum {
         satisfies the sufficient decrease and curvature conditions. */
     LBFGSERR_ROUNDING_ERROR,
     /** The line-search step became smaller than lbfgs_parameter_t::min_step. */
-    LBFGSERR_MINIMUMSTEP, // -1000
+    LBFGSERR_MINIMUMSTEP,
     /** The line-search step became larger than lbfgs_parameter_t::max_step. */
     LBFGSERR_MAXIMUMSTEP,
     /** The line-search routine reaches the maximum number of evaluations. */
@@ -143,7 +143,7 @@ enum {
     /** A logic error (negative line-search step) occurred. */
     LBFGSERR_INVALIDPARAMETERS,
     /** The current search direction increases the objective function value. */
-    LBFGSERR_INCREASEGRADIENT, // -994
+    LBFGSERR_INCREASEGRADIENT,
 };
 
 /**

@@ -10,8 +10,6 @@
 #include "transforminterface.h"
 #include "Eigen/Core"
 
-#pragma GCC diagnostic ignored "-Wwrite-strings"
-
 static PyGetSetDef MCGSM_getset[] = {
 	{"dim_in", (getter)MCGSM_dim_in, 0, 0},
 	{"dim_out", (getter)MCGSM_dim_out, 0, 0},
