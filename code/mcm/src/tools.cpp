@@ -11,8 +11,6 @@ using std::rand;
 
 using Eigen::Block;
 
-#include <iostream>
-
 VectorXd extractFromImage(ArrayXXd img, Tuples indices) {
 	VectorXd pixels(indices.size());
 
@@ -24,25 +22,14 @@ VectorXd extractFromImage(ArrayXXd img, Tuples indices) {
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromImage(
-	ArrayXXd img,
-	ArrayXXb inputMask,
-	ArrayXXb outputMask,
-	int numSamples)
-{
+pair<Tuples, Tuples> masksToIndices(const ArrayXXb& inputMask, const ArrayXXb& outputMask) {
 	if(inputMask.cols() != outputMask.cols() || inputMask.rows() != outputMask.rows())
 		throw Exception("Input and output masks should be of the same size.");
 
-	int w = img.cols() - inputMask.cols() + 1;
-	int h = img.rows() - inputMask.rows() + 1;
+	pair<Tuples, Tuples> indices;
+	Tuples& inputIndices = indices.first;
+	Tuples& outputIndices = indices.second;
 
-	if(numSamples > w * h)
-		throw Exception("Image not large enough for this many samples.");
-
-	Tuples inputIndices;
-	Tuples outputIndices;
-
-	// precompute indices of active pixels in masks
 	for(int i = 0; i < inputMask.rows(); ++i)
 		for(int j = 0; j < inputMask.cols(); ++j) {
 			if(inputMask(i, j))
@@ -52,6 +39,28 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 			if(inputMask(i, j) && outputMask(i, j))
 				throw Exception("Input and output mask should not overlap.");
 		}
+
+	return indices;
+}
+
+
+
+pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+	ArrayXXd img,
+	ArrayXXb inputMask,
+	ArrayXXb outputMask,
+	int numSamples)
+{
+	int w = img.cols() - inputMask.cols() + 1;
+	int h = img.rows() - inputMask.rows() + 1;
+
+	if(numSamples > w * h)
+		throw Exception("Image not large enough for this many samples.");
+
+	// precompute indices of active pixels in masks
+	pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask, outputMask);
+	Tuples& inputIndices = inOutIndices.first;
+	Tuples& outputIndices = inOutIndices.second;
 
 	// sample random image locations
 	set<int> indices = randomSelect(numSamples, w * h);
@@ -99,19 +108,10 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 	if(numSamples > w * h)
 		throw Exception("Image not large enough for this many samples.");
 
-	Tuples inputIndices;
-	Tuples outputIndices;
-
 	// precompute indices of active pixels in masks
-	for(int i = 0; i < inputMask.rows(); ++i)
-		for(int j = 0; j < inputMask.cols(); ++j) {
-			if(inputMask(i, j))
-				inputIndices.push_back(make_pair(i, j));
-			if(outputMask(i, j))
-				outputIndices.push_back(make_pair(i, j));
-			if(inputMask(i, j) && outputMask(i, j))
-				throw Exception("Input and output mask should not overlap.");
-		}
+	pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask, outputMask);
+	Tuples& inputIndices = inOutIndices.first;
+	Tuples& outputIndices = inOutIndices.second;
 
 	// sample random image locations
 	set<int> indices = randomSelect(numSamples, w * h);
@@ -171,25 +171,15 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 	// precompute indices of active pixels in masks
 	for(int m = 0; m < numChannels; ++m) {
-		if(inputMask[m].cols() != outputMask[m].cols() || inputMask[m].rows() != outputMask[m].rows())
-			throw Exception("Input and output masks should be of the same size.");
 		if(inputMask[m].cols() != inputMask[0].cols() || inputMask[m].rows() != outputMask[0].rows())
 			throw Exception("Input and output masks should be of the same size.");
 		if(img[m].cols() != img[0].cols() || img[m].rows() != img[0].rows())
-			throw Exception("All channels should be of the same size.");
+			throw Exception("All image channels should be of the same size.");
 
-		inputIndices.push_back(Tuples());
-		outputIndices.push_back(Tuples());
-
-		for(int i = 0; i < inputMask[m].rows(); ++i)
-			for(int j = 0; j < inputMask[m].cols(); ++j) {
-				if(inputMask[m](i, j))
-					inputIndices[m].push_back(make_pair(i, j));
-				if(outputMask[m](i, j))
-					outputIndices[m].push_back(make_pair(i, j));
-				if(inputMask[m](i, j) && outputMask[m](i, j))
-					throw Exception("Input and output mask should not overlap.");
-			}
+		// precompute indices of active pixels in masks
+		pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask[m], outputMask[m]);
+		inputIndices.push_back(inOutIndices.first);
+		outputIndices.push_back(inOutIndices.second);
 
 		numInputs += inputIndices[m].size();
 		numOutputs += outputIndices[m].size();
@@ -215,6 +205,82 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 		// extract input and output
 		for(int m = 0; m < numChannels; ++m) {
 			MatrixXd patch = img[m].block(i, j, inputMask[m].rows(), inputMask[m].cols());
+
+			data.first.block(offsetIn, k, inputIndices[m].size(), 1) = extractFromImage(patch, inputIndices[m]);
+			data.second.block(offsetOut, k, outputIndices[m].size(), 1) = extractFromImage(patch, outputIndices[m]);
+
+			offsetIn += inputIndices[m].size();
+			offsetOut += outputIndices[m].size();
+		}
+	}
+
+	return data;
+}
+
+
+
+pair<ArrayXXd, ArrayXXd> generateDataFromVideo(
+	vector<ArrayXXd> video,
+	vector<ArrayXXb> inputMask,
+	vector<ArrayXXb> outputMask,
+	int numSamples)
+{
+	if(video.size() < inputMask.size())
+		throw Exception("Video has less frames than masks.");
+
+	if(inputMask.size() != outputMask.size())
+		throw Exception("Masks need to have the same number of frames.");
+
+	int w = video[0].cols() - inputMask[0].cols() + 1;
+	int h = video[0].rows() - inputMask[0].rows() + 1;
+	int l = video.size() - inputMask.size() + 1;
+
+	if(numSamples > w * h * l)
+		throw Exception("Video not large enough for this many samples.");
+
+	vector<Tuples> inputIndices;
+	vector<Tuples> outputIndices;
+
+	int numInputs = 0;
+	int numOutputs = 0;
+
+	// precompute indices of active pixels in masks
+	for(int m = 0; m < inputMask.size(); ++m) {
+		if(inputMask[m].cols() != inputMask[0].cols() || inputMask[m].rows() != outputMask[0].rows())
+			throw Exception("Input and output masks should be of the same size.");
+		if(video[m].cols() != video[0].cols() || video[m].rows() != video[0].rows())
+			throw Exception("All video frames should be of the same size.");
+
+		pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask[m], outputMask[m]);
+		inputIndices.push_back(inOutIndices.first);
+		outputIndices.push_back(inOutIndices.second);
+
+		numInputs += inputIndices[m].size();
+		numOutputs += outputIndices[m].size();
+	}
+
+	// sample random video locations
+	set<int> indices = randomSelect(numSamples, w * h * l);
+
+	pair<ArrayXXd, ArrayXXd> data = make_pair(
+		ArrayXXd(numInputs, numSamples),
+		ArrayXXd(numOutputs, numSamples));
+
+	int k = 0;
+
+	for(set<int>::iterator iter = indices.begin(); iter != indices.end(); ++iter, ++k) {
+		// compute indices of video location
+		int f = *iter / (w * h);
+		int r = *iter % (w * h);
+		int i = r / w;
+		int j = r % w;
+
+		int offsetIn = 0;
+		int offsetOut = 0;
+
+		// extract input and output
+		for(int m = 0; m < inputMask.size(); ++m) {
+			MatrixXd patch = video[m + f].block(i, j, inputMask[m].rows(), inputMask[m].cols());
 
 			data.first.block(offsetIn, k, inputIndices[m].size(), 1) = extractFromImage(patch, inputIndices[m]);
 			data.second.block(offsetOut, k, outputIndices[m].size(), 1) = extractFromImage(patch, outputIndices[m]);
@@ -350,6 +416,9 @@ vector<ArrayXXd> sampleImage(
 	int numOutputs = outputIndices.size();
 	int numChannels = img.size();
 
+	if(numOutputs != w * h)
+		throw Exception("Unsupported output mask.");
+
 	if(preconditioner.dimIn() < 0) {
 		if(numInputs * numChannels != model.dimIn() || numOutputs * numChannels != model.dimOut())
 			throw Exception("Model and masks are incompatible.");
@@ -420,7 +489,7 @@ vector<ArrayXXd> sampleImage(
 		if(inputMask[m].cols() != inputMask[0].cols() || inputMask[m].rows() != outputMask[0].rows())
 			throw Exception("Input and output masks should be of the same size.");
 		if(img[m].cols() != img[0].cols() || img[m].rows() != img[0].cols())
-			throw Exception("All channels should be of the same size.");
+			throw Exception("All image channels should be of the same size.");
 
 		inputIndices.push_back(Tuples());
 		outputIndices.push_back(Tuples());
@@ -455,8 +524,11 @@ vector<ArrayXXd> sampleImage(
 	if(w < 1)
 		throw Exception("There needs to be at least one active pixel in the output mask.");
 
+	if(numOutputs % (w * h))
+		throw Exception("Unsupported output mask.");
+
 	if(preconditioner.dimIn() < 0) {
-		if(numInputs != model.dimIn() || numOutputs * numChannels != model.dimOut())
+		if(numInputs != model.dimIn() || numOutputs != model.dimOut())
 			throw Exception("Model and masks are incompatible.");
 	} else {
 		if(numInputs != preconditioner.dimIn())
@@ -481,7 +553,7 @@ vector<ArrayXXd> sampleImage(
 			// sample output
 			VectorXd output = model.sample(preconditioner(input));
 
-			// replace pixels in image by output
+			// replace pixels in image by model's output
 			for(int m = 0, offset = 0; m < numChannels; ++m) {
 				for(int k = 0; k < outputIndices[m].size(); ++k)
 					img[m](i + outputIndices[m][k].first, j + outputIndices[m][k].second) = output[offset + k];
@@ -490,4 +562,118 @@ vector<ArrayXXd> sampleImage(
 		}
 
 	return img;
+}
+
+
+
+vector<ArrayXXd> sampleVideo(
+	vector<ArrayXXd> video,
+	const ConditionalDistribution& model,
+	vector<ArrayXXb> inputMask,
+	vector<ArrayXXb> outputMask,
+	const Transform& preconditioner)
+{
+	if(video.size() < inputMask.size())
+		return video;
+
+	if(inputMask.size() != outputMask.size())
+		throw Exception("Masks need to have the same number of frames.");
+
+	vector<Tuples> inputIndices;
+	vector<Tuples> outputIndices;
+
+	// boundaries of output region
+	int fMin = outputMask.size();
+	int fMax = 0;
+	int iMin = outputMask[0].rows();
+	int iMax = 0;
+	int jMin = outputMask[0].cols();
+	int jMax = 0;
+
+	int numInputs = 0;
+	int numOutputs = 0;
+
+	for(int m = 0; m < inputMask.size(); ++m) {
+		if(inputMask[m].cols() != outputMask[m].cols() || inputMask[m].rows() != outputMask[m].rows())
+			throw Exception("Input and output masks should be of the same size.");
+		if(inputMask[m].cols() != inputMask[0].cols() || inputMask[m].rows() != outputMask[0].rows())
+			throw Exception("Input and output masks should be of the same size.");
+		if(video[m].cols() != video[0].cols() || video[m].rows() != video[0].cols())
+			throw Exception("All video frames should be of the same size.");
+
+		inputIndices.push_back(Tuples());
+		outputIndices.push_back(Tuples());
+
+		// precompute indices of active pixels in masks
+		for(int i = 0; i < inputMask[m].rows(); ++i)
+			for(int j = 0; j < inputMask[m].cols(); ++j) {
+				if(inputMask[m](i, j))
+					inputIndices[m].push_back(make_pair(i, j));
+				if(outputMask[m](i, j)) {
+					outputIndices[m].push_back(make_pair(i, j));
+
+					// update boundaries
+					fMax = max(fMax, m);
+					fMin = min(fMin, m);
+					iMax = max(iMax, i);
+					iMin = min(iMin, i);
+					jMax = max(jMax, j);
+					jMin = min(jMin, j);
+				}
+
+				if(inputMask[m](i, j) && outputMask[m](i, j))
+					throw Exception("Input and output mask should not overlap.");
+			}
+
+		numInputs += inputIndices[m].size();
+		numOutputs += outputIndices[m].size();
+	}
+
+	// width, height and length of output region
+	int l = fMax - fMin + 1;
+	int h = iMax - iMin + 1;
+	int w = jMax - jMin + 1;
+
+	if(w < 1)
+		throw Exception("There needs to be at least one active pixel in the output mask.");
+
+	if(numOutputs != w * h * l)
+		throw Exception("Unsupported output mask.");
+
+	if(preconditioner.dimIn() < 0) {
+		if(numInputs != model.dimIn() || numOutputs != model.dimOut())
+			throw Exception("Model and masks are incompatible.");
+	} else {
+		if(numInputs != preconditioner.dimIn())
+			throw Exception("Preconditioner and input mask are incompatible.");
+		if(preconditioner.dimOut() != model.dimIn())
+			throw Exception("Model and preconditioner are incompatible.");
+		if(numOutputs != model.dimOut())
+			throw Exception("Model and output mask are incompatible.");
+	}
+
+	for(int f = 0; f + inputMask.size() <= video.size(); f += l)
+		for(int i = 0; i + inputMask[0].rows() <= video[0].rows(); i += h)
+			for(int j = 0; j + inputMask[0].cols() <= video[0].cols(); j += w) {
+				VectorXd input(numInputs);
+
+				// extract causal neighborhood
+				for(int m = 0, offset = 0; m < inputMask.size(); ++m) {
+					input.segment(offset, inputIndices[m].size()) = extractFromImage(
+						video[f + m].block(i, j, inputMask[m].rows(), inputMask[m].cols()), inputIndices[m]);
+					offset += inputIndices[m].size();
+				}
+
+				// sample output
+				VectorXd output = model.sample(preconditioner(input));
+
+				// replace pixels in video by model's output
+				for(int m = 0, offset = 0; m < inputMask.size(); ++m) {
+					for(int k = 0; k < outputIndices[m].size(); ++k)
+						video[f + m](i + outputIndices[m][k].first, j + outputIndices[m][k].second) = output[offset + k];
+					offset += outputIndices[m].size();
+				}
+			}
+
+	return video;
 }

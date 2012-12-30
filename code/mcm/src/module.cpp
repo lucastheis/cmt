@@ -277,10 +277,11 @@ PyTypeObject PCATransform_type = {
 
 
 static PyMethodDef mcm_methods[] = {
-	{"random_select", (PyCFunction)random_select, METH_VARARGS|METH_KEYWORDS, 0},
+	{"random_select", (PyCFunction)random_select, METH_VARARGS|METH_KEYWORDS, random_select_doc},
 	{"generate_data_from_image", (PyCFunction)generate_data_from_image, METH_VARARGS|METH_KEYWORDS, 0},
+	{"generate_data_from_video", (PyCFunction)generate_data_from_video, METH_VARARGS|METH_KEYWORDS, generate_data_from_video_doc},
 	{"sample_image", (PyCFunction)sample_image, METH_VARARGS|METH_KEYWORDS, 0},
-	{"shuffle", (PyCFunction)shuffle, METH_VARARGS|METH_KEYWORDS, 0},
+	{"sample_video", (PyCFunction)sample_video, METH_VARARGS|METH_KEYWORDS, sample_video_doc},
 	{0}
 };
 

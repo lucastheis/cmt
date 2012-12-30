@@ -5,8 +5,8 @@ sys.path.append('./code')
 
 from mcm import MCGSM
 from numpy import *
-from numpy.random import *
 from numpy import max
+from numpy.random import *
 from scipy.stats import kstest
 from scipy.optimize import check_grad
 from pickle import dump, load
