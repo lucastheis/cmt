@@ -348,10 +348,10 @@ const char* sample_video_doc =
 	"@type  model: L{ConditionalDistribution}\n"
 	"@param model: a conditional distribution such as an L{MCGSM}\n"
 	"\n"
-	"@type  xmask: L{ndarray}\n"
+	"@type  xmask: C{ndarray}\n"
 	"@param xmask: a three-dimensional Boolean array describing the input pixels\n"
 	"\n"
-	"@type  ymask: L{ndarray}\n"
+	"@type  ymask: C{ndarray}\n"
 	"@param ymask: a three-dimensional Boolean array describing the output pixels\n"
 	"\n"
 	"@type  preconditioner: L{Transform}\n"
@@ -424,6 +424,165 @@ PyObject* sample_video(PyObject* self, PyObject* args, PyObject* kwds) {
 
 	} catch(Exception exception) {
 		Py_DECREF(video);
+		Py_DECREF(xmask);
+		Py_DECREF(ymask);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+const char* fill_in_image_doc =
+	"Samples pixels from an image conditioned on all other pixels.\n"
+	"\n"
+	"@type  img: C{ndarray}\n"
+	"@param img: the image with the missing pixels initialized somehow\n"
+	"\n"
+	"@type  model: L{ConditionalDistribution}\n"
+	"@param model: a conditional distribution such as an L{MCGSM}\n"
+	"\n"
+	"@type  xmask: C{ndarray}\n"
+	"@param xmask: a Boolean array describing the input pixels\n"
+	"\n"
+	"@type  ymask: C{ndarray}\n"
+	"@param ymask: a Boolean array describing the output pixels\n"
+	"\n"
+	"@type  fmask: C{ndarray}\n"
+	"@param fmask: a Boolean array describing the missing pixels\n"
+	"\n"
+	"@type  fmask: C{ndarray}\n"
+	"@param fmask: a Boolean array describing the missing pixels\n"
+	"\n"
+	"@type  preconditioner: L{Transform}\n"
+	"@param preconditioner: transform the input before feeding it into the model (default: L{IdentityTransform})\n"
+	"\n"
+	"@type  num_iter: C{int}\n"
+	"@param num_iter: number of iterations of replacing all pixels\n"
+	"\n"
+	"@type  num_steps: C{int}\n"
+	"@param num_steps: number of Metropolis steps per pixel and iteration\n"
+	"\n"
+	"@rtype: C{ndarray}\n"
+	"@return: an image with the missing pixels replaced";
+
+PyObject* fill_in_image(PyObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"img", "model", "xmask", "ymask", "fmask", "preconditioner", "num_iter", "num_steps", 0};
+
+	PyObject* img;
+	PyObject* model;
+	PyObject* xmask;
+	PyObject* ymask;
+	PyObject* fmask;
+	PyObject* preconditioner = 0;
+	int num_iter;
+	int num_steps;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOOOO|Oii", const_cast<char**>(kwlist),
+		&img, &model, &xmask, &ymask, &fmask, &preconditioner, &num_iter, &num_steps))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	img = PyArray_FROM_OTF(img, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	fmask = PyArray_FROM_OTF(fmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	// TODO: make sure preconditioner is of type TransformObject or similar
+	// TODO: make sure that model is of type CDObject or similar
+	const ConditionalDistribution& cd = *reinterpret_cast<CDObject*>(model)->cd;
+
+	if(!img) {
+		PyErr_SetString(PyExc_TypeError, "The image has to be given as an array.");
+		return 0;
+	}
+
+	if(!xmask || !ymask || !fmask) {
+		Py_DECREF(img);
+		Py_XDECREF(xmask);
+		Py_XDECREF(ymask);
+		Py_XDECREF(fmask);
+		PyErr_SetString(PyExc_TypeError, "Masks have to be given as Boolean arrays.");
+		return 0;
+	}
+
+	try {
+		PyObject* imgSample;
+//		if(PyArray_NDIM(img) > 2) {
+//			if(PyArray_NDIM(xmask) > 2 && PyArray_NDIM(ymask) > 2) {
+//				// multi-channel image and multi-channel masks
+//				if(preconditioner) {
+//					imgSample = PyArray_FromArraysXXd(
+//						sampleImage(
+//							PyArray_ToArraysXXd(img),
+//							cd,
+//							PyArray_ToArraysXXb(xmask),
+//							PyArray_ToArraysXXb(ymask),
+//							*reinterpret_cast<TransformObject*>(preconditioner)->transform));
+//				} else {
+//					imgSample = PyArray_FromArraysXXd(
+//						sampleImage(
+//							PyArray_ToArraysXXd(img),
+//							cd,
+//							PyArray_ToArraysXXb(xmask),
+//							PyArray_ToArraysXXb(ymask)));
+//				}
+//			} else {
+//				// multi-channel image and single-channel masks
+//				if(preconditioner) {
+//					imgSample = PyArray_FromArraysXXd(
+//						sampleImage(
+//							PyArray_ToArraysXXd(img),
+//							cd,
+//							PyArray_ToMatrixXb(xmask),
+//							PyArray_ToMatrixXb(ymask),
+//							*reinterpret_cast<TransformObject*>(preconditioner)->transform));
+//				} else {
+//					imgSample = PyArray_FromArraysXXd(
+//						sampleImage(
+//							PyArray_ToArraysXXd(img),
+//							cd,
+//							PyArray_ToMatrixXb(xmask),
+//							PyArray_ToMatrixXb(ymask)));
+//				}
+//			}
+//		} else {
+			// single-channel image and single-channel masks
+			if(preconditioner) {
+				imgSample = PyArray_FromMatrixXd(
+					fillInImage(
+						PyArray_ToMatrixXd(img),
+						cd,
+						PyArray_ToMatrixXb(xmask),
+						PyArray_ToMatrixXb(ymask),
+						PyArray_ToMatrixXb(fmask),
+						*reinterpret_cast<TransformObject*>(preconditioner)->transform,
+						num_iter,
+						num_steps));
+			} else {
+				imgSample = PyArray_FromMatrixXd(
+					fillInImage(
+						PyArray_ToMatrixXd(img),
+						cd,
+						PyArray_ToMatrixXb(xmask),
+						PyArray_ToMatrixXb(ymask),
+						PyArray_ToMatrixXb(fmask),
+						IdentityTransform(),
+						num_iter,
+						num_steps));
+			}
+//		}
+
+		Py_DECREF(img);
+		Py_DECREF(xmask);
+		Py_DECREF(ymask);
+
+		return imgSample;
+
+	} catch(Exception exception) {
+		Py_DECREF(img);
 		Py_DECREF(xmask);
 		Py_DECREF(ymask);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());

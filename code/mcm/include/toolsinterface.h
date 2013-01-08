@@ -17,11 +17,13 @@ struct CDObject {
 extern const char* random_select_doc;
 extern const char* sample_video_doc;
 extern const char* generate_data_from_video_doc;
+extern const char* fill_in_image_doc;
 
 PyObject* random_select(PyObject*, PyObject*, PyObject*);
 PyObject* generate_data_from_image(PyObject*, PyObject*, PyObject*);
 PyObject* generate_data_from_video(PyObject*, PyObject*, PyObject*);
 PyObject* sample_image(PyObject*, PyObject*, PyObject*);
 PyObject* sample_video(PyObject*, PyObject*, PyObject*);
+PyObject* fill_in_image(PyObject*, PyObject*, PyObject*);
 
 #endif

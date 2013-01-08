@@ -71,4 +71,14 @@ vector<ArrayXXd> sampleVideo(
 	vector<ArrayXXb> outputMask,
 	const Transform& preconditioner = IdentityTransform());
 
+ArrayXXd fillInImage(
+	ArrayXXd img,
+	const ConditionalDistribution& model,
+	ArrayXXb inputMask,
+	ArrayXXb outputMask,
+	ArrayXXb fillInMask,
+	const Transform& preconditioner = IdentityTransform(),
+	int numIterations = 10,
+	int numSteps = 100);
+
 #endif

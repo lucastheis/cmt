@@ -5,11 +5,17 @@ using std::min;
 #include <cstdio>
 using std::rand;
 
+#include <cmath>
+using std::exp;
+
 #include "tools.h"
 #include "utils.h"
 #include "exception.h"
 
 using Eigen::Block;
+using Eigen::ArrayXd;
+
+#include <iostream>
 
 VectorXd extractFromImage(ArrayXXd img, Tuples indices) {
 	VectorXd pixels(indices.size());
@@ -18,6 +24,19 @@ VectorXd extractFromImage(ArrayXXd img, Tuples indices) {
 		pixels[i] = img(indices[i].first, indices[i].second);
 
 	return pixels;
+}
+
+
+
+Tuples maskToIndices(const ArrayXXb& mask) {
+	Tuples indices;
+
+	for(int i = 0; i < mask.rows(); ++i)
+		for(int j = 0; j < mask.cols(); ++j)
+			if(mask(i, j))
+				indices.push_back(make_pair(i, j));
+
+	return indices;
 }
 
 
@@ -676,4 +695,121 @@ vector<ArrayXXd> sampleVideo(
 			}
 
 	return video;
+}
+
+
+
+inline double computeEnergy(
+	const ArrayXXd& img,
+	const ConditionalDistribution& model,
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask,
+	const Tuples& inputIndices,
+	const Tuples& outputIndices,
+	const Transform& preconditioner,
+	int i,
+	int j,
+	const Tuples& offsets)
+{
+	double energy = 0.;
+
+
+	for(Tuples::const_iterator offset = offsets.begin(); offset != offsets.end(); ++offset) {
+		if(i + offset->first < 0 || j + offset->second < 0 || i + offset->first + inputMask.rows() >= img.rows() || j + offset->second + inputMask.cols() >= img.cols()) {
+			std::cout << i << ", " << j << ", " << offset->first << ", " << offset->second << std::endl;
+		}
+
+		// extract inputs and outputs from image
+		ArrayXXd patch = img.block(
+			i + offset->first,
+			j + offset->second,
+			inputMask.rows(),
+			inputMask.cols());
+		VectorXd input = extractFromImage(patch, inputIndices);
+		VectorXd output = extractFromImage(patch, outputIndices);
+
+		// update energy
+		energy -= model.logLikelihood(preconditioner(input), output)[0];
+	}
+
+	return energy;
+}
+
+
+
+ArrayXXd fillInImage(
+	ArrayXXd img,
+	const ConditionalDistribution& model,
+	ArrayXXb inputMask,
+	ArrayXXb outputMask,
+	ArrayXXb fillInMask,
+	const Transform& preconditioner,
+	int numIterations,
+	int numSteps)
+{
+	if(fillInMask.rows() != img.rows() || fillInMask.cols() != img.cols())
+		throw Exception("Image and mask size incompatible.");
+
+	Tuples fillInIndices = maskToIndices(fillInMask);
+	pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask, outputMask);
+	Tuples& inputIndices = inOutIndices.first;
+	Tuples& outputIndices = inOutIndices.second;
+	Tuples offsets;
+
+	// TODO: remove pixels from fillInIndices which cannot be predicted
+
+	if(outputIndices.size() != 1)
+		throw Exception("Only one-pixel output masks are currently supported.");
+
+	// compute offsets
+	offsets.push_back(make_pair(-outputIndices[0].first, -outputIndices[0].second));
+	for(int i = 0; i < inputIndices.size(); ++i)
+		offsets.push_back(make_pair(-inputIndices[i].first, -inputIndices[i].second));
+
+	for(int i = 0; i < numIterations; ++i)
+		for(Tuples::iterator iter = fillInIndices.begin(); iter != fillInIndices.end(); ++iter) {
+			// sample from cauchy distribution
+			ArrayXd noise = sampleNormal(numSteps) / 4.;
+			ArrayXd uni = ArrayXd::Random(numSteps).abs();
+
+			double valueOld = img(iter->first, iter->second);
+			double energyOld = computeEnergy(
+				img, 
+				model, 
+				inputMask, outputMask,
+				inputIndices, outputIndices,
+				preconditioner,
+				iter->first, iter->second,
+				offsets);
+
+			int counter = 0;
+
+			for(int j = 0; j < numSteps; ++j) {
+				// proposal sample
+				img(iter->first, iter->second) = valueOld + noise[j];
+
+				double energyNew = computeEnergy(
+					img, 
+					model, 
+					inputMask, outputMask,
+					inputIndices, outputIndices,
+					preconditioner,
+					iter->first, iter->second,
+					offsets);
+
+				if(uni[j] >= exp(energyOld - energyNew)) {
+					// reject proposed step
+					img(iter->first, iter->second) = valueOld;
+				} else {
+					// accept proposed step
+					valueOld = img(iter->first, iter->second);
+					energyOld = energyNew;
+					++counter;
+				}
+			}
+
+			std::cout << "acceptance rate: " << static_cast<double>(counter) / numSteps << std::endl;
+		}
+
+	return img;
 }

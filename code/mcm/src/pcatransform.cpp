@@ -7,7 +7,7 @@ using Eigen::SelfAdjointEigenSolver;
 MCM::PCATransform::PCATransform(const ArrayXXd& data, int numPCs) :
 	MCM::LinearTransform(MatrixXd::Identity(data.rows(), data.rows()))
 {
-	if(numPCs < 0)
+	if(numPCs < 0 || numPCs > data.rows())
 		numPCs = data.rows();
 
 	// compute eigenvectors and eigenvalues
