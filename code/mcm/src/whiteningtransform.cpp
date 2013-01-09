@@ -5,6 +5,8 @@
 using Eigen::SelfAdjointEigenSolver;
 
 MCM::WhiteningTransform::WhiteningTransform(const ArrayXXd& data) : 
-	MCM::LinearTransform(SelfAdjointEigenSolver<MatrixXd>(covariance(data)).operatorInverseSqrt())
+	MCM::AffineTransform(
+		SelfAdjointEigenSolver<MatrixXd>(covariance(data)).operatorInverseSqrt(),
+		-data.rowwise().mean())
 {
 }

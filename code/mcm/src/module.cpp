@@ -217,6 +217,7 @@ PyTypeObject LinearTransform_type = {
 
 static PyGetSetDef WhiteningTransform_getset[] = {
 	{"A", (getter)AffineTransform_A, (setter)AffineTransform_set_A, 0},
+	{"b", (getter)AffineTransform_b, (setter)AffineTransform_set_b, 0},
 	{"dim_in", (getter)Transform_dim_in, 0, 0},
 	{"dim_out", (getter)Transform_dim_out, 0, 0},
 	{0}
@@ -279,6 +280,7 @@ PyTypeObject WhiteningTransform_type = {
 
 static PyGetSetDef PCATransform_getset[] = {
 	{"A", (getter)AffineTransform_A, (setter)AffineTransform_set_A, 0},
+	{"b", (getter)AffineTransform_b, (setter)AffineTransform_set_b, 0},
 	{"dim_in", (getter)Transform_dim_in, 0, 0},
 	{"dim_out", (getter)Transform_dim_out, 0, 0},
 	{0}

@@ -1,10 +1,10 @@
 #ifndef WHITENINGTRANSFORM_H
 #define WHITENINGTRANSFORM_H
 
-#include "lineartransform.h"
+#include "affinetransform.h"
 
 namespace MCM {
-	class WhiteningTransform : public LinearTransform {
+	class WhiteningTransform : public AffineTransform {
 		public:
 			WhiteningTransform(const ArrayXXd& data); 
 	};

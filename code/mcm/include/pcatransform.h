@@ -1,13 +1,13 @@
 #ifndef PCATRANSFORM_H
 #define PCATRANSFORM_H
 
+#include "affinetransform.h"
+
 #include "Eigen/Core"
 using Eigen::VectorXd;
 
-#include "lineartransform.h"
-
 namespace MCM {
-	class PCATransform : public LinearTransform {
+	class PCATransform : public AffineTransform {
 		public:
 			PCATransform(const ArrayXXd& data, int numPCs = 0); 
 

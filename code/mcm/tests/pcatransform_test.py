@@ -3,7 +3,7 @@ import unittest
 
 sys.path.append('./code')
 
-from mcm import WhiteningTransform
+from mcm import PCATransform
 from numpy import *
 from numpy.random import *
 from numpy import max, round
@@ -15,32 +15,29 @@ class Tests(unittest.TestCase):
 		A = randn(5, 5)
 		X = dot(A, randn(5, 1000))
 
-		wt = WhiteningTransform(X)
+		pca = PCATransform(X)
 
-		self.assertLess(max(abs(wt.b.ravel() + mean(X, 1))), 1e-8)
-		self.assertLess(max(abs(cov(wt(X), bias=1) - eye(5))), 1e-10)
-		self.assertLess(max(abs(wt.inverse(wt.A + wt.b) - eye(5))), 1e-10)
-
-		# whitening transform should be symmetric
-		self.assertLess(max(abs(wt.A - wt.A.T)), 1e-10)
+		self.assertLess(max(abs(pca.b.ravel() + mean(X, 1))), 1e-8)
+		self.assertLess(max(abs(cov(pca(X), bias=1) - eye(5))), 1e-10)
+		self.assertLess(max(abs(pca.inverse(pca.A + pca.b) - eye(5))), 1e-10)
 
 
 
 	def test_pickle(self):
-		wt0 = WhiteningTransform(randn(5, 1000))
+		pca0 = PCATransform(randn(5, 1000))
 
 		tmp_file = mkstemp()[1]
 
 		# store transformation
 		with open(tmp_file, 'w') as handle:
-			dump({'wt': wt0}, handle)
+			dump({'pca': pca0}, handle)
 
 		# load transformation
 		with open(tmp_file) as handle:
-			wt1 = load(handle)['wt']
+			pca1 = load(handle)['pca']
 
 		# make sure linear transformation hasn't changed
-		self.assertLess(max(abs(wt0.A - wt1.A)), 1e-20)
+		self.assertLess(max(abs(pca0.A - pca1.A)), 1e-20)
 
 
 
