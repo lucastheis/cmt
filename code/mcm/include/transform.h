@@ -3,7 +3,6 @@
 
 #include "Eigen/Core"
 using Eigen::ArrayXXd;
-using Eigen::MatrixXd;
 
 namespace MCM {
 	class Transform {
@@ -13,10 +12,10 @@ namespace MCM {
 			virtual int dimIn() const = 0;
 			virtual int dimOut() const = 0;
 
-			virtual ArrayXXd operator()(const ArrayXXd& input) const = 0;
-			virtual ArrayXXd inverse(const ArrayXXd& output) const = 0;
+			virtual ArrayXXd operator()(const ArrayXXd& data) const = 0;
+			virtual ArrayXXd inverse(const ArrayXXd& data) const = 0;
 			// TODO:
-//			virtual ArrayXXd logJacobian(ArrayXXd input) const = 0;
+//			virtual ArrayXXd logJacobian(ArrayXXd data) const = 0;
 	};
 }
 

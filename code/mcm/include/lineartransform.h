@@ -1,39 +1,16 @@
 #ifndef LINEARTRANSFORM_H
 #define LINEARTRANSFORM_H
 
-#include "transform.h"
+#include "affinetransform.h"
 
 namespace MCM {
-	class LinearTransform : public Transform {
+	class LinearTransform : public AffineTransform {
 		public:
 			LinearTransform(const MatrixXd& mat);
 
-			inline MatrixXd matrix() const;
-			inline void setMatrix(const MatrixXd& mat);
-
-			virtual int dimIn() const;
-			virtual int dimOut() const;
-
-			virtual ArrayXXd operator()(const ArrayXXd& input) const;
-			virtual ArrayXXd inverse(const ArrayXXd& output) const;
-
-		protected:
-			MatrixXd mMat;
-			mutable MatrixXd mMatInverse;
+			virtual ArrayXXd operator()(const ArrayXXd& data) const;
+			virtual ArrayXXd inverse(const ArrayXXd& data) const;
 	};
-}
-
-
-
-MatrixXd MCM::LinearTransform::matrix() const {
-	return mMat;
-}
-
-
-
-void MCM::LinearTransform::setMatrix(const MatrixXd& mat) {
-	mMat = mat;
-	mMatInverse = MatrixXd();
 }
 
 #endif

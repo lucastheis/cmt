@@ -16,6 +16,11 @@ struct TransformObject {
 	MCM::Transform* transform;
 };
 
+struct AffineTransformObject {
+	PyObject_HEAD
+	MCM::AffineTransform* transform;
+};
+
 struct LinearTransformObject {
 	PyObject_HEAD
 	MCM::LinearTransform* transform;
@@ -40,18 +45,26 @@ void Transform_dealloc(TransformObject*);
 PyObject* Transform_dim_in(TransformObject*, PyObject*, void*);
 PyObject* Transform_dim_out(TransformObject*, PyObject*, void*);
 
+int AffineTransform_init(AffineTransformObject*, PyObject*, PyObject*);
+
+PyObject* AffineTransform_A(AffineTransformObject*, PyObject*, void*);
+int AffineTransform_set_A(AffineTransformObject*, PyObject*, void*);
+
+PyObject* AffineTransform_b(AffineTransformObject*, PyObject*, void*);
+int AffineTransform_set_b(AffineTransformObject*, PyObject*, void*);
+
+PyObject* AffineTransform_reduce(AffineTransformObject*, PyObject*, PyObject*);
+PyObject* AffineTransform_setstate(AffineTransformObject*, PyObject*, PyObject*);
+
 int LinearTransform_init(LinearTransformObject*, PyObject*, PyObject*);
 
-PyObject* LinearTransform_A(LinearTransformObject*, PyObject*, void*);
-int LinearTransform_set_A(LinearTransformObject*, PyObject*, void*);
-
-PyObject* LinearTransform_reduce(LinearTransformObject*, PyObject*, PyObject*);
-PyObject* LinearTransform_setstate(LinearTransformObject*, PyObject*, PyObject*);
+PyObject* LinearTransform_reduce(AffineTransformObject*, PyObject*, PyObject*);
+PyObject* LinearTransform_setstate(AffineTransformObject*, PyObject*, PyObject*);
 
 int WhiteningTransform_init(WhiteningTransformObject*, PyObject*, PyObject*);
 
-PyObject* WhiteningTransform_reduce(LinearTransformObject*, PyObject*, PyObject*);
-PyObject* WhiteningTransform_setstate(LinearTransformObject*, PyObject*, PyObject*);
+PyObject* WhiteningTransform_reduce(AffineTransformObject*, PyObject*, PyObject*);
+PyObject* WhiteningTransform_setstate(AffineTransformObject*, PyObject*, PyObject*);
 
 int PCATransform_init(PCATransformObject*, PyObject*, PyObject*);
 

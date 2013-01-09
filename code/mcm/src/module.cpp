@@ -90,8 +90,72 @@ PyTypeObject MCGSM_type = {
 
 
 
+static PyGetSetDef AffineTransform_getset[] = {
+	{"A", (getter)AffineTransform_A, (setter)AffineTransform_set_A, 0},
+	{"b", (getter)AffineTransform_b, (setter)AffineTransform_set_b, 0},
+	{"dim_in", (getter)Transform_dim_in, 0, 0},
+	{"dim_out", (getter)Transform_dim_out, 0, 0},
+	{0}
+};
+
+
+
+static PyMethodDef AffineTransform_methods[] = {
+	{"inverse", (PyCFunction)Transform_inverse, METH_VARARGS|METH_KEYWORDS, 0},
+	{"__reduce__", (PyCFunction)AffineTransform_reduce, METH_NOARGS, 0},
+	{"__setstate__", (PyCFunction)AffineTransform_setstate, METH_VARARGS, 0},
+	{0}
+};
+
+
+
+PyTypeObject AffineTransform_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                   /*ob_size*/
+	"mcm.AffineTransform",               /*tp_name*/
+	sizeof(AffineTransformObject),       /*tp_basicsize*/
+	0,                                   /*tp_itemsize*/
+	(destructor)Transform_dealloc,       /*tp_dealloc*/
+	0,                                   /*tp_print*/
+	0,                                   /*tp_getattr*/
+	0,                                   /*tp_setattr*/
+	0,                                   /*tp_compare*/
+	0,                                   /*tp_repr*/
+	0,                                   /*tp_as_number*/
+	0,                                   /*tp_as_sequence*/
+	0,                                   /*tp_as_mapping*/
+	0,                                   /*tp_hash */
+	(ternaryfunc)Transform_call,         /*tp_call*/
+	0,                                   /*tp_str*/
+	0,                                   /*tp_getattro*/
+	0,                                   /*tp_setattro*/
+	0,                                   /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                  /*tp_flags*/
+	0,                                   /*tp_doc*/
+	0,                                   /*tp_traverse*/
+	0,                                   /*tp_clear*/
+	0,                                   /*tp_richcompare*/
+	0,                                   /*tp_weaklistoffset*/
+	0,                                   /*tp_iter*/
+	0,                                   /*tp_iternext*/
+	AffineTransform_methods,             /*tp_methods*/
+	0,                                   /*tp_members*/
+	AffineTransform_getset,              /*tp_getset*/
+	0,                                   /*tp_base*/
+	0,                                   /*tp_dict*/
+	0,                                   /*tp_descr_get*/
+	0,                                   /*tp_descr_set*/
+	0,                                   /*tp_dictoffset*/
+	(initproc)AffineTransform_init,      /*tp_init*/
+	0,                                   /*tp_alloc*/
+	Transform_new,                       /*tp_new*/
+};
+
+
+
 static PyGetSetDef LinearTransform_getset[] = {
-	{"A", (getter)LinearTransform_A, (setter)LinearTransform_set_A, 0},
+	{"A", (getter)AffineTransform_A, (setter)AffineTransform_set_A, 0},
+	{"b", (getter)AffineTransform_b, 0, 0},
 	{"dim_in", (getter)Transform_dim_in, 0, 0},
 	{"dim_out", (getter)Transform_dim_out, 0, 0},
 	{0}
@@ -152,7 +216,7 @@ PyTypeObject LinearTransform_type = {
 
 
 static PyGetSetDef WhiteningTransform_getset[] = {
-	{"A", (getter)LinearTransform_A, (setter)LinearTransform_set_A, 0},
+	{"A", (getter)AffineTransform_A, (setter)AffineTransform_set_A, 0},
 	{"dim_in", (getter)Transform_dim_in, 0, 0},
 	{"dim_out", (getter)Transform_dim_out, 0, 0},
 	{0}
@@ -214,7 +278,7 @@ PyTypeObject WhiteningTransform_type = {
 
 
 static PyGetSetDef PCATransform_getset[] = {
-	{"A", (getter)LinearTransform_A, (setter)LinearTransform_set_A, 0},
+	{"A", (getter)AffineTransform_A, (setter)AffineTransform_set_A, 0},
 	{"dim_in", (getter)Transform_dim_in, 0, 0},
 	{"dim_out", (getter)Transform_dim_out, 0, 0},
 	{0}
@@ -303,6 +367,8 @@ PyMODINIT_FUNC initmcm() {
 	// initialize types
 	if(PyType_Ready(&MCGSM_type) < 0)
 		return;
+	if(PyType_Ready(&AffineTransform_type) < 0)
+		return;
 	if(PyType_Ready(&LinearTransform_type) < 0)
 		return;
 	if(PyType_Ready(&WhiteningTransform_type) < 0)
@@ -320,6 +386,7 @@ PyMODINIT_FUNC initmcm() {
 	Py_INCREF(&PCATransform_type);
 	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));
 	PyModule_AddObject(module, "LinearTransform", reinterpret_cast<PyObject*>(&LinearTransform_type));
+	PyModule_AddObject(module, "AffineTransform", reinterpret_cast<PyObject*>(&AffineTransform_type));
 	PyModule_AddObject(module, "WhiteningTransform", reinterpret_cast<PyObject*>(&WhiteningTransform_type));
 	PyModule_AddObject(module, "PCATransform", reinterpret_cast<PyObject*>(&PCATransform_type));
 }

@@ -2,35 +2,25 @@
 #include "utils.h"
 #include "lineartransform.h"
 
-MCM::LinearTransform::LinearTransform(const MatrixXd& mat) : mMat(mat) {
+MCM::LinearTransform::LinearTransform(const MatrixXd& mat) : 
+	AffineTransform(mat, VectorXd::Zero(mat.rows()))
+{
 }
 
 
 
-int MCM::LinearTransform::dimIn() const {
-	return mMat.cols();
-}
-
-
-
-int MCM::LinearTransform::dimOut() const {
-	return mMat.rows();
-}
-
-
-
-ArrayXXd MCM::LinearTransform::operator()(const ArrayXXd& input) const {
-	if(input.rows() != mMat.cols())
+ArrayXXd MCM::LinearTransform::operator()(const ArrayXXd& data) const {
+	if(data.rows() != mMat.cols())
 		throw Exception("Data has wrong dimensionality.");
-	return mMat * input.matrix();
+	return mMat * data.matrix();
 }
 
 
 
-ArrayXXd MCM::LinearTransform::inverse(const ArrayXXd& input) const {
-	if(input.rows() != mMat.rows())
+ArrayXXd MCM::LinearTransform::inverse(const ArrayXXd& data) const {
+	if(data.rows() != mMat.rows())
 		throw Exception("Data has wrong dimensionality.");
 	if(!mMatInverse.size())
 		mMatInverse = pInverse(mMat);
-	return mMatInverse * input.matrix();
+	return mMatInverse * data.matrix();
 }
