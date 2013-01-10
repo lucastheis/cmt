@@ -939,7 +939,7 @@ PyObject* MCGSM_reduce(MCGSMObject* self, PyObject*, PyObject*) {
 	Py_DECREF(cholesky_factors);
 	Py_DECREF(predictors);
 
-	PyObject* result = Py_BuildValue("OOO", self->ob_type, args, state);
+	PyObject* result = Py_BuildValue("(OOO)", self->ob_type, args, state);
 	Py_DECREF(args);
 	Py_DECREF(state);
 

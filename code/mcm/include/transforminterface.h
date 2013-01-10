@@ -6,34 +6,44 @@
 
 #include <Python.h>
 #include <arrayobject.h>
-#include "lineartransform.h"
-#include "whiteningtransform.h"
-#include "pcatransform.h"
 #include "pyutils.h"
+
+#include "lineartransform.h"
+using MCM::Transform;
+using MCM::LinearTransform;
+
+#include "affinetransform.h"
+using MCM::AffineTransform;
+
+#include "whiteningtransform.h"
+using MCM::WhiteningTransform;
+
+#include "pcatransform.h"
+using MCM::PCATransform;
 
 struct TransformObject {
 	PyObject_HEAD
-	MCM::Transform* transform;
+	Transform* transform;
 };
 
 struct AffineTransformObject {
 	PyObject_HEAD
-	MCM::AffineTransform* transform;
+	AffineTransform* transform;
 };
 
 struct LinearTransformObject {
 	PyObject_HEAD
-	MCM::LinearTransform* transform;
+	LinearTransform* transform;
 };
 
 struct WhiteningTransformObject {
 	PyObject_HEAD
-	MCM::WhiteningTransform* transform;
+	WhiteningTransform* transform;
 };
 
 struct PCATransformObject {
 	PyObject_HEAD
-	MCM::PCATransform* transform;
+	PCATransform* transform;
 };
 
 PyObject* Transform_call(LinearTransformObject*, PyObject*, PyObject*);

@@ -17,7 +17,7 @@ PyObject* Transform_call(LinearTransformObject* self, PyObject* args, PyObject* 
 
 	// make sure data is stored in NumPy array
 	if(!input) {
-		PyErr_SetString(PyExc_TypeError, "Input has to be stored in a NumPy array.");
+		PyErr_SetString(PyExc_TypeError, "Input should be of type `ndarray`.");
 		return 0;
 	}
 
@@ -47,7 +47,7 @@ PyObject* Transform_inverse(LinearTransformObject* self, PyObject* args, PyObjec
 
 	// make sure data is stored in NumPy array
 	if(!output) {
-		PyErr_SetString(PyExc_TypeError, "Input has to be stored in a NumPy array.");
+		PyErr_SetString(PyExc_TypeError, "Input should be of type `ndarray`.");
 		return 0;
 	}
 
@@ -110,13 +110,10 @@ int AffineTransform_init(AffineTransformObject* self, PyObject* args, PyObject* 
 	matrix = PyArray_FROM_OTF(matrix, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	vector = PyArray_FROM_OTF(vector, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
-	if(!matrix) {
-		PyErr_SetString(PyExc_TypeError, "Matrix should be of type `ndarray`.");
-		return -1;
-	}
-
-	if(!vector) {
-		PyErr_SetString(PyExc_TypeError, "Vector should be of type `ndarray`.");
+	if(!matrix || !vector) {
+		PyErr_SetString(PyExc_TypeError, "Matrix and vector should be of type `ndarray`.");
+		Py_XDECREF(matrix);
+		Py_XDECREF(vector);
 		return -1;
 	}
 
@@ -124,13 +121,16 @@ int AffineTransform_init(AffineTransformObject* self, PyObject* args, PyObject* 
 
 	if(vec.cols() != 1) {
 		PyErr_SetString(PyExc_TypeError, "Offset needs to be a vector.");
+		Py_DECREF(matrix);
+		Py_DECREF(vector);
 		return -1;
 	}
 
 	// create actual instance
-	self->transform = new MCM::AffineTransform(PyArray_ToMatrixXd(matrix), vec);
+	self->transform = new AffineTransform(PyArray_ToMatrixXd(matrix), vec);
 
 	Py_DECREF(matrix);
+	Py_DECREF(vector);
 
 	return 0;
 }
@@ -207,7 +207,7 @@ PyObject* AffineTransform_reduce(AffineTransformObject* self, PyObject*, PyObjec
 	PyObject* vector = AffineTransform_b(self, 0, 0);
 	PyObject* args = Py_BuildValue("(OO)", matrix, vector);
 	PyObject* state = Py_BuildValue("()");
-	PyObject* result = Py_BuildValue("OOO", self->ob_type, args, state);
+	PyObject* result = Py_BuildValue("(OOO)", self->ob_type, args, state);
 
 	Py_DECREF(matrix);
 	Py_DECREF(vector);
@@ -220,6 +220,7 @@ PyObject* AffineTransform_reduce(AffineTransformObject* self, PyObject*, PyObjec
 
 
 PyObject* AffineTransform_setstate(AffineTransformObject* self, PyObject* state, PyObject*) {
+	// AffineTransform_init handles everything
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -243,7 +244,7 @@ int LinearTransform_init(LinearTransformObject* self, PyObject* args, PyObject* 
 	}
 
 	// create actual instance
-	self->transform = new MCM::LinearTransform(PyArray_ToMatrixXd(matrix));
+	self->transform = new LinearTransform(PyArray_ToMatrixXd(matrix));
 
 	Py_DECREF(matrix);
 
@@ -256,7 +257,7 @@ PyObject* LinearTransform_reduce(AffineTransformObject* self, PyObject*, PyObjec
 	PyObject* matrix = AffineTransform_A(self, 0, 0);
 	PyObject* args = Py_BuildValue("(O)", matrix);
 	PyObject* state = Py_BuildValue("()");
-	PyObject* result = Py_BuildValue("OOO", self->ob_type, args, state);
+	PyObject* result = Py_BuildValue("(OOO)", self->ob_type, args, state);
 
 	Py_DECREF(matrix);
 	Py_DECREF(args);
@@ -268,6 +269,7 @@ PyObject* LinearTransform_reduce(AffineTransformObject* self, PyObject*, PyObjec
 
 
 PyObject* LinearTransform_setstate(AffineTransformObject* self, PyObject* state, PyObject*) {
+	// LinearTransform_init handles everything
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -291,7 +293,7 @@ int WhiteningTransform_init(WhiteningTransformObject* self, PyObject* args, PyOb
 	}
 
 	// create actual instance
-	self->transform = new MCM::WhiteningTransform(PyArray_ToMatrixXd(data));
+	self->transform = new WhiteningTransform(PyArray_ToMatrixXd(data));
 
 	Py_DECREF(data);
 
@@ -301,11 +303,12 @@ int WhiteningTransform_init(WhiteningTransformObject* self, PyObject* args, PyOb
 
 
 PyObject* WhiteningTransform_reduce(AffineTransformObject* self, PyObject*, PyObject*) {
+	// dummy is needed for WhiteningTransform_init
 	PyObject* dummy = PyArray_FromMatrixXd(MatrixXd::Identity(2, 2));
 	PyObject* matrix = AffineTransform_A(self, 0, 0);
 	PyObject* args = Py_BuildValue("(O)", dummy);
 	PyObject* state = Py_BuildValue("(O)", matrix);
-	PyObject* result = Py_BuildValue("OOO", self->ob_type, args, state);
+	PyObject* result = Py_BuildValue("(OOO)", self->ob_type, args, state);
 
 	Py_DECREF(dummy);
 	Py_DECREF(matrix);
@@ -354,7 +357,7 @@ int PCATransform_init(PCATransformObject* self, PyObject* args, PyObject* kwds) 
 	}
 
 	// create actual instance
-	self->transform = new MCM::PCATransform(PyArray_ToMatrixXd(data), num_pcs);
+	self->transform = new PCATransform(PyArray_ToMatrixXd(data), num_pcs);
 
 	Py_DECREF(data);
 

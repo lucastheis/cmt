@@ -113,8 +113,7 @@ PyObject* generate_data_from_image(PyObject* self, PyObject* args, PyObject* kwd
 
 		PyObject* data = Py_BuildValue("(OO)",
 			xvalues,
-			yvalues,
-			PyArray_FromMatrixXd(dataPair.second));
+			yvalues);
 
 		Py_DECREF(img);
 		Py_DECREF(xvalues);
@@ -199,8 +198,7 @@ PyObject* generate_data_from_video(PyObject* self, PyObject* args, PyObject* kwd
 
 		PyObject* data = Py_BuildValue("(OO)",
 			xvalues,
-			yvalues,
-			PyArray_FromMatrixXd(dataPair.second));
+			yvalues);
 
 		Py_DECREF(video);
 		Py_DECREF(xvalues);
@@ -359,7 +357,6 @@ const char* sample_video_doc =
 	"\n"
 	"@rtype: C{ndarray}\n"
 	"@return: the sampled video";
-
 
 PyObject* sample_video(PyObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"video", "model", "xmask", "ymask", "preconditioner", 0};

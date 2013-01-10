@@ -14,8 +14,9 @@ namespace MCM {
 
 			virtual ArrayXXd operator()(const ArrayXXd& data) const = 0;
 			virtual ArrayXXd inverse(const ArrayXXd& data) const = 0;
+
 			// TODO:
-//			virtual ArrayXXd logJacobian(ArrayXXd data) const = 0;
+//			virtual ArrayXXd logJacobian(const ArrayXXd& data) const = 0;
 	};
 }
 
