@@ -20,7 +20,7 @@ class Tests(unittest.TestCase):
 		# joint covariance
 		C = cov(vstack(wt(X, Y)), bias=True)
 
-		self.assertLess(max(abs(C - eye(7))), 1e-10)
+		self.assertLess(max(abs(C - eye(7))), 1e-8)
 
 		# test inverse
 		Xw, Yw = wt(X, Y)
