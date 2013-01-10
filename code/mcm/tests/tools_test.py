@@ -17,6 +17,9 @@ class ToolsTest(unittest.TestCase):
 		# select all elements
 		self.assertTrue(set(random_select(8, 8)) == set(range(8)))
 
+		# n should be larger than k
+		self.assertRaises(Exception, random_select, 10, 4)
+
 
 
 	def test_generate_data_from_image(self):
@@ -169,7 +172,7 @@ class ToolsTest(unittest.TestCase):
 				[0, 1, 0],
 				[0, 0, 0]], dtype='bool')])
 
-		model = MCGSM(10, 1)
+		model = MCGSM(13, 1)
 
 		video_init = randn(64, 64, 5)
 		video_sample = sample_video(video_init, model, xmask, ymask)
