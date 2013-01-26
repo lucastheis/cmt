@@ -1,9 +1,6 @@
 #ifndef PRECONDITIONER_H
 #define PRECONDITIONER_H
 
-#include "transform.h"
-using MCM::Transform;
-
 #include <map>
 using std::pair;
 using std::make_pair;
@@ -14,23 +11,21 @@ using Eigen::ArrayXXd;
 namespace MCM {
 	class Preconditioner {
 		public:
-			Preconditioner(const Transform&);
 			virtual ~Preconditioner() { }
 
-			virtual int dimIn() const;
-			virtual int dimOut() const;
+			virtual int dimIn() const = 0;
+			virtual int dimInPre() const = 0;
+			virtual int dimOut() const = 0;
+			virtual int dimOutPre() const = 0;
 
-			virtual pair<ArrayXXd, ArrayXXd> operator()(const ArrayXXd& input, const ArrayXXd& output) const;
-			virtual pair<ArrayXXd, ArrayXXd> inverse(const ArrayXXd& input, const ArrayXXd& output) const;
+			virtual pair<ArrayXXd, ArrayXXd> operator()(const ArrayXXd& input, const ArrayXXd& output) const = 0;
+			virtual pair<ArrayXXd, ArrayXXd> inverse(const ArrayXXd& input, const ArrayXXd& output) const = 0;
+
+			virtual ArrayXXd operator()(const ArrayXXd& input) const = 0;
+			virtual ArrayXXd inverse(const ArrayXXd& input) const = 0;
 
 			// TODO:
 //			virtual ArrayXXd logJacobian(const ArrayXXd& input, const ArrayXXd& output) const = 0;
-
-		protected:
-			Preconditioner();
-
-		private:
-			const Transform& mTransform;
 	};
 }
 

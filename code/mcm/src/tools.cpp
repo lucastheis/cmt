@@ -319,7 +319,7 @@ ArrayXXd sampleImage(
 	const ConditionalDistribution& model,
 	ArrayXXb inputMask,
 	ArrayXXb outputMask,
-	const Transform& preconditioner)
+	const Preconditioner* preconditioner)
 {
 	if(inputMask.cols() != outputMask.cols() || inputMask.rows() != outputMask.rows())
 		throw Exception("Input and output masks should be of the same size.");
@@ -361,8 +361,15 @@ ArrayXXd sampleImage(
 	if(outputIndices.size() != w * h)
 		throw Exception("Unsupported output mask.");
 
-	if(inputIndices.size() != model.dimIn() || outputIndices.size() != model.dimOut())
-		throw Exception("Model and masks are incompatible.");
+	if(preconditioner) {
+		if(inputIndices.size() != preconditioner->dimIn() || outputIndices.size() != preconditioner->dimOut())
+			throw Exception("Preconditioner and masks are incompatible.");
+		if(preconditioner->dimInPre() != model.dimIn() || preconditioner->dimOutPre() != model.dimOut())
+			throw Exception("Model and preconditioner are incompatible.");
+	} else {
+		if(inputIndices.size() != model.dimIn() || outputIndices.size() != model.dimOut())
+			throw Exception("Model and masks are incompatible.");
+	}
 
 	for(int i = 0; i + inputMask.rows() <= img.rows(); i += h)
 		for(int j = 0; j + inputMask.cols() <= img.cols(); j += w) {
@@ -370,8 +377,15 @@ ArrayXXd sampleImage(
 			VectorXd input = extractFromImage(
 				img.block(i, j, inputMask.rows(), inputMask.cols()), inputIndices);
 
+			VectorXd output;
+
 			// sample output
-			VectorXd output = model.sample(preconditioner(input));
+			if(preconditioner) {
+				input = preconditioner->operator()(input);
+				output = preconditioner->inverse(input, model.sample(input)).second;
+			} else {
+				output = model.sample(input);
+			}
 
 			// replace pixels in image by output
 			for(int k = 0; k < outputIndices.size(); ++k)
@@ -388,7 +402,7 @@ vector<ArrayXXd> sampleImage(
 	const ConditionalDistribution& model,
 	ArrayXXb inputMask,
 	ArrayXXb outputMask,
-	const Transform& preconditioner)
+	const Preconditioner* preconditioner)
 {
 	if(!img.size())
 		throw Exception("Image should have at least one channel.");
@@ -438,16 +452,14 @@ vector<ArrayXXd> sampleImage(
 	if(numOutputs != w * h)
 		throw Exception("Unsupported output mask.");
 
-	if(preconditioner.dimIn() < 0) {
+	if(preconditioner) {
+		if(numInputs * numChannels != preconditioner->dimIn() || numOutputs * numChannels != preconditioner->dimOut())
+			throw Exception("Preconditioner and masks are incompatible.");
+		if(preconditioner->dimInPre() != model.dimIn() || preconditioner->dimOutPre() != model.dimOut())
+			throw Exception("Model and preconditioner are incompatible.");
+	} else {
 		if(numInputs * numChannels != model.dimIn() || numOutputs * numChannels != model.dimOut())
 			throw Exception("Model and masks are incompatible.");
-	} else {
-		if(numInputs * numChannels != preconditioner.dimIn())
-			throw Exception("Preconditioner and input mask are incompatible.");
-		if(preconditioner.dimOut() != model.dimIn())
-			throw Exception("Model and preconditioner are incompatible.");
-		if(numOutputs * numChannels != model.dimOut())
-			throw Exception("Model and output mask are incompatible.");
 	}
 
 	for(int i = 0; i + inputMask.rows() <= img[0].rows(); i += h)
@@ -461,7 +473,17 @@ vector<ArrayXXd> sampleImage(
 					img[m].block(i, j, inputMask.rows(), inputMask.cols()), inputIndices);
 
 			// sample output
-			VectorXd output = model.sample(preconditioner(input));
+			VectorXd output;
+			
+			if(preconditioner) {
+				std::cout << "in: " << input.rows() << ", " << input.cols() << std::endl;
+				input = preconditioner->operator()(input);
+				output = model.sample(input);
+				std::cout << "ou: " << output.rows() << ", " << output.cols() << std::endl;
+				output = preconditioner->inverse(input, output).second;
+			} else {
+				output = model.sample(input);
+			}
 
 			// replace pixels in image by output
 			#pragma omp parallel for
@@ -480,7 +502,7 @@ vector<ArrayXXd> sampleImage(
 	const ConditionalDistribution& model,
 	vector<ArrayXXb> inputMask,
 	vector<ArrayXXb> outputMask,
-	const Transform& preconditioner)
+	const Preconditioner* preconditioner)
 {
 	int numChannels = img.size();
 
@@ -546,16 +568,14 @@ vector<ArrayXXd> sampleImage(
 	if(numOutputs % (w * h))
 		throw Exception("Unsupported output mask.");
 
-	if(preconditioner.dimIn() < 0) {
+	if(preconditioner) {
+		if(numInputs != preconditioner->dimIn() || numOutputs != preconditioner->dimOut())
+			throw Exception("Preconditioner and masks are incompatible.");
+		if(preconditioner->dimInPre() != model.dimIn() || preconditioner->dimOutPre() != model.dimOut())
+			throw Exception("Model and preconditioner are incompatible.");
+	} else {
 		if(numInputs != model.dimIn() || numOutputs != model.dimOut())
 			throw Exception("Model and masks are incompatible.");
-	} else {
-		if(numInputs != preconditioner.dimIn())
-			throw Exception("Preconditioner and input mask are incompatible.");
-		if(preconditioner.dimOut() != model.dimIn())
-			throw Exception("Model and preconditioner are incompatible.");
-		if(numOutputs != model.dimOut())
-			throw Exception("Model and output mask are incompatible.");
 	}
 
 	for(int i = 0; i + inputMask[0].rows() <= img[0].rows(); i += h)
@@ -570,7 +590,14 @@ vector<ArrayXXd> sampleImage(
 			}
 
 			// sample output
-			VectorXd output = model.sample(preconditioner(input));
+			VectorXd output;
+
+			if(preconditioner) {
+				input = preconditioner->operator()(input);
+				output = preconditioner->inverse(input, model.sample(input)).second;
+			} else {
+				output = model.sample(input);
+			}
 
 			// replace pixels in image by model's output
 			for(int m = 0, offset = 0; m < numChannels; ++m) {

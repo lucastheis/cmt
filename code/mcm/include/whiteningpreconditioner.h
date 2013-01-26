@@ -21,10 +21,15 @@ namespace MCM {
 				const MatrixXd& predictor);
 
 			virtual int dimIn() const;
+			virtual int dimInPre() const;
 			virtual int dimOut() const;
+			virtual int dimOutPre() const;
 
 			virtual pair<ArrayXXd, ArrayXXd> operator()(const ArrayXXd& input, const ArrayXXd& output) const;
 			virtual pair<ArrayXXd, ArrayXXd> inverse(const ArrayXXd& input, const ArrayXXd& output) const;
+
+			virtual ArrayXXd operator()(const ArrayXXd& input) const;
+			virtual ArrayXXd inverse(const ArrayXXd& input) const;
 
 			inline VectorXd meanIn() const;
 			inline VectorXd meanOut() const;

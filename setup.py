@@ -55,7 +55,6 @@ modules = [
 			'code/mcm/src/whiteningtransform.cpp',
 			'code/mcm/src/pcatransform.cpp',
 			'code/mcm/src/transforminterface.cpp',
-			'code/mcm/src/preconditioner.cpp',
 			'code/mcm/src/whiteningpreconditioner.cpp',
 			'code/mcm/src/preconditionerinterface.cpp',
 			'code/mcm/src/tools.cpp',

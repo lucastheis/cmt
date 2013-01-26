@@ -68,20 +68,34 @@ int MCM::WhiteningPreconditioner::dimIn() const {
 
 
 
+int MCM::WhiteningPreconditioner::dimInPre() const {
+	return mPredictor.cols();
+}
+
+
+
 int MCM::WhiteningPreconditioner::dimOut() const {
 	return mPredictor.rows();
 }
 
 
 
-pair<ArrayXXd, ArrayXXd> MCM::WhiteningPreconditioner::operator()(const ArrayXXd& input, const ArrayXXd& output) const {
+int MCM::WhiteningPreconditioner::dimOutPre() const {
+	return mPredictor.rows();
+}
+
+
+
+pair<ArrayXXd, ArrayXXd> MCM::WhiteningPreconditioner::operator()(
+	const ArrayXXd& input,
+	const ArrayXXd& output) const
+{
 	if(input.cols() != output.cols())
 		throw Exception("Number of inputs and outputs must be the same."); 
 	if(input.rows() != dimIn())
 		throw Exception("Input has wrong dimensionality."); 
 	if(output.rows() != dimOut())
 		throw Exception("Output has wrong dimensionality."); 
-
 	ArrayXXd inputTr = mWhiteIn * (input.matrix().colwise() - mMeanIn);
 	ArrayXXd outputTr = mWhiteOut * (output.matrix().colwise() - mMeanOut - mPredictor * inputTr.matrix());
 	return make_pair(inputTr, outputTr);
@@ -89,8 +103,33 @@ pair<ArrayXXd, ArrayXXd> MCM::WhiteningPreconditioner::operator()(const ArrayXXd
 
 
 
-pair<ArrayXXd, ArrayXXd> MCM::WhiteningPreconditioner::inverse(const ArrayXXd& input, const ArrayXXd& output) const {
+pair<ArrayXXd, ArrayXXd> MCM::WhiteningPreconditioner::inverse(
+	const ArrayXXd& input,
+	const ArrayXXd& output) const
+{
+	if(input.cols() != output.cols())
+		throw Exception("Number of inputs and outputs must be the same."); 
+	if(input.rows() != dimInPre())
+		throw Exception("Input has wrong dimensionality."); 
+	if(output.rows() != dimOutPre())
+		throw Exception("Output has wrong dimensionality."); 
 	ArrayXXd outputTr = (mWhiteOutInv * output.matrix() + mPredictor * input.matrix()).colwise() + mMeanOut;
 	ArrayXXd inputTr = (mWhiteInInv * input.matrix()).colwise() + mMeanIn;
 	return make_pair(inputTr, outputTr);
+}
+
+
+
+ArrayXXd MCM::WhiteningPreconditioner::operator()(const ArrayXXd& input) const {
+	if(input.rows() != dimIn())
+		throw Exception("Input has wrong dimensionality."); 
+	return mWhiteIn * (input.matrix().colwise() - mMeanIn);
+}
+
+
+
+ArrayXXd MCM::WhiteningPreconditioner::inverse(const ArrayXXd& input) const {
+	if(input.rows() != dimInPre())
+		throw Exception("Input has wrong dimensionality."); 
+	return (mWhiteInInv * input.matrix()).colwise() + mMeanIn;
 }

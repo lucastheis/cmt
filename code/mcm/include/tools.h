@@ -15,6 +15,9 @@ using MCM::IdentityTransform;
 #include "transform.h"
 using MCM::Transform;
 
+#include "preconditioner.h"
+using MCM::Preconditioner;
+
 #include "Eigen/Core"
 using Eigen::VectorXd;
 using Eigen::ArrayXXd;
@@ -40,6 +43,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 	vector<ArrayXXb> inputMask,
 	vector<ArrayXXb> outputMask,
 	int numSamples);
+
 pair<ArrayXXd, ArrayXXd> generateDataFromVideo(
 	vector<ArrayXXd> video,
 	vector<ArrayXXb> inputMask,
@@ -51,19 +55,20 @@ ArrayXXd sampleImage(
 	const ConditionalDistribution& model,
 	ArrayXXb inputMask,
 	ArrayXXb outputMask,
-	const Transform& preconditioner = IdentityTransform());
+	const Preconditioner* preconditioner = 0);
 vector<ArrayXXd> sampleImage(
 	vector<ArrayXXd> img,
 	const ConditionalDistribution& model,
 	ArrayXXb inputMask,
 	ArrayXXb outputMask,
-	const Transform& preconditioner = IdentityTransform());
+	const Preconditioner* preconditioner = 0);
 vector<ArrayXXd> sampleImage(
 	vector<ArrayXXd> img,
 	const ConditionalDistribution& model,
 	vector<ArrayXXb> inputMask,
 	vector<ArrayXXb> outputMask,
-	const Transform& preconditioner = IdentityTransform());
+	const Preconditioner* preconditioner = 0);
+
 vector<ArrayXXd> sampleVideo(
 	vector<ArrayXXd> video,
 	const ConditionalDistribution& model,
