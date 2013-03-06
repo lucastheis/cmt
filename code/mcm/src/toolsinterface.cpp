@@ -1,6 +1,7 @@
 #include "toolsinterface.h"
 #include "mcgsminterface.h"
 #include "transforminterface.h"
+#include "preconditionerinterface.h"
 #include "exception.h"
 #include "utils.h"
 #include "tools.h"
@@ -268,7 +269,7 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 							cd,
 							PyArray_ToArraysXXb(xmask),
 							PyArray_ToArraysXXb(ymask),
-							*reinterpret_cast<TransformObject*>(preconditioner)->transform));
+							reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner));
 				} else {
 					imgSample = PyArray_FromArraysXXd(
 						sampleImage(
@@ -286,7 +287,7 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 							cd,
 							PyArray_ToMatrixXb(xmask),
 							PyArray_ToMatrixXb(ymask),
-							*reinterpret_cast<TransformObject*>(preconditioner)->transform));
+							reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner));
 				} else {
 					imgSample = PyArray_FromArraysXXd(
 						sampleImage(
@@ -305,7 +306,7 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 						cd,
 						PyArray_ToMatrixXb(xmask),
 						PyArray_ToMatrixXb(ymask),
-						*reinterpret_cast<TransformObject*>(preconditioner)->transform));
+						reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner));
 			} else {
 				imgSample = PyArray_FromMatrixXd(
 					sampleImage(

@@ -233,6 +233,18 @@ int WhiteningPreconditioner_init(WhiteningPreconditionerObject* self, PyObject* 
 
 
 
+PyObject* WhiteningPreconditioner_mean_in(WhiteningPreconditionerObject* self, PyObject*, void*) {
+	return PyArray_FromMatrixXd(self->preconditioner->meanIn());
+}
+
+
+
+PyObject* WhiteningPreconditioner_mean_out(WhiteningPreconditionerObject* self, PyObject*, void*) {
+	return PyArray_FromMatrixXd(self->preconditioner->meanOut());
+}
+
+
+
 PyObject* WhiteningPreconditioner_reduce(WhiteningPreconditionerObject* self, PyObject*, PyObject*) {
 	PyObject* meanIn = PyArray_FromMatrixXd(self->preconditioner->meanIn());
 	PyObject* meanOut = PyArray_FromMatrixXd(self->preconditioner->meanOut());

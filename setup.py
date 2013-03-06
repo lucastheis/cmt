@@ -8,7 +8,7 @@ sys.path.append('./code')
 
 from distutils.core import setup, Extension
 from distutils.ccompiler import CCompiler, get_default_compiler
-from tools import parallelCCompiler
+from utils import parallelCCompiler
 from numpy.distutils.intelccompiler import IntelCCompiler
 from numpy import any
 
@@ -62,7 +62,6 @@ modules = [
 			'code/mcm/src/whiteningtransform.cpp',
 			'code/mcm/src/pcatransform.cpp',
 			'code/mcm/src/transforminterface.cpp',
-			'code/mcm/src/preconditioner.cpp',
 			'code/mcm/src/whiteningpreconditioner.cpp',
 			'code/mcm/src/preconditionerinterface.cpp',
 			'code/mcm/src/tools.cpp',

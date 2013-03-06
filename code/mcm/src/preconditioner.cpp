@@ -3,7 +3,9 @@
 #include "identitytransform.h"
 using MCM::IdentityTransform;
 
-MCM::Preconditioner::Preconditioner(const Transform& transform) : mTransform(transform) {
+MCM::Preconditioner::Preconditioner(const Transform& transform) :
+	mTransform(transform) 
+{
 }
 
 
@@ -20,17 +22,23 @@ int MCM::Preconditioner::dimIn() const {
 
 
 int MCM::Preconditioner::dimOut() const {
-	return 0;
+	return -1;
 }
 
 
 
-pair<ArrayXXd, ArrayXXd> MCM::Preconditioner::operator()(const ArrayXXd& input, const ArrayXXd& output) const {
+pair<ArrayXXd, ArrayXXd> MCM::Preconditioner::operator()(
+	const ArrayXXd& input, 
+	const ArrayXXd& output) const 
+{
 	return make_pair(mTransform(input), output);
 }
 
 
 
-pair<ArrayXXd, ArrayXXd> MCM::Preconditioner::inverse(const ArrayXXd& input, const ArrayXXd& output) const {
+pair<ArrayXXd, ArrayXXd> MCM::Preconditioner::inverse(
+	const ArrayXXd& input,
+	const ArrayXXd& output) const 
+{
 	return make_pair(mTransform.inverse(input), output);
 }
