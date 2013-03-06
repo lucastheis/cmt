@@ -18,8 +18,8 @@ if any(['intel' in arg for arg in sys.argv]) or 'intel' in get_default_compiler(
 	include_dirs=[
 		'/opt/intel/mkl/include']
 	library_dirs=[
-		'/opt/intel/mkl/lib/intel64',
-		'/opt/intel/composer_xe_2013.1.117/compiler/lib/intel64']
+		'/opt/intel/mkl/lib',
+		'/opt/intel/lib']
 	libraries = [
 		'mkl_intel_lp64',
 		'mkl_intel_thread',
@@ -30,17 +30,24 @@ if any(['intel' in arg for arg in sys.argv]) or 'intel' in get_default_compiler(
 		'-DEIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS',
 		'-DEIGEN_USE_MKL_ALL',
 		'-wd1224']
+	extra_link_args = []
+
+	for path in ['/opt/intel/mkl/lib/intel64', '/opt/intel/lib/intel64']:
+		if os.path.exists(path):
+			library_dirs += [path]
 else:
 	# gcc-specific options
 	include_dirs = []
 	library_dirs = []
 	libraries = [
 		'gomp']
-	extra_compile_args = [
-		'-Wno-cpp']
+	extra_compile_args = []
+	extra_link_args = []
+
+	if sys.platform != 'darwin':
+		extra_compile_args += ['-Wno-cpp']
 
 if sys.platform != 'darwin':
-	# c++0x is used for random number generation on linux
 	extra_compile_args += ['-std=c++0x']
 
 modules = [
@@ -74,7 +81,7 @@ modules = [
 		libraries=[] + libraries,
 		extra_link_args=[
 			'-fPIC',
-			'code/liblbfgs/lib/.libs/liblbfgs.a'],
+			'code/liblbfgs/lib/.libs/liblbfgs.a'] + extra_link_args,
 		extra_compile_args=[
 			'-fopenmp',
 			'-Wno-sign-compare',
