@@ -33,6 +33,9 @@ PyObject* Preconditioner_dim_out(PreconditionerObject*, PyObject*, void*);
 
 int WhiteningPreconditioner_init(WhiteningPreconditionerObject*, PyObject*, PyObject*);
 
+PyObject* WhiteningPreconditioner_mean_in(WhiteningPreconditionerObject*, PyObject*, void*);
+PyObject* WhiteningPreconditioner_mean_out(WhiteningPreconditionerObject*, PyObject*, void*);
+
 PyObject* WhiteningPreconditioner_reduce(WhiteningPreconditionerObject*, PyObject*, PyObject*);
 PyObject* WhiteningPreconditioner_setstate(WhiteningPreconditionerObject*, PyObject*, PyObject*);
 

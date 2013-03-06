@@ -346,6 +346,8 @@ PyTypeObject PCATransform_type = {
 static PyGetSetDef WhiteningPreconditioner_getset[] = {
 	{"dim_in", (getter)Preconditioner_dim_in, 0, 0},
 	{"dim_out", (getter)Preconditioner_dim_out, 0, 0},
+	{"mean_in", (getter)WhiteningPreconditioner_mean_in, 0, 0},
+	{"mean_out", (getter)WhiteningPreconditioner_mean_out, 0, 0},
 	{0}
 };
 
