@@ -8,7 +8,7 @@ sys.path.append('./code')
 
 from distutils.core import setup, Extension
 from distutils.ccompiler import CCompiler, get_default_compiler
-from tools import parallelCCompiler
+from utils import parallelCCompiler
 from numpy.distutils.intelccompiler import IntelCCompiler
 from numpy import any
 
