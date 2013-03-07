@@ -40,12 +40,20 @@ ArrayXXd sampleNormal(int m, int n) {
 	return samples;
 }
 #else
-#warning "No C++11 support. Using my own implementation of the Box-Muller transform."
 ArrayXXd sampleNormal(int m, int n) {
-	ArrayXXd U1 = ArrayXXd::Random(m, n).abs();
-	ArrayXXd U2 = ArrayXXd::Random(m, n).abs();
+	ArrayXXd U = ArrayXXd::Random(m, n);
+	ArrayXXd V = ArrayXXd::Random(m, n);
+	ArrayXXd S = U.square() + V.square();
+
+	for(int i = 0; i < S.size(); ++i)
+		while(S(i) == 0. || S(i) > 1.) {
+			U(i) = ArrayXXd::Random(1, 1)(0);
+			V(i) = ArrayXXd::Random(1, 1)(0);
+			S(i) = U(i) * U(i) + V(i) * V(i);
+		}
+
 	// Box-Muller transform
-	return (-2. * U1.log()).sqrt() * (2. * PI * U2).cos();
+	return U * (-2. * S.log() / S).sqrt();
 }
 #endif
 

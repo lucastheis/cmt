@@ -7,7 +7,7 @@ from mcm import MCGSM
 from numpy import *
 from numpy import max
 from numpy.random import *
-from scipy.stats import kstest
+from scipy.stats import kstest, norm
 from scipy.optimize import check_grad
 from pickle import dump, load
 from tempfile import mkstemp
@@ -106,6 +106,20 @@ class Tests(unittest.TestCase):
 				'callback': callback,
 				'cb_iter': 1,
 				})
+
+
+
+	def test_sample(self):
+		mcgsm = MCGSM(1, 1, 1, 1, 1)
+		mcgsm.scales = [[0.]]
+		mcgsm.predictors = [[0.]]
+
+		samples = mcgsm.sample(zeros([1, 10000])).flatten()
+
+		p = kstest(samples, lambda x: norm.cdf(x, scale=1.))[1]
+
+		# make sure Gaussian random number generation works
+		self.assertTrue(p > 0.0001)
 
 
 
