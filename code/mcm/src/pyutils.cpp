@@ -1,8 +1,7 @@
+#include <inttypes.h>
+
 #include "pyutils.h"
 #include "exception.h"
-
-#include <cinttypes>
-using std::int64_t;
 
 using namespace Eigen;
 

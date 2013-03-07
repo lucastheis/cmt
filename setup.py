@@ -39,16 +39,16 @@ else:
 	# gcc-specific options
 	include_dirs = []
 	library_dirs = []
-	libraries = [
-		'gomp']
+	libraries = []
 	extra_compile_args = []
 	extra_link_args = []
 
 	if sys.platform != 'darwin':
 		extra_compile_args += ['-Wno-cpp']
+		libraries += ['gomp']
 
 if sys.platform != 'darwin':
-	extra_compile_args += ['-std=c++0x']
+	extra_compile_args += ['-std=c++0x', '-fopenmp']
 
 modules = [
 	Extension('mcm',
@@ -82,7 +82,6 @@ modules = [
 			'-fPIC',
 			'code/liblbfgs/lib/.libs/liblbfgs.a'] + extra_link_args,
 		extra_compile_args=[
-			'-fopenmp',
 			'-Wno-sign-compare',
 			'-Wno-parentheses',
 			'-Wno-write-strings'] + extra_compile_args)]
