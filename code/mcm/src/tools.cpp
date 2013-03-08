@@ -617,7 +617,7 @@ vector<ArrayXXd> sampleVideo(
 	const ConditionalDistribution& model,
 	vector<ArrayXXb> inputMask,
 	vector<ArrayXXb> outputMask,
-	const Transform& preconditioner)
+	const Preconditioner* preconditioner)
 {
 	if(video.size() < inputMask.size())
 		return video;
@@ -686,16 +686,14 @@ vector<ArrayXXd> sampleVideo(
 	if(numOutputs != w * h * l)
 		throw Exception("Unsupported output mask.");
 
-	if(preconditioner.dimIn() < 0) {
+	if(preconditioner) {
+		if(numInputs != preconditioner->dimIn() || numOutputs != preconditioner->dimOut())
+			throw Exception("Preconditioner and masks are incompatible.");
+		if(preconditioner->dimInPre() != model.dimIn() || preconditioner->dimOutPre() != model.dimOut())
+			throw Exception("Model and preconditioner are incompatible.");
+	} else {
 		if(numInputs != model.dimIn() || numOutputs != model.dimOut())
 			throw Exception("Model and masks are incompatible.");
-	} else {
-		if(numInputs != preconditioner.dimIn())
-			throw Exception("Preconditioner and input mask are incompatible.");
-		if(preconditioner.dimOut() != model.dimIn())
-			throw Exception("Model and preconditioner are incompatible.");
-		if(numOutputs != model.dimOut())
-			throw Exception("Model and output mask are incompatible.");
 	}
 
 	for(int f = 0; f + inputMask.size() <= video.size(); f += l)
@@ -711,7 +709,14 @@ vector<ArrayXXd> sampleVideo(
 				}
 
 				// sample output
-				VectorXd output = model.sample(preconditioner(input));
+				VectorXd output;
+
+				if(preconditioner) {
+					input = preconditioner->operator()(input);
+					output = preconditioner->inverse(input, model.sample(input)).second;
+				} else {
+					output = model.sample(input);
+				}
 
 				// replace pixels in video by model's output
 				for(int m = 0, offset = 0; m < inputMask.size(); ++m) {
@@ -733,13 +738,12 @@ inline double computeEnergy(
 	const ArrayXXb& outputMask,
 	const Tuples& inputIndices,
 	const Tuples& outputIndices,
-	const Transform& preconditioner,
+	const Preconditioner* preconditioner,
 	int i,
 	int j,
 	const Tuples& offsets)
 {
 	double energy = 0.;
-
 
 	for(Tuples::const_iterator offset = offsets.begin(); offset != offsets.end(); ++offset) {
 		if(i + offset->first < 0 || j + offset->second < 0 || i + offset->first + inputMask.rows() >= img.rows() || j + offset->second + inputMask.cols() >= img.cols()) {
@@ -756,7 +760,12 @@ inline double computeEnergy(
 		VectorXd output = extractFromImage(patch, outputIndices);
 
 		// update energy
-		energy -= model.logLikelihood(preconditioner(input), output)[0];
+		if(preconditioner) {
+			pair<ArrayXXd, ArrayXXd> data = preconditioner->operator()(input, output);
+			energy -= model.logLikelihood(data.first, data.second)[0] + preconditioner->logJacobian(input, output)[0];
+		} else {
+			energy -= model.logLikelihood(input, output)[0];
+		}
 	}
 
 	return energy;
@@ -770,7 +779,7 @@ ArrayXXd fillInImage(
 	ArrayXXb inputMask,
 	ArrayXXb outputMask,
 	ArrayXXb fillInMask,
-	const Transform& preconditioner,
+	const Preconditioner* preconditioner,
 	int numIterations,
 	int numSteps)
 {

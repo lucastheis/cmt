@@ -61,12 +61,6 @@ modules = [
 		sources=[
 			'code/mcm/src/mcgsm.cpp',
 			'code/mcm/src/mcgsminterface.cpp',
-			'code/mcm/src/affinetransform.cpp',
-			'code/mcm/src/lineartransform.cpp',
-			'code/mcm/src/identitytransform.cpp',
-			'code/mcm/src/whiteningtransform.cpp',
-			'code/mcm/src/pcatransform.cpp',
-			'code/mcm/src/transforminterface.cpp',
 			'code/mcm/src/whiteningpreconditioner.cpp',
 			'code/mcm/src/preconditionerinterface.cpp',
 			'code/mcm/src/tools.cpp',

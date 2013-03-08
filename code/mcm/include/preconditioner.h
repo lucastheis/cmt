@@ -24,8 +24,7 @@ namespace MCM {
 			virtual ArrayXXd operator()(const ArrayXXd& input) const = 0;
 			virtual ArrayXXd inverse(const ArrayXXd& input) const = 0;
 
-			// TODO:
-//			virtual ArrayXXd logJacobian(const ArrayXXd& input, const ArrayXXd& output) const = 0;
+			virtual Array<double, 1, Dynamic> logJacobian(const ArrayXXd& input, const ArrayXXd& output) const = 0;
 	};
 }
 

@@ -96,6 +96,58 @@ PyObject* Preconditioner_inverse(PreconditionerObject* self, PyObject* args, PyO
 
 
 
+const char* Preconditioner_logjacobian_doc =
+	"loglikelihood(self, input, output)\n"
+	"\n"
+	"Computes the conditional log-Jacobian determinant for the given data points "
+	"(using the natural logarithm).\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: ndarray\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@rtype: ndarray\n"
+	"@return: log-Jacobian of the transformation for each data point";
+
+PyObject* Preconditioner_logjacobian(PreconditionerObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", "output", 0};
+
+	PyObject* input;
+	PyObject* output;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		PyObject* result = PyArray_FromMatrixXd(
+			self->preconditioner->logJacobian(PyArray_ToMatrixXd(input), PyArray_ToMatrixXd(output)));
+		Py_DECREF(input);
+		Py_DECREF(output);
+		return result;
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
 PyObject* Preconditioner_new(PyTypeObject* type, PyObject*, PyObject*) {
 	PyObject* self = type->tp_alloc(type, 0);
 
@@ -189,7 +241,6 @@ int WhiteningPreconditioner_init(WhiteningPreconditionerObject* self, PyObject* 
 		Py_DECREF(whiteOutInv);
 		Py_DECREF(predictor);
 	} else {
-
 		PyErr_Clear();
 
 		const char* kwlist[] = {"input", "output", 0};

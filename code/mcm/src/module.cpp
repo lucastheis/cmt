@@ -7,22 +7,21 @@
 #include <time.h>
 #include "toolsinterface.h"
 #include "mcgsminterface.h"
-#include "transforminterface.h"
 #include "preconditionerinterface.h"
 #include "Eigen/Core"
 
 static PyGetSetDef MCGSM_getset[] = {
-	{"dim_in", (getter)MCGSM_dim_in, 0, 0},
-	{"dim_out", (getter)MCGSM_dim_out, 0, 0},
-	{"num_components", (getter)MCGSM_num_components, 0, 0},
-	{"num_scales", (getter)MCGSM_num_scales, 0, 0},
-	{"num_features", (getter)MCGSM_num_features, 0, 0},
-	{"priors", (getter)MCGSM_priors, (setter)MCGSM_set_priors, 0},
-	{"scales", (getter)MCGSM_scales, (setter)MCGSM_set_scales, 0},
-	{"weights", (getter)MCGSM_weights, (setter)MCGSM_set_weights, 0},
-	{"features", (getter)MCGSM_features, (setter)MCGSM_set_features, 0},
-	{"cholesky_factors", (getter)MCGSM_cholesky_factors, (setter)MCGSM_set_cholesky_factors, 0},
-	{"predictors", (getter)MCGSM_predictors, (setter)MCGSM_set_predictors, 0},
+	{"dim_in", (getter)MCGSM_dim_in, 0, "Dimensionality of inputs."},
+	{"dim_out", (getter)MCGSM_dim_out, 0, "Dimensionality of outputs."},
+	{"num_components", (getter)MCGSM_num_components, 0, "Numer of predictors."},
+	{"num_scales", (getter)MCGSM_num_scales, 0, "Number of scale variables per component."},
+	{"num_features", (getter)MCGSM_num_features, 0, "Number of features available to approximate input covariances."},
+	{"priors", (getter)MCGSM_priors, (setter)MCGSM_set_priors, "Log-weights of mixture components and scales, $\\eta_{cs}$."},
+	{"scales", (getter)MCGSM_scales, (setter)MCGSM_set_scales, "Log-precision variables, $\\alpha_{cs}$."},
+	{"weights", (getter)MCGSM_weights, (setter)MCGSM_set_weights, "Weights relating features and mixture components, $\\beta_{ci}$."},
+	{"features", (getter)MCGSM_features, (setter)MCGSM_set_features, "Features used for capturing structure in inputs, $\\mathbf{b}_i$."},
+	{"cholesky_factors", (getter)MCGSM_cholesky_factors, (setter)MCGSM_set_cholesky_factors, "A list of Cholesky factors of residual precision matrices, $\\mathbf{L}_c$."},
+	{"predictors", (getter)MCGSM_predictors, (setter)MCGSM_set_predictors, "A list of linear predictors, $\\mathbf{A}_c$."},
 	{0}
 };
 
@@ -91,258 +90,6 @@ PyTypeObject MCGSM_type = {
 
 
 
-static PyGetSetDef AffineTransform_getset[] = {
-	{"A", (getter)AffineTransform_A, (setter)AffineTransform_set_A, 0},
-	{"b", (getter)AffineTransform_b, (setter)AffineTransform_set_b, 0},
-	{"dim_in", (getter)Transform_dim_in, 0, 0},
-	{"dim_out", (getter)Transform_dim_out, 0, 0},
-	{0}
-};
-
-
-
-static PyMethodDef AffineTransform_methods[] = {
-	{"inverse", (PyCFunction)Transform_inverse, METH_VARARGS|METH_KEYWORDS, 0},
-	{"__reduce__", (PyCFunction)AffineTransform_reduce, METH_NOARGS, 0},
-	{"__setstate__", (PyCFunction)AffineTransform_setstate, METH_VARARGS, 0},
-	{0}
-};
-
-
-
-PyTypeObject AffineTransform_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                   /*ob_size*/
-	"mcm.AffineTransform",               /*tp_name*/
-	sizeof(AffineTransformObject),       /*tp_basicsize*/
-	0,                                   /*tp_itemsize*/
-	(destructor)Transform_dealloc,       /*tp_dealloc*/
-	0,                                   /*tp_print*/
-	0,                                   /*tp_getattr*/
-	0,                                   /*tp_setattr*/
-	0,                                   /*tp_compare*/
-	0,                                   /*tp_repr*/
-	0,                                   /*tp_as_number*/
-	0,                                   /*tp_as_sequence*/
-	0,                                   /*tp_as_mapping*/
-	0,                                   /*tp_hash */
-	(ternaryfunc)Transform_call,         /*tp_call*/
-	0,                                   /*tp_str*/
-	0,                                   /*tp_getattro*/
-	0,                                   /*tp_setattro*/
-	0,                                   /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,                  /*tp_flags*/
-	0,                                   /*tp_doc*/
-	0,                                   /*tp_traverse*/
-	0,                                   /*tp_clear*/
-	0,                                   /*tp_richcompare*/
-	0,                                   /*tp_weaklistoffset*/
-	0,                                   /*tp_iter*/
-	0,                                   /*tp_iternext*/
-	AffineTransform_methods,             /*tp_methods*/
-	0,                                   /*tp_members*/
-	AffineTransform_getset,              /*tp_getset*/
-	0,                                   /*tp_base*/
-	0,                                   /*tp_dict*/
-	0,                                   /*tp_descr_get*/
-	0,                                   /*tp_descr_set*/
-	0,                                   /*tp_dictoffset*/
-	(initproc)AffineTransform_init,      /*tp_init*/
-	0,                                   /*tp_alloc*/
-	Transform_new,                       /*tp_new*/
-};
-
-
-
-static PyGetSetDef LinearTransform_getset[] = {
-	{"A", (getter)AffineTransform_A, (setter)AffineTransform_set_A, 0},
-	{"b", (getter)AffineTransform_b, 0, 0},
-	{"dim_in", (getter)Transform_dim_in, 0, 0},
-	{"dim_out", (getter)Transform_dim_out, 0, 0},
-	{0}
-};
-
-
-
-static PyMethodDef LinearTransform_methods[] = {
-	{"inverse", (PyCFunction)Transform_inverse, METH_VARARGS|METH_KEYWORDS, 0},
-	{"__reduce__", (PyCFunction)LinearTransform_reduce, METH_NOARGS, 0},
-	{"__setstate__", (PyCFunction)LinearTransform_setstate, METH_VARARGS, 0},
-	{0}
-};
-
-
-PyTypeObject LinearTransform_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                   /*ob_size*/
-	"mcm.LinearTransform",               /*tp_name*/
-	sizeof(LinearTransformObject),       /*tp_basicsize*/
-	0,                                   /*tp_itemsize*/
-	(destructor)Transform_dealloc,       /*tp_dealloc*/
-	0,                                   /*tp_print*/
-	0,                                   /*tp_getattr*/
-	0,                                   /*tp_setattr*/
-	0,                                   /*tp_compare*/
-	0,                                   /*tp_repr*/
-	0,                                   /*tp_as_number*/
-	0,                                   /*tp_as_sequence*/
-	0,                                   /*tp_as_mapping*/
-	0,                                   /*tp_hash */
-	(ternaryfunc)Transform_call,         /*tp_call*/
-	0,                                   /*tp_str*/
-	0,                                   /*tp_getattro*/
-	0,                                   /*tp_setattro*/
-	0,                                   /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,                  /*tp_flags*/
-	0,                                   /*tp_doc*/
-	0,                                   /*tp_traverse*/
-	0,                                   /*tp_clear*/
-	0,                                   /*tp_richcompare*/
-	0,                                   /*tp_weaklistoffset*/
-	0,                                   /*tp_iter*/
-	0,                                   /*tp_iternext*/
-	LinearTransform_methods,             /*tp_methods*/
-	0,                                   /*tp_members*/
-	LinearTransform_getset,              /*tp_getset*/
-	0,                                   /*tp_base*/
-	0,                                   /*tp_dict*/
-	0,                                   /*tp_descr_get*/
-	0,                                   /*tp_descr_set*/
-	0,                                   /*tp_dictoffset*/
-	(initproc)LinearTransform_init,      /*tp_init*/
-	0,                                   /*tp_alloc*/
-	Transform_new,                       /*tp_new*/
-};
-
-
-
-static PyGetSetDef WhiteningTransform_getset[] = {
-	{"A", (getter)AffineTransform_A, (setter)AffineTransform_set_A, 0},
-	{"b", (getter)AffineTransform_b, (setter)AffineTransform_set_b, 0},
-	{"dim_in", (getter)Transform_dim_in, 0, 0},
-	{"dim_out", (getter)Transform_dim_out, 0, 0},
-	{0}
-};
-
-
-
-static PyMethodDef WhiteningTransform_methods[] = {
-	{"inverse", (PyCFunction)Transform_inverse, METH_VARARGS|METH_KEYWORDS, 0},
-	{"__reduce__", (PyCFunction)WhiteningTransform_reduce, METH_NOARGS, 0},
-	{"__setstate__", (PyCFunction)WhiteningTransform_setstate, METH_VARARGS, 0},
-	{0}
-};
-
-
-
-PyTypeObject WhiteningTransform_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                   /*ob_size*/
-	"mcm.WhiteningTransform",            /*tp_name*/
-	sizeof(WhiteningTransformObject),    /*tp_basicsize*/
-	0,                                   /*tp_itemsize*/
-	(destructor)Transform_dealloc,       /*tp_dealloc*/
-	0,                                   /*tp_print*/
-	0,                                   /*tp_getattr*/
-	0,                                   /*tp_setattr*/
-	0,                                   /*tp_compare*/
-	0,                                   /*tp_repr*/
-	0,                                   /*tp_as_number*/
-	0,                                   /*tp_as_sequence*/
-	0,                                   /*tp_as_mapping*/
-	0,                                   /*tp_hash */
-	(ternaryfunc)Transform_call,         /*tp_call*/
-	0,                                   /*tp_str*/
-	0,                                   /*tp_getattro*/
-	0,                                   /*tp_setattro*/
-	0,                                   /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,                  /*tp_flags*/
-	0,                                   /*tp_doc*/
-	0,                                   /*tp_traverse*/
-	0,                                   /*tp_clear*/
-	0,                                   /*tp_richcompare*/
-	0,                                   /*tp_weaklistoffset*/
-	0,                                   /*tp_iter*/
-	0,                                   /*tp_iternext*/
-	WhiteningTransform_methods,          /*tp_methods*/
-	0,                                   /*tp_members*/
-	WhiteningTransform_getset,           /*tp_getset*/
-	0,                                   /*tp_base*/
-	0,                                   /*tp_dict*/
-	0,                                   /*tp_descr_get*/
-	0,                                   /*tp_descr_set*/
-	0,                                   /*tp_dictoffset*/
-	(initproc)WhiteningTransform_init,   /*tp_init*/
-	0,                                   /*tp_alloc*/
-	Transform_new,                       /*tp_new*/
-};
-
-
-
-static PyGetSetDef PCATransform_getset[] = {
-	{"A", (getter)AffineTransform_A, (setter)AffineTransform_set_A, 0},
-	{"b", (getter)AffineTransform_b, (setter)AffineTransform_set_b, 0},
-	{"dim_in", (getter)Transform_dim_in, 0, 0},
-	{"dim_out", (getter)Transform_dim_out, 0, 0},
-	{0}
-};
-
-
-
-static PyMethodDef PCATransform_methods[] = {
-	{"inverse", (PyCFunction)Transform_inverse, METH_VARARGS|METH_KEYWORDS, 0},
-	{"eigenvalues", (PyCFunction)PCATransform_eigenvalues, METH_NOARGS, 0},
-	{"__reduce__", (PyCFunction)WhiteningTransform_reduce, METH_NOARGS, 0},
-	{"__setstate__", (PyCFunction)WhiteningTransform_setstate, METH_VARARGS, 0},
-	{0}
-};
-
-
-
-PyTypeObject PCATransform_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                   /*ob_size*/
-	"mcm.PCATransform",                  /*tp_name*/
-	sizeof(PCATransformObject),          /*tp_basicsize*/
-	0,                                   /*tp_itemsize*/
-	(destructor)Transform_dealloc,       /*tp_dealloc*/
-	0,                                   /*tp_print*/
-	0,                                   /*tp_getattr*/
-	0,                                   /*tp_setattr*/
-	0,                                   /*tp_compare*/
-	0,                                   /*tp_repr*/
-	0,                                   /*tp_as_number*/
-	0,                                   /*tp_as_sequence*/
-	0,                                   /*tp_as_mapping*/
-	0,                                   /*tp_hash */
-	(ternaryfunc)Transform_call,         /*tp_call*/
-	0,                                   /*tp_str*/
-	0,                                   /*tp_getattro*/
-	0,                                   /*tp_setattro*/
-	0,                                   /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,                  /*tp_flags*/
-	0,                                   /*tp_doc*/
-	0,                                   /*tp_traverse*/
-	0,                                   /*tp_clear*/
-	0,                                   /*tp_richcompare*/
-	0,                                   /*tp_weaklistoffset*/
-	0,                                   /*tp_iter*/
-	0,                                   /*tp_iternext*/
-	PCATransform_methods,                /*tp_methods*/
-	0,                                   /*tp_members*/
-	PCATransform_getset,                 /*tp_getset*/
-	0,                                   /*tp_base*/
-	0,                                   /*tp_dict*/
-	0,                                   /*tp_descr_get*/
-	0,                                   /*tp_descr_set*/
-	0,                                   /*tp_dictoffset*/
-	(initproc)PCATransform_init,         /*tp_init*/
-	0,                                   /*tp_alloc*/
-	Transform_new,                       /*tp_new*/
-};
-
-
-
 static PyGetSetDef WhiteningPreconditioner_getset[] = {
 	{"dim_in", (getter)Preconditioner_dim_in, 0, 0},
 	{"dim_out", (getter)Preconditioner_dim_out, 0, 0},
@@ -355,6 +102,7 @@ static PyGetSetDef WhiteningPreconditioner_getset[] = {
 
 static PyMethodDef WhiteningPreconditioner_methods[] = {
 	{"inverse", (PyCFunction)Preconditioner_inverse, METH_VARARGS|METH_KEYWORDS, 0},
+	{"logjacobian", (PyCFunction)Preconditioner_logjacobian, METH_VARARGS|METH_KEYWORDS, Preconditioner_logjacobian_doc},
 	{"__reduce__", (PyCFunction)WhiteningPreconditioner_reduce, METH_NOARGS, 0},
 	{"__setstate__", (PyCFunction)WhiteningPreconditioner_setstate, METH_VARARGS, 0},
 	{0}
@@ -408,7 +156,7 @@ PyTypeObject WhiteningPreconditioner_type = {
 
 static PyMethodDef mcm_methods[] = {
 	{"random_select", (PyCFunction)random_select, METH_VARARGS|METH_KEYWORDS, random_select_doc},
-	{"generate_data_from_image", (PyCFunction)generate_data_from_image, METH_VARARGS|METH_KEYWORDS, 0},
+	{"generate_data_from_image", (PyCFunction)generate_data_from_image, METH_VARARGS|METH_KEYWORDS, generate_data_from_image_doc},
 	{"generate_data_from_video", (PyCFunction)generate_data_from_video, METH_VARARGS|METH_KEYWORDS, generate_data_from_video_doc},
 	{"sample_image", (PyCFunction)sample_image, METH_VARARGS|METH_KEYWORDS, 0},
 	{"sample_video", (PyCFunction)sample_video, METH_VARARGS|METH_KEYWORDS, sample_video_doc},
@@ -433,14 +181,6 @@ PyMODINIT_FUNC initmcm() {
 	// initialize types
 	if(PyType_Ready(&MCGSM_type) < 0)
 		return;
-	if(PyType_Ready(&AffineTransform_type) < 0)
-		return;
-	if(PyType_Ready(&LinearTransform_type) < 0)
-		return;
-	if(PyType_Ready(&WhiteningTransform_type) < 0)
-		return;
-	if(PyType_Ready(&PCATransform_type) < 0)
-		return;
 	if(PyType_Ready(&WhiteningPreconditioner_type) < 0)
 		return;
 
@@ -449,15 +189,7 @@ PyMODINIT_FUNC initmcm() {
 
 	// add types to module
 	Py_INCREF(&MCGSM_type);
-	Py_INCREF(&AffineTransform_type);
-	Py_INCREF(&LinearTransform_type);
-	Py_INCREF(&WhiteningTransform_type);
-	Py_INCREF(&PCATransform_type);
 	Py_INCREF(&WhiteningPreconditioner_type);
 	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));
-	PyModule_AddObject(module, "LinearTransform", reinterpret_cast<PyObject*>(&LinearTransform_type));
-	PyModule_AddObject(module, "AffineTransform", reinterpret_cast<PyObject*>(&AffineTransform_type));
-	PyModule_AddObject(module, "WhiteningTransform", reinterpret_cast<PyObject*>(&WhiteningTransform_type));
-	PyModule_AddObject(module, "PCATransform", reinterpret_cast<PyObject*>(&PCATransform_type));
 	PyModule_AddObject(module, "WhiteningPreconditioner", reinterpret_cast<PyObject*>(&WhiteningPreconditioner_type));
 }

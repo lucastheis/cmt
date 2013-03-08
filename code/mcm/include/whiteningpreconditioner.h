@@ -31,6 +31,8 @@ namespace MCM {
 			virtual ArrayXXd operator()(const ArrayXXd& input) const;
 			virtual ArrayXXd inverse(const ArrayXXd& input) const;
 
+			virtual Array<double, 1, Dynamic> logJacobian(const ArrayXXd& input, const ArrayXXd& output) const;
+
 			inline VectorXd meanIn() const;
 			inline VectorXd meanOut() const;
 			inline MatrixXd whiteIn() const;
@@ -47,6 +49,7 @@ namespace MCM {
 			MatrixXd mWhiteOut;
 			MatrixXd mWhiteOutInv;
 			MatrixXd mPredictor;
+			double mLogJacobian;
 	};
 }
 

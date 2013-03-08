@@ -22,8 +22,12 @@ struct WhiteningPreconditionerObject {
 	WhiteningPreconditioner* preconditioner;
 };
 
+extern const char* Preconditioner_logjacobian_doc;
+
 PyObject* Preconditioner_call(PreconditionerObject*, PyObject*, PyObject*);
 PyObject* Preconditioner_inverse(PreconditionerObject*, PyObject*, PyObject*);
+
+PyObject* Preconditioner_logjacobian(PreconditionerObject*, PyObject*, PyObject*);
 
 PyObject* Preconditioner_new(PyTypeObject*, PyObject*, PyObject*);
 void Preconditioner_dealloc(PreconditionerObject*);

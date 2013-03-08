@@ -1,6 +1,5 @@
 #include "toolsinterface.h"
 #include "mcgsminterface.h"
-#include "transforminterface.h"
 #include "preconditionerinterface.h"
 #include "exception.h"
 #include "utils.h"
@@ -12,7 +11,9 @@ using std::set;
 #include <iostream>
 
 const char* random_select_doc =
-	"Randomly selects M{k} out of M{n} elements.\n"
+	"random_select(k, n)\n"
+	"\n"
+	"Randomly selects $k$ out of $n$ elements.\n"
 	"\n"
 	"@type  k: C{int}\n"
 	"@param k: the number of elements to pick\n"
@@ -21,7 +22,7 @@ const char* random_select_doc =
 	"@param n: the number of elements to pick from\n"
 	"\n"
 	"@rtype: C{list}\n"
-	"@return: a list of M{k} indices";
+	"@return: a list of $k$ indices";
 
 PyObject* random_select(PyObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"k", "n", 0};
@@ -52,6 +53,26 @@ PyObject* random_select(PyObject* self, PyObject* args, PyObject* kwds) {
 }
 
 
+
+const char* generate_data_from_image_doc =
+	"generate_data_from_image(img, xmask, ymask, num_samples)\n"
+	"\n"
+	"Uniformly samples inputs and outputs for conditional models from images.\n"
+	"\n"
+	"@type  img: C{ndarray}\n"
+	"@param img: an array representing a grayscale or color image\n"
+	"\n"
+	"@type  xmask: C{ndarray}\n"
+	"@param xmask: a Boolean array describing the input pixels\n"
+	"\n"
+	"@type  ymask: C{ndarray}\n"
+	"@param ymask: a Boolean array describing the output pixels\n"
+	"\n"
+	"@type  num_samples: C{int}\n"
+	"@param num_samples: the number of generated input/output pairs\n"
+	"\n"
+	"@rtype: C{tuple}\n"
+	"@return: the input and output vectors stored in columns";
 
 PyObject* generate_data_from_image(PyObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"img", "xmask", "ymask", "num_samples", 0};
@@ -138,6 +159,8 @@ PyObject* generate_data_from_image(PyObject* self, PyObject* args, PyObject* kwd
 
 
 const char* generate_data_from_video_doc =
+	"generate_data_from_video(video, xmask, ymask, num_samples)\n"
+	"\n"
 	"Uniformly samples inputs and outputs for conditional models from videos.\n"
 	"\n"
 	"@type  video: C{ndarray}\n"
@@ -337,6 +360,8 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 
 
 const char* sample_video_doc =
+	"sample_video(video, model, xmask, ymask, preconditioner=None)\n"
+	"\n"
 	"Samples a video given a conditional distribution. The initial video passed to\n"
 	"this function is used to initialize the boundaries and is also used to determine\n"
 	"the size and length of the video to be generated.\n"
@@ -353,8 +378,8 @@ const char* sample_video_doc =
 	"@type  ymask: C{ndarray}\n"
 	"@param ymask: a three-dimensional Boolean array describing the output pixels\n"
 	"\n"
-	"@type  preconditioner: L{Transform}\n"
-	"@param preconditioner: transform the input before feeding it into the model (default: L{IdentityTransform})\n"
+	"@type  preconditioner: L{Preconditioner}\n"
+	"@param preconditioner: transforms the input before feeding it into the model\n"
 	"\n"
 	"@rtype: C{ndarray}\n"
 	"@return: the sampled video";
@@ -397,14 +422,14 @@ PyObject* sample_video(PyObject* self, PyObject* args, PyObject* kwds) {
 	try {
 		PyObject* videoSample;
 
-		if(preconditioner) {
+		if(preconditioner && preconditioner != Py_None) {
 			videoSample = PyArray_FromArraysXXd(
 				sampleVideo(
 					PyArray_ToArraysXXd(video),
 					cd,
 					PyArray_ToArraysXXb(xmask),
 					PyArray_ToArraysXXb(ymask),
-					*reinterpret_cast<TransformObject*>(preconditioner)->transform));
+					reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner));
 		} else {
 			videoSample = PyArray_FromArraysXXd(
 				sampleVideo(
@@ -434,6 +459,8 @@ PyObject* sample_video(PyObject* self, PyObject* args, PyObject* kwds) {
 
 
 const char* fill_in_image_doc =
+	"fill_in_image(img, model, xmask, ymask, fmask, preconditioner=None, num_iter=10, num_steps=100)\n"
+	"\n"
 	"Samples pixels from an image conditioned on all other pixels.\n"
 	"\n"
 	"@type  img: C{ndarray}\n"
@@ -451,8 +478,8 @@ const char* fill_in_image_doc =
 	"@type  fmask: C{ndarray}\n"
 	"@param fmask: a Boolean array describing the missing pixels\n"
 	"\n"
-	"@type  preconditioner: L{Transform}\n"
-	"@param preconditioner: transforms the input before feeding it into the model (default: L{IdentityTransform})\n"
+	"@type  preconditioner: L{Preconditioner}\n"
+	"@param preconditioner: transforms the input before feeding it into the model\n"
 	"\n"
 	"@type  num_iter: C{int}\n"
 	"@param num_iter: number of iterations of replacing all pixels\n"
@@ -472,8 +499,8 @@ PyObject* fill_in_image(PyObject* self, PyObject* args, PyObject* kwds) {
 	PyObject* ymask;
 	PyObject* fmask;
 	PyObject* preconditioner = 0;
-	int num_iter;
-	int num_steps;
+	int num_iter = 10;
+	int num_steps = 100;
 
 	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOOOO|Oii", const_cast<char**>(kwlist),
 		&img, &model, &xmask, &ymask, &fmask, &preconditioner, &num_iter, &num_steps))
@@ -515,7 +542,7 @@ PyObject* fill_in_image(PyObject* self, PyObject* args, PyObject* kwds) {
 //							cd,
 //							PyArray_ToArraysXXb(xmask),
 //							PyArray_ToArraysXXb(ymask),
-//							*reinterpret_cast<TransformObject*>(preconditioner)->transform));
+//							reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner));
 //				} else {
 //					imgSample = PyArray_FromArraysXXd(
 //						sampleImage(
@@ -533,7 +560,7 @@ PyObject* fill_in_image(PyObject* self, PyObject* args, PyObject* kwds) {
 //							cd,
 //							PyArray_ToMatrixXb(xmask),
 //							PyArray_ToMatrixXb(ymask),
-//							*reinterpret_cast<TransformObject*>(preconditioner)->transform));
+//							reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner));
 //				} else {
 //					imgSample = PyArray_FromArraysXXd(
 //						sampleImage(
@@ -545,7 +572,7 @@ PyObject* fill_in_image(PyObject* self, PyObject* args, PyObject* kwds) {
 //			}
 //		} else {
 			// single-channel image and single-channel masks
-			if(preconditioner) {
+			if(preconditioner && preconditioner != Py_None) {
 				imgSample = PyArray_FromMatrixXd(
 					fillInImage(
 						PyArray_ToMatrixXd(img),
@@ -553,7 +580,7 @@ PyObject* fill_in_image(PyObject* self, PyObject* args, PyObject* kwds) {
 						PyArray_ToMatrixXb(xmask),
 						PyArray_ToMatrixXb(ymask),
 						PyArray_ToMatrixXb(fmask),
-						*reinterpret_cast<TransformObject*>(preconditioner)->transform,
+						reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner,
 						num_iter,
 						num_steps));
 			} else {
@@ -564,7 +591,7 @@ PyObject* fill_in_image(PyObject* self, PyObject* args, PyObject* kwds) {
 						PyArray_ToMatrixXb(xmask),
 						PyArray_ToMatrixXb(ymask),
 						PyArray_ToMatrixXb(fmask),
-						IdentityTransform(),
+						0,
 						num_iter,
 						num_steps));
 			}

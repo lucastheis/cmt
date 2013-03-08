@@ -5,6 +5,8 @@
 #include "Eigen/Eigenvalues"
 using Eigen::SelfAdjointEigenSolver;
 
+#include <iostream>
+
 MCM::WhiteningPreconditioner::WhiteningPreconditioner(const ArrayXXd& input, const ArrayXXd& output) {
 	if(input.cols() != output.cols())
 		throw Exception("Number of inputs and outputs must be the same."); 
@@ -38,6 +40,9 @@ MCM::WhiteningPreconditioner::WhiteningPreconditioner(const ArrayXXd& input, con
 
 	// output prediction
 	mPredictor = covYX * mWhiteIn;
+
+	// log-Jacobian determinant
+	mLogJacobian = mWhiteOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum();
 }
 
 
@@ -56,7 +61,8 @@ MCM::WhiteningPreconditioner::WhiteningPreconditioner(
 	mWhiteInInv(whiteInInv),
 	mWhiteOut(whiteOut),
 	mWhiteOutInv(whiteOutInv),
-	mPredictor(predictor)
+	mPredictor(predictor),
+	mLogJacobian(mWhiteOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum())
 {
 }
 
@@ -132,4 +138,10 @@ ArrayXXd MCM::WhiteningPreconditioner::inverse(const ArrayXXd& input) const {
 	if(input.rows() != dimInPre())
 		throw Exception("Input has wrong dimensionality."); 
 	return (mWhiteInInv * input.matrix()).colwise() + mMeanIn;
+}
+
+
+
+Array<double, 1, Dynamic> MCM::WhiteningPreconditioner::logJacobian(const ArrayXXd& input, const ArrayXXd& output) const {
+	return Array<double, 1, Dynamic>::Zero(output.cols()) + mLogJacobian;
 }

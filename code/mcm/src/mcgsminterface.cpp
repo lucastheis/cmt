@@ -144,7 +144,7 @@ const char* MCGSM_doc =
 	"\n"
 	"\\begin{align}\n"
 	"p(c, s \\mid \\mathbf{x}) &\\propto \\exp\\left(\\eta_{cs} - \\frac{1}{2} e^{\\alpha_{cs}} \\sum_i \\beta_{ci}^2 \\left(\\mathbf{b}_i^\\top \\mathbf{x}\\right)^2 \\right),\\\\\n"
-	"p(\\mathbf{y} \\mid c, s, \\mathbf{x}) &= |L_c| \\exp\\left(\\frac{M}{2}\\alpha_{cs} - \\frac{1}{2} e^{\\alpha_{cs}} (\\mathbf{y} - \\mathbf{A}_c \\mathbf{x})^\\top \\mathbf{L}_c \\mathbf{L}_c^\\top (\\mathbf{y} - \\mathbf{A}_c \\mathbf{x})\\right) / (2\\pi)^\\frac{M}{2}.\n"
+	"p(\\mathbf{y} \\mid c, s, \\mathbf{x}) &= |\\mathbf{L}_c| \\exp\\left(\\frac{M}{2}\\alpha_{cs} - \\frac{1}{2} e^{\\alpha_{cs}} (\\mathbf{y} - \\mathbf{A}_c \\mathbf{x})^\\top \\mathbf{L}_c \\mathbf{L}_c^\\top (\\mathbf{y} - \\mathbf{A}_c \\mathbf{x})\\right) / (2\\pi)^\\frac{M}{2}.\n"
 	"\\end{align}\n"
 	"\n"
 	"To create an MCGSM for $N$-dimensional inputs $\\mathbf{x} \\in \\mathbb{R}^N$ "
@@ -846,6 +846,7 @@ PyObject* MCGSM_sample(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 
 	return 0;
 }
+
 
 
 const char* MCGSM_sample_posterior_doc =

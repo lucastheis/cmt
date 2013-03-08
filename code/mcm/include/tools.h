@@ -9,11 +9,6 @@ using std::pair;
 using std::make_pair;
 
 #include "conditionaldistribution.h"
-#include "identitytransform.h"
-using MCM::IdentityTransform;
-
-#include "transform.h"
-using MCM::Transform;
 
 #include "preconditioner.h"
 using MCM::Preconditioner;
@@ -74,7 +69,7 @@ vector<ArrayXXd> sampleVideo(
 	const ConditionalDistribution& model,
 	vector<ArrayXXb> inputMask,
 	vector<ArrayXXb> outputMask,
-	const Transform& preconditioner = IdentityTransform());
+	const Preconditioner* preconditioner = 0);
 
 ArrayXXd fillInImage(
 	ArrayXXd img,
@@ -82,7 +77,7 @@ ArrayXXd fillInImage(
 	ArrayXXb inputMask,
 	ArrayXXb outputMask,
 	ArrayXXb fillInMask,
-	const Transform& preconditioner = IdentityTransform(),
+	const Preconditioner* preconditioner = 0,
 	int numIterations = 10,
 	int numSteps = 100);
 
