@@ -10,6 +10,8 @@ using std::set;
 
 #include <iostream>
 
+extern PyTypeObject Preconditioner_type;
+
 const char* random_select_doc =
 	"random_select(k, n)\n"
 	"\n"
@@ -282,16 +284,26 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 		&img, &model, &xmask, &ymask, &preconditioner))
 		return 0;
 
+	if(preconditioner == Py_None)
+		preconditioner = 0;
+
+	// make sure that preconditioner is of appropriate type
+	if(preconditioner && !PyObject_IsInstance(preconditioner, reinterpret_cast<PyObject*>(&Preconditioner_type))) {
+		PyErr_SetString(PyExc_TypeError, "Preconditioner has wrong type.");
+		return 0;
+	}
+
 	// make sure data is stored in NumPy array
 	img = PyArray_FROM_OTF(img, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
-	// TODO: make sure preconditioner is of type TransformObject or similar
 	// TODO: make sure that model is of type CDObject or similar
 	const ConditionalDistribution& cd = *reinterpret_cast<CDObject*>(model)->cd;
 
 	if(!img) {
+		Py_XDECREF(xmask);
+		Py_XDECREF(ymask);
 		PyErr_SetString(PyExc_TypeError, "The initial image has to be given as an array.");
 		return 0;
 	}
@@ -431,6 +443,8 @@ PyObject* sample_video(PyObject* self, PyObject* args, PyObject* kwds) {
 	const ConditionalDistribution& cd = *reinterpret_cast<CDObject*>(model)->cd;
 
 	if(!video) {
+		Py_XDECREF(xmask);
+		Py_XDECREF(ymask);
 		PyErr_SetString(PyExc_TypeError, "The initial video has to be given as an array.");
 		return 0;
 	}

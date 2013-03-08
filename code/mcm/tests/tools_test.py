@@ -3,11 +3,10 @@ import unittest
 
 sys.path.append('./code')
 
-from mcm import MCGSM
+from mcm import MCGSM, WhiteningPreconditioner
 from mcm import random_select
 from mcm import generate_data_from_image, sample_image
 from mcm import generate_data_from_video, sample_video
-from mcm import LinearTransform
 from numpy import *
 from numpy import max
 from numpy.random import *
@@ -149,6 +148,14 @@ class ToolsTest(unittest.TestCase):
 
 		# only the bottom right-pixel should have been replaced
 		self.assertLess(max(abs((img_init - img_sample).ravel()[:3])), 1e-10)
+
+		# test using preconditioner
+		wt = WhiteningPreconditioner(randn(3, 1000), randn(1, 1000))
+		sample_image(img_init, model, xmask, ymask, wt)
+
+		# test what happens if invalid preconditioner is given
+		self.assertRaises(TypeError, sample_image, (img_init, model, xmask, ymask, 10.))
+		self.assertRaises(TypeError, sample_image, (img_init, model, xmask, ymask, model))
 
 
 
