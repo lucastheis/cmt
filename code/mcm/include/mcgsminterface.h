@@ -16,6 +16,16 @@ struct MCGSMObject {
 
 extern PyTypeObject MCGSM_type;
 
+extern const char* MCGSM_doc;
+extern const char* MCGSM_initialize_doc;
+extern const char* MCGSM_train_doc;
+extern const char* MCGSM_loglikelihood_doc;
+extern const char* MCGSM_sample_doc;
+extern const char* MCGSM_sample_posterior_doc;
+extern const char* MCGSM_posterior_doc;
+extern const char* MCGSM_parameters_doc;
+extern const char* MCGSM_set_parameters_doc;
+
 PyObject* MCGSM_new(PyTypeObject*, PyObject*, PyObject*);
 int MCGSM_init(MCGSMObject*, PyObject*, PyObject*);
 void MCGSM_dealloc(MCGSMObject*);

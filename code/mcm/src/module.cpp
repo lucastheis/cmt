@@ -29,17 +29,17 @@ static PyGetSetDef MCGSM_getset[] = {
 
 
 static PyMethodDef MCGSM_methods[] = {
-	{"initialize", (PyCFunction)MCGSM_initialize, METH_VARARGS|METH_KEYWORDS, 0},
-	{"train", (PyCFunction)MCGSM_train, METH_VARARGS|METH_KEYWORDS, 0},
-	{"check_gradient", (PyCFunction)MCGSM_check_gradient, METH_VARARGS|METH_KEYWORDS, 0},
-	{"check_performance", (PyCFunction)MCGSM_check_performance, METH_VARARGS|METH_KEYWORDS, 0},
-	{"posterior", (PyCFunction)MCGSM_posterior, METH_VARARGS|METH_KEYWORDS, 0},
-	{"sample", (PyCFunction)MCGSM_sample, METH_VARARGS|METH_KEYWORDS, 0},
-	{"sample_posterior", (PyCFunction)MCGSM_sample_posterior, METH_VARARGS|METH_KEYWORDS, 0},
-	{"loglikelihood", (PyCFunction)MCGSM_loglikelihood, METH_VARARGS|METH_KEYWORDS, 0},
-	{"parameters", (PyCFunction)MCGSM_parameters, METH_VARARGS|METH_KEYWORDS, 0},
-	{"set_parameters", (PyCFunction)MCGSM_set_parameters, METH_VARARGS|METH_KEYWORDS, 0},
-	{"compute_gradient", (PyCFunction)MCGSM_compute_gradient, METH_VARARGS|METH_KEYWORDS, 0},
+	{"initialize", (PyCFunction)MCGSM_initialize, METH_VARARGS|METH_KEYWORDS, MCGSM_initialize_doc},
+	{"train", (PyCFunction)MCGSM_train, METH_VARARGS|METH_KEYWORDS, MCGSM_train_doc},
+	{"posterior", (PyCFunction)MCGSM_posterior, METH_VARARGS|METH_KEYWORDS, MCGSM_posterior_doc},
+	{"sample", (PyCFunction)MCGSM_sample, METH_VARARGS|METH_KEYWORDS, MCGSM_sample_doc},
+	{"sample_posterior", (PyCFunction)MCGSM_sample_posterior, METH_VARARGS|METH_KEYWORDS, MCGSM_sample_posterior_doc},
+	{"loglikelihood", (PyCFunction)MCGSM_loglikelihood, METH_VARARGS|METH_KEYWORDS, MCGSM_loglikelihood_doc},
+	{"__check_gradient", (PyCFunction)MCGSM_check_gradient, METH_VARARGS|METH_KEYWORDS, 0},
+	{"__check_performance", (PyCFunction)MCGSM_check_performance, METH_VARARGS|METH_KEYWORDS, 0},
+	{"__parameters", (PyCFunction)MCGSM_parameters, METH_VARARGS|METH_KEYWORDS, MCGSM_parameters_doc},
+	{"__set_parameters", (PyCFunction)MCGSM_set_parameters, METH_VARARGS|METH_KEYWORDS, MCGSM_set_parameters_doc},
+	{"__compute_gradient", (PyCFunction)MCGSM_compute_gradient, METH_VARARGS|METH_KEYWORDS, 0},
 	{"__reduce__", (PyCFunction)MCGSM_reduce, METH_NOARGS, 0},
 	{"__setstate__", (PyCFunction)MCGSM_setstate, METH_VARARGS, 0},
 	{0}
@@ -69,7 +69,7 @@ PyTypeObject MCGSM_type = {
 	0,                         /*tp_setattro*/
 	0,                         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
-	0,                         /*tp_doc*/
+	MCGSM_doc,                 /*tp_doc*/
 	0,                         /*tp_traverse*/
 	0,                         /*tp_clear*/
 	0,                         /*tp_richcompare*/

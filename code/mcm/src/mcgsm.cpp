@@ -40,7 +40,6 @@ static int callbackLBFGS(
 			return 1;
 	}
 
-
 	return 0;
 }
 

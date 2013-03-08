@@ -9,7 +9,7 @@ MCGSM::Parameters PyObject_ToParameters(MCGSMObject* self, PyObject* parameters)
 	MCGSM::Parameters params;
 
 	// read parameters from dictionary
-	if(parameters) {
+	if(parameters && parameters != Py_None) {
 		if(!PyDict_Check(parameters))
 			throw Exception("Parameters should be stored in a dictionary.");
 
@@ -132,6 +132,57 @@ PyObject* MCGSM_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 }
 
 
+
+const char* MCGSM_doc =
+	"An implementation of a mixture of conditional Gaussian scale mixtures.\n"
+	"\n"
+	"The distribution defined by the model is\n"
+	"\n"
+	"$$p(\\mathbf{y} \\mid \\mathbf{x}) = \\sum_{c, s} p(c, s \\mid \\mathbf{x}) p(\\mathbf{y} \\mid c, s, \\mathbf{x}),$$\n"
+	"\n"
+	"where\n"
+	"\n"
+	"\\begin{align}\n"
+	"p(c, s \\mid \\mathbf{x}) &\\propto \\exp\\left(\\eta_{cs} - \\frac{1}{2} e^{\\alpha_{cs}} \\sum_i \\beta_{ci}^2 \\left(\\mathbf{b}_i^\\top \\mathbf{x}\\right)^2 \\right),\\\\\n"
+	"p(\\mathbf{y} \\mid c, s, \\mathbf{x}) &= |L_c| \\exp\\left(\\frac{M}{2}\\alpha_{cs} - \\frac{1}{2} e^{\\alpha_{cs}} (\\mathbf{y} - \\mathbf{A}_c \\mathbf{x})^\\top \\mathbf{L}_c \\mathbf{L}_c^\\top (\\mathbf{y} - \\mathbf{A}_c \\mathbf{x})\\right) / (2\\pi)^\\frac{M}{2}.\n"
+	"\\end{align}\n"
+	"\n"
+	"To create an MCGSM for $N$-dimensional inputs $\\mathbf{x} \\in \\mathbb{R}^N$ "
+	"and $M$-dimensional outputs $\\mathbf{y} \\in \\mathbb{R}^M$ with, for example, 8 predictors "
+	"$\\mathbf{A}_c$, 6 scales $\\alpha_{cs}$ per component $c$, and 100 features $\\mathbf{b}_i$, use\n"
+	"\n"
+	"\t>>> mcgsm = MCGSM(N, M, 8, 6, 100)\n"
+	"\n"
+	"To access the different parameters, you can use\n"
+	"\n"
+	"\t>>> mcgsm.priors\n"
+	"\t>>> mcgsm.scales\n"
+	"\t>>> mcgsm.weights\n"
+	"\t>>> mcgsm.features\n"
+	"\t>>> mcgsm.cholesky_factors\n"
+	"\t>>> mcgsm.predictors\n"
+	"\n"
+	"which correspond to $\\eta_{cs}$, $\\alpha_{cs}$, $\\beta_{ci}$, $\\mathbf{b}_i$, "
+	"$\\mathbf{L}_c$, and $\\mathbf{A}_c$, respectively.\n"
+	"\n"
+	"B{References:}\n"
+	"\t- L. Theis, R. Hosseini, M. Bethge, I{Mixtures of Conditional Gaussian Scale "
+	"Mixtures Applied to Multiscale Image Representations}, PLoS ONE, 2012.\n"
+	"\n"
+	"@type  dim_in: integer\n"
+	"@param dim_in: dimensionality of input\n"
+	"\n"
+	"@type  dim_out: integer\n"
+	"@param dim_out: dimensionality of output\n"
+	"\n"
+	"@type  num_components: integer\n"
+	"@param num_components: number of components\n"
+	"\n"
+	"@type  num_scales: integer\n"
+	"@param num_scales: number of scales per scale mixture component\n"
+	"\n"
+	"@type  num_features: integer\n"
+	"@param num_features: number of features used to approximate input covariance matrices";
 
 int MCGSM_init(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"dim_in", "dim_out", "num_components", "num_scales", "num_features", 0};
@@ -451,6 +502,20 @@ int MCGSM_set_predictors(MCGSMObject* self, PyObject* value, void*) {
 
 
 
+const char* MCGSM_initialize_doc =
+	"initialize(self, input, output, parameters)\n"
+	"\n"
+	"Tries to guess more sensible initial values for the model parameters from data.\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: ndarray\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@type  parameters: dict\n"
+	"@param parameters: a dictionary containing hyperparameters";
+
 PyObject* MCGSM_initialize(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"input", "output", "parameters", 0};
 
@@ -496,6 +561,57 @@ PyObject* MCGSM_initialize(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 }
 
 
+
+const char* MCGSM_train_doc =
+	"train(self, input, output, parameters=None)\n"
+	"\n"
+	"Fits model parameters to given data using L-BFGS.\n"
+	"\n"
+	"The following example demonstrates possible parameters and default settings.\n"
+	"\n"
+	"\t>>> model.train(input, output, parameters={\n"
+	"\t>>> \t'verbosity': 0\n"
+	"\t>>> \t'max_iter': 1000\n"
+	"\t>>> \t'threshold': 1e-5\n"
+	"\t>>> \t'num_grad': 20\n"
+	"\t>>> \t'batch_size': 2000\n"
+	"\t>>> \t'callback': None\n"
+	"\t>>> \t'cb_iter': 25\n"
+	"\t>>> \t'train_priors': True\n"
+	"\t>>> \t'train_scales': True\n"
+	"\t>>> \t'train_weights': True\n"
+	"\t>>> \t'train_features': True\n"
+	"\t>>> \t'train_cholesky_factors': True\n"
+	"\t>>> \t'train_predictors': True\n"
+	"\t>>> })\n"
+	"\n"
+	"The parameters C{train_priors}, C{train_scales}, and so on can be used to control which "
+	"parameters will be optimized. Optimization stops after C{max_iter} iterations or if "
+	"the gradient is sufficiently small enough, as specified by C{threshold}."
+	"C{num_grad} is the number of gradients used by L-BFGS to approximate the inverse Hessian "
+	"matrix.\n"
+	"\n"
+	"The parameter C{batch_size} has no effect on the solution of the optimization but "
+	"can affect speed by reducing the number of cache misses.\n"
+	"\n"
+	"If a callback function is given, it will be called every C{cb_iter} iterations. The first "
+	"argument to callback will be the current iteration, the second argument will be a I{copy} of "
+	"the model.\n"
+	"\n"
+	"\t>>> def callback(i, mcgsm):\n"
+	"\t>>> \tprint i\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: ndarray\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@type  parameters: dict\n"
+	"@param parameters: a dictionary containing hyperparameters\n"
+	"\n"
+	"@rtype: bool\n"
+	"@return: C{True} if training converged, otherwise C{False}";
 
 PyObject* MCGSM_train(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"input", "output", "parameters", 0};
@@ -642,6 +758,20 @@ PyObject* MCGSM_check_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds
 
 
 
+const char* MCGSM_posterior_doc =
+	"posterior(self, input, output)\n"
+	"\n"
+	"Computes the posterior distribution over component labels, $p(c \\mid \\mathbf{x}, \\mathbf{y})$\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: ndarray\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@rtype: ndarray\n"
+	"@return: a posterior distribution over labels for each given pair of input and output";
+
 PyObject* MCGSM_posterior(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"input", "output", 0};
 
@@ -679,6 +809,17 @@ PyObject* MCGSM_posterior(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 
 
 
+const char* MCGSM_sample_doc =
+	"sample(self, input)\n"
+	"\n"
+	"Generates outputs for given inputs.\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@rtype: ndarray\n"
+	"@return: sampled outputs";
+
 PyObject* MCGSM_sample(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"input", 0};
 
@@ -707,6 +848,19 @@ PyObject* MCGSM_sample(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 }
 
 
+const char* MCGSM_sample_posterior_doc =
+	"sample_posterior(self, input, output)\n"
+	"\n"
+	"Samples component labels $c$ from the posterior $p(c \\mid \\mathbf{x}, \\mathbf{y})$.\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: ndarray\n"
+	"@param output: inputs stored in columns\n"
+	"\n"
+	"@rtype: ndarray\n"
+	"@return: an integer array containing a sampled index for each input and output pair";
 
 PyObject* MCGSM_sample_posterior(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"input", "output", 0};
@@ -745,6 +899,20 @@ PyObject* MCGSM_sample_posterior(MCGSMObject* self, PyObject* args, PyObject* kw
 
 
 
+const char* MCGSM_loglikelihood_doc =
+	"loglikelihood(self, input, output)\n"
+	"\n"
+	"Computes the conditional log-likelihood for the given data points (in nats).\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: ndarray\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@rtype: ndarray\n"
+	"@return: log-likelihood of the model evaluated for each data point";
+
 PyObject* MCGSM_loglikelihood(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"input", "output", 0};
 
@@ -782,6 +950,20 @@ PyObject* MCGSM_loglikelihood(MCGSMObject* self, PyObject* args, PyObject* kwds)
 
 
 
+const char* MCGSM_parameters_doc =
+	"parameters(self, parameters=None)\n"
+	"\n"
+	"Summarizes the parameters of the model in a long vector.\n"
+	"\n"
+	"If C{parameters} is given, only the parameters with C{train_* = True} will be contained "
+	"in the vector.\n"
+	"\n"
+	"@type  parameters: dict\n"
+	"@param parameters: a dictionary containing hyperparameters\n"
+	"\n"
+	"@rtype: ndarray\n"
+	"@return: model parameters vectorized and concatenated";
+
 PyObject* MCGSM_parameters(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"parameters", 0};
 
@@ -812,6 +994,17 @@ PyObject* MCGSM_parameters(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 }
 
 
+
+const char* MCGSM_set_parameters_doc =
+	"set_parameters(self, x, parameters=None)\n"
+	"\n"
+	"Loads all model parameters from a vector as produced by L{parameters()}.\n"
+	"\n"
+	"@type  x: ndarray\n"
+	"@param x: all model parameters concatenated to a vector\n"
+	"\n"
+	"@type  parameters: dict\n"
+	"@param parameters: a dictionary containing hyperparameters";
 
 PyObject* MCGSM_set_parameters(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"x", "parameters", 0};
@@ -916,6 +1109,11 @@ PyObject* MCGSM_compute_gradient(MCGSMObject* self, PyObject* args, PyObject* kw
 
 
 
+const char* MCGSM_reduce_doc =
+	"__reduce__(self)\n"
+	"\n"
+	"Method used by Pickle.";
+
 PyObject* MCGSM_reduce(MCGSMObject* self, PyObject*, PyObject*) {
 	PyObject* args = Py_BuildValue("(iiiii)", 
 		self->mcgsm->dimIn(),
@@ -947,6 +1145,11 @@ PyObject* MCGSM_reduce(MCGSMObject* self, PyObject*, PyObject*) {
 }
 
 
+
+const char* MCGSM_setstate_doc =
+	"__setstate__(self)\n"
+	"\n"
+	"Method used by Pickle.";
 
 PyObject* MCGSM_setstate(MCGSMObject* self, PyObject* state, PyObject*) {
 	PyObject* priors;
