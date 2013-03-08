@@ -15,6 +15,7 @@ struct CDObject {
 };
 
 extern const char* random_select_doc;
+extern const char* sample_image_doc;
 extern const char* sample_video_doc;
 extern const char* generate_data_from_image_doc;
 extern const char* generate_data_from_video_doc;

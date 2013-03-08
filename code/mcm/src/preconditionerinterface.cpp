@@ -7,90 +7,147 @@ PyObject* Preconditioner_call(PreconditionerObject* self, PyObject* args, PyObje
 	const char* kwlist[] = {"input", "output", 0};
 
 	PyObject* input;
-	PyObject* output;
+	PyObject* output = 0;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output))
-		return 0;
+	if(PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output) && output != Py_None) {
+		input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
-	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		if(!input || !output) {
+			Py_XDECREF(input);
+			Py_XDECREF(output);
+			PyErr_SetString(PyExc_TypeError, "Input and output should be of type `ndarray`.");
+			return 0;
+		}
 
-	if(!input || !output) {
-		Py_XDECREF(input);
-		Py_XDECREF(output);
-		PyErr_SetString(PyExc_TypeError, "Input and output should be of type `ndarray`.");
-		return 0;
-	}
+		try {
+			pair<ArrayXXd, ArrayXXd> data = self->preconditioner->operator()(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output));
 
-	try {
-		pair<ArrayXXd, ArrayXXd> data = self->preconditioner->operator()(
-			PyArray_ToMatrixXd(input),
-			PyArray_ToMatrixXd(output));
+			PyObject* inputObj = PyArray_FromMatrixXd(data.first);
+			PyObject* outputObj = PyArray_FromMatrixXd(data.second);
 
-		PyObject* inputObj = PyArray_FromMatrixXd(data.first);
-		PyObject* outputObj = PyArray_FromMatrixXd(data.second);
+			PyObject* tuple = Py_BuildValue("(OO)", inputObj, outputObj);
 
-		PyObject* tuple = Py_BuildValue("(OO)", inputObj, outputObj);
+			Py_DECREF(input);
+			Py_DECREF(output);
+			Py_DECREF(inputObj);
+			Py_DECREF(outputObj);
 
-		Py_DECREF(input);
-		Py_DECREF(output);
-		Py_DECREF(inputObj);
-		Py_DECREF(outputObj);
+			return tuple;
 
-		return tuple;
+		} catch(Exception exception) {
+			Py_DECREF(input);
+			Py_DECREF(output);
+			PyErr_SetString(PyExc_RuntimeError, exception.message());
+			return 0;
+		}
+	} else {
+		PyErr_Clear();
 
-	} catch(Exception exception) {
-		Py_DECREF(input);
-		Py_DECREF(output);
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
+		if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &input))
+			return 0;
+
+		input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!input) {
+			Py_XDECREF(input);
+			PyErr_SetString(PyExc_TypeError, "Input should be of type `ndarray`.");
+			return 0;
+		}
+
+		try {
+			PyObject* inputObj = PyArray_FromMatrixXd(
+				self->preconditioner->operator()(PyArray_ToMatrixXd(input)));
+			Py_DECREF(input);
+			return inputObj;
+		} catch(Exception exception) {
+			Py_DECREF(input);
+			PyErr_SetString(PyExc_RuntimeError, exception.message());
+			return 0;
+		}
 	}
 
 	return 0;
 }
 
 
+const char* Preconditioner_inverse_doc =
+	"inverse(self, input, output=None)\n"
+	"\n"
+	"Computes original inputs and outputs from transformed inputs and outputs."
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: preconditioned inputs stored in columns\n"
+	"\n"
+	"@type  output: ndarray\n"
+	"@param output: preconditioned outputs stored in columns\n"
+	"\n"
+	"@rtype: tuple/ndarray\n"
+	"@return: tuple or array containing inputs or inputs and outputs, respectively";
 
 PyObject* Preconditioner_inverse(PreconditionerObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"input", "output", 0};
 
 	PyObject* input;
-	PyObject* output;
+	PyObject* output = 0;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output))
-		return 0;
+	if(PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output) && output != Py_None) {
+		input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
-	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		if(!input || !output) {
+			Py_XDECREF(input);
+			Py_XDECREF(output);
+			PyErr_SetString(PyExc_TypeError, "Input and output should be of type `ndarray`.");
+		}
 
-	if(!input || !output) {
-		Py_XDECREF(input);
-		Py_XDECREF(output);
-		PyErr_SetString(PyExc_TypeError, "Input and output should be of type `ndarray`.");
-	}
+		try {
+			pair<ArrayXXd, ArrayXXd> data = self->preconditioner->inverse(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output));
 
-	try {
-		pair<ArrayXXd, ArrayXXd> data = self->preconditioner->inverse(
-			PyArray_ToMatrixXd(input),
-			PyArray_ToMatrixXd(output));
+			PyObject* inputObj = PyArray_FromMatrixXd(data.first);
+			PyObject* outputObj = PyArray_FromMatrixXd(data.second);
 
-		PyObject* inputObj = PyArray_FromMatrixXd(data.first);
-		PyObject* outputObj = PyArray_FromMatrixXd(data.second);
+			PyObject* tuple = Py_BuildValue("(OO)", inputObj, outputObj);
 
-		PyObject* tuple = Py_BuildValue("(OO)", inputObj, outputObj);
+			Py_DECREF(input);
+			Py_DECREF(output);
+			Py_DECREF(inputObj);
+			Py_DECREF(outputObj);
 
-		Py_DECREF(input);
-		Py_DECREF(output);
-		Py_DECREF(inputObj);
-		Py_DECREF(outputObj);
+			return tuple;
 
-		return tuple;
+		} catch(Exception exception) {
+			Py_DECREF(input);
+			Py_DECREF(output);
+			PyErr_SetString(PyExc_RuntimeError, exception.message());
+			return 0;
+		}
+	} else {
+		PyErr_Clear();
 
-	} catch(Exception exception) {
-		Py_DECREF(input);
-		Py_DECREF(output);
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
+		if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &input))
+			return 0;
+
+		if(!input) {
+			Py_XDECREF(input);
+			PyErr_SetString(PyExc_TypeError, "Input should be of type `ndarray`.");
+		}
+
+		try {
+			PyObject* inputObj = PyArray_FromMatrixXd(
+				self->preconditioner->inverse(PyArray_ToMatrixXd(input)));
+			Py_DECREF(input);
+			return inputObj;
+
+		} catch(Exception exception) {
+			Py_DECREF(input);
+			PyErr_SetString(PyExc_RuntimeError, exception.message());
+			return 0;
+		}
 	}
 }
 
@@ -155,6 +212,16 @@ PyObject* Preconditioner_new(PyTypeObject* type, PyObject*, PyObject*) {
 		reinterpret_cast<PreconditionerObject*>(self)->preconditioner = 0;
 
 	return self;
+}
+
+
+
+const char* Preconditioner_doc =
+	"Abstract base class for preconditioners of inputs and outputs.\n";
+
+int Preconditioner_init(WhiteningPreconditionerObject* self, PyObject* args, PyObject* kwds) {
+	PyErr_SetString(PyExc_NotImplementedError, "This is an abstract class.");
+	return -1;
 }
 
 

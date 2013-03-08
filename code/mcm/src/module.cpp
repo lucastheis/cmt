@@ -90,9 +90,67 @@ PyTypeObject MCGSM_type = {
 
 
 
-static PyGetSetDef WhiteningPreconditioner_getset[] = {
+static PyGetSetDef Preconditioner_getset[] = {
 	{"dim_in", (getter)Preconditioner_dim_in, 0, 0},
 	{"dim_out", (getter)Preconditioner_dim_out, 0, 0},
+	{0}
+};
+
+
+
+static PyMethodDef Preconditioner_methods[] = {
+	{"inverse", (PyCFunction)Preconditioner_inverse, METH_VARARGS|METH_KEYWORDS, Preconditioner_inverse_doc},
+	{"logjacobian", (PyCFunction)Preconditioner_logjacobian, METH_VARARGS|METH_KEYWORDS, Preconditioner_logjacobian_doc},
+	{0}
+};
+
+
+
+PyTypeObject Preconditioner_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                      /*ob_size*/
+	"mcm.Preconditioner",                   /*tp_name*/
+	sizeof(PreconditionerObject),           /*tp_basicsize*/
+	0,                                      /*tp_itemsize*/
+	(destructor)Preconditioner_dealloc,     /*tp_dealloc*/
+	0,                                      /*tp_print*/
+	0,                                      /*tp_getattr*/
+	0,                                      /*tp_setattr*/
+	0,                                      /*tp_compare*/
+	0,                                      /*tp_repr*/
+	0,                                      /*tp_as_number*/
+	0,                                      /*tp_as_sequence*/
+	0,                                      /*tp_as_mapping*/
+	0,                                      /*tp_hash */
+	(ternaryfunc)Preconditioner_call,       /*tp_call*/
+	0,                                      /*tp_str*/
+	0,                                      /*tp_getattro*/
+	0,                                      /*tp_setattro*/
+	0,                                      /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                     /*tp_flags*/
+	Preconditioner_doc,                     /*tp_doc*/
+	0,                                      /*tp_traverse*/
+	0,                                      /*tp_clear*/
+	0,                                      /*tp_richcompare*/
+	0,                                      /*tp_weaklistoffset*/
+	0,                                      /*tp_iter*/
+	0,                                      /*tp_iternext*/
+	Preconditioner_methods,                 /*tp_methods*/
+	0,                                      /*tp_members*/
+	Preconditioner_getset,                  /*tp_getset*/
+	0,                                      /*tp_base*/
+	0,                                      /*tp_dict*/
+	0,                                      /*tp_descr_get*/
+	0,                                      /*tp_descr_set*/
+	0,                                      /*tp_dictoffset*/
+	(initproc)Preconditioner_init,          /*tp_init*/
+	0,                                      /*tp_alloc*/
+	Preconditioner_new,                     /*tp_new*/
+};
+
+
+
+static PyGetSetDef WhiteningPreconditioner_getset[] = {
 	{"mean_in", (getter)WhiteningPreconditioner_mean_in, 0, 0},
 	{"mean_out", (getter)WhiteningPreconditioner_mean_out, 0, 0},
 	{0}
@@ -101,8 +159,6 @@ static PyGetSetDef WhiteningPreconditioner_getset[] = {
 
 
 static PyMethodDef WhiteningPreconditioner_methods[] = {
-	{"inverse", (PyCFunction)Preconditioner_inverse, METH_VARARGS|METH_KEYWORDS, 0},
-	{"logjacobian", (PyCFunction)Preconditioner_logjacobian, METH_VARARGS|METH_KEYWORDS, Preconditioner_logjacobian_doc},
 	{"__reduce__", (PyCFunction)WhiteningPreconditioner_reduce, METH_NOARGS, 0},
 	{"__setstate__", (PyCFunction)WhiteningPreconditioner_setstate, METH_VARARGS, 0},
 	{0}
@@ -126,7 +182,7 @@ PyTypeObject WhiteningPreconditioner_type = {
 	0,                                      /*tp_as_sequence*/
 	0,                                      /*tp_as_mapping*/
 	0,                                      /*tp_hash */
-	(ternaryfunc)Preconditioner_call,       /*tp_call*/
+	0,                                      /*tp_call*/
 	0,                                      /*tp_str*/
 	0,                                      /*tp_getattro*/
 	0,                                      /*tp_setattro*/
@@ -142,7 +198,7 @@ PyTypeObject WhiteningPreconditioner_type = {
 	WhiteningPreconditioner_methods,        /*tp_methods*/
 	0,                                      /*tp_members*/
 	WhiteningPreconditioner_getset,         /*tp_getset*/
-	0,                                      /*tp_base*/
+	&Preconditioner_type,                   /*tp_base*/
 	0,                                      /*tp_dict*/
 	0,                                      /*tp_descr_get*/
 	0,                                      /*tp_descr_set*/
@@ -158,7 +214,7 @@ static PyMethodDef mcm_methods[] = {
 	{"random_select", (PyCFunction)random_select, METH_VARARGS|METH_KEYWORDS, random_select_doc},
 	{"generate_data_from_image", (PyCFunction)generate_data_from_image, METH_VARARGS|METH_KEYWORDS, generate_data_from_image_doc},
 	{"generate_data_from_video", (PyCFunction)generate_data_from_video, METH_VARARGS|METH_KEYWORDS, generate_data_from_video_doc},
-	{"sample_image", (PyCFunction)sample_image, METH_VARARGS|METH_KEYWORDS, 0},
+	{"sample_image", (PyCFunction)sample_image, METH_VARARGS|METH_KEYWORDS, sample_image_doc},
 	{"sample_video", (PyCFunction)sample_video, METH_VARARGS|METH_KEYWORDS, sample_video_doc},
 	{"fill_in_image", (PyCFunction)fill_in_image, METH_VARARGS|METH_KEYWORDS, fill_in_image_doc},
 	{0}
@@ -181,6 +237,8 @@ PyMODINIT_FUNC initmcm() {
 	// initialize types
 	if(PyType_Ready(&MCGSM_type) < 0)
 		return;
+	if(PyType_Ready(&Preconditioner_type) < 0)
+		return;
 	if(PyType_Ready(&WhiteningPreconditioner_type) < 0)
 		return;
 
@@ -189,7 +247,9 @@ PyMODINIT_FUNC initmcm() {
 
 	// add types to module
 	Py_INCREF(&MCGSM_type);
+	Py_INCREF(&Preconditioner_type);
 	Py_INCREF(&WhiteningPreconditioner_type);
 	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));
+	PyModule_AddObject(module, "Preconditioner", reinterpret_cast<PyObject*>(&Preconditioner_type));
 	PyModule_AddObject(module, "WhiteningPreconditioner", reinterpret_cast<PyObject*>(&WhiteningPreconditioner_type));
 }

@@ -244,6 +244,30 @@ PyObject* generate_data_from_video(PyObject* self, PyObject* args, PyObject* kwd
 }
 
 
+const char* sample_image_doc =
+	"sample_image(img, model, xmask, ymask, preconditioner=None)\n"
+	"\n"
+	"Samples an image given a conditional distribution. The initial image passed to\n"
+	"this function is used to initialize the boundaries and is also used to determine\n"
+	"the size and length of the image to be generated.\n"
+	"\n"
+	"@type  img: C{ndarray}\n"
+	"@param img: initialization of image\n"
+	"\n"
+	"@type  model: L{ConditionalDistribution}\n"
+	"@param model: a conditional distribution such as an L{MCGSM}\n"
+	"\n"
+	"@type  xmask: C{ndarray}\n"
+	"@param xmask: a Boolean array describing the input pixels\n"
+	"\n"
+	"@type  ymask: C{ndarray}\n"
+	"@param ymask: a Boolean array describing the output pixels\n"
+	"\n"
+	"@type  preconditioner: L{Preconditioner}\n"
+	"@param preconditioner: transforms the input before feeding it into the model\n"
+	"\n"
+	"@rtype: C{ndarray}\n"
+	"@return: the sampled image";
 
 PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"img", "model", "xmask", "ymask", "preconditioner", 0};
