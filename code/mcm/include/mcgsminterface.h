@@ -6,8 +6,8 @@
 
 #include <Python.h>
 #include <arrayobject.h>
-#include "mcgsm.h"
 #include "pyutils.h"
+#include "mcgsm.h"
 
 struct MCGSMObject {
 	PyObject_HEAD

@@ -1,7 +1,7 @@
-#include <inttypes.h>
-
 #include "pyutils.h"
 #include "exception.h"
+
+#include <inttypes.h>
 
 using namespace Eigen;
 
