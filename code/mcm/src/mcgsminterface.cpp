@@ -122,17 +122,6 @@ MCGSM::Parameters PyObject_ToParameters(MCGSMObject* self, PyObject* parameters)
 }
 
 
-PyObject* MCGSM_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
-	PyObject* self = type->tp_alloc(type, 0);
-
-	if(self)
-		reinterpret_cast<MCGSMObject*>(self)->mcgsm = 0;
-
-	return self;
-}
-
-
-
 const char* MCGSM_doc =
 	"An implementation of a mixture of conditional Gaussian scale mixtures.\n"
 	"\n"
@@ -210,28 +199,6 @@ int MCGSM_init(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	}
 
 	return 0;
-}
-
-
-
-void MCGSM_dealloc(MCGSMObject* self) {
-	// delete actual MCGSM instance
-	delete self->mcgsm;
-
-	// delete MCGSM object
-	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
-}
-
-
-
-PyObject* MCGSM_dim_in(MCGSMObject* self, PyObject*, void*) {
-	return PyInt_FromLong(self->mcgsm->dimIn());
-}
-
-
-
-PyObject* MCGSM_dim_out(MCGSMObject* self, PyObject*, void*) {
-	return PyInt_FromLong(self->mcgsm->dimOut());
 }
 
 
@@ -809,46 +776,6 @@ PyObject* MCGSM_posterior(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 
 
 
-const char* MCGSM_sample_doc =
-	"sample(self, input)\n"
-	"\n"
-	"Generates outputs for given inputs.\n"
-	"\n"
-	"@type  input: ndarray\n"
-	"@param input: inputs stored in columns\n"
-	"\n"
-	"@rtype: ndarray\n"
-	"@return: sampled outputs";
-
-PyObject* MCGSM_sample(MCGSMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", 0};
-
-	PyObject* input;
-
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &input))
-		return 0;
-
-	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!input) {
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in a NumPy array.");
-		return 0;
-	}
-
-	try {
-		PyObject* result = PyArray_FromMatrixXd(self->mcgsm->sample(PyArray_ToMatrixXd(input)));
-		Py_DECREF(input);
-		return result;
-	} catch(Exception exception) {
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	return 0;
-}
-
-
-
 const char* MCGSM_sample_posterior_doc =
 	"sample_posterior(self, input, output)\n"
 	"\n"
@@ -885,57 +812,6 @@ PyObject* MCGSM_sample_posterior(MCGSMObject* self, PyObject* args, PyObject* kw
 	try {
 		PyObject* result = PyArray_FromMatrixXi(
 			self->mcgsm->samplePosterior(PyArray_ToMatrixXd(input), PyArray_ToMatrixXd(output)));
-		Py_DECREF(input);
-		Py_DECREF(output);
-		return result;
-	} catch(Exception exception) {
-		Py_DECREF(input);
-		Py_DECREF(output);
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	return 0;
-}
-
-
-
-const char* MCGSM_loglikelihood_doc =
-	"loglikelihood(self, input, output)\n"
-	"\n"
-	"Computes the conditional log-likelihood for the given data points (in nats).\n"
-	"\n"
-	"@type  input: ndarray\n"
-	"@param input: inputs stored in columns\n"
-	"\n"
-	"@type  output: ndarray\n"
-	"@param output: outputs stored in columns\n"
-	"\n"
-	"@rtype: ndarray\n"
-	"@return: log-likelihood of the model evaluated for each data point";
-
-PyObject* MCGSM_loglikelihood(MCGSMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", 0};
-
-	PyObject* input;
-	PyObject* output;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output))
-		return 0;
-
-	// make sure data is stored in NumPy array
-	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!input || !output) {
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
-		return 0;
-	}
-
-	try {
-		PyObject* result = PyArray_FromMatrixXd(
-			self->mcgsm->logLikelihood(PyArray_ToMatrixXd(input), PyArray_ToMatrixXd(output)));
 		Py_DECREF(input);
 		Py_DECREF(output);
 		return result;

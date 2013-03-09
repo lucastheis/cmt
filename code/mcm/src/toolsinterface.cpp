@@ -1,6 +1,7 @@
 #include "toolsinterface.h"
 #include "mcgsminterface.h"
 #include "preconditionerinterface.h"
+#include "conditionaldistributioninterface.h"
 #include "exception.h"
 #include "utils.h"
 #include "tools.h"
@@ -9,8 +10,6 @@
 using std::set;
 
 #include <iostream>
-
-extern PyTypeObject Preconditioner_type;
 
 const char* random_select_doc =
 	"random_select(k, n)\n"
@@ -293,13 +292,17 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 		return 0;
 	}
 
+	if(!PyObject_IsInstance(model, reinterpret_cast<PyObject*>(&CD_type))) {
+		PyErr_SetString(PyExc_TypeError, "Model has wrong type.");
+		return 0;
+	}
+
+	const ConditionalDistribution& cd = *reinterpret_cast<CDObject*>(model)->cd;
+
 	// make sure data is stored in NumPy array
 	img = PyArray_FROM_OTF(img, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	// TODO: make sure that model is of type CDObject or similar
-	const ConditionalDistribution& cd = *reinterpret_cast<CDObject*>(model)->cd;
 
 	if(!img) {
 		Py_XDECREF(xmask);
@@ -433,14 +436,26 @@ PyObject* sample_video(PyObject* self, PyObject* args, PyObject* kwds) {
 		&video, &model, &xmask, &ymask, &preconditioner))
 		return 0;
 
+	if(preconditioner == Py_None)
+		preconditioner = 0;
+
+	// make sure that preconditioner is of appropriate type
+	if(preconditioner && !PyObject_IsInstance(preconditioner, reinterpret_cast<PyObject*>(&Preconditioner_type))) {
+		PyErr_SetString(PyExc_TypeError, "Preconditioner has wrong type.");
+		return 0;
+	}
+
+	if(!PyObject_IsInstance(model, reinterpret_cast<PyObject*>(&CD_type))) {
+		PyErr_SetString(PyExc_TypeError, "Model has wrong type.");
+		return 0;
+	}
+
+	const ConditionalDistribution& cd = *reinterpret_cast<CDObject*>(model)->cd;
+
 	// make sure data is stored in NumPy array
 	video = PyArray_FROM_OTF(video, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	// TODO: make sure preconditioner is of type TransformObject or similar
-	// TODO: make sure that model is of type CDObject or similar
-	const ConditionalDistribution& cd = *reinterpret_cast<CDObject*>(model)->cd;
 
 	if(!video) {
 		Py_XDECREF(xmask);
@@ -544,17 +559,32 @@ PyObject* fill_in_image(PyObject* self, PyObject* args, PyObject* kwds) {
 		&img, &model, &xmask, &ymask, &fmask, &preconditioner, &num_iter, &num_steps))
 		return 0;
 
+	if(preconditioner == Py_None)
+		preconditioner = 0;
+
+	// make sure that preconditioner is of appropriate type
+	if(preconditioner && !PyObject_IsInstance(preconditioner, reinterpret_cast<PyObject*>(&Preconditioner_type))) {
+		PyErr_SetString(PyExc_TypeError, "Preconditioner has wrong type.");
+		return 0;
+	}
+
+	if(!PyObject_IsInstance(model, reinterpret_cast<PyObject*>(&CD_type))) {
+		PyErr_SetString(PyExc_TypeError, "Model has wrong type.");
+		return 0;
+	}
+
+	const ConditionalDistribution& cd = *reinterpret_cast<CDObject*>(model)->cd;
+
 	// make sure data is stored in NumPy array
 	img = PyArray_FROM_OTF(img, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	fmask = PyArray_FROM_OTF(fmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
-	// TODO: make sure preconditioner is of type TransformObject or similar
-	// TODO: make sure that model is of type CDObject or similar
-	const ConditionalDistribution& cd = *reinterpret_cast<CDObject*>(model)->cd;
-
 	if(!img) {
+		Py_XDECREF(xmask);
+		Py_XDECREF(ymask);
+		Py_XDECREF(fmask);
 		PyErr_SetString(PyExc_TypeError, "The image has to be given as an array.");
 		return 0;
 	}

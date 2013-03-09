@@ -126,13 +126,13 @@ class Tests(unittest.TestCase):
 	def test_gradient(self):
 		mcgsm = MCGSM(5, 2, 2, 4, 10)
 
-		err = mcgsm.check_gradient(
+		err = mcgsm._check_gradient(
 			randn(mcgsm.dim_in, 1000),
 			randn(mcgsm.dim_out, 1000), 1e-5)
 		self.assertLess(err, 1e-8)
 
 		for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred']:
-			err = mcgsm.check_gradient(
+			err = mcgsm._check_gradient(
 				randn(mcgsm.dim_in, 1000),
 				randn(mcgsm.dim_out, 1000),
 				1e-5,

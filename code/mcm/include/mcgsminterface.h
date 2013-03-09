@@ -19,19 +19,13 @@ extern PyTypeObject MCGSM_type;
 extern const char* MCGSM_doc;
 extern const char* MCGSM_initialize_doc;
 extern const char* MCGSM_train_doc;
-extern const char* MCGSM_loglikelihood_doc;
-extern const char* MCGSM_sample_doc;
 extern const char* MCGSM_sample_posterior_doc;
 extern const char* MCGSM_posterior_doc;
 extern const char* MCGSM_parameters_doc;
 extern const char* MCGSM_set_parameters_doc;
 
-PyObject* MCGSM_new(PyTypeObject*, PyObject*, PyObject*);
 int MCGSM_init(MCGSMObject*, PyObject*, PyObject*);
-void MCGSM_dealloc(MCGSMObject*);
 
-PyObject* MCGSM_dim_in(MCGSMObject*, PyObject*, void*);
-PyObject* MCGSM_dim_out(MCGSMObject*, PyObject*, void*);
 PyObject* MCGSM_num_components(MCGSMObject*, PyObject*, void*);
 PyObject* MCGSM_num_scales(MCGSMObject*, PyObject*, void*);
 PyObject* MCGSM_num_features(MCGSMObject*, PyObject*, void*);
@@ -60,11 +54,8 @@ PyObject* MCGSM_train(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_check_gradient(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_check_performance(MCGSMObject*, PyObject*, PyObject*);
 
-PyObject* MCGSM_sample(MCGSMObject*, PyObject*, PyObject*);
-PyObject* MCGSM_sample_posterior(MCGSMObject*, PyObject*, PyObject*);
-
 PyObject* MCGSM_posterior(MCGSMObject*, PyObject*, PyObject*);
-PyObject* MCGSM_loglikelihood(MCGSMObject*, PyObject*, PyObject*);
+PyObject* MCGSM_sample_posterior(MCGSMObject*, PyObject*, PyObject*);
 
 PyObject* MCGSM_parameters(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_set_parameters(MCGSMObject*, PyObject*, PyObject*);

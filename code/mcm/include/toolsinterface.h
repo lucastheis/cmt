@@ -7,12 +7,9 @@
 #include <Python.h>
 #include <arrayobject.h>
 #include "pyutils.h"
-#include "conditionaldistribution.h"
 
-struct CDObject {
-	PyObject_HEAD
-	ConditionalDistribution* cd;
-};
+extern PyTypeObject Preconditioner_type;
+extern PyTypeObject CD_type;
 
 extern const char* random_select_doc;
 extern const char* sample_image_doc;
