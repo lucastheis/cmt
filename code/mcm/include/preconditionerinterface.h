@@ -12,6 +12,9 @@
 using MCM::Preconditioner;
 using MCM::WhiteningPreconditioner;
 
+#include "pcapreconditioner.h"
+using MCM::PCAPreconditioner;
+
 struct PreconditionerObject {
 	PyObject_HEAD
 	Preconditioner* preconditioner;
@@ -20,6 +23,11 @@ struct PreconditionerObject {
 struct WhiteningPreconditionerObject {
 	PyObject_HEAD
 	WhiteningPreconditioner* preconditioner;
+};
+
+struct PCAPreconditionerObject {
+	PyObject_HEAD
+	PCAPreconditioner* preconditioner;
 };
 
 extern const char* Preconditioner_doc;
@@ -46,5 +54,10 @@ PyObject* WhiteningPreconditioner_mean_out(WhiteningPreconditionerObject*, PyObj
 
 PyObject* WhiteningPreconditioner_reduce(WhiteningPreconditionerObject*, PyObject*, PyObject*);
 PyObject* WhiteningPreconditioner_setstate(WhiteningPreconditionerObject*, PyObject*, PyObject*);
+
+int PCAPreconditioner_init(PCAPreconditionerObject*, PyObject*, PyObject*);
+
+PyObject* PCAPreconditioner_reduce(PCAPreconditionerObject*, PyObject*, PyObject*);
+PyObject* PCAPreconditioner_setstate(PCAPreconditionerObject*, PyObject*, PyObject*);
 
 #endif

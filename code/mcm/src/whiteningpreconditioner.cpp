@@ -31,15 +31,13 @@ MCM::WhiteningPreconditioner::WhiteningPreconditioner(const ArrayXXd& input, con
 	mWhiteIn = eigenSolver.operatorInverseSqrt();
 	mWhiteInInv = eigenSolver.operatorSqrt();
 
-	MatrixXd tmp = covYX * mWhiteIn;
+	// optimal linear predictor
+	mPredictor = covYX * mWhiteIn;
 
 	// output whitening
-	eigenSolver.compute(covYY - tmp * tmp.transpose());
+	eigenSolver.compute(covYY - mPredictor * mPredictor.transpose());
 	mWhiteOut = eigenSolver.operatorInverseSqrt();
 	mWhiteOutInv = eigenSolver.operatorSqrt();
-
-	// output prediction
-	mPredictor = covYX * mWhiteIn;
 
 	// log-Jacobian determinant
 	mLogJacobian = mWhiteOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum();
@@ -68,26 +66,31 @@ MCM::WhiteningPreconditioner::WhiteningPreconditioner(
 
 
 
+MCM::WhiteningPreconditioner::WhiteningPreconditioner() {
+}
+
+
+
 int MCM::WhiteningPreconditioner::dimIn() const {
-	return mPredictor.cols();
+	return mMeanIn.size();
 }
 
 
 
 int MCM::WhiteningPreconditioner::dimInPre() const {
-	return mPredictor.cols();
+	return mWhiteIn.rows();
 }
 
 
 
 int MCM::WhiteningPreconditioner::dimOut() const {
-	return mPredictor.rows();
+	return mMeanOut.size();
 }
 
 
 
 int MCM::WhiteningPreconditioner::dimOutPre() const {
-	return mPredictor.rows();
+	return mWhiteOut.rows();
 }
 
 

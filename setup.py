@@ -65,6 +65,7 @@ modules = [
 			'code/mcm/src/mcgsm.cpp',
 			'code/mcm/src/mcgsminterface.cpp',
 			'code/mcm/src/module.cpp',
+			'code/mcm/src/pcapreconditioner.cpp',
 			'code/mcm/src/preconditionerinterface.cpp',
 			'code/mcm/src/pyutils.cpp',
 			'code/mcm/src/tools.cpp',

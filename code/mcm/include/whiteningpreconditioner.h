@@ -50,6 +50,8 @@ namespace MCM {
 			MatrixXd mWhiteOutInv;
 			MatrixXd mPredictor;
 			double mLogJacobian;
+
+			WhiteningPreconditioner();
 	};
 }
 

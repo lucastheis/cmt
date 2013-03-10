@@ -3,7 +3,7 @@ import unittest
 
 sys.path.append('./code')
 
-from mcm import WhiteningPreconditioner
+from mcm import PCAPreconditioner
 from numpy import *
 from numpy import max, round
 from numpy.random import *
@@ -16,7 +16,7 @@ class Tests(unittest.TestCase):
 		X = dot(randn(5, 5), randn(5, 1000)) + randn(5, 1)
 		Y = dot(randn(2, 2), randn(2, 1000)) + dot(randn(2, 5), X)
 
-		wt = WhiteningPreconditioner(X, Y)
+		wt = PCAPreconditioner(X, Y, num_pcs=X.shape[0])
 
 		# joint covariance
 		C = cov(vstack(wt(X, Y)), bias=True)
@@ -30,10 +30,14 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(Xr - X)), 1e-10)
 		self.assertLess(max(abs(Yr - Y)), 1e-10)
 
+		pca = PCAPreconditioner(X, Y, num_pcs=3)
+
+		Xp, Yp = pca(X, Y)
+
 
 
 	def test_pickle(self):
-		wt0 = WhiteningPreconditioner(randn(5, 1000), randn(2, 1000))
+		wt0 = PCAPreconditioner(randn(5, 1000), randn(2, 1000), num_pcs=3)
 
 		tmp_file = mkstemp()[1]
 
@@ -57,6 +61,7 @@ class Tests(unittest.TestCase):
 
 
 	def test_logjacobian(self):
+		eigenvalues = rand(5) + .5
 		meanIn = randn(5, 1)
 		meanOut = randn(2, 1)
 		whiteIn = randn(5, 5)
@@ -65,7 +70,8 @@ class Tests(unittest.TestCase):
 		whiteOut = dot(whiteOut, whiteOut.T)
 		predictor = randn(2, 5)
 
-		wt = WhiteningPreconditioner(
+		wt = PCAPreconditioner(
+			eigenvalues,
 			meanIn,
 			meanOut,
 			whiteIn,

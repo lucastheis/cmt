@@ -313,6 +313,64 @@ PyTypeObject WhiteningPreconditioner_type = {
 
 
 
+static PyGetSetDef PCAPreconditioner_getset[] = {
+	{0}
+};
+
+
+
+static PyMethodDef PCAPreconditioner_methods[] = {
+	{"__reduce__", (PyCFunction)PCAPreconditioner_reduce, METH_NOARGS, 0},
+	{"__setstate__", (PyCFunction)PCAPreconditioner_setstate, METH_VARARGS, 0},
+	{0}
+};
+
+
+
+PyTypeObject PCAPreconditioner_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                      /*ob_size*/
+	"mcm.PCAPreconditioner",                /*tp_name*/
+	sizeof(PCAPreconditionerObject),        /*tp_basicsize*/
+	0,                                      /*tp_itemsize*/
+	(destructor)Preconditioner_dealloc,     /*tp_dealloc*/
+	0,                                      /*tp_print*/
+	0,                                      /*tp_getattr*/
+	0,                                      /*tp_setattr*/
+	0,                                      /*tp_compare*/
+	0,                                      /*tp_repr*/
+	0,                                      /*tp_as_number*/
+	0,                                      /*tp_as_sequence*/
+	0,                                      /*tp_as_mapping*/
+	0,                                      /*tp_hash */
+	0,                                      /*tp_call*/
+	0,                                      /*tp_str*/
+	0,                                      /*tp_getattro*/
+	0,                                      /*tp_setattro*/
+	0,                                      /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                     /*tp_flags*/
+	0,                                      /*tp_doc*/
+	0,                                      /*tp_traverse*/
+	0,                                      /*tp_clear*/
+	0,                                      /*tp_richcompare*/
+	0,                                      /*tp_weaklistoffset*/
+	0,                                      /*tp_iter*/
+	0,                                      /*tp_iternext*/
+	PCAPreconditioner_methods,              /*tp_methods*/
+	0,                                      /*tp_members*/
+	PCAPreconditioner_getset,               /*tp_getset*/
+	&WhiteningPreconditioner_type,          /*tp_base*/
+	0,                                      /*tp_dict*/
+	0,                                      /*tp_descr_get*/
+	0,                                      /*tp_descr_set*/
+	0,                                      /*tp_dictoffset*/
+	(initproc)PCAPreconditioner_init,       /*tp_init*/
+	0,                                      /*tp_alloc*/
+	Preconditioner_new,                     /*tp_new*/
+};
+
+
+
 static PyMethodDef mcm_methods[] = {
 	{"random_select", (PyCFunction)random_select, METH_VARARGS|METH_KEYWORDS, random_select_doc},
 	{"generate_data_from_image", (PyCFunction)generate_data_from_image, METH_VARARGS|METH_KEYWORDS, generate_data_from_image_doc},
@@ -346,6 +404,8 @@ PyMODINIT_FUNC initmcm() {
 		return;
 	if(PyType_Ready(&WhiteningPreconditioner_type) < 0)
 		return;
+	if(PyType_Ready(&PCAPreconditioner_type) < 0)
+		return;
 
 	// initialize Eigen
 	Eigen::initParallel();
@@ -355,8 +415,10 @@ PyMODINIT_FUNC initmcm() {
 	Py_INCREF(&MCGSM_type);
 	Py_INCREF(&Preconditioner_type);
 	Py_INCREF(&WhiteningPreconditioner_type);
+	Py_INCREF(&PCAPreconditioner_type);
 	PyModule_AddObject(module, "ConditionalDistribution", reinterpret_cast<PyObject*>(&CD_type));
 	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));
 	PyModule_AddObject(module, "Preconditioner", reinterpret_cast<PyObject*>(&Preconditioner_type));
 	PyModule_AddObject(module, "WhiteningPreconditioner", reinterpret_cast<PyObject*>(&WhiteningPreconditioner_type));
+	PyModule_AddObject(module, "PCAPreconditioner", reinterpret_cast<PyObject*>(&PCAPreconditioner_type));
 }
