@@ -7,6 +7,7 @@ from mcm import MCGSM, WhiteningPreconditioner
 from mcm import random_select
 from mcm import generate_data_from_image, sample_image
 from mcm import generate_data_from_video, sample_video
+from mcm import fill_in_image
 from numpy import *
 from numpy import max
 from numpy.random import *
@@ -186,6 +187,29 @@ class ToolsTest(unittest.TestCase):
 
 		# the first frame should be untouched
 		self.assertLess(max(abs(video_init[:, :, 0] - video_sample[:, :, 0])), 1e-10)
+
+
+
+	def test_fill_in_image(self):
+		xmask = asarray([
+				[1, 1, 1],
+				[1, 0, 0],
+				[0, 0, 0]], dtype='bool')
+		ymask = asarray([
+				[0, 0, 0],
+				[0, 1, 0],
+				[0, 0, 0]], dtype='bool')
+		fmask = rand(10, 10) > .9
+		img = randn(10, 10)
+
+		model = MCGSM(4, 1)
+
+		# this should raise an exception
+		self.assertRaises(TypeError, fill_in_image, (img, model, xmask, ymask, fmask, 10.))
+
+		# this should raise no exception
+		wt = WhiteningPreconditioner(randn(4, 1000), randn(1, 1000))
+		fill_in_image(img, model, xmask, ymask, fmask, wt, num_iter=1, num_steps=2)
 
 
 

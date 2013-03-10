@@ -274,30 +274,19 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"img", "model", "xmask", "ymask", "preconditioner", 0};
 
 	PyObject* img;
-	PyObject* model;
+	PyObject* modelObj;
 	PyObject* xmask;
 	PyObject* ymask;
-	PyObject* preconditioner = 0;
+	PyObject* preconditionerObj = 0;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOOO|O", const_cast<char**>(kwlist),
-		&img, &model, &xmask, &ymask, &preconditioner))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!OO|O!", const_cast<char**>(kwlist),
+		&img, &CD_type, &modelObj, &xmask, &ymask, &Preconditioner_type, &preconditionerObj))
 		return 0;
 
-	if(preconditioner == Py_None)
-		preconditioner = 0;
+	const ConditionalDistribution& model = *reinterpret_cast<CDObject*>(modelObj)->cd;
 
-	// make sure that preconditioner is of appropriate type
-	if(preconditioner && !PyObject_IsInstance(preconditioner, reinterpret_cast<PyObject*>(&Preconditioner_type))) {
-		PyErr_SetString(PyExc_TypeError, "Preconditioner has wrong type.");
-		return 0;
-	}
-
-	if(!PyObject_IsInstance(model, reinterpret_cast<PyObject*>(&CD_type))) {
-		PyErr_SetString(PyExc_TypeError, "Model has wrong type.");
-		return 0;
-	}
-
-	const ConditionalDistribution& cd = *reinterpret_cast<CDObject*>(model)->cd;
+	Preconditioner* preconditioner = preconditionerObj ?
+		reinterpret_cast<PreconditionerObject*>(preconditionerObj)->preconditioner : 0;
 
 	// make sure data is stored in NumPy array
 	img = PyArray_FROM_OTF(img, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
@@ -324,59 +313,32 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 		if(PyArray_NDIM(img) > 2) {
 			if(PyArray_NDIM(xmask) > 2 && PyArray_NDIM(ymask) > 2) {
 				// multi-channel image and multi-channel masks
-				if(preconditioner) {
-					imgSample = PyArray_FromArraysXXd(
-						sampleImage(
-							PyArray_ToArraysXXd(img),
-							cd,
-							PyArray_ToArraysXXb(xmask),
-							PyArray_ToArraysXXb(ymask),
-							reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner));
-				} else {
-					imgSample = PyArray_FromArraysXXd(
-						sampleImage(
-							PyArray_ToArraysXXd(img),
-							cd,
-							PyArray_ToArraysXXb(xmask),
-							PyArray_ToArraysXXb(ymask)));
-				}
+				imgSample = PyArray_FromArraysXXd(
+					sampleImage(
+						PyArray_ToArraysXXd(img),
+						model,
+						PyArray_ToArraysXXb(xmask),
+						PyArray_ToArraysXXb(ymask),
+						preconditioner));
 			} else {
 				// multi-channel image and single-channel masks
-				if(preconditioner) {
-					imgSample = PyArray_FromArraysXXd(
-						sampleImage(
-							PyArray_ToArraysXXd(img),
-							cd,
-							PyArray_ToMatrixXb(xmask),
-							PyArray_ToMatrixXb(ymask),
-							reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner));
-				} else {
-					imgSample = PyArray_FromArraysXXd(
-						sampleImage(
-							PyArray_ToArraysXXd(img),
-							cd,
-							PyArray_ToMatrixXb(xmask),
-							PyArray_ToMatrixXb(ymask)));
-				}
+				imgSample = PyArray_FromArraysXXd(
+					sampleImage(
+						PyArray_ToArraysXXd(img),
+						model,
+						PyArray_ToMatrixXb(xmask),
+						PyArray_ToMatrixXb(ymask),
+						preconditioner));
 			}
 		} else {
 			// single-channel image and single-channel masks
-			if(preconditioner) {
-				imgSample = PyArray_FromMatrixXd(
-					sampleImage(
-						PyArray_ToMatrixXd(img),
-						cd,
-						PyArray_ToMatrixXb(xmask),
-						PyArray_ToMatrixXb(ymask),
-						reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner));
-			} else {
-				imgSample = PyArray_FromMatrixXd(
-					sampleImage(
-						PyArray_ToMatrixXd(img),
-						cd,
-						PyArray_ToMatrixXb(xmask),
-						PyArray_ToMatrixXb(ymask)));
-			}
+			imgSample = PyArray_FromMatrixXd(
+				sampleImage(
+					PyArray_ToMatrixXd(img),
+					model,
+					PyArray_ToMatrixXb(xmask),
+					PyArray_ToMatrixXb(ymask),
+					preconditioner));
 		}
 
 		Py_DECREF(img);
@@ -427,30 +389,19 @@ PyObject* sample_video(PyObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"video", "model", "xmask", "ymask", "preconditioner", 0};
 
 	PyObject* video;
-	PyObject* model;
+	PyObject* modelObj;
 	PyObject* xmask;
 	PyObject* ymask;
-	PyObject* preconditioner = 0;
+	PyObject* preconditionerObj = 0;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOOO|O", const_cast<char**>(kwlist),
-		&video, &model, &xmask, &ymask, &preconditioner))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!OO|O!", const_cast<char**>(kwlist),
+		&video, &CD_type, &modelObj, &xmask, &ymask, &Preconditioner_type, &preconditionerObj))
 		return 0;
 
-	if(preconditioner == Py_None)
-		preconditioner = 0;
+	const ConditionalDistribution& model = *reinterpret_cast<CDObject*>(modelObj)->cd;
 
-	// make sure that preconditioner is of appropriate type
-	if(preconditioner && !PyObject_IsInstance(preconditioner, reinterpret_cast<PyObject*>(&Preconditioner_type))) {
-		PyErr_SetString(PyExc_TypeError, "Preconditioner has wrong type.");
-		return 0;
-	}
-
-	if(!PyObject_IsInstance(model, reinterpret_cast<PyObject*>(&CD_type))) {
-		PyErr_SetString(PyExc_TypeError, "Model has wrong type.");
-		return 0;
-	}
-
-	const ConditionalDistribution& cd = *reinterpret_cast<CDObject*>(model)->cd;
+	Preconditioner* preconditioner = preconditionerObj ?
+		reinterpret_cast<PreconditionerObject*>(preconditionerObj)->preconditioner : 0;
 
 	// make sure data is stored in NumPy array
 	video = PyArray_FROM_OTF(video, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
@@ -475,22 +426,13 @@ PyObject* sample_video(PyObject* self, PyObject* args, PyObject* kwds) {
 	try {
 		PyObject* videoSample;
 
-		if(preconditioner && preconditioner != Py_None) {
-			videoSample = PyArray_FromArraysXXd(
-				sampleVideo(
-					PyArray_ToArraysXXd(video),
-					cd,
-					PyArray_ToArraysXXb(xmask),
-					PyArray_ToArraysXXb(ymask),
-					reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner));
-		} else {
-			videoSample = PyArray_FromArraysXXd(
-				sampleVideo(
-					PyArray_ToArraysXXd(video),
-					cd,
-					PyArray_ToArraysXXb(xmask),
-					PyArray_ToArraysXXb(ymask)));
-		}
+		videoSample = PyArray_FromArraysXXd(
+			sampleVideo(
+				PyArray_ToArraysXXd(video),
+				model,
+				PyArray_ToArraysXXb(xmask),
+				PyArray_ToArraysXXb(ymask),
+				preconditioner));
 
 		Py_DECREF(video);
 		Py_DECREF(xmask);
@@ -547,33 +489,23 @@ PyObject* fill_in_image(PyObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"img", "model", "xmask", "ymask", "fmask", "preconditioner", "num_iter", "num_steps", 0};
 
 	PyObject* img;
-	PyObject* model;
+	PyObject* modelObj;
 	PyObject* xmask;
 	PyObject* ymask;
 	PyObject* fmask;
-	PyObject* preconditioner = 0;
+	PyObject* preconditionerObj = 0;
 	int num_iter = 10;
 	int num_steps = 100;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOOOO|Oii", const_cast<char**>(kwlist),
-		&img, &model, &xmask, &ymask, &fmask, &preconditioner, &num_iter, &num_steps))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!OOO|O!ii", const_cast<char**>(kwlist),
+		&img, &CD_type, &modelObj, &xmask, &ymask, &fmask,
+		&Preconditioner_type, &preconditionerObj, &num_iter, &num_steps))
 		return 0;
 
-	if(preconditioner == Py_None)
-		preconditioner = 0;
+	const ConditionalDistribution& model = *reinterpret_cast<CDObject*>(modelObj)->cd;
 
-	// make sure that preconditioner is of appropriate type
-	if(preconditioner && !PyObject_IsInstance(preconditioner, reinterpret_cast<PyObject*>(&Preconditioner_type))) {
-		PyErr_SetString(PyExc_TypeError, "Preconditioner has wrong type.");
-		return 0;
-	}
-
-	if(!PyObject_IsInstance(model, reinterpret_cast<PyObject*>(&CD_type))) {
-		PyErr_SetString(PyExc_TypeError, "Model has wrong type.");
-		return 0;
-	}
-
-	const ConditionalDistribution& cd = *reinterpret_cast<CDObject*>(model)->cd;
+	Preconditioner* preconditioner = preconditionerObj ?
+		reinterpret_cast<PreconditionerObject*>(preconditionerObj)->preconditioner : 0;
 
 	// make sure data is stored in NumPy array
 	img = PyArray_FROM_OTF(img, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
@@ -603,66 +535,35 @@ PyObject* fill_in_image(PyObject* self, PyObject* args, PyObject* kwds) {
 //		if(PyArray_NDIM(img) > 2) {
 //			if(PyArray_NDIM(xmask) > 2 && PyArray_NDIM(ymask) > 2) {
 //				// multi-channel image and multi-channel masks
-//				if(preconditioner) {
-//					imgSample = PyArray_FromArraysXXd(
-//						sampleImage(
-//							PyArray_ToArraysXXd(img),
-//							cd,
-//							PyArray_ToArraysXXb(xmask),
-//							PyArray_ToArraysXXb(ymask),
-//							reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner));
-//				} else {
-//					imgSample = PyArray_FromArraysXXd(
-//						sampleImage(
-//							PyArray_ToArraysXXd(img),
-//							cd,
-//							PyArray_ToArraysXXb(xmask),
-//							PyArray_ToArraysXXb(ymask)));
-//				}
+//				imgSample = 
+//					sampleImage(
+//						PyArray_ToArraysXXd(img),
+//						model,
+//						PyArray_ToArraysXXb(xmask),
+//						PyArray_ToArraysXXb(ymask),
+//						preconditioner));
 //			} else {
 //				// multi-channel image and single-channel masks
-//				if(preconditioner) {
-//					imgSample = PyArray_FromArraysXXd(
-//						sampleImage(
-//							PyArray_ToArraysXXd(img),
-//							cd,
-//							PyArray_ToMatrixXb(xmask),
-//							PyArray_ToMatrixXb(ymask),
-//							reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner));
-//				} else {
-//					imgSample = PyArray_FromArraysXXd(
-//						sampleImage(
-//							PyArray_ToArraysXXd(img),
-//							cd,
-//							PyArray_ToMatrixXb(xmask),
-//							PyArray_ToMatrixXb(ymask)));
-//				}
+//				imgSample = PyArray_FromArraysXXd(
+//					sampleImage(
+//						PyArray_ToArraysXXd(img),
+//						model,
+//						PyArray_ToMatrixXb(xmask),
+//						PyArray_ToMatrixXb(ymask),
+//						preconditioner));
 //			}
 //		} else {
 			// single-channel image and single-channel masks
-			if(preconditioner && preconditioner != Py_None) {
-				imgSample = PyArray_FromMatrixXd(
-					fillInImage(
-						PyArray_ToMatrixXd(img),
-						cd,
-						PyArray_ToMatrixXb(xmask),
-						PyArray_ToMatrixXb(ymask),
-						PyArray_ToMatrixXb(fmask),
-						reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner,
-						num_iter,
-						num_steps));
-			} else {
-				imgSample = PyArray_FromMatrixXd(
-					fillInImage(
-						PyArray_ToMatrixXd(img),
-						cd,
-						PyArray_ToMatrixXb(xmask),
-						PyArray_ToMatrixXb(ymask),
-						PyArray_ToMatrixXb(fmask),
-						0,
-						num_iter,
-						num_steps));
-			}
+			imgSample = PyArray_FromMatrixXd(
+				fillInImage(
+					PyArray_ToMatrixXd(img),
+					model,
+					PyArray_ToMatrixXb(xmask),
+					PyArray_ToMatrixXb(ymask),
+					PyArray_ToMatrixXb(fmask),
+					preconditioner,
+					num_iter,
+					num_steps));
 //		}
 
 		Py_DECREF(img);
