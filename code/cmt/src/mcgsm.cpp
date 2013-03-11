@@ -2,11 +2,14 @@
 #include "utils.h"
 #include "Eigen/Eigenvalues"
 #include <sys/time.h>
-#include <iostream>
-#include <iomanip>
 #include <cmath>
 #include <cstdlib>
 #include <utility>
+
+#include <iomanip>
+#include <iostream>
+using std::cout;
+using std::endl;
 
 using namespace std;
 using namespace Eigen;
@@ -81,6 +84,8 @@ MCGSM::Parameters::Parameters() {
 	trainFeatures = true;
 	trainCholeskyFactors = true;
 	trainPredictors = true;
+	regularizeFeatures = 0.;
+	regularizePredictors = 0.;
 }
 
 
@@ -98,7 +103,9 @@ MCGSM::Parameters::Parameters(const Parameters& params) :
 	trainWeights(params.trainWeights),
 	trainFeatures(params.trainFeatures),
 	trainCholeskyFactors(params.trainCholeskyFactors),
-	trainPredictors(params.trainPredictors)
+	trainPredictors(params.trainPredictors),
+	regularizeFeatures(params.regularizeFeatures),
+	regularizePredictors(params.regularizePredictors)
 {
 	if(params.callback)
 		callback = params.callback->copy();
@@ -127,6 +134,8 @@ MCGSM::Parameters& MCGSM::Parameters::operator=(const Parameters& params) {
 	trainFeatures = params.trainFeatures;
 	trainCholeskyFactors = params.trainCholeskyFactors;
 	trainPredictors = params.trainPredictors;
+	regularizeFeatures = params.regularizeFeatures;
+	regularizePredictors = params.regularizePredictors;
 
 	return *this;
 }
@@ -227,8 +236,9 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters para
 	instance.second.second = &output;
 
 	// start LBFGS optimization
+	int status = LBFGSERR_MAXIMUMITERATION;
 	if(params.maxIter > 0)
-		std::cout << lbfgs(numParameters(params), x, 0, &evaluateLBFGS, &callbackLBFGS, &instance, &paramsLBFGS) << std::endl;
+		 status = lbfgs(numParameters(params), x, 0, &evaluateLBFGS, &callbackLBFGS, &instance, &paramsLBFGS);
 
 	// copy parameters back
 	setParameters(x, params);
@@ -236,7 +246,13 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters para
 	// free memory used by LBFGS
 	lbfgs_free(x);
 
-	return true;
+	if(!status) {
+		return true;
+	} else {
+		if(status != LBFGSERR_MAXIMUMITERATION)
+			cout << "There seems to be something not quite right with the optimization (" << status << ")." << endl;
+		return false;
+	}
 }
 
 
@@ -888,10 +904,30 @@ double MCGSM::computeGradient(
 					for(int n = 0; n <= m; ++n, ++cholFacOffset)
 						g[cholFacOffset] = choleskyFactorsGrad[i](m, n);
 
+		// normalize gradient by number of data points
 		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
+
+		// regularization
+		if(params.trainFeatures && params.regularizeFeatures > 0.)
+			featuresGrad += params.regularizeFeatures * 2. * features;
+
+		if(params.trainPredictors && params.regularizePredictors > 0.)
+			#pragma omp parallel for
+			for(int i = 0; i < mNumComponents; ++i)
+				predictorsGrad[i] += params.regularizePredictors * 2. * predictors[i];
 	}
 
-	// return average log-likelihood
-	return -logLik / normConst; 
+	double value = -logLik / normConst;
+
+	// regularization
+	if(params.trainFeatures && params.regularizeFeatures > 0.)
+		value += params.regularizeFeatures * features.array().square().sum();
+
+	if(params.trainPredictors && params.regularizePredictors > 0.)
+		for(int i = 0; i < mNumComponents; ++i)
+			value += params.regularizePredictors * predictors[i].array().square().sum();
+
+	// return negative penalized average log-likelihood
+	return value;
 }

@@ -31,7 +31,6 @@ MCGSM::Parameters PyObject_ToParameters(MCGSMObject* self, PyObject* parameters)
 			else
 				throw Exception("max_iter should be of type `int`.");
 		
-
 		PyObject* threshold = PyDict_GetItemString(parameters, "threshold");
 		if(threshold)
 			if(PyFloat_Check(threshold))
@@ -116,6 +115,24 @@ MCGSM::Parameters PyObject_ToParameters(MCGSMObject* self, PyObject* parameters)
 				params.trainPredictors = (train_predictors == Py_True);
 			else
 				throw Exception("train_predictors should be of type `bool`.");
+
+		PyObject* regularize_features = PyDict_GetItemString(parameters, "regularize_features");
+		if(regularize_features)
+			if(PyFloat_Check(regularize_features))
+				params.regularizeFeatures = PyFloat_AsDouble(regularize_features);
+			else if(PyInt_Check(regularize_features))
+				params.regularizeFeatures = static_cast<double>(PyFloat_AsDouble(regularize_features));
+			else
+				throw Exception("regularize_features should be of type `float`.");
+
+		PyObject* regularize_predictors = PyDict_GetItemString(parameters, "regularize_predictors");
+		if(regularize_predictors)
+			if(PyFloat_Check(regularize_predictors))
+				params.regularizePredictors = PyFloat_AsDouble(regularize_predictors);
+			else if(PyInt_Check(regularize_predictors))
+				params.regularizePredictors = static_cast<double>(PyFloat_AsDouble(regularize_predictors));
+			else
+				throw Exception("regularize_predictors should be of type `float`.");
 	}
 
 	return params;
@@ -123,7 +140,8 @@ MCGSM::Parameters PyObject_ToParameters(MCGSMObject* self, PyObject* parameters)
 
 
 const char* MCGSM_doc =
-	"An implementation of a mixture of conditional Gaussian scale mixtures."
+	"An implementation of a mixture of conditional Gaussian scale mixtures.\n"
+	"\n"
 	"The distribution defined by the model is\n"
 	"\n"
 	"$$p(\\mathbf{y} \\mid \\mathbf{x}) = \\sum_{c, s} p(c, s \\mid \\mathbf{x}) p(\\mathbf{y} \\mid c, s, \\mathbf{x}),$$\n"
@@ -549,6 +567,8 @@ const char* MCGSM_train_doc =
 	"\t>>> \t'train_features': True\n"
 	"\t>>> \t'train_cholesky_factors': True\n"
 	"\t>>> \t'train_predictors': True\n"
+	"\t>>> \t'regularize_features': 0.\n"
+	"\t>>> \t'regularize_predictors': 0.\n"
 	"\t>>> })\n"
 	"\n"
 	"The parameters C{train_priors}, C{train_scales}, and so on can be used to control which "

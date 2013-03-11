@@ -8,7 +8,6 @@ from numpy import *
 from numpy import max
 from numpy.random import *
 from scipy.stats import kstest, norm
-from scipy.optimize import check_grad
 from pickle import dump, load
 from tempfile import mkstemp
 
@@ -131,6 +130,7 @@ class Tests(unittest.TestCase):
 			randn(mcgsm.dim_out, 1000), 1e-5)
 		self.assertLess(err, 1e-8)
 
+		# without regularization
 		for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred']:
 			err = mcgsm._check_gradient(
 				randn(mcgsm.dim_in, 1000),
@@ -143,6 +143,24 @@ class Tests(unittest.TestCase):
 					'train_features': param == 'features',
 					'train_cholesky_factors': param == 'chol',
 					'train_predictors': param == 'pred',
+				})
+			self.assertLess(err, 1e-8)
+
+		# with regularization
+		for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred']:
+			err = mcgsm._check_gradient(
+				randn(mcgsm.dim_in, 1000),
+				randn(mcgsm.dim_out, 1000),
+				1e-5,
+				parameters={
+					'train_prior': param == 'priors',
+					'train_scales': param == 'scales',
+					'train_weights': param == 'weights',
+					'train_features': param == 'features',
+					'train_cholesky_factors': param == 'chol',
+					'train_predictors': param == 'pred',
+					'regularize_features': 1.,
+#					'regularize_predictors': 1e-3,
 				})
 			self.assertLess(err, 1e-8)
 

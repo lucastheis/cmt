@@ -39,6 +39,8 @@ class MCGSM : public ConditionalDistribution {
 				bool trainFeatures;
 				bool trainCholeskyFactors;
 				bool trainPredictors;
+				double regularizeFeatures;
+				double regularizePredictors;
 
 				Parameters();
 				Parameters(const Parameters& params);
