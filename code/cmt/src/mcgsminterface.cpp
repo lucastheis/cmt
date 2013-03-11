@@ -123,8 +123,7 @@ MCGSM::Parameters PyObject_ToParameters(MCGSMObject* self, PyObject* parameters)
 
 
 const char* MCGSM_doc =
-	"An implementation of a mixture of conditional Gaussian scale mixtures.\n"
-	"\n"
+	"An implementation of a mixture of conditional Gaussian scale mixtures."
 	"The distribution defined by the model is\n"
 	"\n"
 	"$$p(\\mathbf{y} \\mid \\mathbf{x}) = \\sum_{c, s} p(c, s \\mid \\mathbf{x}) p(\\mathbf{y} \\mid c, s, \\mathbf{x}),$$\n"

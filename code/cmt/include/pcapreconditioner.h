@@ -21,12 +21,6 @@ namespace CMT {
 				const MatrixXd& whiteOutInv,
 				const MatrixXd& predictor);
 
-//			virtual pair<ArrayXXd, ArrayXXd> operator()(const ArrayXXd& input, const ArrayXXd& output) const;
-//			virtual pair<ArrayXXd, ArrayXXd> inverse(const ArrayXXd& input, const ArrayXXd& output) const;
-//
-//			virtual ArrayXXd operator()(const ArrayXXd& input) const;
-//			virtual ArrayXXd inverse(const ArrayXXd& input) const;
-
 			inline VectorXd eigenvalues() const;
 
 		protected:

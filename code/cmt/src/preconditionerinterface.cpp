@@ -406,6 +406,28 @@ PyObject* WhiteningPreconditioner_setstate(WhiteningPreconditionerObject* self, 
 
 
 
+const char* PCAPreconditioner_doc =
+	"This can be used to reduce the dimensionality of the input. Additionally, the data "
+	"is decorrelated as by the L{WhiteningPreconditioner}.\n
+	"\n"
+	"To create a preconditioner which retains 98.5\% of the input variance, use:\n"
+	"\n"
+	"\t>>> pca = PCAPreconditioner(input, output, var_explained=98.5)\n"
+	"\n"
+	"To create a preconditioner which reduces the dimensionality of the input to 10, use:\n"
+	"\n"
+	"\t>>> pca = PCAPreconditioner(input, output, num_pcs=10)\n"
+	"\n"
+	"If both arguments are specified, C{var_explained} will be ignored.\n";
+	"\n"
+	"Afterwards, apply the preconditioner to the data.\n"
+	"\n"
+	"\t>>> input, output = preconditioner(input, output)\n"
+	"\n"
+	"To (approximately) reconstruct the data, you can do the following.\n"
+	"\n"
+	"\t>>> input, output = preconditioner.inverse(input, output)";
+
 int PCAPreconditioner_init(PCAPreconditionerObject* self, PyObject* args, PyObject* kwds) {
 	PyObject* eigenvalues;
 	PyObject* meanIn;

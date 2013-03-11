@@ -11,6 +11,11 @@
 #include "toolsinterface.h"
 #include "Eigen/Core"
 
+static const char* cmt_doc =
+	"This module provides C++ implementations of conditional models such "
+	"as the MCGSM, as well as tools for solving applications such as "
+	"filling-in, denoising, or classification.";
+
 static PyGetSetDef CD_getset[] = {
 	{"dim_in", (getter)CD_dim_in, 0, "Dimensionality of inputs."},
 	{"dim_out", (getter)CD_dim_out, 0, "Dimensionality of outputs."},
@@ -142,8 +147,8 @@ static PyMethodDef MCGSM_methods[] = {
 	{"_compute_gradient",
 		(PyCFunction)MCGSM_compute_gradient,
 		METH_VARARGS|METH_KEYWORDS, 0},
-	{"__reduce__", (PyCFunction)MCGSM_reduce, METH_NOARGS, 0},
-	{"__setstate__", (PyCFunction)MCGSM_setstate, METH_VARARGS, 0},
+	{"__reduce__", (PyCFunction)MCGSM_reduce, METH_NOARGS, MCGSM_reduce_doc},
+	{"__setstate__", (PyCFunction)MCGSM_setstate, METH_VARARGS, MCGSM_setstate_doc},
 	{0}
 };
 
@@ -349,7 +354,7 @@ PyTypeObject PCAPreconditioner_type = {
 	0,                                      /*tp_setattro*/
 	0,                                      /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,                     /*tp_flags*/
-	0,                                      /*tp_doc*/
+	PCAPreconditioner_doc,                  /*tp_doc*/
 	0,                                      /*tp_traverse*/
 	0,                                      /*tp_clear*/
 	0,                                      /*tp_richcompare*/
@@ -393,7 +398,7 @@ PyMODINIT_FUNC initcmt() {
 	import_array();
 
 	// create module object
-	PyObject* module = Py_InitModule("cmt", cmt_methods);
+	PyObject* module = Py_InitModule3("cmt", cmt_methods, cmt_doc);
 
 	// initialize types
 	if(PyType_Ready(&CD_type) < 0)

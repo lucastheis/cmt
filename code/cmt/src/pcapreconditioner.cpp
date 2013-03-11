@@ -43,6 +43,8 @@ CMT::PCAPreconditioner::PCAPreconditioner(
 			if(varExplainedSoFar > varExplained)
 				break;
 		}
+	} else if(numPCs > mEigenvalues.size()) {
+		numPCs = mEigenvalues.size();
 	}
 
 	// input whitening
