@@ -248,6 +248,15 @@ PyObject* Preconditioner_dim_out(PreconditionerObject* self, PyObject*, void*) {
 
 
 
+const char* WhiteningPreconditioner_doc =
+	"Decorrelates inputs and outputs.\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: ndarray\n"
+	"@param output: outputs stored in columns";
+
 int WhiteningPreconditioner_init(WhiteningPreconditionerObject* self, PyObject* args, PyObject* kwds) {
 	PyObject* meanIn;
 	PyObject* meanOut;
@@ -407,10 +416,11 @@ PyObject* WhiteningPreconditioner_setstate(WhiteningPreconditionerObject* self, 
 
 
 const char* PCAPreconditioner_doc =
-	"This can be used to reduce the dimensionality of the input. Additionally, the data "
-	"is decorrelated as by the L{WhiteningPreconditioner}.\n
+	"This preconditioner can be used to reduce the dimensionality of the input.\n"
 	"\n"
-	"To create a preconditioner which retains 98.5\% of the input variance, use:\n"
+	"Additionally, the data is decorrelated as by L{WhiteningPreconditioner}.\n"
+	"\n"
+	"To create a preconditioner which retains (at least) 98.5\% of the input variance, use:\n"
 	"\n"
 	"\t>>> pca = PCAPreconditioner(input, output, var_explained=98.5)\n"
 	"\n"
@@ -418,15 +428,26 @@ const char* PCAPreconditioner_doc =
 	"\n"
 	"\t>>> pca = PCAPreconditioner(input, output, num_pcs=10)\n"
 	"\n"
-	"If both arguments are specified, C{var_explained} will be ignored.\n";
-	"\n"
+	"If both arguments are specified, C{var_explained} will be ignored."
 	"Afterwards, apply the preconditioner to the data.\n"
 	"\n"
 	"\t>>> input, output = preconditioner(input, output)\n"
 	"\n"
 	"To (approximately) reconstruct the data, you can do the following.\n"
 	"\n"
-	"\t>>> input, output = preconditioner.inverse(input, output)";
+	"\t>>> input, output = preconditioner.inverse(input, output)\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: ndarray\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@type  var_explained: double\n"
+	"@param var_explained: the amount of variance retained after dimensionality reduction\n"
+	"\n"
+	"@type  num_pcs: integer\n"
+	"@param num_pcs: the number of principal components of the input kept";
 
 int PCAPreconditioner_init(PCAPreconditionerObject* self, PyObject* args, PyObject* kwds) {
 	PyObject* eigenvalues;

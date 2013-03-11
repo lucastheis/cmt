@@ -248,7 +248,7 @@ PyObject* generate_data_from_video(PyObject* self, PyObject* args, PyObject* kwd
 const char* sample_image_doc =
 	"sample_image(img, model, xmask, ymask, preconditioner=None)\n"
 	"\n"
-	"Samples an image given a conditional distribution. The initial image passed to\n"
+	"Generates an image using a conditional distribution. The initial image passed to\n"
 	"this function is used to initialize the boundaries and is also used to determine\n"
 	"the size and length of the image to be generated.\n"
 	"\n"
@@ -363,7 +363,7 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 const char* sample_video_doc =
 	"sample_video(video, model, xmask, ymask, preconditioner=None)\n"
 	"\n"
-	"Samples a video given a conditional distribution. The initial video passed to\n"
+	"Generates a video using a conditional distribution. The initial video passed to\n"
 	"this function is used to initialize the boundaries and is also used to determine\n"
 	"the size and length of the video to be generated.\n"
 	"\n"
@@ -456,7 +456,7 @@ PyObject* sample_video(PyObject* self, PyObject* args, PyObject* kwds) {
 const char* fill_in_image_doc =
 	"fill_in_image(img, model, xmask, ymask, fmask, preconditioner=None, num_iter=10, num_steps=100)\n"
 	"\n"
-	"Samples pixels from an image conditioned on all other pixels.\n"
+	"Samples pixels of an image conditioned on all other pixels.\n"
 	"\n"
 	"@type  img: C{ndarray}\n"
 	"@param img: the image with the missing pixels initialized somehow\n"

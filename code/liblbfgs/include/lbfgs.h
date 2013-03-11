@@ -135,7 +135,7 @@ enum {
     LBFGSERR_MAXIMUMSTEP,
     /** The line-search routine reaches the maximum number of evaluations. */
     LBFGSERR_MAXIMUMLINESEARCH,
-    /** The algorithm routine reaches the maximum number of iterations. */
+    /** The algorithm routine reaches the maximum number of iterations (-997). */
     LBFGSERR_MAXIMUMITERATION,
     /** Relative width of the interval of uncertainty is at most
         lbfgs_parameter_t::xtol. */

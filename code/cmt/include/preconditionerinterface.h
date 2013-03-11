@@ -33,6 +33,7 @@ struct PCAPreconditionerObject {
 extern const char* Preconditioner_doc;
 extern const char* Preconditioner_inverse_doc;
 extern const char* Preconditioner_logjacobian_doc;
+extern const char* WhiteningPreconditioner_doc;
 extern const char* PCAPreconditioner_doc;
 
 int Preconditioner_init(WhiteningPreconditionerObject*, PyObject*, PyObject*);

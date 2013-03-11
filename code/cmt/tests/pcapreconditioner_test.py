@@ -32,7 +32,11 @@ class Tests(unittest.TestCase):
 
 		pca = PCAPreconditioner(X, Y, num_pcs=3)
 
+		# test inverse
 		Xp, Yp = pca(X, Y)
+		Xr, Yr = pca.inverse(Xp, Yp)
+
+		self.assertLess(max(abs(Yr - Y)), 1e-10)
 
 
 
