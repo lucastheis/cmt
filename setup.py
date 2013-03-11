@@ -56,25 +56,25 @@ if sys.platform != 'darwin':
 		'-std=c++0x']
 
 modules = [
-	Extension('mcm',
+	Extension('cmt',
 		language='c++',
 		sources=[
-			'code/mcm/src/callbacktrain.cpp',
-			'code/mcm/src/conditionaldistribution.cpp',
-			'code/mcm/src/conditionaldistributioninterface.cpp',
-			'code/mcm/src/mcgsm.cpp',
-			'code/mcm/src/mcgsminterface.cpp',
-			'code/mcm/src/module.cpp',
-			'code/mcm/src/pcapreconditioner.cpp',
-			'code/mcm/src/preconditionerinterface.cpp',
-			'code/mcm/src/pyutils.cpp',
-			'code/mcm/src/tools.cpp',
-			'code/mcm/src/toolsinterface.cpp',
-			'code/mcm/src/utils.cpp',
-			'code/mcm/src/whiteningpreconditioner.cpp'],
+			'code/cmt/src/callbacktrain.cpp',
+			'code/cmt/src/conditionaldistribution.cpp',
+			'code/cmt/src/conditionaldistributioninterface.cpp',
+			'code/cmt/src/mcgsm.cpp',
+			'code/cmt/src/mcgsminterface.cpp',
+			'code/cmt/src/module.cpp',
+			'code/cmt/src/pcapreconditioner.cpp',
+			'code/cmt/src/preconditionerinterface.cpp',
+			'code/cmt/src/pyutils.cpp',
+			'code/cmt/src/tools.cpp',
+			'code/cmt/src/toolsinterface.cpp',
+			'code/cmt/src/utils.cpp',
+			'code/cmt/src/whiteningpreconditioner.cpp'],
 		include_dirs=[
 			'code',
-			'code/mcm/include',
+			'code/cmt/include',
 			'code/liblbfgs/include',
 			os.path.join(numpy.__path__[0], 'core/include/numpy')] + include_dirs,
 		library_dirs=[] + library_dirs,
@@ -91,11 +91,11 @@ modules = [
 CCompiler.compile = parallelCCompiler
 
 setup(
-	name='mcm',
+	name='cmt',
 	version='0.0.1',
 	author='Lucas Theis',
 	author_email='lucas@theis.io',
 	description='A C++ implementation of conditional models such as the MCGSM.',
-	url='http://github.com/lucastheis/mcm',
+	url='http://github.com/lucastheis/cmt',
 	license='MIT',
 	ext_modules=modules)

@@ -8,7 +8,7 @@ using std::make_pair;
 #include "Eigen/Core"
 using Eigen::ArrayXXd;
 
-namespace MCM {
+namespace CMT {
 	class Preconditioner {
 		public:
 			virtual ~Preconditioner() { }

@@ -11,7 +11,7 @@ using std::make_pair;
 #include "conditionaldistribution.h"
 
 #include "preconditioner.h"
-using MCM::Preconditioner;
+using CMT::Preconditioner;
 
 #include "Eigen/Core"
 using Eigen::VectorXd;

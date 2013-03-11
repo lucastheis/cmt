@@ -3,7 +3,7 @@ import unittest
 
 sys.path.append('./code')
 
-from mcm import PCAPreconditioner
+from cmt import PCAPreconditioner
 from numpy import *
 from numpy import max, round
 from numpy.random import *

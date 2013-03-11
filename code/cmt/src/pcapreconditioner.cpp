@@ -7,7 +7,7 @@ using Eigen::SelfAdjointEigenSolver;
 
 #include <iostream>
 
-MCM::PCAPreconditioner::PCAPreconditioner(
+CMT::PCAPreconditioner::PCAPreconditioner(
 	const ArrayXXd& input,
 	const ArrayXXd& output,
 	double varExplained,
@@ -65,7 +65,7 @@ MCM::PCAPreconditioner::PCAPreconditioner(
 
 
 
-MCM::PCAPreconditioner::PCAPreconditioner(
+CMT::PCAPreconditioner::PCAPreconditioner(
 	const VectorXd& eigenvalues,
 	const VectorXd& meanIn,
 	const VectorXd& meanOut,

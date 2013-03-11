@@ -3,7 +3,7 @@ import unittest
 
 sys.path.append('./code')
 
-from mcm import WhiteningPreconditioner
+from cmt import WhiteningPreconditioner
 from numpy import *
 from numpy import max, round
 from numpy.random import *

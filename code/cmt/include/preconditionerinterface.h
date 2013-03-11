@@ -1,7 +1,7 @@
 #ifndef PRECONDITIONERINTERFACE_H
 #define PRECONDITIONERINTERFACE_H
 
-#define PY_ARRAY_UNIQUE_SYMBOL MCM_ARRAY_API
+#define PY_ARRAY_UNIQUE_SYMBOL CMT_ARRAY_API
 #define NO_IMPORT_ARRAY
 
 #include <Python.h>
@@ -9,11 +9,11 @@
 #include "pyutils.h"
 
 #include "whiteningpreconditioner.h"
-using MCM::Preconditioner;
-using MCM::WhiteningPreconditioner;
+using CMT::Preconditioner;
+using CMT::WhiteningPreconditioner;
 
 #include "pcapreconditioner.h"
-using MCM::PCAPreconditioner;
+using CMT::PCAPreconditioner;
 
 struct PreconditionerObject {
 	PyObject_HEAD

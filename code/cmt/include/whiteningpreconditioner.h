@@ -7,7 +7,7 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
-namespace MCM {
+namespace CMT {
 	class WhiteningPreconditioner : public Preconditioner {
 		public:
 			WhiteningPreconditioner(const ArrayXXd& input, const ArrayXXd& output);
@@ -57,43 +57,43 @@ namespace MCM {
 
 
 
-VectorXd MCM::WhiteningPreconditioner::meanIn() const {
+VectorXd CMT::WhiteningPreconditioner::meanIn() const {
 	return mMeanIn;
 }
 
 
 
-VectorXd MCM::WhiteningPreconditioner::meanOut() const {
+VectorXd CMT::WhiteningPreconditioner::meanOut() const {
 	return mMeanOut;
 }
 
 
 
-MatrixXd MCM::WhiteningPreconditioner::whiteIn() const {
+MatrixXd CMT::WhiteningPreconditioner::whiteIn() const {
 	return mWhiteIn;
 }
 
 
 
-MatrixXd MCM::WhiteningPreconditioner::whiteInInv() const {
+MatrixXd CMT::WhiteningPreconditioner::whiteInInv() const {
 	return mWhiteInInv;
 }
 
 
 
-MatrixXd MCM::WhiteningPreconditioner::whiteOut() const {
+MatrixXd CMT::WhiteningPreconditioner::whiteOut() const {
 	return mWhiteOut;
 }
 
 
 
-MatrixXd MCM::WhiteningPreconditioner::whiteOutInv() const {
+MatrixXd CMT::WhiteningPreconditioner::whiteOutInv() const {
 	return mWhiteOutInv;
 }
 
 
 
-MatrixXd MCM::WhiteningPreconditioner::predictor() const {
+MatrixXd CMT::WhiteningPreconditioner::predictor() const {
 	return mPredictor;
 }
 

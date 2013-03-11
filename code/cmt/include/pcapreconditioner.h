@@ -3,7 +3,7 @@
 
 #include "whiteningpreconditioner.h"
 
-namespace MCM {
+namespace CMT {
 	class PCAPreconditioner : public WhiteningPreconditioner {
 		public:
 			PCAPreconditioner(
@@ -36,7 +36,7 @@ namespace MCM {
 
 
 
-VectorXd MCM::PCAPreconditioner::eigenvalues() const {
+VectorXd CMT::PCAPreconditioner::eigenvalues() const {
 	return mEigenvalues;
 }
 

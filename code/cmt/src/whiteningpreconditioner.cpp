@@ -7,7 +7,7 @@ using Eigen::SelfAdjointEigenSolver;
 
 #include <iostream>
 
-MCM::WhiteningPreconditioner::WhiteningPreconditioner(const ArrayXXd& input, const ArrayXXd& output) {
+CMT::WhiteningPreconditioner::WhiteningPreconditioner(const ArrayXXd& input, const ArrayXXd& output) {
 	if(input.cols() != output.cols())
 		throw Exception("Number of inputs and outputs must be the same."); 
 
@@ -45,7 +45,7 @@ MCM::WhiteningPreconditioner::WhiteningPreconditioner(const ArrayXXd& input, con
 
 
 
-MCM::WhiteningPreconditioner::WhiteningPreconditioner(
+CMT::WhiteningPreconditioner::WhiteningPreconditioner(
 	const VectorXd& meanIn,
 	const VectorXd& meanOut,
 	const MatrixXd& whiteIn,
@@ -66,36 +66,36 @@ MCM::WhiteningPreconditioner::WhiteningPreconditioner(
 
 
 
-MCM::WhiteningPreconditioner::WhiteningPreconditioner() {
+CMT::WhiteningPreconditioner::WhiteningPreconditioner() {
 }
 
 
 
-int MCM::WhiteningPreconditioner::dimIn() const {
+int CMT::WhiteningPreconditioner::dimIn() const {
 	return mMeanIn.size();
 }
 
 
 
-int MCM::WhiteningPreconditioner::dimInPre() const {
+int CMT::WhiteningPreconditioner::dimInPre() const {
 	return mWhiteIn.rows();
 }
 
 
 
-int MCM::WhiteningPreconditioner::dimOut() const {
+int CMT::WhiteningPreconditioner::dimOut() const {
 	return mMeanOut.size();
 }
 
 
 
-int MCM::WhiteningPreconditioner::dimOutPre() const {
+int CMT::WhiteningPreconditioner::dimOutPre() const {
 	return mWhiteOut.rows();
 }
 
 
 
-pair<ArrayXXd, ArrayXXd> MCM::WhiteningPreconditioner::operator()(
+pair<ArrayXXd, ArrayXXd> CMT::WhiteningPreconditioner::operator()(
 	const ArrayXXd& input,
 	const ArrayXXd& output) const
 {
@@ -112,7 +112,7 @@ pair<ArrayXXd, ArrayXXd> MCM::WhiteningPreconditioner::operator()(
 
 
 
-pair<ArrayXXd, ArrayXXd> MCM::WhiteningPreconditioner::inverse(
+pair<ArrayXXd, ArrayXXd> CMT::WhiteningPreconditioner::inverse(
 	const ArrayXXd& input,
 	const ArrayXXd& output) const
 {
@@ -129,7 +129,7 @@ pair<ArrayXXd, ArrayXXd> MCM::WhiteningPreconditioner::inverse(
 
 
 
-ArrayXXd MCM::WhiteningPreconditioner::operator()(const ArrayXXd& input) const {
+ArrayXXd CMT::WhiteningPreconditioner::operator()(const ArrayXXd& input) const {
 	if(input.rows() != dimIn())
 		throw Exception("Input has wrong dimensionality."); 
 	return mWhiteIn * (input.matrix().colwise() - mMeanIn);
@@ -137,7 +137,7 @@ ArrayXXd MCM::WhiteningPreconditioner::operator()(const ArrayXXd& input) const {
 
 
 
-ArrayXXd MCM::WhiteningPreconditioner::inverse(const ArrayXXd& input) const {
+ArrayXXd CMT::WhiteningPreconditioner::inverse(const ArrayXXd& input) const {
 	if(input.rows() != dimInPre())
 		throw Exception("Input has wrong dimensionality."); 
 	return (mWhiteInInv * input.matrix()).colwise() + mMeanIn;
@@ -145,6 +145,6 @@ ArrayXXd MCM::WhiteningPreconditioner::inverse(const ArrayXXd& input) const {
 
 
 
-Array<double, 1, Dynamic> MCM::WhiteningPreconditioner::logJacobian(const ArrayXXd& input, const ArrayXXd& output) const {
+Array<double, 1, Dynamic> CMT::WhiteningPreconditioner::logJacobian(const ArrayXXd& input, const ArrayXXd& output) const {
 	return Array<double, 1, Dynamic>::Zero(output.cols()) + mLogJacobian;
 }

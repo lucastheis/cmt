@@ -3,11 +3,11 @@ import unittest
 
 sys.path.append('./code')
 
-from mcm import MCGSM, WhiteningPreconditioner
-from mcm import random_select
-from mcm import generate_data_from_image, sample_image
-from mcm import generate_data_from_video, sample_video
-from mcm import fill_in_image
+from cmt import MCGSM, WhiteningPreconditioner
+from cmt import random_select
+from cmt import generate_data_from_image, sample_image
+from cmt import generate_data_from_video, sample_video
+from cmt import fill_in_image
 from numpy import *
 from numpy import max
 from numpy.random import *

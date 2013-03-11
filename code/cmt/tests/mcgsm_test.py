@@ -3,7 +3,7 @@ import unittest
 
 sys.path.append('./code')
 
-from mcm import MCGSM
+from cmt import MCGSM
 from numpy import *
 from numpy import max
 from numpy.random import *

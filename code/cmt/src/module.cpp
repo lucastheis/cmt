@@ -1,4 +1,4 @@
-#define PY_ARRAY_UNIQUE_SYMBOL MCM_ARRAY_API
+#define PY_ARRAY_UNIQUE_SYMBOL CMT_ARRAY_API
 
 #include <Python.h>
 #include <arrayobject.h>
@@ -37,7 +37,7 @@ static PyMethodDef CD_methods[] = {
 PyTypeObject CD_type = {
 	PyObject_HEAD_INIT(0)
 	0,                              /*ob_size*/
-	"mcm.ConditionalDistribution",  /*tp_name*/
+	"cmt.ConditionalDistribution",  /*tp_name*/
 	sizeof(CDObject),               /*tp_basicsize*/
 	0,                              /*tp_itemsize*/
 	(destructor)CD_dealloc,         /*tp_dealloc*/
@@ -152,7 +152,7 @@ static PyMethodDef MCGSM_methods[] = {
 PyTypeObject MCGSM_type = {
 	PyObject_HEAD_INIT(0)
 	0,                         /*ob_size*/
-	"mcm.MCGSM",               /*tp_name*/
+	"cmt.MCGSM",               /*tp_name*/
 	sizeof(MCGSMObject),       /*tp_basicsize*/
 	0,                         /*tp_itemsize*/
 	(destructor)CD_dealloc,    /*tp_dealloc*/
@@ -212,7 +212,7 @@ static PyMethodDef Preconditioner_methods[] = {
 PyTypeObject Preconditioner_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                      /*ob_size*/
-	"mcm.Preconditioner",                   /*tp_name*/
+	"cmt.Preconditioner",                   /*tp_name*/
 	sizeof(PreconditionerObject),           /*tp_basicsize*/
 	0,                                      /*tp_itemsize*/
 	(destructor)Preconditioner_dealloc,     /*tp_dealloc*/
@@ -272,7 +272,7 @@ static PyMethodDef WhiteningPreconditioner_methods[] = {
 PyTypeObject WhiteningPreconditioner_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                      /*ob_size*/
-	"mcm.WhiteningPreconditioner",          /*tp_name*/
+	"cmt.WhiteningPreconditioner",          /*tp_name*/
 	sizeof(WhiteningPreconditionerObject),  /*tp_basicsize*/
 	0,                                      /*tp_itemsize*/
 	(destructor)Preconditioner_dealloc,     /*tp_dealloc*/
@@ -330,7 +330,7 @@ static PyMethodDef PCAPreconditioner_methods[] = {
 PyTypeObject PCAPreconditioner_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                      /*ob_size*/
-	"mcm.PCAPreconditioner",                /*tp_name*/
+	"cmt.PCAPreconditioner",                /*tp_name*/
 	sizeof(PCAPreconditionerObject),        /*tp_basicsize*/
 	0,                                      /*tp_itemsize*/
 	(destructor)Preconditioner_dealloc,     /*tp_dealloc*/
@@ -371,7 +371,7 @@ PyTypeObject PCAPreconditioner_type = {
 
 
 
-static PyMethodDef mcm_methods[] = {
+static PyMethodDef cmt_methods[] = {
 	{"random_select", (PyCFunction)random_select, METH_VARARGS|METH_KEYWORDS, random_select_doc},
 	{"generate_data_from_image", (PyCFunction)generate_data_from_image, METH_VARARGS|METH_KEYWORDS, generate_data_from_image_doc},
 	{"generate_data_from_video", (PyCFunction)generate_data_from_video, METH_VARARGS|METH_KEYWORDS, generate_data_from_video_doc},
@@ -383,7 +383,7 @@ static PyMethodDef mcm_methods[] = {
 
 
 
-PyMODINIT_FUNC initmcm() {
+PyMODINIT_FUNC initcmt() {
 	// set random seed
 	timeval time;
 	gettimeofday(&time, 0);
@@ -393,7 +393,7 @@ PyMODINIT_FUNC initmcm() {
 	import_array();
 
 	// create module object
-	PyObject* module = Py_InitModule("mcm", mcm_methods);
+	PyObject* module = Py_InitModule("cmt", cmt_methods);
 
 	// initialize types
 	if(PyType_Ready(&CD_type) < 0)
