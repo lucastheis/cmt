@@ -39,7 +39,7 @@ CMT::PCAPreconditioner::PCAPreconditioner(
 		numPCs = 0;
 
 		for(int i = mEigenvalues.size() - 1; i >= 0; --i, ++numPCs) {
-			varExplainedSoFar += mEigenvalues[i] / totalVariance;
+			varExplainedSoFar += mEigenvalues[i] / totalVariance * 100.;
 			if(varExplainedSoFar > varExplained)
 				break;
 		}

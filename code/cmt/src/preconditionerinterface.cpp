@@ -415,7 +415,7 @@ const char* PCAPreconditioner_doc =
 	"\n"
 	"Additionally, the data is decorrelated as by L{WhiteningPreconditioner}.\n"
 	"\n"
-	"To create a preconditioner which retains (at least) 98.5\% of the input variance, use:\n"
+	"To create a preconditioner which retains (at least) 98.5% of the input variance, use:\n"
 	"\n"
 	"\t>>> pca = PCAPreconditioner(input, output, var_explained=98.5)\n"
 	"\n"
