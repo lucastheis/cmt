@@ -529,7 +529,7 @@ vector<ArrayXXd> sampleImage(
 			throw Exception("Input and output masks should be of the same size.");
 		if(inputMask[m].cols() != inputMask[0].cols() || inputMask[m].rows() != outputMask[0].rows())
 			throw Exception("Input and output masks should be of the same size.");
-		if(img[m].cols() != img[0].cols() || img[m].rows() != img[0].cols())
+		if(img[m].cols() != img[0].cols() || img[m].rows() != img[0].rows())
 			throw Exception("All image channels should be of the same size.");
 
 		inputIndices.push_back(Tuples());
