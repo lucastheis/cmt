@@ -147,6 +147,9 @@ static PyMethodDef MCGSM_methods[] = {
 	{"_compute_gradient",
 		(PyCFunction)MCGSM_compute_gradient,
 		METH_VARARGS|METH_KEYWORDS, 0},
+	{"_compute_data_gradient",
+		(PyCFunction)MCGSM_compute_data_gradient,
+		METH_VARARGS|METH_KEYWORDS, 0},
 	{"__reduce__", (PyCFunction)MCGSM_reduce, METH_NOARGS, MCGSM_reduce_doc},
 	{"__setstate__", (PyCFunction)MCGSM_setstate, METH_VARARGS, MCGSM_setstate_doc},
 	{0}

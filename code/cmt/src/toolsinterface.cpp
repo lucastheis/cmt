@@ -532,27 +532,14 @@ PyObject* fill_in_image(PyObject* self, PyObject* args, PyObject* kwds) {
 
 	try {
 		PyObject* imgSample;
-//		if(PyArray_NDIM(img) > 2) {
-//			if(PyArray_NDIM(xmask) > 2 && PyArray_NDIM(ymask) > 2) {
-//				// multi-channel image and multi-channel masks
-//				imgSample = 
-//					sampleImage(
-//						PyArray_ToArraysXXd(img),
-//						model,
-//						PyArray_ToArraysXXb(xmask),
-//						PyArray_ToArraysXXb(ymask),
-//						preconditioner));
-//			} else {
-//				// multi-channel image and single-channel masks
-//				imgSample = PyArray_FromArraysXXd(
-//					sampleImage(
-//						PyArray_ToArraysXXd(img),
-//						model,
-//						PyArray_ToMatrixXb(xmask),
-//						PyArray_ToMatrixXb(ymask),
-//						preconditioner));
-//			}
-//		} else {
+		if(PyArray_NDIM(img) > 2) {
+			Py_DECREF(img);
+			Py_DECREF(xmask);
+			Py_DECREF(ymask);
+			Py_DECREF(fmask);
+			PyErr_SetString(PyExc_NotImplementedError, "Filling-in currently only works with grayscale images.");
+			return 0;
+		} else {
 			// single-channel image and single-channel masks
 			imgSample = PyArray_FromMatrixXd(
 				fillInImage(
@@ -564,18 +551,19 @@ PyObject* fill_in_image(PyObject* self, PyObject* args, PyObject* kwds) {
 					preconditioner,
 					num_iter,
 					num_steps));
-//		}
+		}
 
 		Py_DECREF(img);
 		Py_DECREF(xmask);
 		Py_DECREF(ymask);
+		Py_DECREF(fmask);
 
 		return imgSample;
-
 	} catch(Exception exception) {
 		Py_DECREF(img);
 		Py_DECREF(xmask);
 		Py_DECREF(ymask);
+		Py_DECREF(fmask);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}

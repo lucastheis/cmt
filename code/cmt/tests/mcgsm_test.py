@@ -6,6 +6,7 @@ sys.path.append('./code')
 from cmt import MCGSM
 from numpy import *
 from numpy import max
+from numpy.linalg import cholesky
 from numpy.random import *
 from scipy.stats import kstest, norm
 from pickle import dump, load
@@ -125,6 +126,11 @@ class Tests(unittest.TestCase):
 	def test_gradient(self):
 		mcgsm = MCGSM(5, 2, 2, 4, 10)
 
+		cholesky_factors = []
+		for k in range(mcgsm.num_components):
+			cholesky_factors.append(cholesky(cov(randn(mcgsm.dim_out, mcgsm.dim_out**2))))
+		mcgsm.cholesky_factors = cholesky_factors
+
 		err = mcgsm._check_gradient(
 			randn(mcgsm.dim_in, 1000),
 			randn(mcgsm.dim_out, 1000), 1e-5)
@@ -160,9 +166,50 @@ class Tests(unittest.TestCase):
 					'train_cholesky_factors': param == 'chol',
 					'train_predictors': param == 'pred',
 					'regularize_features': 1.,
-#					'regularize_predictors': 1e-3,
+					'regularize_predictors': 1.,
 				})
 			self.assertLess(err, 1e-8)
+
+
+
+	def test_data_gradient(self):
+		mcgsm = MCGSM(5, 3, 4, 5, 10)
+
+		cholesky_factors = []
+		for k in range(mcgsm.num_components):
+			cholesky_factors.append(cholesky(cov(randn(mcgsm.dim_out, mcgsm.dim_out**2))))
+		mcgsm.cholesky_factors = cholesky_factors
+
+		inputs = randn(mcgsm.dim_in, 100)
+		outputs = ones_like(mcgsm.sample(inputs))
+
+		dx, dy = mcgsm._compute_data_gradient(inputs, outputs)
+
+		h = 1e-5
+
+		dx_ = zeros_like(dx)
+		dy_ = zeros_like(dy)
+
+		for i in range(mcgsm.dim_in):
+			inputs_p = inputs.copy()
+			inputs_m = inputs.copy()
+			inputs_p[i] += h
+			inputs_m[i] -= h
+			dx_[i] = (
+				mcgsm.loglikelihood(inputs_p, outputs) -
+				mcgsm.loglikelihood(inputs_m, outputs)) / (2. * h)
+
+		for i in range(mcgsm.dim_out):
+			outputs_p = outputs.copy()
+			outputs_m = outputs.copy()
+			outputs_p[i] += h
+			outputs_m[i] -= h
+			dy_[i] = (
+				mcgsm.loglikelihood(inputs, outputs_p) -
+				mcgsm.loglikelihood(inputs, outputs_m)) / (2. * h)
+
+		self.assertLess(max(abs(dy_ - dy)), 1e-8)
+		self.assertLess(max(abs(dx_ - dx)), 1e-8)
 
 
 

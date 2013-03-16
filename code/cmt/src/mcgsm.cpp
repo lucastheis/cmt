@@ -931,3 +931,102 @@ double MCGSM::computeGradient(
 	// return negative penalized average log-likelihood
 	return value;
 }
+
+
+
+pair<ArrayXXd, ArrayXXd> MCGSM::computeDataGradient(const MatrixXd& input, const MatrixXd& output) const {
+	// compute unnormalized posterior
+	MatrixXd featureOutput = mFeatures.transpose() * input;
+	MatrixXd featureOutputSqr = featureOutput.array().square();
+	MatrixXd weightsSqr = mWeights.array().square();
+	MatrixXd weightsSqrOutput = weightsSqr * featureOutputSqr;
+
+	// containers for intermediate results
+	vector<ArrayXXd> logPosteriorIn(mNumComponents);
+	vector<ArrayXXd> logPosteriorOut(mNumComponents);
+	vector<MatrixXd> predError(mNumComponents);
+	vector<VectorXd> scalesExp(mNumComponents);
+
+	// partial normalization constants
+	ArrayXXd logNormInScales(mNumComponents, input.cols());
+	ArrayXXd logNormOutScales(mNumComponents, input.cols());
+
+	#pragma omp parallel for
+	for(int i = 0; i < mNumComponents; ++i) {
+		scalesExp[i] = mScales.row(i).transpose().array().exp();
+
+		// gate energy
+		ArrayXXd negEnergyGate = -scalesExp[i] / 2. * weightsSqrOutput.row(i);
+		negEnergyGate.colwise() += mPriors.row(i).transpose();
+
+		predError[i] = mCholeskyFactors[i].transpose() * (output - mPredictors[i] * input);
+		ArrayXXd negEnergyExpert = -scalesExp[i] / 2. * predError[i].colwise().squaredNorm();
+
+		// normalize expert energy
+		double logDet = mCholeskyFactors[i].diagonal().array().abs().log().sum();
+		negEnergyExpert.colwise() += mDimOut / 2. * mScales.row(i).transpose() + logDet;
+
+		// unnormalized posterior
+		logPosteriorIn[i] = negEnergyGate;
+		logPosteriorOut[i] = negEnergyGate + negEnergyExpert;
+
+		// compute normalization constants for posterior over scales
+		logNormInScales.row(i) = logSumExp(logPosteriorIn[i]);
+		logNormOutScales.row(i) = logSumExp(logPosteriorOut[i]);
+	}
+
+	Array<double, 1, Dynamic> logNormIn;
+	Array<double, 1, Dynamic> logNormOut;
+
+	// compute normalization constants
+	#pragma omp parallel sections
+	{
+		#pragma omp section
+		logNormIn = logSumExp(logNormInScales);
+		#pragma omp section
+		logNormOut = logSumExp(logNormOutScales);
+	}
+
+	ArrayXXd inputGradients = ArrayXXd::Zero(mDimIn, input.cols());
+	ArrayXXd outputGradients = ArrayXXd::Zero(mDimOut, output.cols());
+
+	#pragma omp parallel for
+	for(int i = 0; i < mNumComponents; ++i) {
+		// normalize posterior
+		logPosteriorIn[i].rowwise() -= logNormIn;
+		logPosteriorOut[i].rowwise() -= logNormOut;
+
+		// posterior over this component and all scales
+		MatrixXd posteriorIn = logPosteriorIn[i].exp();
+		MatrixXd posteriorOut = logPosteriorOut[i].exp();
+		MatrixXd posteriorDiff = posteriorOut - posteriorIn;
+
+		ArrayXXd dpdy = -mCholeskyFactors[i] * predError[i];
+		ArrayXXd dpdx = -mPredictors[i].transpose() * dpdy.matrix();
+		ArrayXXd dfdx = -(mFeatures.array().rowwise() * weightsSqr.row(i).array()).matrix() * featureOutput;
+
+		// weights for this component
+		Array<double, 1, Dynamic> weightsOut = scalesExp[i].transpose() * posteriorOut;
+		Array<double, 1, Dynamic> weightsDiff = scalesExp[i].transpose() * posteriorDiff;
+
+//		std::cout << dpdx << std::endl;
+//		std::cout << "---------" << std::endl;
+//		std::cout << dfdx << std::endl;
+//		std::cout << "---------" << std::endl;
+//		std::cout << dpdx.rowwise() * weightsOut << std::endl;
+//		std::cout << "---------" << std::endl;
+//		std::cout << dfdx.rowwise() * weightsDiff << std::endl;
+//		std::cout << "---------" << std::endl;
+
+		#pragma omp critical
+		{
+			inputGradients += dpdx.rowwise() * weightsOut + dfdx.rowwise() * weightsDiff;
+			outputGradients += dpdy.rowwise() * weightsOut;
+		}
+	}
+//
+//	std::cout << inputGradients << std::endl;
+//	std::cout << "---------" << std::endl;
+
+	return make_pair(inputGradients, outputGradients);
+}

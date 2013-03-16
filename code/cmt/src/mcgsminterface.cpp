@@ -3,6 +3,8 @@
 #include "exception.h"
 #include "callbacktrain.h"
 
+#include <iostream>
+
 using namespace Eigen;
 
 MCGSM::Parameters PyObject_ToParameters(MCGSMObject* self, PyObject* parameters) {
@@ -962,6 +964,8 @@ PyObject* MCGSM_compute_gradient(MCGSMObject* self, PyObject* args, PyObject* kw
 	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	if(!input || !output) {
+		Py_XDECREF(input);
+		Py_XDECREF(output);
 		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
 		return 0;
 	}
@@ -998,6 +1002,52 @@ PyObject* MCGSM_compute_gradient(MCGSMObject* self, PyObject* args, PyObject* kw
 		Py_DECREF(input);
 		Py_DECREF(output);
 		Py_XDECREF(x);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+}
+
+
+
+PyObject* MCGSM_compute_data_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", "output", 0};
+
+	PyObject* input;
+	PyObject* output;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output) {
+		Py_XDECREF(input);
+		Py_XDECREF(output);
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		pair<ArrayXXd, ArrayXXd> gradients = self->mcgsm->computeDataGradient(
+				PyArray_ToMatrixXd(input), 
+				PyArray_ToMatrixXd(output));
+
+		PyObject* inputGradient = PyArray_FromMatrixXd(gradients.first);
+		PyObject* outputGradient = PyArray_FromMatrixXd(gradients.second);
+		PyObject* tuple = Py_BuildValue("(OO)", inputGradient, outputGradient);
+
+		Py_DECREF(inputGradient);
+		Py_DECREF(outputGradient);
+		Py_DECREF(input);
+		Py_DECREF(output);
+
+		return tuple;
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}

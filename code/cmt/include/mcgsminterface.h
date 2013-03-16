@@ -63,6 +63,8 @@ PyObject* MCGSM_parameters(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_set_parameters(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_compute_gradient(MCGSMObject*, PyObject*, PyObject*);
 
+PyObject* MCGSM_compute_data_gradient(MCGSMObject*, PyObject*, PyObject*);
+
 PyObject* MCGSM_reduce(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_setstate(MCGSMObject*, PyObject*, PyObject*);
 
