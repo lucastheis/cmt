@@ -35,7 +35,7 @@ model.train(input, output, parameters={
 	'threshold': 1e-5})
 
 # evaluate log-likelihood [nats] on the training data
-loglik = model.loglikelihood(input, output) + wt.logjacobian(input, output)
+loglik = model.loglikelihood(input, output) + wt.logjacobian(*wt.inverse(input, output))
 ```
 
 ## Installation
