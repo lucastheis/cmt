@@ -183,7 +183,10 @@ class Tests(unittest.TestCase):
 		inputs = randn(mcgsm.dim_in, 100)
 		outputs = ones_like(mcgsm.sample(inputs))
 
-		dx, dy = mcgsm._compute_data_gradient(inputs, outputs)
+		# compute density gradient and loglikelihood
+		dx, dy, ll = mcgsm._compute_data_gradient(inputs, outputs)
+
+		self.assertLess(max(abs(ll - mcgsm.loglikelihood(inputs, outputs))), 1e-8)
 
 		h = 1e-5
 

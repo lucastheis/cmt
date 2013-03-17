@@ -570,3 +570,91 @@ PyObject* fill_in_image(PyObject* self, PyObject* args, PyObject* kwds) {
 
 	return 0;
 }
+
+
+
+PyObject* fill_in_image_map(PyObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"img", "model", "xmask", "ymask", "fmask", "preconditioner", "num_iter", "patch_size", 0};
+
+	PyObject* img;
+	PyObject* modelObj;
+	PyObject* xmask;
+	PyObject* ymask;
+	PyObject* fmask;
+	PyObject* preconditionerObj = 0;
+	int num_iter = 10;
+	int patch_size = 20;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!OOO|O!ii", const_cast<char**>(kwlist),
+		&img, &CD_type, &modelObj, &xmask, &ymask, &fmask,
+		&Preconditioner_type, &preconditionerObj, &num_iter, &patch_size))
+		return 0;
+
+	const ConditionalDistribution& model = *reinterpret_cast<CDObject*>(modelObj)->cd;
+
+	Preconditioner* preconditioner = preconditionerObj ?
+		reinterpret_cast<PreconditionerObject*>(preconditionerObj)->preconditioner : 0;
+
+	// make sure data is stored in NumPy array
+	img = PyArray_FROM_OTF(img, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	fmask = PyArray_FROM_OTF(fmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!img) {
+		Py_XDECREF(xmask);
+		Py_XDECREF(ymask);
+		Py_XDECREF(fmask);
+		PyErr_SetString(PyExc_TypeError, "The image has to be given as an array.");
+		return 0;
+	}
+
+	if(!xmask || !ymask || !fmask) {
+		Py_DECREF(img);
+		Py_XDECREF(xmask);
+		Py_XDECREF(ymask);
+		Py_XDECREF(fmask);
+		PyErr_SetString(PyExc_TypeError, "Masks have to be given as Boolean arrays.");
+		return 0;
+	}
+
+	try {
+		PyObject* imgMAP;
+		if(PyArray_NDIM(img) > 2) {
+			Py_DECREF(img);
+			Py_DECREF(xmask);
+			Py_DECREF(ymask);
+			Py_DECREF(fmask);
+			PyErr_SetString(PyExc_NotImplementedError, "Filling-in currently only works with grayscale images.");
+			return 0;
+		} else {
+			// single-channel image and single-channel masks
+			imgMAP = PyArray_FromMatrixXd(
+				fillInImageMAP(
+					PyArray_ToMatrixXd(img),
+					model,
+					PyArray_ToMatrixXb(xmask),
+					PyArray_ToMatrixXb(ymask),
+					PyArray_ToMatrixXb(fmask),
+					preconditioner,
+					num_iter,
+					patch_size));
+		}
+
+		Py_DECREF(img);
+		Py_DECREF(xmask);
+		Py_DECREF(ymask);
+		Py_DECREF(fmask);
+
+		return imgMAP;
+	} catch(Exception exception) {
+		Py_DECREF(img);
+		Py_DECREF(xmask);
+		Py_DECREF(ymask);
+		Py_DECREF(fmask);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}

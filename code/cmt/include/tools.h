@@ -20,9 +20,10 @@ using Eigen::Array;
 using Eigen::Dynamic;
 
 typedef Array<bool, Dynamic, Dynamic> ArrayXXb;
-typedef vector<pair<int, int> > Tuples;
+typedef pair<int, int> Tuple;
+typedef vector<Tuple> Tuples;
 
-VectorXd extractFromImage(ArrayXXd img, Tuples indices);
+VectorXd extractFromImage(const ArrayXXd& img, const Tuples& indices);
 pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 	ArrayXXd img,
 	ArrayXXb inputMask,
@@ -80,5 +81,14 @@ ArrayXXd fillInImage(
 	const Preconditioner* preconditioner = 0,
 	int numIterations = 10,
 	int numSteps = 100);
+ArrayXXd fillInImageMAP(
+	ArrayXXd img,
+	const ConditionalDistribution& model,
+	ArrayXXb inputMask,
+	ArrayXXb outputMask,
+	ArrayXXb fillInMask,
+	const Preconditioner* preconditioner = 0,
+	int numIterations = 10,
+	int patchSize = 20);
 
 #endif

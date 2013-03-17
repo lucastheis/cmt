@@ -1031,13 +1031,15 @@ PyObject* MCGSM_compute_data_gradient(MCGSMObject* self, PyObject* args, PyObjec
 	}
 
 	try {
-		pair<ArrayXXd, ArrayXXd> gradients = self->mcgsm->computeDataGradient(
+		pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > gradients =
+			 self->mcgsm->computeDataGradient(
 				PyArray_ToMatrixXd(input), 
 				PyArray_ToMatrixXd(output));
 
-		PyObject* inputGradient = PyArray_FromMatrixXd(gradients.first);
-		PyObject* outputGradient = PyArray_FromMatrixXd(gradients.second);
-		PyObject* tuple = Py_BuildValue("(OO)", inputGradient, outputGradient);
+		PyObject* inputGradient = PyArray_FromMatrixXd(gradients.first.first);
+		PyObject* outputGradient = PyArray_FromMatrixXd(gradients.first.second);
+		PyObject* logLikelihood = PyArray_FromMatrixXd(gradients.second);
+		PyObject* tuple = Py_BuildValue("(OOO)", inputGradient, outputGradient, logLikelihood);
 
 		Py_DECREF(inputGradient);
 		Py_DECREF(outputGradient);

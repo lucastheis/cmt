@@ -8,6 +8,10 @@ using std::rand;
 #include <cmath>
 using std::exp;
 
+#include <set>
+using std::set;
+
+#include "lbfgs.h"
 #include "tools.h"
 #include "utils.h"
 #include "exception.h"
@@ -17,7 +21,7 @@ using Eigen::ArrayXd;
 
 #include <iostream>
 
-VectorXd extractFromImage(ArrayXXd img, Tuples indices) {
+VectorXd extractFromImage(const ArrayXXd& img, const Tuples& indices) {
 	VectorXd pixels(indices.size());
 
 	for(int i = 0; i < indices.size(); ++i)
@@ -792,10 +796,10 @@ ArrayXXd fillInImage(
 	Tuples& outputIndices = inOutIndices.second;
 	Tuples offsets;
 
-	// TODO: remove pixels from fillInIndices which cannot be predicted
-
 	if(outputIndices.size() != 1)
 		throw Exception("Only one-pixel output masks are currently supported.");
+
+	// TODO: remove pixels from fillInIndices which cannot be predicted
 
 	// compute offsets
 	offsets.push_back(make_pair(-outputIndices[0].first, -outputIndices[0].second));
@@ -845,6 +849,185 @@ ArrayXXd fillInImage(
 			}
 
 			std::cout << "acceptance rate: " << static_cast<double>(counter) / numSteps << std::endl;
+		}
+
+	return img;
+}
+
+
+
+struct BFGSInstance {
+	const Tuples* positions;
+	const ConditionalDistribution* model;
+	ArrayXXd* img;
+	const Tuples* inputIndices;
+	const Tuples* outputIndices;
+	const Tuples* block;
+	const ArrayXXb* inputMask;
+};
+
+
+
+inline lbfgsfloatval_t fillInImageMAPGradient(
+	void* instance,
+	const lbfgsfloatval_t* x,
+	lbfgsfloatval_t* g,
+	int, double)
+{
+	const Tuples& positions = *static_cast<BFGSInstance*>(instance)->positions;
+	const ConditionalDistribution& model = *static_cast<BFGSInstance*>(instance)->model;
+	const Tuples& inputIndices = *static_cast<BFGSInstance*>(instance)->inputIndices;
+	const Tuples& outputIndices = *static_cast<BFGSInstance*>(instance)->outputIndices;
+	const Tuples& block = *static_cast<BFGSInstance*>(instance)->block;
+	ArrayXXd& img = *static_cast<BFGSInstance*>(instance)->img;
+	const ArrayXXb& inputMask = *static_cast<BFGSInstance*>(instance)->inputMask;
+
+	// extract relevant inputs and outputs from image
+	ArrayXXd inputs(model.dimIn(), positions.size());
+	ArrayXXd outputs(model.dimOut(), positions.size());
+
+	// load current state of pixels into image
+	for(int i = 0; i < block.size(); ++i)
+		img(block[i].first, block[i].second) = x[i];
+
+	for(int i = 0; i < positions.size(); ++i) {
+		ArrayXXd patch = img.block(
+			positions[i].first,
+			positions[i].second,
+			inputMask.rows(),
+			inputMask.cols());
+		inputs.col(i) = extractFromImage(patch, inputIndices);
+		outputs.col(i) = extractFromImage(patch, outputIndices);
+	}
+
+	// compute gradients
+	pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > results =
+		model.computeDataGradient(inputs, outputs);
+	ArrayXXd& inputGradient = results.first.first;
+	ArrayXXd& outputGradient = results.first.second;
+	Array<double, 1, Dynamic>& logLikelihood = results.second;
+
+	// combine gradients
+	ArrayXXd gradient = ArrayXXd::Zero(img.rows(), img.cols());
+
+	for(int i = 0; i < positions.size(); ++i) {
+		Block<ArrayXXd> patch = gradient.block(
+			positions[i].first,
+			positions[i].second,
+			inputMask.rows(),
+			inputMask.cols());
+
+		for(int j = 0; j <= inputIndices.size(); ++j)
+			patch(inputIndices[i].first, inputIndices[i].second) += inputGradient(j, i);
+
+		for(int j = 0; j <= outputIndices.size(); ++j)
+			patch(outputIndices[i].first, outputIndices[i].second) += outputGradient(j, i);
+	}
+
+	// store relevant part of gradient
+	if(g)
+		for(int i = 0; i < block.size(); ++i)
+			g[i] = gradient(block[i].first, block[i].second);
+
+	return logLikelihood.sum();
+}
+
+
+
+ArrayXXd fillInImageMAP(
+	ArrayXXd img,
+	const ConditionalDistribution& model,
+	ArrayXXb inputMask,
+	ArrayXXb outputMask,
+	ArrayXXb fillInMask,
+	const Preconditioner* preconditioner,
+	int numIterations,
+	int patchSize)
+{
+	if(fillInMask.rows() != img.rows() || fillInMask.cols() != img.cols())
+		throw Exception("Image and mask size incompatible.");
+
+	pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask, outputMask);
+	Tuples& inputIndices = inOutIndices.first;
+	Tuples& outputIndices = inOutIndices.second;
+
+	// TODO: allow for more general output masks
+	if(outputIndices.size() != 1)
+		throw Exception("Only one-pixel output masks are currently supported.");
+
+	// TODO: remove pixels from fillInIndices which cannot be predicted (or extend image)
+
+	// divide unobserved pixels into blocks
+	vector<Tuples> blocks;
+
+	// TODO: add missing blocks
+	for(int i = 0; i < img.rows() - patchSize; i += patchSize) {
+		for(int j = 0; j < img.cols() - patchSize; j += patchSize) {
+			Tuples indices = maskToIndices(fillInMask.block(i, j, patchSize, patchSize));
+
+			if(indices.size()) {
+				for(Tuples::iterator it = blocks.back().begin(); it != indices.end(); ++it) {
+					it->first += i;
+					it->second += j;
+				}
+				blocks.push_back(indices);
+			}
+		}
+	}
+
+	Tuples fillInIndices = maskToIndices(fillInMask);
+
+	// precompute relative positions of neighborhoods which depend on a pixel
+	Tuples offsets;
+	offsets.push_back(make_pair(-outputIndices[0].first, -outputIndices[0].second));
+	for(int i = 0; i < inputIndices.size(); ++i)
+		offsets.push_back(make_pair(-inputIndices[i].first, -inputIndices[i].second));
+
+	for(int i = 0; i < numIterations; ++i)
+		// alternately optimize each block of pixels
+		for(int j = 0; j < blocks.size(); ++j) {
+			Tuples& block = blocks[j];
+
+			// compute relevant neighborhood positions
+			set<Tuple> uniquePositions;
+			for(int k = 0; k < block.size(); ++k)
+				for(int l = 0; l < offsets.size(); ++l)
+					uniquePositions.insert(make_pair(
+						block[k].first + offsets[l].first,
+						block[k].second + offsets[l].second));
+
+			// turn set into vector
+			Tuples positions(uniquePositions.begin(), uniquePositions.end());
+
+			// copy pixels into array
+			lbfgsfloatval_t* x = lbfgs_malloc(blocks[j].size());
+
+			for(int k = 0; k < block.size(); ++k)
+				x[k] = img(block[k].first, block[k].second);
+
+			// summarize variables needed to compute gradient
+			BFGSInstance instance = {
+				&positions, &model, &img, &inputIndices, &outputIndices, &block, &inputMask };
+
+			// optimization hyperparameters
+			lbfgs_parameter_t params;
+			lbfgs_parameter_init(&params);
+			params.max_iterations = 50;
+			params.m = 6;
+			params.epsilon = 1e-5;
+			params.linesearch = LBFGS_LINESEARCH_MORETHUENTE;
+			params.max_linesearch = 100;
+			params.ftol = 1e-4;
+			params.xtol = 1e-32;
+
+			// start optimization
+			lbfgs(block.size(), x, 0, &fillInImageMAPGradient, 0, &instance, &params);
+
+			// copy pixels back
+			for(int k = 0; k < block.size(); ++k)
+				img(block[k].first, block[k].second) = x[k];
+
+			lbfgs_free(x);
 		}
 
 	return img;

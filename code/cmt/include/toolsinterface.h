@@ -24,5 +24,6 @@ PyObject* generate_data_from_video(PyObject*, PyObject*, PyObject*);
 PyObject* sample_image(PyObject*, PyObject*, PyObject*);
 PyObject* sample_video(PyObject*, PyObject*, PyObject*);
 PyObject* fill_in_image(PyObject*, PyObject*, PyObject*);
+PyObject* fill_in_image_map(PyObject*, PyObject*, PyObject*);
 
 #endif

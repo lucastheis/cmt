@@ -14,6 +14,7 @@ using std::endl;
 using namespace std;
 using namespace Eigen;
 
+// TODO: use struct for ParamsLBFGS
 typedef pair<pair<const MCGSM*, const MCGSM::Parameters*>, pair<const MatrixXd*, const MatrixXd*> > ParamsLBFGS;
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
 
@@ -49,10 +50,10 @@ static int callbackLBFGS(
 
 
 lbfgsfloatval_t evaluateLBFGS(
-	void* instance, 
-	const lbfgsfloatval_t* x, 
-	lbfgsfloatval_t* g, 
-	int, double) 
+	void* instance,
+	const lbfgsfloatval_t* x,
+	lbfgsfloatval_t* g,
+	int, double)
 {
 	// unpack user data
 	const MCGSM& mcgsm = *static_cast<ParamsLBFGS*>(instance)->first.first;
@@ -238,7 +239,7 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters para
 	// start LBFGS optimization
 	int status = LBFGSERR_MAXIMUMITERATION;
 	if(params.maxIter > 0)
-		 status = lbfgs(numParameters(params), x, 0, &evaluateLBFGS, &callbackLBFGS, &instance, &paramsLBFGS);
+		status = lbfgs(numParameters(params), x, 0, &evaluateLBFGS, &callbackLBFGS, &instance, &paramsLBFGS);
 
 	// copy parameters back
 	setParameters(x, params);
@@ -934,7 +935,10 @@ double MCGSM::computeGradient(
 
 
 
-pair<ArrayXXd, ArrayXXd> MCGSM::computeDataGradient(const MatrixXd& input, const MatrixXd& output) const {
+pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > MCGSM::computeDataGradient(
+	const MatrixXd& input,
+	const MatrixXd& output) const 
+{
 	// compute unnormalized posterior
 	MatrixXd featureOutput = mFeatures.transpose() * input;
 	MatrixXd featureOutputSqr = featureOutput.array().square();
@@ -964,7 +968,8 @@ pair<ArrayXXd, ArrayXXd> MCGSM::computeDataGradient(const MatrixXd& input, const
 
 		// normalize expert energy
 		double logDet = mCholeskyFactors[i].diagonal().array().abs().log().sum();
-		negEnergyExpert.colwise() += mDimOut / 2. * mScales.row(i).transpose() + logDet;
+		negEnergyExpert.colwise() += mDimOut / 2. * mScales.row(i).transpose() 
+			+ logDet - mDimOut / 2. * log(2. * PI);
 
 		// unnormalized posterior
 		logPosteriorIn[i] = negEnergyGate;
@@ -986,6 +991,8 @@ pair<ArrayXXd, ArrayXXd> MCGSM::computeDataGradient(const MatrixXd& input, const
 		#pragma omp section
 		logNormOut = logSumExp(logNormOutScales);
 	}
+
+	Array<double, 1, Dynamic> logLikelihood = logNormOut - logNormIn;
 
 	ArrayXXd inputGradients = ArrayXXd::Zero(mDimIn, input.cols());
 	ArrayXXd outputGradients = ArrayXXd::Zero(mDimOut, output.cols());
@@ -1009,24 +1016,12 @@ pair<ArrayXXd, ArrayXXd> MCGSM::computeDataGradient(const MatrixXd& input, const
 		Array<double, 1, Dynamic> weightsOut = scalesExp[i].transpose() * posteriorOut;
 		Array<double, 1, Dynamic> weightsDiff = scalesExp[i].transpose() * posteriorDiff;
 
-//		std::cout << dpdx << std::endl;
-//		std::cout << "---------" << std::endl;
-//		std::cout << dfdx << std::endl;
-//		std::cout << "---------" << std::endl;
-//		std::cout << dpdx.rowwise() * weightsOut << std::endl;
-//		std::cout << "---------" << std::endl;
-//		std::cout << dfdx.rowwise() * weightsDiff << std::endl;
-//		std::cout << "---------" << std::endl;
-
 		#pragma omp critical
 		{
 			inputGradients += dpdx.rowwise() * weightsOut + dfdx.rowwise() * weightsDiff;
 			outputGradients += dpdy.rowwise() * weightsOut;
 		}
 	}
-//
-//	std::cout << inputGradients << std::endl;
-//	std::cout << "---------" << std::endl;
 
-	return make_pair(inputGradients, outputGradients);
+	return make_pair(make_pair(inputGradients, outputGradients), logLikelihood);
 }

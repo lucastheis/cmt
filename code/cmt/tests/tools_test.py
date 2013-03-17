@@ -7,7 +7,7 @@ from cmt import MCGSM, WhiteningPreconditioner
 from cmt import random_select
 from cmt import generate_data_from_image, sample_image
 from cmt import generate_data_from_video, sample_video
-from cmt import fill_in_image
+from cmt import fill_in_image, fill_in_image_map
 from numpy import *
 from numpy import max
 from numpy.random import *
@@ -200,6 +200,10 @@ class ToolsTest(unittest.TestCase):
 				[0, 1, 0],
 				[0, 0, 0]], dtype='bool')
 		fmask = rand(10, 10) > .9
+		fmask[0] = False
+		fmask[:, 0] = False
+		fmask[-1] = False
+		fmask[:, -1] = False
 		img = randn(10, 10)
 
 		model = MCGSM(4, 1)
@@ -209,7 +213,9 @@ class ToolsTest(unittest.TestCase):
 
 		# this should raise no exception
 		wt = WhiteningPreconditioner(randn(4, 1000), randn(1, 1000))
-		fill_in_image(img, model, xmask, ymask, fmask, wt, num_iter=1, num_steps=2)
+#		fill_in_image(img, model, xmask, ymask, fmask, wt, num_iter=1, num_steps=2)
+
+		fill_in_image_map(img, model, xmask, ymask, fmask, wt, num_iter=1, patch_size=20)
 
 
 

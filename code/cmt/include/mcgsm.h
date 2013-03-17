@@ -115,7 +115,7 @@ class MCGSM : public ConditionalDistribution {
 		virtual ArrayXXd posterior(const MatrixXd& input, const MatrixXd& output) const;
 		virtual Array<double, 1, Dynamic> logLikelihood(const MatrixXd& input, const MatrixXd& output) const;
 
-		virtual pair<ArrayXXd, ArrayXXd> computeDataGradient(const MatrixXd& input, const MatrixXd& output) const;
+		virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(const MatrixXd& input, const MatrixXd& output) const;
 
 		lbfgsfloatval_t* parameters(const Parameters& params) const;
 		void setParameters(const lbfgsfloatval_t* x, const Parameters& params);
