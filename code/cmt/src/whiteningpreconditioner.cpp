@@ -41,6 +41,9 @@ CMT::WhiteningPreconditioner::WhiteningPreconditioner(const ArrayXXd& input, con
 
 	// log-Jacobian determinant
 	mLogJacobian = mWhiteOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum();
+
+	// used for transforming gradients
+	mGradTransform = mWhiteOut * mPredictor * mWhiteIn;
 }
 
 
@@ -60,7 +63,8 @@ CMT::WhiteningPreconditioner::WhiteningPreconditioner(
 	mWhiteOut(whiteOut),
 	mWhiteOutInv(whiteOutInv),
 	mPredictor(predictor),
-	mLogJacobian(mWhiteOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum())
+	mLogJacobian(mWhiteOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum()),
+	mGradTransform(mWhiteOut * mPredictor * mWhiteIn)
 {
 }
 
@@ -147,4 +151,15 @@ ArrayXXd CMT::WhiteningPreconditioner::inverse(const ArrayXXd& input) const {
 
 Array<double, 1, Dynamic> CMT::WhiteningPreconditioner::logJacobian(const ArrayXXd& input, const ArrayXXd& output) const {
 	return Array<double, 1, Dynamic>::Zero(output.cols()) + mLogJacobian;
+}
+
+
+
+pair<ArrayXXd, ArrayXXd> CMT::WhiteningPreconditioner::adjustGradient(
+	const ArrayXXd& inputGradient,
+	const ArrayXXd& outputGradient) const
+{
+	return make_pair(
+		mWhiteIn.transpose() * inputGradient.matrix() - mGradTransform.transpose() * outputGradient.matrix(),
+		mWhiteOut.transpose() * outputGradient.matrix());
 }

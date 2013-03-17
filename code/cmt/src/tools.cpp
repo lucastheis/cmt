@@ -20,6 +20,7 @@ using Eigen::Block;
 using Eigen::ArrayXd;
 
 #include <iostream>
+#include <iomanip>
 
 VectorXd extractFromImage(const ArrayXXd& img, const Tuples& indices) {
 	VectorXd pixels(indices.size());
@@ -864,6 +865,7 @@ struct BFGSInstance {
 	const Tuples* outputIndices;
 	const Tuples* block;
 	const ArrayXXb* inputMask;
+	const Preconditioner* preconditioner;
 };
 
 
@@ -881,10 +883,11 @@ inline lbfgsfloatval_t fillInImageMAPGradient(
 	const Tuples& block = *static_cast<BFGSInstance*>(instance)->block;
 	ArrayXXd& img = *static_cast<BFGSInstance*>(instance)->img;
 	const ArrayXXb& inputMask = *static_cast<BFGSInstance*>(instance)->inputMask;
+	const Preconditioner* preconditioner = static_cast<BFGSInstance*>(instance)->preconditioner;
 
 	// extract relevant inputs and outputs from image
-	ArrayXXd inputs(model.dimIn(), positions.size());
-	ArrayXXd outputs(model.dimOut(), positions.size());
+	ArrayXXd inputs(inputIndices.size(), positions.size());
+	ArrayXXd outputs(outputIndices.size(), positions.size());
 
 	// load current state of pixels into image
 	for(int i = 0; i < block.size(); ++i)
@@ -900,9 +903,21 @@ inline lbfgsfloatval_t fillInImageMAPGradient(
 		outputs.col(i) = extractFromImage(patch, outputIndices);
 	}
 
+
 	// compute gradients
-	pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > results =
-		model.computeDataGradient(inputs, outputs);
+	pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > results;
+	
+	if(preconditioner) {
+		pair<ArrayXXd, ArrayXXd> data = preconditioner->operator()(inputs, outputs);
+		results = model.computeDataGradient(data.first, data.second);
+
+		// adjust gradient and likelihood to take transformation into account
+		results.first = preconditioner->adjustGradient(results.first.first, results.first.second);
+		results.second += preconditioner->logJacobian(inputs, outputs);
+	} else {
+		results = model.computeDataGradient(inputs, outputs);
+	}
+
 	ArrayXXd& inputGradient = results.first.first;
 	ArrayXXd& outputGradient = results.first.second;
 	Array<double, 1, Dynamic>& logLikelihood = results.second;
@@ -917,17 +932,22 @@ inline lbfgsfloatval_t fillInImageMAPGradient(
 			inputMask.rows(),
 			inputMask.cols());
 
-		for(int j = 0; j <= inputIndices.size(); ++j)
-			patch(inputIndices[i].first, inputIndices[i].second) += inputGradient(j, i);
+		for(int j = 0; j < inputIndices.size(); ++j)
+			patch(inputIndices[j].first, inputIndices[j].second) += inputGradient(j, i);
 
-		for(int j = 0; j <= outputIndices.size(); ++j)
-			patch(outputIndices[i].first, outputIndices[i].second) += outputGradient(j, i);
+		for(int j = 0; j < outputIndices.size(); ++j)
+			patch(outputIndices[j].first, outputIndices[j].second) += outputGradient(j, i);
 	}
 
+
 	// store relevant part of gradient
-	if(g)
-		for(int i = 0; i < block.size(); ++i)
+	if(g) {
+		for(int i = 0; i < block.size(); ++i) {
 			g[i] = gradient(block[i].first, block[i].second);
+			std::cout << g[i] << ", ";
+		}
+		std::cout << std::endl;
+	}
 
 	return logLikelihood.sum();
 }
@@ -966,7 +986,7 @@ ArrayXXd fillInImageMAP(
 			Tuples indices = maskToIndices(fillInMask.block(i, j, patchSize, patchSize));
 
 			if(indices.size()) {
-				for(Tuples::iterator it = blocks.back().begin(); it != indices.end(); ++it) {
+				for(Tuples::iterator it = indices.begin(); it != indices.end(); ++it) {
 					it->first += i;
 					it->second += j;
 				}
@@ -1007,7 +1027,7 @@ ArrayXXd fillInImageMAP(
 
 			// summarize variables needed to compute gradient
 			BFGSInstance instance = {
-				&positions, &model, &img, &inputIndices, &outputIndices, &block, &inputMask };
+				&positions, &model, &img, &inputIndices, &outputIndices, &block, &inputMask, preconditioner };
 
 			// optimization hyperparameters
 			lbfgs_parameter_t params;

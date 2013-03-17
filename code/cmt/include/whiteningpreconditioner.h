@@ -33,6 +33,10 @@ namespace CMT {
 
 			virtual Array<double, 1, Dynamic> logJacobian(const ArrayXXd& input, const ArrayXXd& output) const;
 
+			virtual pair<ArrayXXd, ArrayXXd> adjustGradient(
+				const ArrayXXd& inputGradient,
+				const ArrayXXd& outputGradient) const;
+
 			inline VectorXd meanIn() const;
 			inline VectorXd meanOut() const;
 			inline MatrixXd whiteIn() const;
@@ -50,6 +54,7 @@ namespace CMT {
 			MatrixXd mWhiteOutInv;
 			MatrixXd mPredictor;
 			double mLogJacobian;
+			MatrixXd mGradTransform;
 
 			WhiteningPreconditioner();
 	};
