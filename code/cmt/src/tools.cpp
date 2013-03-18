@@ -870,11 +870,12 @@ struct BFGSInstance {
 
 
 
-inline lbfgsfloatval_t fillInImageMAPGradient(
+lbfgsfloatval_t fillInImageMAPGradient(
 	void* instance,
 	const lbfgsfloatval_t* x,
 	lbfgsfloatval_t* g,
-	int, double)
+	const int, 
+	const lbfgsfloatval_t step)
 {
 	const Tuples& positions = *static_cast<BFGSInstance*>(instance)->positions;
 	const ConditionalDistribution& model = *static_cast<BFGSInstance*>(instance)->model;
@@ -902,7 +903,6 @@ inline lbfgsfloatval_t fillInImageMAPGradient(
 		inputs.col(i) = extractFromImage(patch, inputIndices);
 		outputs.col(i) = extractFromImage(patch, outputIndices);
 	}
-
 
 	// compute gradients
 	pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > results;
@@ -939,17 +939,13 @@ inline lbfgsfloatval_t fillInImageMAPGradient(
 			patch(outputIndices[j].first, outputIndices[j].second) += outputGradient(j, i);
 	}
 
-
 	// store relevant part of gradient
 	if(g) {
-		for(int i = 0; i < block.size(); ++i) {
-			g[i] = gradient(block[i].first, block[i].second);
-			std::cout << g[i] << ", ";
-		}
-		std::cout << std::endl;
+		for(int i = 0; i < block.size(); ++i)
+			g[i] = -gradient(block[i].first, block[i].second);
 	}
 
-	return logLikelihood.sum();
+	return -logLikelihood.sum();
 }
 
 
@@ -1020,7 +1016,7 @@ ArrayXXd fillInImageMAP(
 			Tuples positions(uniquePositions.begin(), uniquePositions.end());
 
 			// copy pixels into array
-			lbfgsfloatval_t* x = lbfgs_malloc(blocks[j].size());
+			lbfgsfloatval_t* x = lbfgs_malloc(block.size());
 
 			for(int k = 0; k < block.size(); ++k)
 				x[k] = img(block[k].first, block[k].second);
