@@ -1,5 +1,7 @@
 #include "Eigen/Cholesky"
+#include "Eigen/SVD"
 #include "utils.h"
+#include "exception.h"
 #include <algorithm>
 #include <vector>
 #include <iostream>
@@ -9,6 +11,7 @@
 #include <random>
 #endif
 
+using namespace Eigen;
 using namespace std;
 
 Array<double, 1, Dynamic> logSumExp(const ArrayXXd& array) {
@@ -37,12 +40,20 @@ ArrayXXd sampleNormal(int m, int n) {
 	return samples;
 }
 #else
-#warning "No C++11 support. Using my own implementation of the Box-Muller transform."
 ArrayXXd sampleNormal(int m, int n) {
-	ArrayXXd U1 = ArrayXXd::Random(m, n).abs();
-	ArrayXXd U2 = ArrayXXd::Random(m, n).abs();
+	ArrayXXd U = ArrayXXd::Random(m, n);
+	ArrayXXd V = ArrayXXd::Random(m, n);
+	ArrayXXd S = U.square() + V.square();
+
+	for(int i = 0; i < S.size(); ++i)
+		while(S(i) == 0. || S(i) > 1.) {
+			U(i) = ArrayXXd::Random(1, 1)(0);
+			V(i) = ArrayXXd::Random(1, 1)(0);
+			S(i) = U(i) * U(i) + V(i) * V(i);
+		}
+
 	// Box-Muller transform
-	return (-2. * U1.log()).sqrt() * (2. * PI * U2).cos();
+	return U * (-2. * S.log() / S).sqrt();
 }
 #endif
 
@@ -55,6 +66,35 @@ ArrayXXd sampleGamma(int m, int n, int k) {
 		samples -= ArrayXXd::Random(m, n).abs().log();
 
 	return samples;
+}
+
+
+
+set<int> randomSelect(int k, int n) {
+	if(k > n)
+		throw Exception("k must be smaller than n.");
+	if(k < 1 || n < 1)
+		throw Exception("n and k must be positive.");
+
+	// TODO: a hash map could be more efficient
+	set<int> indices;
+
+	if(k <= n / 2) {
+		for(int i = 0; i < k; ++i)
+			while(indices.insert(rand() % n).second != true) {
+				// repeat until insertion successful
+			}
+	} else {
+		// fill set with all indices
+		for(int i = 0; i < n; ++i)
+			indices.insert(i);
+		for(int i = 0; i < n - k; ++i)
+			while(!indices.erase(rand() % n)) {
+				// repeat until deletion successful
+			}
+	}
+
+	return indices;
 }
 
 
@@ -87,6 +127,17 @@ MatrixXd covariance(const MatrixXd& data) {
 
 
 
+MatrixXd covariance(const MatrixXd& input, const MatrixXd& output) {
+	if(input.cols() != output.cols())
+		throw Exception("Number of inputs and outputs must be the same.");
+
+	MatrixXd input_centered = input.colwise() - input.rowwise().mean().eval();
+	MatrixXd output_centered = output.colwise() - output.rowwise().mean().eval();
+	return input_centered * output_centered.transpose() / output.cols();
+}
+
+
+
 MatrixXd corrCoef(const MatrixXd& data) {
 	MatrixXd C = covariance(data);
 	VectorXd c = C.diagonal();
@@ -97,6 +148,20 @@ MatrixXd corrCoef(const MatrixXd& data) {
 
 MatrixXd normalize(const MatrixXd& matrix) {
 	return matrix.array().rowwise() / matrix.colwise().norm().eval().array();
+}
+
+
+
+MatrixXd pInverse(const MatrixXd& matrix) {
+	JacobiSVD<MatrixXd> svd(matrix, ComputeThinU | ComputeThinV);
+
+	VectorXd svInv = svd.singularValues();
+
+	for(int i = 0; i < svInv.size(); ++i)
+		if(svInv[i] > 1e-8)
+			svInv[i] = 1. / svInv[i];
+
+	return svd.matrixV() * svInv.asDiagonal() * svd.matrixU().transpose();
 }
 
 

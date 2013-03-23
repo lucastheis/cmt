@@ -1,40 +1,40 @@
 #include "callbacktrain.h"
 
 CallbackTrain::CallbackTrain(MCGSMObject* mcgsm, PyObject* callback) : 
-	mMcgsm(mcgsm), 
+	mMCGSM(mcgsm), 
 	mCallback(callback) 
 {
-	Py_INCREF(mMcgsm);
+	Py_INCREF(mMCGSM);
 	Py_INCREF(mCallback);
 }
 
 
 
 CallbackTrain::CallbackTrain(const CallbackTrain& callbackTrain) :
-	mMcgsm(callbackTrain.mMcgsm),
+	mMCGSM(callbackTrain.mMCGSM),
 	mCallback(callbackTrain.mCallback)
 {
-	Py_INCREF(mMcgsm);
+	Py_INCREF(mMCGSM);
 	Py_INCREF(mCallback);
 }
 
 
 
 CallbackTrain::~CallbackTrain() {
-	Py_DECREF(mMcgsm);
+	Py_DECREF(mMCGSM);
 	Py_DECREF(mCallback);
 }
 
 
 
 CallbackTrain& CallbackTrain::operator=(const CallbackTrain& callbackTrain) {
-	Py_DECREF(mMcgsm);
+	Py_DECREF(mMCGSM);
 	Py_DECREF(mCallback);
 
-	mMcgsm = callbackTrain.mMcgsm;
+	mMCGSM = callbackTrain.mMCGSM;
 	mCallback = callbackTrain.mCallback;
 
-	Py_INCREF(mMcgsm);
+	Py_INCREF(mMCGSM);
 	Py_INCREF(mCallback);
 
 	return *this;
@@ -48,9 +48,9 @@ CallbackTrain* CallbackTrain::copy() {
 
 
 
-bool CallbackTrain::operator()(int iter, const MCGSM&) {
+bool CallbackTrain::operator()(int iter, const MCGSM& mcgsm) {
 	// call Python object
-	PyObject* args = Py_BuildValue("(iO)", iter, mMcgsm);
+	PyObject* args = Py_BuildValue("(iO)", iter, mMCGSM);
 	PyObject* result = PyObject_CallObject(mCallback, args);
 
 	Py_DECREF(args);

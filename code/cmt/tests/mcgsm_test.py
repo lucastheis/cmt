@@ -2,15 +2,13 @@ import sys
 import unittest
 
 sys.path.append('./code')
-sys.path.append('./build/lib.macosx-10.6-intel-2.7')
-sys.path.append('./build/lib.linux-x86_64-2.7')
 
-from mcm import MCGSM
+from cmt import MCGSM
 from numpy import *
-from numpy.random import *
 from numpy import max
-from scipy.stats import kstest
-from scipy.optimize import check_grad
+from numpy.linalg import cholesky
+from numpy.random import *
+from scipy.stats import kstest, norm
 from pickle import dump, load
 from tempfile import mkstemp
 
@@ -111,14 +109,110 @@ class Tests(unittest.TestCase):
 
 
 
+	def test_sample(self):
+		mcgsm = MCGSM(1, 1, 1, 1, 1)
+		mcgsm.scales = [[0.]]
+		mcgsm.predictors = [[0.]]
+
+		samples = mcgsm.sample(zeros([1, 10000])).flatten()
+
+		p = kstest(samples, lambda x: norm.cdf(x, scale=1.))[1]
+
+		# make sure Gaussian random number generation works
+		self.assertTrue(p > 0.0001)
+
+
+
 	def test_gradient(self):
 		mcgsm = MCGSM(5, 2, 2, 4, 10)
 
-		err = mcgsm.check_gradient(
+		cholesky_factors = []
+		for k in range(mcgsm.num_components):
+			cholesky_factors.append(cholesky(cov(randn(mcgsm.dim_out, mcgsm.dim_out**2))))
+		mcgsm.cholesky_factors = cholesky_factors
+
+		err = mcgsm._check_gradient(
 			randn(mcgsm.dim_in, 1000),
 			randn(mcgsm.dim_out, 1000), 1e-5)
-
 		self.assertLess(err, 1e-8)
+
+		# without regularization
+		for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred']:
+			err = mcgsm._check_gradient(
+				randn(mcgsm.dim_in, 1000),
+				randn(mcgsm.dim_out, 1000),
+				1e-5,
+				parameters={
+					'train_prior': param == 'priors',
+					'train_scales': param == 'scales',
+					'train_weights': param == 'weights',
+					'train_features': param == 'features',
+					'train_cholesky_factors': param == 'chol',
+					'train_predictors': param == 'pred',
+				})
+			self.assertLess(err, 1e-8)
+
+		# with regularization
+		for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred']:
+			err = mcgsm._check_gradient(
+				randn(mcgsm.dim_in, 1000),
+				randn(mcgsm.dim_out, 1000),
+				1e-5,
+				parameters={
+					'train_prior': param == 'priors',
+					'train_scales': param == 'scales',
+					'train_weights': param == 'weights',
+					'train_features': param == 'features',
+					'train_cholesky_factors': param == 'chol',
+					'train_predictors': param == 'pred',
+					'regularize_features': 1.,
+					'regularize_predictors': 1.,
+				})
+			self.assertLess(err, 1e-8)
+
+
+
+	def test_data_gradient(self):
+		mcgsm = MCGSM(5, 3, 4, 5, 10)
+
+		cholesky_factors = []
+		for k in range(mcgsm.num_components):
+			cholesky_factors.append(cholesky(cov(randn(mcgsm.dim_out, mcgsm.dim_out**2))))
+		mcgsm.cholesky_factors = cholesky_factors
+
+		inputs = randn(mcgsm.dim_in, 100)
+		outputs = ones_like(mcgsm.sample(inputs))
+
+		# compute density gradient and loglikelihood
+		dx, dy, ll = mcgsm._compute_data_gradient(inputs, outputs)
+
+		self.assertLess(max(abs(ll - mcgsm.loglikelihood(inputs, outputs))), 1e-8)
+
+		h = 1e-5
+
+		dx_ = zeros_like(dx)
+		dy_ = zeros_like(dy)
+
+		for i in range(mcgsm.dim_in):
+			inputs_p = inputs.copy()
+			inputs_m = inputs.copy()
+			inputs_p[i] += h
+			inputs_m[i] -= h
+			dx_[i] = (
+				mcgsm.loglikelihood(inputs_p, outputs) -
+				mcgsm.loglikelihood(inputs_m, outputs)) / (2. * h)
+
+		for i in range(mcgsm.dim_out):
+			outputs_p = outputs.copy()
+			outputs_m = outputs.copy()
+			outputs_p[i] += h
+			outputs_m[i] -= h
+			dy_[i] = (
+				mcgsm.loglikelihood(inputs, outputs_p) -
+				mcgsm.loglikelihood(inputs, outputs_m)) / (2. * h)
+
+		self.assertLess(max(abs(dy_ - dy)), 1e-8)
+		self.assertLess(max(abs(dx_ - dx)), 1e-8)
 
 
 

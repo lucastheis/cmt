@@ -2,8 +2,9 @@
 #define DISTRIBUTION_H
 
 #include "Eigen/Core"
-
-using namespace Eigen;
+using Eigen::MatrixXd;
+using Eigen::Array;
+using Eigen::Dynamic;
 
 class Distribution {
 	public:
