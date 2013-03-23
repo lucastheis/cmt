@@ -92,7 +92,7 @@ CCompiler.compile = parallelCCompiler
 
 setup(
 	name='cmt',
-	version='0.0.1',
+	version='0.1.0',
 	author='Lucas Theis',
 	author_email='lucas@theis.io',
 	description='A C++ implementation of conditional models such as the MCGSM.',
