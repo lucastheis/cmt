@@ -44,10 +44,10 @@ static int callbackLBFGS(
 
 
 static lbfgsfloatval_t evaluateLBFGS(
-	void* instance, 
-	const lbfgsfloatval_t* x, 
-	lbfgsfloatval_t* g, 
-	int, double) 
+	void* instance,
+	const lbfgsfloatval_t* x,
+	lbfgsfloatval_t* g,
+	int, double)
 {
 	// unpack user data
 	const MCGSM& mcgsm = *static_cast<ParamsLBFGS*>(instance)->first.first;
@@ -58,7 +58,7 @@ static lbfgsfloatval_t evaluateLBFGS(
 	// average log-likelihood
 	double logLik = 0.;
 
-	// interpret memory for parameters and gradients
+	// interpret memory storing parameters and gradients
 	lbfgsfloatval_t* y = const_cast<lbfgsfloatval_t*>(x);
 
 	int offset = 0;
@@ -105,9 +105,9 @@ static lbfgsfloatval_t evaluateLBFGS(
 
 	if(g) {
 		// initialize gradients
-		featuresGrad.setZero();
-		weightsGrad.setZero();
 		priorsGrad.setZero();
+		weightsGrad.setZero();
+		featuresGrad.setZero();
 		scalesGrad.setZero();
 
 		for(int i = 0; i < mcgsm.numComponents(); ++i)

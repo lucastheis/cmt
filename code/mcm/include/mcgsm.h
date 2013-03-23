@@ -19,7 +19,7 @@ class MCGSM : public ConditionalDistribution {
 			public:
 				virtual ~Callback();
 				virtual Callback* copy() = 0;
-				virtual bool operator()(int iter, const MCGSM& isa) = 0;
+				virtual bool operator()(int iter, const MCGSM& mcgsm) = 0;
 		};
 
 		struct Parameters {
@@ -194,7 +194,7 @@ inline ArrayXXd MCGSM::priors() const {
 
 inline void MCGSM::setPriors(ArrayXXd priors) {
 	if(priors.rows() != mNumComponents || priors.cols() != mNumScales)
-		throw Exception("Wrong number of priors.");
+		throw Exception("Wrong number of prior weights.");
 	mPriors = priors;
 }
 
