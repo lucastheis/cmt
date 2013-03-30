@@ -4,9 +4,10 @@
 #include <arrayobject.h>
 #include <structmember.h>
 #include <stdlib.h>
-#include <time.h>
+#include <sys/time.h>
 #include "conditionaldistributioninterface.h"
 #include "mcgsminterface.h"
+#include "mcbminterface.h"
 #include "preconditionerinterface.h"
 #include "toolsinterface.h"
 #include "Eigen/Core"
@@ -22,8 +23,6 @@ static PyGetSetDef CD_getset[] = {
 	{0}
 };
 
-
-
 static PyMethodDef CD_methods[] = {
 	{"sample", (PyCFunction)CD_sample, METH_VARARGS|METH_KEYWORDS, CD_sample_doc},
 	{"loglikelihood",
@@ -36,8 +35,6 @@ static PyMethodDef CD_methods[] = {
 		CD_evaluate_doc},
 	{0}
 };
-
-
 
 PyTypeObject CD_type = {
 	PyObject_HEAD_INIT(0)
@@ -114,8 +111,6 @@ static PyGetSetDef MCGSM_getset[] = {
 	{0}
 };
 
-
-
 static PyMethodDef MCGSM_methods[] = {
 	{"initialize",
 		(PyCFunction)MCGSM_initialize,
@@ -154,8 +149,6 @@ static PyMethodDef MCGSM_methods[] = {
 	{"__setstate__", (PyCFunction)MCGSM_setstate, METH_VARARGS, MCGSM_setstate_doc},
 	{0}
 };
-
-
 
 PyTypeObject MCGSM_type = {
 	PyObject_HEAD_INIT(0)
@@ -199,7 +192,111 @@ PyTypeObject MCGSM_type = {
 	CD_new,                    /*tp_new*/
 };
 
+static PyGetSetDef MCBM_getset[] = {
+	{"dim_in", (getter)MCBM_dim_in, 0, "Dimensionality of inputs."},
+	{"dim_out", (getter)MCBM_dim_out, 0, "Dimensionality of outputs."},
+	{"num_components", (getter)MCBM_num_components, 0, "Numer of predictors."},
+	{"num_features",
+		(getter)MCBM_num_features, 0,
+		"Number of features available to approximate input covariances."},
+	{"priors",
+		(getter)MCBM_priors,
+		(setter)MCBM_set_priors,
+		"Log-weights of mixture components and scales, $\\eta_{cs}$."},
+	{"weights",
+		(getter)MCBM_weights,
+		(setter)MCBM_set_weights,
+		"Weights relating features and mixture components, $\\beta_{ci}$."},
+	{"features", 
+		(getter)MCBM_features,
+		(setter)MCBM_set_features,
+		"Features used for capturing structure in inputs, $\\mathbf{b}_i$."},
+	{"predictors",
+		(getter)MCBM_predictors,
+		(setter)MCBM_set_predictors,
+		"Parameters relating inputs and outputs, $\\mathbf{A}_c$."},
+	{"input_bias",
+		(getter)MCBM_input_bias,
+		(setter)MCBM_set_input_bias,
+		"Input bias vectors, $\\mathbf{w}_c$."},
+	{"output_bias",
+		(getter)MCBM_output_bias,
+		(setter)MCBM_set_output_bias,
+		"Output biases, $\\v_c$."},
+	{0}
+};
 
+static PyMethodDef MCBM_methods[] = {
+	{"sample", (PyCFunction)MCBM_sample, METH_VARARGS|METH_KEYWORDS, MCBM_sample_doc},
+	{"loglikelihood",
+		(PyCFunction)MCBM_loglikelihood,
+		METH_VARARGS|METH_KEYWORDS,
+		MCBM_loglikelihood_doc},
+	{"evaluate",
+		(PyCFunction)MCBM_evaluate,
+		METH_VARARGS|METH_KEYWORDS,
+		MCBM_evaluate_doc},
+	{"train", (PyCFunction)MCBM_train, METH_VARARGS|METH_KEYWORDS, MCBM_train_doc},
+	{"_parameters",
+		(PyCFunction)MCBM_parameters,
+		METH_VARARGS|METH_KEYWORDS,
+		MCBM_parameters_doc},
+	{"_set_parameters",
+		(PyCFunction)MCBM_set_parameters,
+		METH_VARARGS|METH_KEYWORDS,
+		MCBM_set_parameters_doc},
+	{"_compute_gradient",
+		(PyCFunction)MCBM_compute_gradient,
+		METH_VARARGS|METH_KEYWORDS, 0},
+	{"_check_gradient",
+		(PyCFunction)MCBM_check_gradient,
+		METH_VARARGS|METH_KEYWORDS, 0},
+	{"__reduce__", (PyCFunction)MCBM_reduce, METH_NOARGS, MCBM_reduce_doc},
+	{"__setstate__", (PyCFunction)MCBM_setstate, METH_VARARGS, MCBM_setstate_doc},
+	{0}
+};
+
+PyTypeObject MCBM_type = {
+	PyObject_HEAD_INIT(0)
+	0,                         /*ob_size*/
+	"cmt.MCBM",                /*tp_name*/
+	sizeof(MCBMObject),        /*tp_basicsize*/
+	0,                         /*tp_itemsize*/
+	(destructor)MCBM_dealloc,  /*tp_dealloc*/
+	0,                         /*tp_print*/
+	0,                         /*tp_getattr*/
+	0,                         /*tp_setattr*/
+	0,                         /*tp_compare*/
+	0,                         /*tp_repr*/
+	0,                         /*tp_as_number*/
+	0,                         /*tp_as_sequence*/
+	0,                         /*tp_as_mapping*/
+	0,                         /*tp_hash */
+	0,                         /*tp_call*/
+	0,                         /*tp_str*/
+	0,                         /*tp_getattro*/
+	0,                         /*tp_setattro*/
+	0,                         /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
+	MCBM_doc,                  /*tp_doc*/
+	0,                         /*tp_traverse*/
+	0,                         /*tp_clear*/
+	0,                         /*tp_richcompare*/
+	0,                         /*tp_weaklistoffset*/
+	0,                         /*tp_iter*/
+	0,                         /*tp_iternext*/
+	MCBM_methods,              /*tp_methods*/
+	0,                         /*tp_members*/
+	MCBM_getset,               /*tp_getset*/
+	0,                         /*tp_base*/
+	0,                         /*tp_dict*/
+	0,                         /*tp_descr_get*/
+	0,                         /*tp_descr_set*/
+	0,                         /*tp_dictoffset*/
+	(initproc)MCBM_init,       /*tp_init*/
+	0,                         /*tp_alloc*/
+	MCBM_new,                  /*tp_new*/
+};
 
 static PyGetSetDef Preconditioner_getset[] = {
 	{"dim_in", (getter)Preconditioner_dim_in, 0, 0},
@@ -207,15 +304,11 @@ static PyGetSetDef Preconditioner_getset[] = {
 	{0}
 };
 
-
-
 static PyMethodDef Preconditioner_methods[] = {
 	{"inverse", (PyCFunction)Preconditioner_inverse, METH_VARARGS|METH_KEYWORDS, Preconditioner_inverse_doc},
 	{"logjacobian", (PyCFunction)Preconditioner_logjacobian, METH_VARARGS|METH_KEYWORDS, Preconditioner_logjacobian_doc},
 	{0}
 };
-
-
 
 PyTypeObject Preconditioner_type = {
 	PyObject_HEAD_INIT(0)
@@ -259,23 +352,17 @@ PyTypeObject Preconditioner_type = {
 	Preconditioner_new,                     /*tp_new*/
 };
 
-
-
 static PyGetSetDef WhiteningPreconditioner_getset[] = {
 	{"mean_in", (getter)WhiteningPreconditioner_mean_in, 0, 0},
 	{"mean_out", (getter)WhiteningPreconditioner_mean_out, 0, 0},
 	{0}
 };
 
-
-
 static PyMethodDef WhiteningPreconditioner_methods[] = {
 	{"__reduce__", (PyCFunction)WhiteningPreconditioner_reduce, METH_NOARGS, 0},
 	{"__setstate__", (PyCFunction)WhiteningPreconditioner_setstate, METH_VARARGS, 0},
 	{0}
 };
-
-
 
 PyTypeObject WhiteningPreconditioner_type = {
 	PyObject_HEAD_INIT(0)
@@ -319,21 +406,15 @@ PyTypeObject WhiteningPreconditioner_type = {
 	Preconditioner_new,                     /*tp_new*/
 };
 
-
-
 static PyGetSetDef PCAPreconditioner_getset[] = {
 	{0}
 };
-
-
 
 static PyMethodDef PCAPreconditioner_methods[] = {
 	{"__reduce__", (PyCFunction)PCAPreconditioner_reduce, METH_NOARGS, 0},
 	{"__setstate__", (PyCFunction)PCAPreconditioner_setstate, METH_VARARGS, 0},
 	{0}
 };
-
-
 
 PyTypeObject PCAPreconditioner_type = {
 	PyObject_HEAD_INIT(0)
@@ -377,8 +458,6 @@ PyTypeObject PCAPreconditioner_type = {
 	Preconditioner_new,                     /*tp_new*/
 };
 
-
-
 static PyMethodDef cmt_methods[] = {
 	{"random_select", (PyCFunction)random_select, METH_VARARGS|METH_KEYWORDS, random_select_doc},
 	{"generate_data_from_image", (PyCFunction)generate_data_from_image, METH_VARARGS|METH_KEYWORDS, generate_data_from_image_doc},
@@ -389,8 +468,6 @@ static PyMethodDef cmt_methods[] = {
 	{"fill_in_image_map", (PyCFunction)fill_in_image_map, METH_VARARGS|METH_KEYWORDS, 0},
 	{0}
 };
-
-
 
 PyMODINIT_FUNC initcmt() {
 	// set random seed
@@ -409,6 +486,8 @@ PyMODINIT_FUNC initcmt() {
 		return;
 	if(PyType_Ready(&MCGSM_type) < 0)
 		return;
+	if(PyType_Ready(&MCBM_type) < 0)
+		return;
 	if(PyType_Ready(&Preconditioner_type) < 0)
 		return;
 	if(PyType_Ready(&WhiteningPreconditioner_type) < 0)
@@ -422,11 +501,13 @@ PyMODINIT_FUNC initcmt() {
 	// add types to module
 	Py_INCREF(&CD_type);
 	Py_INCREF(&MCGSM_type);
+	Py_INCREF(&MCBM_type);
 	Py_INCREF(&Preconditioner_type);
 	Py_INCREF(&WhiteningPreconditioner_type);
 	Py_INCREF(&PCAPreconditioner_type);
 	PyModule_AddObject(module, "ConditionalDistribution", reinterpret_cast<PyObject*>(&CD_type));
 	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));
+	PyModule_AddObject(module, "MCBM", reinterpret_cast<PyObject*>(&MCBM_type));
 	PyModule_AddObject(module, "Preconditioner", reinterpret_cast<PyObject*>(&Preconditioner_type));
 	PyModule_AddObject(module, "WhiteningPreconditioner", reinterpret_cast<PyObject*>(&WhiteningPreconditioner_type));
 	PyModule_AddObject(module, "PCAPreconditioner", reinterpret_cast<PyObject*>(&PCAPreconditioner_type));

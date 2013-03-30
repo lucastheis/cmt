@@ -64,6 +64,8 @@ modules = [
 			'code/cmt/src/conditionaldistributioninterface.cpp',
 			'code/cmt/src/mcgsm.cpp',
 			'code/cmt/src/mcgsminterface.cpp',
+			'code/cmt/src/mcbm.cpp',
+			'code/cmt/src/mcbminterface.cpp',
 			'code/cmt/src/module.cpp',
 			'code/cmt/src/pcapreconditioner.cpp',
 			'code/cmt/src/preconditionerinterface.cpp',

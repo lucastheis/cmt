@@ -209,7 +209,7 @@ int MCGSM_init(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	if(!num_features)
 		num_features = dim_in;
 
-	// create actual GSM instance
+	// create actual MCGSM instance
 	try {
 		self->mcgsm = new MCGSM(dim_in, dim_out, num_components, num_scales, num_features);
 	} catch(Exception exception) {
@@ -721,6 +721,8 @@ PyObject* MCGSM_check_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds
 	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	if(!input || !output) {
+		Py_XDECREF(input);
+		Py_XDECREF(output);
 		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
 		return 0;
 	}
@@ -976,21 +978,21 @@ PyObject* MCGSM_compute_gradient(MCGSMObject* self, PyObject* args, PyObject* kw
 	try {
 		MCGSM::Parameters params = PyObject_ToParameters(self, parameters);
 
-		MatrixXd gradient(self->mcgsm->numParameters(params), 1);
+		MatrixXd gradient(self->mcgsm->numParameters(params), 1); // TODO: don't use MatrixXd
 
 		if(x)
 			self->mcgsm->computeGradient(
 				PyArray_ToMatrixXd(input), 
 				PyArray_ToMatrixXd(output), 
 				PyArray_ToMatrixXd(x).data(), // TODO: PyArray_ToMatrixXd unnecessary
-				gradient.data(), // TODO: don't use MatrixXd
+				gradient.data(),
 				params);
 		else
 			self->mcgsm->computeGradient(
 				PyArray_ToMatrixXd(input), 
 				PyArray_ToMatrixXd(output), 
-				self->mcgsm->parameters(params), // TODO: PyArray_ToMatrixXd unnecessary
-				gradient.data(), // TODO: don't use MatrixXd
+				self->mcgsm->parameters(params),
+				gradient.data(),
 				params);
 
 		Py_DECREF(input);

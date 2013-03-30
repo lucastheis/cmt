@@ -49,7 +49,7 @@ static int callbackLBFGS(
 
 
 
-lbfgsfloatval_t evaluateLBFGS(
+static lbfgsfloatval_t evaluateLBFGS(
 	void* instance,
 	const lbfgsfloatval_t* x,
 	lbfgsfloatval_t* g,
@@ -153,7 +153,7 @@ MCGSM::MCGSM(
 	mDimOut(dimOut),
 	mNumComponents(numComponents),
 	mNumScales(numScales),
-	mNumFeatures(numFeatures < 0 ? mDimIn : numFeatures)
+	mNumFeatures(numFeatures < 0 ? dimIn : numFeatures)
 {
 	// check hyperparameters
 	if(mDimOut < 1)
@@ -691,7 +691,7 @@ double MCGSM::computeGradient(
 	int offset = 0;
 
 	MatrixLBFGS priors(params.trainPriors ? y : const_cast<double*>(mPriors.data()), mNumComponents, mNumScales);
-	MatrixLBFGS priorsGrad = MatrixLBFGS(g, mNumComponents, mNumScales);
+	MatrixLBFGS priorsGrad(g, mNumComponents, mNumScales);
 	if(params.trainPriors)
 		offset += priors.size();
 
@@ -744,14 +744,14 @@ double MCGSM::computeGradient(
 
 	if(g) {
 		// initialize gradients
-		if(params.trainFeatures)
-			featuresGrad.setZero();
-		if(params.trainWeights)
-			weightsGrad.setZero();
 		if(params.trainPriors)
 			priorsGrad.setZero();
 		if(params.trainScales)
 			scalesGrad.setZero();
+		if(params.trainWeights)
+			weightsGrad.setZero();
+		if(params.trainFeatures)
+			featuresGrad.setZero();
 		if(params.trainPredictors)
 			for(int i = 0; i < mNumComponents; ++i)
 				predictorsGrad[i].setZero();
@@ -762,6 +762,7 @@ double MCGSM::computeGradient(
 	int batchSize = min(params.batchSize, numData);
 
 	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
+		// TODO: copying memory necessary?
 		const MatrixXd input = inputCompl.middleCols(b, min(batchSize, numData - b));
 		const MatrixXd output = outputCompl.middleCols(b, min(batchSize, numData - b));
 

@@ -230,7 +230,7 @@ inline ArrayXXd MCGSM::priors() const {
 
 inline void MCGSM::setPriors(ArrayXXd priors) {
 	if(priors.rows() != mNumComponents || priors.cols() != mNumScales)
-		throw Exception("Wrong number of priors.");
+		throw Exception("Wrong number of prior weights.");
 	mPriors = priors;
 }
 
