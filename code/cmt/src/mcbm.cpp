@@ -9,6 +9,14 @@ using Eigen::Map;
 #include <cmath>
 using std::min;
 
+#include <iostream>
+using std::cout;
+using std::endl;
+
+#include <iomanip>
+using std::setw;
+using std::setprecision;
+
 struct ParamsLBFGS {
 	const MCBM* mcbm;
 	const MCBM::Parameters* params;
@@ -18,6 +26,38 @@ struct ParamsLBFGS {
 
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, 1> > VectorLBFGS;
+
+static int callbackLBFGS(
+	void *instance,
+	const lbfgsfloatval_t *x,
+	const lbfgsfloatval_t *g,
+	const lbfgsfloatval_t fx,
+	const lbfgsfloatval_t xnorm,
+	const lbfgsfloatval_t gnorm,
+	const lbfgsfloatval_t, int,
+	int iteration,
+	int)
+{
+	// unpack user data
+	const ParamsLBFGS& inst = *static_cast<ParamsLBFGS*>(instance);
+	const MCBM& mcbm = *inst.mcbm;
+	const MCBM::Parameters& params = *inst.params;
+
+	if(params.verbosity > 0)
+		cout << setw(6) << iteration << setw(10) << setprecision(5) << fx << endl;
+
+	if(params.callback && iteration % params.cbIter == 0) {
+		// TODO: fix this nasty hack
+		const_cast<MCBM&>(mcbm).setParameters(x, params);
+
+		if(!(*params.callback)(iteration, mcbm))
+			return 1;
+	}
+
+	return 0;
+}
+
+
 
 static lbfgsfloatval_t evaluateLBFGS(
 	void* instance,
@@ -199,8 +239,50 @@ double MCBM::evaluate(const MatrixXi& input, const MatrixXi& output) const {
 
 
 
-bool MCBM::train(const MatrixXi& input, const MatrixXi& output, Parameters params) {
-	return false;
+bool MCBM::train(const MatrixXi& input_, const MatrixXi& output_, Parameters params) {
+	if(input_.rows() != mDimIn || output_.rows() != 1)
+		throw Exception("Data has wrong dimensionality.");
+	if(input_.cols() != output_.cols())
+		throw Exception("The number of inputs and outputs should be the same.");
+
+	MatrixXd input = input_.cast<double>();
+	MatrixXd output = output_.cast<double>();
+
+	// copy parameters for L-BFGS
+	lbfgsfloatval_t* x = parameters(params);
+
+	// optimization hyperparameters
+	lbfgs_parameter_t hyperparams;
+	lbfgs_parameter_init(&hyperparams);
+	hyperparams.max_iterations = params.maxIter;
+	hyperparams.m = params.numGrad;
+	hyperparams.epsilon = params.threshold;
+	hyperparams.linesearch = LBFGS_LINESEARCH_MORETHUENTE;
+ 	hyperparams.max_linesearch = 100;
+ 	hyperparams.ftol = 1e-4;
+ 	hyperparams.xtol = 1e-32;
+
+	// wrap additional arguments
+	ParamsLBFGS instance = { this, &params, &input, &output };
+
+	// start LBFGS optimization
+	int status = LBFGSERR_MAXIMUMITERATION;
+	if(params.maxIter > 0)
+		status = lbfgs(numParameters(params), x, 0, &evaluateLBFGS, &callbackLBFGS, &instance, &hyperparams);
+
+	// copy parameters back
+	setParameters(x, params);
+
+	// free memory used by LBFGS
+	lbfgs_free(x);
+
+	if(!status) {
+		return true;
+	} else {
+		if(status != LBFGSERR_MAXIMUMITERATION)
+			cout << "There seems to be something not quite right with the optimization (" << status << ")." << endl;
+		return false;
+	}
 }
 
 
@@ -378,25 +460,25 @@ double MCBM::computeGradient(
 		ArrayXXd postDiffTmp = post1Tmp - post0Tmp;
 
 		if(params.trainPriors)
-			priorsGrad += postDiffTmp.rowwise().sum().matrix();
+			priorsGrad -= postDiffTmp.rowwise().sum().matrix();
 
 		if(params.trainWeights)
-			weightsGrad += postDiffTmp.matrix() * featureOutputSq.transpose();
+			weightsGrad -= postDiffTmp.matrix() * featureOutputSq.transpose();
 
 		if(params.trainFeatures) {
 			ArrayXXd tmp2 = weights.transpose() * postDiffTmp.matrix() * 2.;
 			MatrixXd tmp3 = featureOutput * tmp2;
-			featuresGrad += input * tmp3.transpose();
+			featuresGrad -= input * tmp3.transpose();
 		}
 
 		if(params.trainPredictors)
-			predictorsGrad += post1Tmp.matrix() * input.transpose();
+			predictorsGrad -= post1Tmp.matrix() * input.transpose();
 
 		if(params.trainInputBias)
-			inputBiasGrad += input * postDiffTmp.matrix().transpose();
+			inputBiasGrad -= input * postDiffTmp.matrix().transpose();
 
 		if(params.trainOutputBias)
-			outputBiasGrad += post1Tmp.rowwise().sum().matrix();
+			outputBiasGrad -= post1Tmp.rowwise().sum().matrix();
 	}
 
 	double normConst = inputCompl.cols() / log(2.);
@@ -405,7 +487,7 @@ double MCBM::computeGradient(
 		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
 
-	return logLik / normConst;
+	return -logLik / normConst;
 }
 
 

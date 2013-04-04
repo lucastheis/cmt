@@ -473,7 +473,7 @@ PyObject* MCBM_sample(MCBMObject* self, PyObject* args, PyObject* kwds) {
 	input = PyArray_FROM_OTF(input, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	if(!input) {
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in a NumPy array.");
+		PyErr_SetString(PyExc_TypeError, "Input has to be stored in an integer NumPy array.");
 		return 0;
 	}
 
@@ -520,7 +520,7 @@ PyObject* MCBM_loglikelihood(MCBMObject* self, PyObject* args, PyObject* kwds) {
 	output = PyArray_FROM_OTF(output, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	if(!input || !output) {
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in an integer NumPy arrays.");
 		return 0;
 	}
 
@@ -572,7 +572,7 @@ PyObject* MCBM_evaluate(MCBMObject* self, PyObject* args, PyObject* kwds) {
 	output = PyArray_FROM_OTF(output, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	if(!input || !output) {
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in an integer NumPy arrays.");
 		return 0;
 	}
 
@@ -668,7 +668,7 @@ PyObject* MCBM_train(MCBMObject* self, PyObject* args, PyObject* kwds) {
 	if(!input || !output) {
 		Py_XDECREF(input);
 		Py_XDECREF(output);
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in integer NumPy arrays.");
 		return 0;
 	}
 
@@ -818,7 +818,7 @@ PyObject* MCBM_compute_gradient(MCBMObject* self, PyObject* args, PyObject* kwds
 	if(!input || !output) {
 		Py_XDECREF(input);
 		Py_XDECREF(output);
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in integer NumPy arrays.");
 		return 0;
 	}
 
@@ -884,7 +884,7 @@ PyObject* MCBM_check_gradient(MCBMObject* self, PyObject* args, PyObject* kwds) 
 	if(!input || !output) {
 		Py_XDECREF(input);
 		Py_XDECREF(output);
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in integer NumPy arrays.");
 		return 0;
 	}
 
