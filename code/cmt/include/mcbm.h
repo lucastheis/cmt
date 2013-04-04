@@ -4,13 +4,12 @@ using Eigen::Array;
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
 using Eigen::ArrayXXd;
-using Eigen::MatrixXi;
-using Eigen::ArrayXXi;
 
+#include "conditionaldistribution.h"
 #include "exception.h"
 #include "lbfgs.h"
 
-class MCBM {
+class MCBM : public ConditionalDistribution {
 	public:
 		class Callback {
 			public:
@@ -75,17 +74,14 @@ class MCBM {
 		inline VectorXd outputBias() const;
 		inline void setOutputBias(VectorXd outputBias);
 
-		virtual MatrixXi sample(const MatrixXi& input) const;
+		virtual MatrixXd sample(const MatrixXd& input) const;
 		virtual Array<double, 1, Dynamic> logLikelihood(
-			const MatrixXi& input,
-			const MatrixXi& output) const;
-		virtual double evaluate(
-			const MatrixXi& input,
-			const MatrixXi& output) const;
+			const MatrixXd& input,
+			const MatrixXd& output) const;
 
 		virtual bool train(
-			const MatrixXi& input,
-			const MatrixXi& output,
+			const MatrixXd& input,
+			const MatrixXd& output,
 			Parameters params = Parameters());
 
 		lbfgsfloatval_t* parameters(const Parameters& params) const;
@@ -101,6 +97,10 @@ class MCBM {
 			const MatrixXd& output,
 			double epsilon = 1e-5,
 			Parameters params = Parameters()) const;
+
+		virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
+			const MatrixXd& input,
+			const MatrixXd& output) const;
 
 	protected:
 		int mDimIn;

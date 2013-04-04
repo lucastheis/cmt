@@ -26,9 +26,7 @@ extern const char* MCBM_set_parameters_doc;
 extern const char* MCBM_reduce_doc;
 extern const char* MCBM_setstate_doc;
 
-PyObject* MCBM_new(PyTypeObject*, PyObject*, PyObject*);
 int MCBM_init(MCBMObject*, PyObject*, PyObject*);
-void MCBM_dealloc(MCBMObject*);
 
 PyObject* MCBM_dim_in(MCBMObject*, PyObject*, void*);
 PyObject* MCBM_dim_out(MCBMObject*, PyObject*, void*);
@@ -53,10 +51,6 @@ int MCBM_set_input_bias(MCBMObject*, PyObject*, void*);
 
 PyObject* MCBM_output_bias(MCBMObject*, PyObject*, void*);
 int MCBM_set_output_bias(MCBMObject*, PyObject*, void*);
-
-PyObject* MCBM_sample(MCBMObject*, PyObject*, PyObject*);
-PyObject* MCBM_loglikelihood(MCBMObject*, PyObject*, PyObject*);
-PyObject* MCBM_evaluate(MCBMObject*, PyObject*, PyObject*);
 
 PyObject* MCBM_train(MCBMObject*, PyObject*, PyObject*);
 

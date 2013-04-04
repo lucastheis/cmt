@@ -141,16 +141,6 @@ MCBM::Parameters PyObject_ToParameters(MCBMObject* self, PyObject* parameters) {
 
 
 
-PyObject* MCBM_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
-	PyObject* self = type->tp_alloc(type, 0);
-
-	if(self)
-		reinterpret_cast<MCBMObject*>(self)->mcbm = 0;
-
-	return self;
-}
-
-
 const char* MCBM_doc =
 	"An implementation of a mixture of conditional Boltzmann machines.\n"
 	"\n"
@@ -209,16 +199,6 @@ int MCBM_init(MCBMObject* self, PyObject* args, PyObject* kwds) {
 	}
 
 	return 0;
-}
-
-
-
-void MCBM_dealloc(MCBMObject* self) {
-	// delete actual instance
-	delete self->mcbm;
-
-	// delete MCBMObject
-	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
 
@@ -451,149 +431,6 @@ int MCBM_set_output_bias(MCBMObject* self, PyObject* value, void*) {
 
 
 
-const char* MCBM_sample_doc =
-	"sample(self, input)\n"
-	"\n"
-	"Generates outputs for given inputs.\n"
-	"\n"
-	"@type  input: ndarray\n"
-	"@param input: inputs stored in columns\n"
-	"\n"
-	"@rtype: ndarray\n"
-	"@return: sampled outputs";
-
-PyObject* MCBM_sample(MCBMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", 0};
-
-	PyObject* input;
-
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &input))
-		return 0;
-
-	input = PyArray_FROM_OTF(input, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!input) {
-		PyErr_SetString(PyExc_TypeError, "Input has to be stored in an integer NumPy array.");
-		return 0;
-	}
-
-	try {
-		PyObject* result = PyArray_FromMatrixXi(self->mcbm->sample(PyArray_ToMatrixXi(input)));
-		Py_DECREF(input);
-		return result;
-	} catch(Exception exception) {
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	return 0;
-}
-
-
-
-const char* MCBM_loglikelihood_doc =
-	"loglikelihood(self, input, output)\n"
-	"\n"
-	"Computes the conditional log-likelihood for the given data points in nats.\n"
-	"\n"
-	"@type  input: ndarray\n"
-	"@param input: inputs stored in columns\n"
-	"\n"
-	"@type  output: ndarray\n"
-	"@param output: outputs stored in columns\n"
-	"\n"
-	"@rtype: ndarray\n"
-	"@return: log-likelihood of the model evaluated for each data point";
-
-PyObject* MCBM_loglikelihood(MCBMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", 0};
-
-	PyObject* input;
-	PyObject* output;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output))
-		return 0;
-
-	// make sure data is stored in NumPy array
-	input = PyArray_FROM_OTF(input, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	output = PyArray_FROM_OTF(output, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!input || !output) {
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in an integer NumPy arrays.");
-		return 0;
-	}
-
-	try {
-		PyObject* result = PyArray_FromMatrixXd(
-			self->mcbm->logLikelihood(PyArray_ToMatrixXi(input), PyArray_ToMatrixXi(output)));
-		Py_DECREF(input);
-		Py_DECREF(output);
-		return result;
-	} catch(Exception exception) {
-		Py_DECREF(input);
-		Py_DECREF(output);
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	return 0;
-}
-
-
-
-const char* MCBM_evaluate_doc =
-	"evaluate(self, input, output)\n"
-	"\n"
-	"Computes the average negative conditional log-likelihood for the given data points "
-	"in bits per output component (smaller is better).\n"
-	"\n"
-	"@type  input: ndarray\n"
-	"@param input: inputs stored in columns\n"
-	"\n"
-	"@type  output: ndarray\n"
-	"@param output: outputs stored in columns\n"
-	"\n"
-	"@rtype: double\n"
-	"@return: performance in bits per component";
-
-PyObject* MCBM_evaluate(MCBMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", 0};
-
-	PyObject* input;
-	PyObject* output;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output))
-		return 0;
-
-	// make sure data is stored in NumPy array
-	input = PyArray_FROM_OTF(input, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	output = PyArray_FROM_OTF(output, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!input || !output) {
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in an integer NumPy arrays.");
-		return 0;
-	}
-
-	try {
-		double result = 
-			self->mcbm->evaluate(PyArray_ToMatrixXi(input), PyArray_ToMatrixXi(output));
-		Py_DECREF(input);
-		Py_DECREF(output);
-		return PyFloat_FromDouble(result);
-	} catch(Exception exception) {
-		Py_DECREF(input);
-		Py_DECREF(output);
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	return 0;
-}
-
-
-
 const char* MCBM_train_doc =
 	"train(self, input, output, parameters=None)\n"
 	"\n"
@@ -662,8 +499,8 @@ PyObject* MCBM_train(MCBMObject* self, PyObject* args, PyObject* kwds) {
 		return 0;
 
 	// make sure data is stored in NumPy array
-	input = PyArray_FROM_OTF(input, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	output = PyArray_FROM_OTF(output, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	if(!input || !output) {
 		Py_XDECREF(input);
@@ -674,8 +511,8 @@ PyObject* MCBM_train(MCBMObject* self, PyObject* args, PyObject* kwds) {
 
 	try {
 		if(self->mcbm->train(
-				PyArray_ToMatrixXi(input), 
-				PyArray_ToMatrixXi(output), 
+				PyArray_ToMatrixXd(input), 
+				PyArray_ToMatrixXd(output), 
 				PyObject_ToParameters(self, parameters)))
 		{
 			Py_DECREF(input);
@@ -812,8 +649,8 @@ PyObject* MCBM_compute_gradient(MCBMObject* self, PyObject* args, PyObject* kwds
 		return 0;
 
 	// make sure data is stored in NumPy array
-	input = PyArray_FROM_OTF(input, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	output = PyArray_FROM_OTF(output, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	if(!input || !output) {
 		Py_XDECREF(input);
@@ -832,15 +669,15 @@ PyObject* MCBM_compute_gradient(MCBMObject* self, PyObject* args, PyObject* kwds
 
 		if(x)
 			self->mcbm->computeGradient(
-				PyArray_ToMatrixXi(input).cast<double>(), 
-				PyArray_ToMatrixXi(output).cast<double>(), 
+				PyArray_ToMatrixXd(input), 
+				PyArray_ToMatrixXd(output), 
 				PyArray_ToMatrixXd(x).data(), // TODO: PyArray_ToMatrixXd unnecessary
 				gradient.data(),
 				params);
 		else
 			self->mcbm->computeGradient(
-				PyArray_ToMatrixXi(input).cast<double>(), 
-				PyArray_ToMatrixXi(output).cast<double>(), 
+				PyArray_ToMatrixXd(input), 
+				PyArray_ToMatrixXd(output), 
 				self->mcbm->parameters(params),
 				gradient.data(),
 				params);
@@ -878,8 +715,8 @@ PyObject* MCBM_check_gradient(MCBMObject* self, PyObject* args, PyObject* kwds) 
 		return 0;
 
 	// make sure data is stored in NumPy array
-	input = PyArray_FROM_OTF(input, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	output = PyArray_FROM_OTF(output, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	if(!input || !output) {
 		Py_XDECREF(input);
@@ -890,8 +727,8 @@ PyObject* MCBM_check_gradient(MCBMObject* self, PyObject* args, PyObject* kwds) 
 
 	try {
 		double err = self->mcbm->checkGradient(
-			PyArray_ToMatrixXi(input).cast<double>(),
-			PyArray_ToMatrixXi(output).cast<double>(),
+			PyArray_ToMatrixXd(input),
+			PyArray_ToMatrixXd(output),
 			epsilon,
 			PyObject_ToParameters(self, parameters));
 		Py_DECREF(input);

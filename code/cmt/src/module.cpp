@@ -227,15 +227,6 @@ static PyGetSetDef MCBM_getset[] = {
 };
 
 static PyMethodDef MCBM_methods[] = {
-	{"sample", (PyCFunction)MCBM_sample, METH_VARARGS|METH_KEYWORDS, MCBM_sample_doc},
-	{"loglikelihood",
-		(PyCFunction)MCBM_loglikelihood,
-		METH_VARARGS|METH_KEYWORDS,
-		MCBM_loglikelihood_doc},
-	{"evaluate",
-		(PyCFunction)MCBM_evaluate,
-		METH_VARARGS|METH_KEYWORDS,
-		MCBM_evaluate_doc},
 	{"train", (PyCFunction)MCBM_train, METH_VARARGS|METH_KEYWORDS, MCBM_train_doc},
 	{"_parameters",
 		(PyCFunction)MCBM_parameters,
@@ -262,7 +253,7 @@ PyTypeObject MCBM_type = {
 	"cmt.MCBM",                /*tp_name*/
 	sizeof(MCBMObject),        /*tp_basicsize*/
 	0,                         /*tp_itemsize*/
-	(destructor)MCBM_dealloc,  /*tp_dealloc*/
+	(destructor)CD_dealloc,    /*tp_dealloc*/
 	0,                         /*tp_print*/
 	0,                         /*tp_getattr*/
 	0,                         /*tp_setattr*/
@@ -288,14 +279,14 @@ PyTypeObject MCBM_type = {
 	MCBM_methods,              /*tp_methods*/
 	0,                         /*tp_members*/
 	MCBM_getset,               /*tp_getset*/
-	0,                         /*tp_base*/
+	&CD_type,                  /*tp_base*/
 	0,                         /*tp_dict*/
 	0,                         /*tp_descr_get*/
 	0,                         /*tp_descr_set*/
 	0,                         /*tp_dictoffset*/
 	(initproc)MCBM_init,       /*tp_init*/
 	0,                         /*tp_alloc*/
-	MCBM_new,                  /*tp_new*/
+	CD_new,                    /*tp_new*/
 };
 
 static PyGetSetDef Preconditioner_getset[] = {

@@ -6,6 +6,9 @@
 using Eigen::Matrix;
 using Eigen::Map;
 
+#include <vector>
+using std::make_pair;
+
 #include <cmath>
 using std::min;
 
@@ -174,9 +177,7 @@ MCBM::~MCBM() {
 
 
 
-MatrixXi MCBM::sample(const MatrixXi& input_) const {
-	MatrixXd input = input_.cast<double>();
-
+MatrixXd MCBM::sample(const MatrixXd& input) const {
 	// some intermediate computations
 	ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
 	ArrayXXd biasEnergy = mInputBias.transpose() * input;
@@ -197,15 +198,12 @@ MatrixXi MCBM::sample(const MatrixXi& input_) const {
 	// normalize log-probability
 	logProb1 -= logSumExp(logProb01);
 
-	return (Array<double, 1, Dynamic>::Random(input.cols()).abs() < logProb1.exp()).cast<int>();
+	return (Array<double, 1, Dynamic>::Random(input.cols()).abs() < logProb1.exp()).cast<double>();
 }
 
 
 
-Array<double, 1, Dynamic> MCBM::logLikelihood(const MatrixXi& input_, const MatrixXi& output_) const {
-	MatrixXd input = input_.cast<double>();
-	MatrixXd output = output_.cast<double>();
-
+Array<double, 1, Dynamic> MCBM::logLikelihood(const MatrixXd& input, const MatrixXd& output) const {
 	// some intermediate computations
 	ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
 	ArrayXXd biasEnergy = mInputBias.transpose() * input;
@@ -233,20 +231,11 @@ Array<double, 1, Dynamic> MCBM::logLikelihood(const MatrixXi& input_, const Matr
 
 
 
-double MCBM::evaluate(const MatrixXi& input, const MatrixXi& output) const {
-	return -logLikelihood(input, output).mean() / log(2.) / dimOut();
-}
-
-
-
-bool MCBM::train(const MatrixXi& input_, const MatrixXi& output_, Parameters params) {
-	if(input_.rows() != mDimIn || output_.rows() != 1)
+bool MCBM::train(const MatrixXd& input, const MatrixXd& output, Parameters params) {
+	if(input.rows() != mDimIn || output.rows() != 1)
 		throw Exception("Data has wrong dimensionality.");
-	if(input_.cols() != output_.cols())
+	if(input.cols() != output.cols())
 		throw Exception("The number of inputs and outputs should be the same.");
-
-	MatrixXd input = input_.cast<double>();
-	MatrixXd output = output_.cast<double>();
 
 	// copy parameters for L-BFGS
 	lbfgsfloatval_t* x = parameters(params);
@@ -540,4 +529,19 @@ double MCBM::checkGradient(
 		err += (g[i] - n[i]) * (g[i] - n[i]);
 
 	return sqrt(err);
+}
+
+
+
+pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > MCBM::computeDataGradient(
+			const MatrixXd& input,
+			const MatrixXd& output) const
+{
+	throw Exception("Not implemented.");
+
+	return make_pair(
+		make_pair(
+			ArrayXXd::Zero(input.rows(), input.cols()), 
+			ArrayXXd::Zero(output.rows(), output.cols())), 
+		logLikelihood(input, output));
 }
