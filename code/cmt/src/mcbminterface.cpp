@@ -505,7 +505,7 @@ PyObject* MCBM_train(MCBMObject* self, PyObject* args, PyObject* kwds) {
 	if(!input || !output) {
 		Py_XDECREF(input);
 		Py_XDECREF(output);
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in integer NumPy arrays.");
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
 		return 0;
 	}
 
@@ -655,7 +655,7 @@ PyObject* MCBM_compute_gradient(MCBMObject* self, PyObject* args, PyObject* kwds
 	if(!input || !output) {
 		Py_XDECREF(input);
 		Py_XDECREF(output);
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in integer NumPy arrays.");
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
 		return 0;
 	}
 
@@ -721,7 +721,7 @@ PyObject* MCBM_check_gradient(MCBMObject* self, PyObject* args, PyObject* kwds) 
 	if(!input || !output) {
 		Py_XDECREF(input);
 		Py_XDECREF(output);
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in integer NumPy arrays.");
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
 		return 0;
 	}
 
