@@ -14,6 +14,9 @@ INCNUMPY = \
 	$(shell python -c "import os; from numpy.distutils import misc_util; print(os.path.join(misc_util.get_numpy_include_dirs()[0], 'numpy'));")
 INCLUDE = -Icode -Icode/cmt/include -Icode/liblbfgs/include -I$(INCPYTHON) -I$(INCNUMPY)
 
+PYTHONPATH = \
+	$(shell python -c "from distutils import sysconfig; print(sysconfig.get_python_lib());")
+
 # source and object files
 SRCDIR = code/cmt/src
 OBJDIR = build
@@ -37,13 +40,18 @@ SOURCES = \
 	$(SRCDIR)/whiteningpreconditioner.cpp
 OBJECTS = $(patsubst %,$(OBJDIR)/%,$(SOURCES:.cpp=.o)) code/liblbfgs/lib/.libs/liblbfgs.a
 
+MODULE = $(OBJDIR)/cmt.so
+
 # keep object files around
 .SECONDARY:
 
-all: cmt.so
+all: $(MODULE)
 
 clean:
 	rm $(OBJECTS)
+
+install: $(MODULE)
+	@cp $(MODULE) $(PYTHONPATH)
 
 %.so: $(OBJECTS) 
 	@echo $(LD) $(LDFLAGS) -o $@
