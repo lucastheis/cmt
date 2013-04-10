@@ -10,12 +10,74 @@
 #include "mcbminterface.h"
 #include "preconditionerinterface.h"
 #include "toolsinterface.h"
+#include "distribution.h"
+#include "distributioninterface.h"
 #include "Eigen/Core"
 
 static const char* cmt_doc =
 	"This module provides C++ implementations of conditional models such "
 	"as the MCGSM, as well as tools for solving applications such as "
 	"filling-in, denoising, or classification.";
+
+static PyGetSetDef Distribution_getset[] = {
+	{"dim", (getter)Distribution_dim, 0, "Dimensionality of the distribution."},
+	{0}
+};
+
+static PyMethodDef Distribution_methods[] = {
+	{"sample", (PyCFunction)Distribution_sample, METH_VARARGS|METH_KEYWORDS, Distribution_sample_doc},
+	{"loglikelihood",
+		(PyCFunction)Distribution_loglikelihood,
+		METH_VARARGS|METH_KEYWORDS,
+		Distribution_loglikelihood_doc},
+	{"evaluate",
+		(PyCFunction)Distribution_evaluate,
+		METH_VARARGS|METH_KEYWORDS,
+		Distribution_evaluate_doc},
+	{0}
+};
+
+PyTypeObject Distribution_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                /*ob_size*/
+	"cmt.ConditionalDistribution",    /*tp_name*/
+	sizeof(DistributionObject),       /*tp_basicsize*/
+	0,                                /*tp_itemsize*/
+	(destructor)Distribution_dealloc, /*tp_dealloc*/
+	0,                                /*tp_print*/
+	0,                                /*tp_getattr*/
+	0,                                /*tp_setattr*/
+	0,                                /*tp_compare*/
+	0,                                /*tp_repr*/
+	0,                                /*tp_as_number*/
+	0,                                /*tp_as_sequence*/
+	0,                                /*tp_as_mapping*/
+	0,                                /*tp_hash */
+	0,                                /*tp_call*/
+	0,                                /*tp_str*/
+	0,                                /*tp_getattro*/
+	0,                                /*tp_setattro*/
+	0,                                /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
+	Distribution_doc,                 /*tp_doc*/
+	0,                                /*tp_traverse*/
+	0,                                /*tp_clear*/
+	0,                                /*tp_richcompare*/
+	0,                                /*tp_weaklistoffset*/
+	0,                                /*tp_iter*/
+	0,                                /*tp_iternext*/
+	Distribution_methods,             /*tp_methods*/
+	0,                                /*tp_members*/
+	Distribution_getset,              /*tp_getset*/
+	0,                                /*tp_base*/
+	0,                                /*tp_dict*/
+	0,                                /*tp_descr_get*/
+	0,                                /*tp_descr_set*/
+	0,                                /*tp_dictoffset*/
+	(initproc)Distribution_init,      /*tp_init*/
+	0,                                /*tp_alloc*/
+	Distribution_new,                 /*tp_new*/
+};
 
 static PyGetSetDef CD_getset[] = {
 	{"dim_in", (getter)CD_dim_in, 0, "Dimensionality of inputs."},
@@ -289,6 +351,54 @@ PyTypeObject MCBM_type = {
 	CD_new,                    /*tp_new*/
 };
 
+static PyMappingMethods PatchMCBM_as_mapping = {
+	0,                                /*mp_length*/
+	(binaryfunc)PatchMCBM_subscript,  /*mp_subscript*/
+	0,                                /*mp_ass_subscript*/
+};
+
+PyTypeObject PatchMCBM_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                 /*ob_size*/
+	"cmt.PatchMCBM",                   /*tp_name*/
+	sizeof(PatchMCBMObject),           /*tp_basicsize*/
+	0,                                 /*tp_itemsize*/
+	(destructor)Distribution_dealloc,  /*tp_dealloc*/
+	0,                                 /*tp_print*/
+	0,                                 /*tp_getattr*/
+	0,                                 /*tp_setattr*/
+	0,                                 /*tp_compare*/
+	0,                                 /*tp_repr*/
+	0,                                 /*tp_as_number*/
+	0,                                 /*tp_as_sequence*/
+	&PatchMCBM_as_mapping,             /*tp_as_mapping*/
+	0,                                 /*tp_hash */
+	0,                                 /*tp_call*/
+	0,                                 /*tp_str*/
+	0,                                 /*tp_getattro*/
+	0,                                 /*tp_setattro*/
+	0,                                 /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                /*tp_flags*/
+	PatchMCBM_doc,                     /*tp_doc*/
+	0,                                 /*tp_traverse*/
+	0,                                 /*tp_clear*/
+	0,                                 /*tp_richcompare*/
+	0,                                 /*tp_weaklistoffset*/
+	0,                                 /*tp_iter*/
+	0,                                 /*tp_iternext*/
+	0,                                 /*tp_methods*/
+	0,                                 /*tp_members*/
+	0,                                 /*tp_getset*/
+	&Distribution_type,                /*tp_base*/
+	0,                                 /*tp_dict*/
+	0,                                 /*tp_descr_get*/
+	0,                                 /*tp_descr_set*/
+	0,                                 /*tp_dictoffset*/
+	(initproc)PatchMCBM_init,          /*tp_init*/
+	0,                                 /*tp_alloc*/
+	Distribution_new,                  /*tp_new*/
+};
+
 static PyGetSetDef Preconditioner_getset[] = {
 	{"dim_in", (getter)Preconditioner_dim_in, 0, 0},
 	{"dim_out", (getter)Preconditioner_dim_out, 0, 0},
@@ -479,6 +589,8 @@ PyMODINIT_FUNC initcmt() {
 		return;
 	if(PyType_Ready(&MCBM_type) < 0)
 		return;
+	if(PyType_Ready(&PatchMCBM_type) < 0)
+		return;
 	if(PyType_Ready(&Preconditioner_type) < 0)
 		return;
 	if(PyType_Ready(&WhiteningPreconditioner_type) < 0)
@@ -493,12 +605,14 @@ PyMODINIT_FUNC initcmt() {
 	Py_INCREF(&CD_type);
 	Py_INCREF(&MCGSM_type);
 	Py_INCREF(&MCBM_type);
+	Py_INCREF(&PatchMCBM_type);
 	Py_INCREF(&Preconditioner_type);
 	Py_INCREF(&WhiteningPreconditioner_type);
 	Py_INCREF(&PCAPreconditioner_type);
 	PyModule_AddObject(module, "ConditionalDistribution", reinterpret_cast<PyObject*>(&CD_type));
 	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));
 	PyModule_AddObject(module, "MCBM", reinterpret_cast<PyObject*>(&MCBM_type));
+	PyModule_AddObject(module, "PatchMCBM", reinterpret_cast<PyObject*>(&PatchMCBM_type));
 	PyModule_AddObject(module, "Preconditioner", reinterpret_cast<PyObject*>(&Preconditioner_type));
 	PyModule_AddObject(module, "WhiteningPreconditioner", reinterpret_cast<PyObject*>(&WhiteningPreconditioner_type));
 	PyModule_AddObject(module, "PCAPreconditioner", reinterpret_cast<PyObject*>(&PCAPreconditioner_type));

@@ -62,6 +62,8 @@ modules = [
 			'code/cmt/src/callbacktrain.cpp',
 			'code/cmt/src/conditionaldistribution.cpp',
 			'code/cmt/src/conditionaldistributioninterface.cpp',
+			'code/cmt/src/distribution.cpp',
+			'code/cmt/src/distributioninterface.cpp',
 			'code/cmt/src/mcgsm.cpp',
 			'code/cmt/src/mcgsminterface.cpp',
 			'code/cmt/src/mcbm.cpp',

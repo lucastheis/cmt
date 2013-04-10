@@ -1,3 +1,4 @@
+#include "conditionaldistributioninterface.h"
 #include "mcbminterface.h"
 #include "Eigen/Core"
 #include "exception.h"
@@ -812,4 +813,86 @@ PyObject* MCBM_setstate(MCBMObject* self, PyObject* state, PyObject*) {
 
 	Py_INCREF(Py_None);
 	return Py_None;
+}
+
+
+
+const char* PatchMCBM_doc =
+	"Model image patches by using an L{MCBM} for each conditional distribution.\n"
+	"\n"
+	"@type  rows: integer\n"
+	"@param rows: number of rows of the image patch\n"
+	"\n"
+	"@type  cols: integer\n"
+	"@param cols: number of columns of the image patch\n"
+	"\n"
+	"@type  xmask: C{ndarray}\n"
+	"@param xmask: a Boolean array describing the input pixels\n"
+	"\n"
+	"@type  ymask: C{ndarray}\n"
+	"@param ymask: a Boolean array describing the output pixels\n"
+	"\n"
+	"@type  model: L{MCBM}\n"
+	"@param model: model used as a template to initialize all conditional distributions";
+
+int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"rows", "cols", "xmask", "ymask", "model", 0};
+
+	int rows;
+	int cols;
+	PyObject* xmask;
+	PyObject* ymask;
+	MCBMObject* model;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiOOO!", const_cast<char**>(kwlist),
+		&rows, &cols, &xmask, &ymask, &model, &MCBM_type))
+		return -1;
+
+	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!xmask || !ymask) {
+		Py_XDECREF(xmask);
+		Py_XDECREF(ymask);
+		PyErr_SetString(PyExc_TypeError, "Masks have to be given as Boolean arrays.");
+		return 0;
+	}
+
+	// create the actual model
+	try {
+		self->patchMCBM = new PatchModel<MCBM>(
+			rows,
+			cols,
+			PyArray_ToMatrixXb(xmask),
+			PyArray_ToMatrixXb(ymask),
+			*model->mcbm);
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+
+	return 0;
+}
+
+
+
+PyObject* PatchMCBM_subscript(PatchMCBMObject* self, PyObject* key) {
+	if(!PyTuple_Check(key)) {
+		PyErr_SetString(PyExc_TypeError, "Index must be a tuple.");
+		return 0;
+	}
+
+	int i;
+	int j;
+
+	if(!PyArg_ParseTuple(key, "ii", &i, &j))
+		return 0;
+
+	PyObject* mcbmObject = CD_new(&PatchMCBM_type, 0, 0);
+	reinterpret_cast<MCBMObject*>(mcbmObject)->mcbm = &self->patchMCBM->operator()(i, j);
+	reinterpret_cast<MCBMObject*>(mcbmObject)->owner = false;
+	Py_INCREF(mcbmObject);
+
+	return mcbmObject;
 }

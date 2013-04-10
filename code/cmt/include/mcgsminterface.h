@@ -12,6 +12,7 @@
 struct MCGSMObject {
 	PyObject_HEAD
 	MCGSM* mcgsm;
+	bool owner;
 };
 
 extern PyTypeObject MCGSM_type;

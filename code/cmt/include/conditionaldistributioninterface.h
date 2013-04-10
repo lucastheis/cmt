@@ -12,6 +12,7 @@
 struct CDObject {
 	PyObject_HEAD
 	ConditionalDistribution* cd;
+	bool owner; 
 };
 
 extern const char* CD_doc;

@@ -8,13 +8,22 @@
 #include <arrayobject.h>
 #include "pyutils.h"
 #include "mcbm.h"
+#include "patchmodel.h"
 
 struct MCBMObject {
 	PyObject_HEAD
 	MCBM* mcbm;
+	bool owner;
+};
+
+struct PatchMCBMObject {
+	PyObject_HEAD
+	PatchModel<MCBM>* patchMCBM;
+	bool owner;
 };
 
 extern PyTypeObject MCBM_type;
+extern PyTypeObject PatchMCBM_type;
 
 extern const char* MCBM_doc;
 extern const char* MCBM_sample_doc;
@@ -25,6 +34,8 @@ extern const char* MCBM_parameters_doc;
 extern const char* MCBM_set_parameters_doc;
 extern const char* MCBM_reduce_doc;
 extern const char* MCBM_setstate_doc;
+
+extern const char* PatchMCBM_doc;
 
 int MCBM_init(MCBMObject*, PyObject*, PyObject*);
 
@@ -61,5 +72,9 @@ PyObject* MCBM_check_gradient(MCBMObject*, PyObject*, PyObject*);
 
 PyObject* MCBM_reduce(MCBMObject*, PyObject*, PyObject*);
 PyObject* MCBM_setstate(MCBMObject*, PyObject*, PyObject*);
+
+int PatchMCBM_init(PatchMCBMObject*, PyObject*, PyObject*);
+
+PyObject* PatchMCBM_subscript(PatchMCBMObject*, PyObject*);
 
 #endif
