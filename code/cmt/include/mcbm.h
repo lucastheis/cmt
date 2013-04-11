@@ -18,7 +18,7 @@ class MCBM : public ConditionalDistribution {
 				virtual bool operator()(int iter, const MCBM& mcbm) = 0;
 		};
 
-		struct Parameters {
+		struct Parameters : public ConditionalDistribution::Parameters {
 			public:
 				int verbosity;
 				int maxIter;
@@ -54,25 +54,25 @@ class MCBM : public ConditionalDistribution {
 
 		inline int numComponents() const;
 		inline int numFeatures() const;
-		inline int numParameters(Parameters params) const;
+		inline int numParameters(const Parameters& params) const;
 
 		inline VectorXd priors() const;
-		inline void setPriors(VectorXd priors);
+		inline void setPriors(const VectorXd& priors);
 
 		inline MatrixXd weights() const;
-		inline void setWeights(MatrixXd weights);
+		inline void setWeights(const MatrixXd& weights);
 
 		inline MatrixXd features() const;
-		inline void setFeatures(MatrixXd features);
+		inline void setFeatures(const MatrixXd& features);
 
 		inline MatrixXd predictors() const;
-		inline void setPredictors(MatrixXd predictors);
+		inline void setPredictors(const MatrixXd& predictors);
 
 		inline MatrixXd inputBias() const;
-		inline void setInputBias(MatrixXd inputBias);
+		inline void setInputBias(const MatrixXd& inputBias);
 
 		inline VectorXd outputBias() const;
-		inline void setOutputBias(VectorXd outputBias);
+		inline void setOutputBias(const VectorXd& outputBias);
 
 		virtual MatrixXd sample(const MatrixXd& input) const;
 		virtual Array<double, 1, Dynamic> logLikelihood(
@@ -82,7 +82,7 @@ class MCBM : public ConditionalDistribution {
 		virtual bool train(
 			const MatrixXd& input,
 			const MatrixXd& output,
-			Parameters params = Parameters());
+			const Parameters& params = Parameters());
 
 		lbfgsfloatval_t* parameters(const Parameters& params) const;
 		void setParameters(const lbfgsfloatval_t* x, const Parameters& params);
@@ -96,7 +96,7 @@ class MCBM : public ConditionalDistribution {
 			const MatrixXd& input,
 			const MatrixXd& output,
 			double epsilon = 1e-5,
-			Parameters params = Parameters()) const;
+			const Parameters& params = Parameters()) const;
 
 		virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
 			const MatrixXd& input,
@@ -141,7 +141,7 @@ inline int MCBM::numFeatures() const {
 
 
 
-inline int MCBM::numParameters(Parameters params) const {
+inline int MCBM::numParameters(const Parameters& params) const {
 	int numParams = 0;
 	if(params.trainPriors)
 		numParams += mPriors.size();
@@ -166,7 +166,7 @@ inline MatrixXd MCBM::weights() const {
 
 
 
-inline void MCBM::setWeights(MatrixXd weights) {
+inline void MCBM::setWeights(const MatrixXd& weights) {
 	if(weights.rows() != mNumComponents || weights.cols() != mNumFeatures)
 		throw Exception("Wrong number of weights.");
 	mWeights = weights;
@@ -180,7 +180,7 @@ inline VectorXd MCBM::priors() const {
 
 
 
-inline void MCBM::setPriors(VectorXd priors) {
+inline void MCBM::setPriors(const VectorXd& priors) {
 	if(priors.size() != mNumComponents)
 		throw Exception("Wrong number of prior weights.");
 	mPriors = priors;
@@ -194,7 +194,7 @@ inline MatrixXd MCBM::features() const {
 
 
 
-inline void MCBM::setFeatures(MatrixXd features) {
+inline void MCBM::setFeatures(const MatrixXd& features) {
 	if(features.rows() != mDimIn)
 		throw Exception("Features have wrong dimensionality.");
 	if(features.cols() != mNumFeatures)
@@ -210,7 +210,7 @@ inline MatrixXd MCBM::predictors() const {
 
 
 
-inline void MCBM::setPredictors(MatrixXd predictors) {
+inline void MCBM::setPredictors(const MatrixXd& predictors) {
 	if(predictors.cols() != mDimIn)
 		throw Exception("Predictors have wrong dimensionality.");
 	if(predictors.rows() != mNumComponents)
@@ -226,7 +226,7 @@ inline MatrixXd MCBM::inputBias() const {
 
 
 
-inline void MCBM::setInputBias(MatrixXd inputBias) {
+inline void MCBM::setInputBias(const MatrixXd& inputBias) {
 	if(inputBias.rows() != mDimIn)
 		throw Exception("Bias vectors have wrong dimensionality.");
 	if(inputBias.cols() != mNumComponents)
@@ -242,7 +242,7 @@ inline VectorXd MCBM::outputBias() const {
 
 
 
-inline void MCBM::setOutputBias(VectorXd outputBias) {
+inline void MCBM::setOutputBias(const VectorXd& outputBias) {
 	if(outputBias.size() != mNumComponents)
 		throw Exception("Wrong number of biases.");
 	mOutputBias = outputBias;

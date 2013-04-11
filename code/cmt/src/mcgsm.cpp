@@ -184,7 +184,7 @@ MCGSM::~MCGSM() {
 
 
 
-void MCGSM::initialize(const MatrixXd& input, const MatrixXd& output, Parameters params) {
+void MCGSM::initialize(const MatrixXd& input, const MatrixXd& output, const Parameters& params) {
 	MatrixXd covXX = covariance(input);
 	MatrixXd covXY = covariance(input, output);
 
@@ -209,7 +209,7 @@ void MCGSM::initialize(const MatrixXd& input, const MatrixXd& output, Parameters
 
 
 
-bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters params) {
+bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, const Parameters& params) {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
 	if(input.cols() != output.cols())
@@ -262,7 +262,7 @@ double MCGSM::checkGradient(
 	const MatrixXd& input,
 	const MatrixXd& output,
 	double epsilon,
-	Parameters params) const
+	const Parameters& params) const
 {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
@@ -318,7 +318,7 @@ double MCGSM::checkPerformance(
 	const MatrixXd& input,
 	const MatrixXd& output,
 	int repetitions,
-	Parameters params) const
+	const Parameters& params) const
 {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");

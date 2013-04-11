@@ -12,6 +12,11 @@ using Eigen::ArrayXXd;
 
 class ConditionalDistribution {
 	public:
+		struct Parameters {
+			public:
+				virtual ~Parameters();
+		};
+
 		virtual int dimIn() const = 0;
 		virtual int dimOut() const = 0;
 		virtual MatrixXd sample(const MatrixXd& input) const = 0;

@@ -846,7 +846,7 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 
 	// read arguments
 	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiOOO!", const_cast<char**>(kwlist),
-		&rows, &cols, &xmask, &ymask, &model, &MCBM_type))
+		&rows, &cols, &xmask, &ymask, &MCBM_type, &model))
 		return -1;
 
 	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
@@ -889,7 +889,7 @@ PyObject* PatchMCBM_subscript(PatchMCBMObject* self, PyObject* key) {
 	if(!PyArg_ParseTuple(key, "ii", &i, &j))
 		return 0;
 
-	PyObject* mcbmObject = CD_new(&PatchMCBM_type, 0, 0);
+	PyObject* mcbmObject = CD_new(&MCBM_type, 0, 0);
 	reinterpret_cast<MCBMObject*>(mcbmObject)->mcbm = &self->patchMCBM->operator()(i, j);
 	reinterpret_cast<MCBMObject*>(mcbmObject)->owner = false;
 	Py_INCREF(mcbmObject);

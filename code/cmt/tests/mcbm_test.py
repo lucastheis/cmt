@@ -3,7 +3,7 @@ import unittest
 
 sys.path.append('./code')
 
-from cmt import MCBM
+from cmt import MCBM, PatchMCBM
 from numpy import *
 from numpy import max
 from numpy.random import *
@@ -141,6 +141,18 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(mcbm0.predictors - mcbm1.predictors)), 1e-20)
 		self.assertLess(max(abs(mcbm0.input_bias - mcbm1.input_bias)), 1e-20)
 		self.assertLess(max(abs(mcbm0.output_bias - mcbm1.output_bias)), 1e-20)
+
+
+
+	def test_patchmcbm(self):
+		xmask = array([[1, 1], [1, 0]], dtype='bool')
+		ymask = array([[0, 0], [0, 1]], dtype='bool')
+
+		model = PatchMCBM(8, 8, xmask, ymask, MCBM(1, 3))
+
+		for i in range(8):
+			for j in range(8):
+				self.assertTrue(isinstance(model[i, j], MCBM))
 
 
 

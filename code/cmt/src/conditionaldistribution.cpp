@@ -9,3 +9,8 @@ double ConditionalDistribution::evaluate(
 {
 	return -logLikelihood(input, output).mean() / log(2.) / dimOut();
 }
+
+
+
+ConditionalDistribution::Parameters::~Parameters() {
+}

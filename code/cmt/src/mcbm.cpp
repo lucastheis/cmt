@@ -231,7 +231,7 @@ Array<double, 1, Dynamic> MCBM::logLikelihood(const MatrixXd& input, const Matri
 
 
 
-bool MCBM::train(const MatrixXd& input, const MatrixXd& output, Parameters params) {
+bool MCBM::train(const MatrixXd& input, const MatrixXd& output, const Parameters& params) {
 	if(input.rows() != mDimIn || output.rows() != 1)
 		throw Exception("Data has wrong dimensionality.");
 	if(input.cols() != output.cols())
@@ -485,7 +485,7 @@ double MCBM::checkGradient(
 	const MatrixXd& input,
 	const MatrixXd& output,
 	double epsilon,
-	Parameters params) const
+	const Parameters& params) const
 {
 	if(input.rows() != mDimIn || output.rows() != 1)
 		throw Exception("Data has wrong dimensionality.");

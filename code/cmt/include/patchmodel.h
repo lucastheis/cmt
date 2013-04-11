@@ -29,7 +29,7 @@ class PatchModel : public Distribution {
 		const CD& operator()(int i, int j) const;
 
 		bool initialize(const MatrixXd& data);
-		bool train(const MatrixXd& data);
+		bool train(const MatrixXd& data, const ConditionalDistribution::Parameters& params);
 
 		Array<double, 1, Dynamic> logLikelihood(const MatrixXd& data) const;
 
@@ -55,6 +55,7 @@ PatchModel<CD>::PatchModel(
 {
 	// this ensures that CD is a subclass of ConditionalDistribution
 	ConditionalDistribution* cd = new CD(model);
+	delete cd;
 
 	// initialize conditional distributions with copy constructor
 	for(int i = 0; i < rows * cols; ++i)
@@ -96,7 +97,7 @@ bool PatchModel<CD>::initialize(const MatrixXd& data) {
 
 
 template <class CD>
-bool PatchModel<CD>::train(const MatrixXd& data) {
+bool PatchModel<CD>::train(const MatrixXd& data, const ConditionalDistribution::Parameters& params) {
 	return false;
 }
 
