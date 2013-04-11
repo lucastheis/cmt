@@ -21,22 +21,8 @@ using Eigen::ArrayXXd;
 
 class MCGSM : public ConditionalDistribution {
 	public:
-		class Callback {
-			public:
-				virtual ~Callback();
-				virtual Callback* copy() = 0;
-				virtual bool operator()(int iter, const MCGSM& mcgsm) = 0;
-		};
-
 		struct Parameters : public ConditionalDistribution::Parameters {
 			public:
-				int verbosity;
-				int maxIter;
-				double threshold;
-				int numGrad;
-				int batchSize;
-				Callback* callback;
-				int cbIter;
 				bool trainPriors;
 				bool trainScales;
 				bool trainWeights;

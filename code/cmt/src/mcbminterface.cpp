@@ -2,6 +2,7 @@
 #include "mcbminterface.h"
 #include "Eigen/Core"
 #include "exception.h"
+#include "callbacktrain.h"
 
 #include <iostream>
 
@@ -60,12 +61,12 @@ MCBM::Parameters PyObject_ToParameters(MCBMObject* self, PyObject* parameters) {
 			else
 				throw Exception("batch_size should be of type `int`.");
 
-//		PyObject* callback = PyDict_GetItemString(parameters, "callback");
-//		if(callback)
-//			if(PyCallable_Check(callback))
-//				params.callback = new CallbackTrain(self, callback);
-//			else if(callback != Py_None)
-//				throw Exception("callback should be a function or callable object.");
+		PyObject* callback = PyDict_GetItemString(parameters, "callback");
+		if(callback)
+			if(PyCallable_Check(callback))
+				params.callback = new CallbackTrain(reinterpret_cast<CDObject*>(self), callback);
+			else if(callback != Py_None)
+				throw Exception("callback should be a function or callable object.");
 
 		PyObject* cb_iter = PyDict_GetItemString(parameters, "cb_iter");
 		if(cb_iter)

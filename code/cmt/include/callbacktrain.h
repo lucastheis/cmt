@@ -2,21 +2,21 @@
 #define CALLBACKTRAIN_H
 
 #include <Python.h>
-#include "mcgsm.h"
+#include "conditionaldistribution.h"
 
-struct MCGSMObject;
+struct CDObject;
 
-class CallbackTrain : public MCGSM::Callback {
+class CallbackTrain : public ConditionalDistribution::Callback {
 	public:
-		CallbackTrain(MCGSMObject* mcgsm, PyObject* callback);
+		CallbackTrain(CDObject* cd, PyObject* callback);
 		CallbackTrain(const CallbackTrain& callbackTrain);
 		virtual ~CallbackTrain();
 		virtual CallbackTrain& operator=(const CallbackTrain& callbackTrain);
 		virtual CallbackTrain* copy();
-		virtual bool operator()(int iter, const MCGSM&);
+		virtual bool operator()(int iter, const ConditionalDistribution&);
 
 	private:
-		MCGSMObject* mMCGSM;
+		CDObject* mCD;
 		PyObject* mCallback;
 };
 

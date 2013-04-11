@@ -1,40 +1,41 @@
+#include "exception.h"
 #include "callbacktrain.h"
 
-CallbackTrain::CallbackTrain(MCGSMObject* mcgsm, PyObject* callback) : 
-	mMCGSM(mcgsm), 
+CallbackTrain::CallbackTrain(CDObject* cd, PyObject* callback) : 
+	mCD(cd),
 	mCallback(callback) 
 {
-	Py_INCREF(mMCGSM);
+	Py_INCREF(mCD);
 	Py_INCREF(mCallback);
 }
 
 
 
 CallbackTrain::CallbackTrain(const CallbackTrain& callbackTrain) :
-	mMCGSM(callbackTrain.mMCGSM),
+	mCD(callbackTrain.mCD),
 	mCallback(callbackTrain.mCallback)
 {
-	Py_INCREF(mMCGSM);
+	Py_INCREF(mCD);
 	Py_INCREF(mCallback);
 }
 
 
 
 CallbackTrain::~CallbackTrain() {
-	Py_DECREF(mMCGSM);
+	Py_DECREF(mCD);
 	Py_DECREF(mCallback);
 }
 
 
 
 CallbackTrain& CallbackTrain::operator=(const CallbackTrain& callbackTrain) {
-	Py_DECREF(mMCGSM);
+	Py_DECREF(mCD);
 	Py_DECREF(mCallback);
 
-	mMCGSM = callbackTrain.mMCGSM;
+	mCD = callbackTrain.mCD;
 	mCallback = callbackTrain.mCallback;
 
-	Py_INCREF(mMCGSM);
+	Py_INCREF(mCD);
 	Py_INCREF(mCallback);
 
 	return *this;
@@ -48,9 +49,9 @@ CallbackTrain* CallbackTrain::copy() {
 
 
 
-bool CallbackTrain::operator()(int iter, const MCGSM& mcgsm) {
+bool CallbackTrain::operator()(int iter, const ConditionalDistribution& cd) {
 	// call Python object
-	PyObject* args = Py_BuildValue("(iO)", iter, mMCGSM);
+	PyObject* args = Py_BuildValue("(iO)", iter, mCD);
 	PyObject* result = PyObject_CallObject(mCallback, args);
 
 	Py_DECREF(args);

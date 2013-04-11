@@ -66,19 +66,10 @@ static lbfgsfloatval_t evaluateLBFGS(
 
 
 
-MCGSM::Callback::~Callback() {
-}
 
-
-
-MCGSM::Parameters::Parameters() {
-	verbosity = 0;
-	maxIter = 1000;
-	threshold = 1e-5;
-	numGrad = 20;
-	batchSize = 2000;
-	callback = 0;
-	cbIter = 25;
+MCGSM::Parameters::Parameters() :
+	ConditionalDistribution::Parameters::Parameters()
+{
 	trainPriors = true;
 	trainScales = true;
 	trainWeights = true;
@@ -92,13 +83,7 @@ MCGSM::Parameters::Parameters() {
 
 
 MCGSM::Parameters::Parameters(const Parameters& params) :
-	verbosity(params.verbosity),
-	maxIter(params.maxIter),
-	threshold(params.threshold),
-	numGrad(params.numGrad),
-	batchSize(params.batchSize),
-	callback(0),
-	cbIter(params.cbIter),
+	ConditionalDistribution::Parameters::Parameters(params),
 	trainPriors(params.trainPriors),
 	trainScales(params.trainScales),
 	trainWeights(params.trainWeights),
@@ -108,27 +93,18 @@ MCGSM::Parameters::Parameters(const Parameters& params) :
 	regularizeFeatures(params.regularizeFeatures),
 	regularizePredictors(params.regularizePredictors)
 {
-	if(params.callback)
-		callback = params.callback->copy();
 }
 
 
 
 MCGSM::Parameters::~Parameters() {
-	if(callback)
-		delete callback;
 }
 
 
 
 MCGSM::Parameters& MCGSM::Parameters::operator=(const Parameters& params) {
-	verbosity = params.verbosity;
-	maxIter = params.maxIter;
-	threshold = params.threshold;
-	numGrad = params.numGrad;
-	batchSize = params.batchSize;
-	callback = params.callback ? params.callback->copy() : 0;
-	cbIter = params.cbIter;
+	ConditionalDistribution::Parameters::operator=(params);
+
 	trainPriors = params.trainPriors;
 	trainScales = params.trainScales;
 	trainWeights = params.trainWeights;

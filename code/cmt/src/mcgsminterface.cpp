@@ -63,7 +63,7 @@ MCGSM::Parameters PyObject_ToParameters(MCGSMObject* self, PyObject* parameters)
 		PyObject* callback = PyDict_GetItemString(parameters, "callback");
 		if(callback)
 			if(PyCallable_Check(callback))
-				params.callback = new CallbackTrain(self, callback);
+				params.callback = new CallbackTrain(reinterpret_cast<CDObject*>(self), callback);
 			else if(callback != Py_None)
 				throw Exception("callback should be a function or callable object.");
 

@@ -12,9 +12,27 @@ using Eigen::ArrayXXd;
 
 class ConditionalDistribution {
 	public:
+		class Callback {
+			public:
+				virtual ~Callback();
+				virtual Callback* copy() = 0;
+				virtual bool operator()(int iter, const ConditionalDistribution& cd) = 0;
+		};
+
 		struct Parameters {
 			public:
+				int verbosity;
+				int maxIter;
+				double threshold;
+				int numGrad;
+				int batchSize;
+				Callback* callback;
+				int cbIter;
+
+				Parameters();
+				Parameters(const Parameters& params);
 				virtual ~Parameters();
+				virtual Parameters& operator=(const Parameters& params);
 		};
 
 		virtual int dimIn() const = 0;
