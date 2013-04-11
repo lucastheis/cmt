@@ -4,7 +4,7 @@ CC = \
 CFLAGS = -Wno-write-strings \
 	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);")
 LD = $(CC)
-LDFLAGS = \
+LDFLAGS = code/liblbfgs/lib/.libs/liblbfgs.a \
 	$(shell python -c "import sysconfig; print(' '.join(sysconfig.get_config_vars('LDSHARED')[0].split(' ')[1:]));")
 
 # include paths
@@ -38,7 +38,7 @@ SOURCES = \
 	$(SRCDIR)/toolsinterface.cpp \
 	$(SRCDIR)/utils.cpp \
 	$(SRCDIR)/whiteningpreconditioner.cpp
-OBJECTS = $(patsubst %,$(OBJDIR)/%,$(SOURCES:.cpp=.o)) code/liblbfgs/lib/.libs/liblbfgs.a
+OBJECTS = $(patsubst %,$(OBJDIR)/%,$(SOURCES:.cpp=.o))
 
 MODULE = $(OBJDIR)/cmt.so
 
@@ -48,12 +48,12 @@ MODULE = $(OBJDIR)/cmt.so
 all: $(MODULE)
 
 clean:
-	rm $(OBJECTS)
+	rm -f $(OBJECTS) $(MODULE)
 
 install: $(MODULE)
 	@cp $(MODULE) $(PYTHONPATH)
 
-%.so: $(OBJECTS) 
+$(MODULE): $(OBJECTS) 
 	@echo $(LD) $(LDFLAGS) -o $@
 	@$(LD) $(OBJECTS) $(LDFLAGS) -o $@
 
