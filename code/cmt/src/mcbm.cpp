@@ -158,6 +158,28 @@ MCBM::MCBM(int dimIn, int numComponents, int numFeatures) :
 
 
 
+MCBM::MCBM(int dimIn, const MCBM& mcbm) : 
+	mDimIn(dimIn),
+	mNumComponents(mcbm.numComponents()),
+	mNumFeatures(mcbm.numFeatures())
+{
+	// check hyperparameters
+	if(mNumComponents < 1)
+		throw Exception("The number of components has to be positive.");
+	if(mNumFeatures < 1)
+		throw Exception("The number of features has to be positive.");
+
+	// initialize parameters
+	mPriors = VectorXd::Zero(mNumComponents);
+	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100. + 0.01;
+	mFeatures = sampleNormal(mDimIn, mNumFeatures) / 100.;
+	mPredictors = sampleNormal(mNumComponents, mDimIn) / 100.;
+	mInputBias = MatrixXd::Zero(mDimIn, mNumComponents);
+	mOutputBias = VectorXd::Zero(mNumComponents);
+}
+
+
+
 MCBM::~MCBM() {
 }
 

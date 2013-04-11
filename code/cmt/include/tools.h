@@ -23,6 +23,11 @@ typedef Array<bool, Dynamic, Dynamic> ArrayXXb;
 typedef pair<int, int> Tuple;
 typedef vector<Tuple> Tuples;
 
+Tuples maskToIndices(const ArrayXXb& mask);
+pair<Tuples, Tuples> masksToIndices(
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask);
+
 VectorXd extractFromImage(const ArrayXXd& img, const Tuples& indices);
 pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 	ArrayXXd img,

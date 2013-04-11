@@ -32,6 +32,7 @@ class MCBM : public ConditionalDistribution {
 			int dimIn, 
 			int numComponents = 8,
 			int numFeatures = -1);
+		MCBM(int dimIn, const MCBM& mcbm);
 
 		virtual ~MCBM();
 

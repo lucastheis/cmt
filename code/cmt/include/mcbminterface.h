@@ -18,7 +18,7 @@ struct MCBMObject {
 
 struct PatchMCBMObject {
 	PyObject_HEAD
-	PatchModel<MCBM>* patchMCBM;
+	PatchModel<MCBM, MCBM::Parameters>* patchMCBM;
 	bool owner;
 };
 

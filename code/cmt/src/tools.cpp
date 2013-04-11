@@ -22,17 +22,6 @@ using Eigen::ArrayXd;
 #include <iostream>
 #include <iomanip>
 
-VectorXd extractFromImage(const ArrayXXd& img, const Tuples& indices) {
-	VectorXd pixels(indices.size());
-
-	for(int i = 0; i < indices.size(); ++i)
-		pixels[i] = img(indices[i].first, indices[i].second);
-
-	return pixels;
-}
-
-
-
 Tuples maskToIndices(const ArrayXXb& mask) {
 	Tuples indices;
 
@@ -65,6 +54,17 @@ pair<Tuples, Tuples> masksToIndices(const ArrayXXb& inputMask, const ArrayXXb& o
 		}
 
 	return indices;
+}
+
+
+
+VectorXd extractFromImage(const ArrayXXd& img, const Tuples& indices) {
+	VectorXd pixels(indices.size());
+
+	for(int i = 0; i < indices.size(); ++i)
+		pixels[i] = img(indices[i].first, indices[i].second);
+
+	return pixels;
 }
 
 

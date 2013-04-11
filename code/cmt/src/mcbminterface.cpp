@@ -862,7 +862,7 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 
 	// create the actual model
 	try {
-		self->patchMCBM = new PatchModel<MCBM>(
+		self->patchMCBM = new PatchModel<MCBM, MCBM::Parameters>(
 			rows,
 			cols,
 			PyArray_ToMatrixXb(xmask),
