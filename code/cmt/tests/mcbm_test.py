@@ -24,8 +24,8 @@ class Tests(unittest.TestCase):
 		input = randint(2, size=[dim_in, num_samples])
 		output = mcbm.sample(input)
 		loglik = mcbm.loglikelihood(input, output)
-#		post = mcbm.posterior(input, output)
-#		samples = mcbm.sample_posterior(input, output)
+		#post = mcbm.posterior(input, output)
+		#samples = mcbm.sample_posterior(input, output)
 
 		# check hyperparameters
 		self.assertEqual(mcbm.dim_in, dim_in)
@@ -51,10 +51,10 @@ class Tests(unittest.TestCase):
 		self.assertEqual(output.shape[1], num_samples)
 		self.assertEqual(loglik.shape[0], 1)
 		self.assertEqual(loglik.shape[1], num_samples)
-#		self.assertEqual(post.shape[0], num_components)
-#		self.assertEqual(post.shape[1], num_samples)
-#		self.assertEqual(samples.shape[0], 1)
-#		self.assertEqual(samples.shape[1], num_samples)
+		#self.assertEqual(post.shape[0], num_components)
+		#self.assertEqual(post.shape[1], num_samples)
+		#self.assertEqual(samples.shape[0], 1)
+		#self.assertEqual(samples.shape[1], num_samples)
 
 
 
@@ -145,13 +145,16 @@ class Tests(unittest.TestCase):
 
 
 	def test_patchmcbm(self):
-		xmask = array([[1, 1], [1, 0]], dtype='bool')
-		ymask = array([[0, 0], [0, 1]], dtype='bool')
+		xmask = ones([8, 8], dtype='bool')
+		ymask = zeros([8, 8], dtype='bool')
+		xmask[-1, -1] = False
+		ymask[-1, -1] = True
 
-		model = PatchMCBM(8, 8, xmask, ymask, MCBM(1, 3))
+		model = PatchMCBM(8, 8, xmask, ymask, MCBM(sum(xmask), 1))
 
 		for i in range(8):
 			for j in range(8):
+				self.assertEqual(model[i, j].dim_in, (i + 1) * (j + 1) - 1)
 				self.assertTrue(isinstance(model[i, j], MCBM))
 
 

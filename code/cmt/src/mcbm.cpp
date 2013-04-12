@@ -20,7 +20,7 @@ using std::endl;
 using std::setw;
 using std::setprecision;
 
-struct ParamsLBFGS {
+struct InstanceLBFGS {
 	const MCBM* mcbm;
 	const MCBM::Parameters* params;
 	const MatrixXd* input;
@@ -42,7 +42,7 @@ static int callbackLBFGS(
 	int)
 {
 	// unpack user data
-	const ParamsLBFGS& inst = *static_cast<ParamsLBFGS*>(instance);
+	const InstanceLBFGS& inst = *static_cast<InstanceLBFGS*>(instance);
 	const MCBM& mcbm = *inst.mcbm;
 	const MCBM::Parameters& params = *inst.params;
 
@@ -69,7 +69,7 @@ static lbfgsfloatval_t evaluateLBFGS(
 	int, double)
 {
 	// unpack user data
-	const ParamsLBFGS& inst = *static_cast<ParamsLBFGS*>(instance);
+	const InstanceLBFGS& inst = *static_cast<InstanceLBFGS*>(instance);
 	const MCBM& mcbm = *inst.mcbm;
 	const MCBM::Parameters& params = *inst.params;
 	const MatrixXd& input = *inst.input;
@@ -113,8 +113,6 @@ MCBM::Parameters::Parameters(const Parameters& params) :
 
 
 MCBM::Parameters::~Parameters() {
-	if(callback)
-		delete callback;
 }
 
 
@@ -260,7 +258,7 @@ bool MCBM::train(const MatrixXd& input, const MatrixXd& output, const Parameters
  	hyperparams.xtol = 1e-32;
 
 	// wrap additional arguments
-	ParamsLBFGS instance = { this, &params, &input, &output };
+	InstanceLBFGS instance = { this, &params, &input, &output };
 
 	// start LBFGS optimization
 	int status = LBFGSERR_MAXIMUMITERATION;
@@ -516,7 +514,7 @@ double MCBM::checkGradient(
 		y[i] = x[i];
 
 	// arguments to LBFGS function
-	ParamsLBFGS instance = { this, &params, &input, &output };
+	InstanceLBFGS instance = { this, &params, &input, &output };
 
 	// compute numerical gradient using central differences
 	for(int i = 0; i < numParams; ++i) {

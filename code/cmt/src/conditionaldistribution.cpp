@@ -52,7 +52,7 @@ ConditionalDistribution::Parameters::Parameters(const Parameters& params) :
 
 
 ConditionalDistribution::Parameters& ConditionalDistribution::Parameters::operator=(
-	const Parameters& params) 
+	const Parameters& params)
 {
 	verbosity = params.verbosity;
 	maxIter = params.maxIter;

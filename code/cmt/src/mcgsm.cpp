@@ -120,7 +120,7 @@ MCGSM::Parameters& MCGSM::Parameters::operator=(const Parameters& params) {
 
 
 MCGSM::MCGSM(
-	int dimIn, 
+	int dimIn,
 	int dimOut,
 	int numComponents,
 	int numScales,

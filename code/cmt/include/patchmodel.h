@@ -7,6 +7,8 @@ using Eigen::MatrixXd;
 using Eigen::Array;
 using Eigen::Dynamic;
 
+#include <iostream>
+
 #include "distribution.h"
 #include "exception.h"
 #include "conditionaldistribution.h"
@@ -59,14 +61,19 @@ PatchModel<CD, Parameters>::PatchModel(
 	ConditionalDistribution* cd = new CD(model);
 	delete cd;
 
-	Tuples inputIndices = maskToIndices(inputMask);
-	Tuples outputIndices = maskToIndices(outputMask);
+	// compute locations of active pixels
+	pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask, outputMask);
+	Tuples& inputIndices = inOutIndices.first;
+	Tuples& outputIndices = inOutIndices.second;
 
-	if(inputIndices.size() > 1)
+	if(outputIndices.size() > 1)
 		throw Exception("Only one-dimensional outputs are currently supported.");
 
-	int rowOffset = inputIndices[0].first;
-	int colOffset = inputIndices[0].second;
+	if(inputIndices.size() != model.dimIn() || outputIndices.size() != model.dimOut())
+		throw Exception("Model and masks are incompatible.");
+
+	int rowOffset = outputIndices[0].first;
+	int colOffset = outputIndices[0].second;
 
 	// initialize conditional distributions with copy constructor
 	for(int i = 0; i < rows; ++i)
@@ -74,12 +81,12 @@ PatchModel<CD, Parameters>::PatchModel(
 			// compute input indices for
 			Tuples indices;
 
-			for(Tuples::iterator it = indices.begin(); it != indices.end(); ++it) {
+			for(Tuples::iterator it = inputIndices.begin(); it != inputIndices.end(); ++it) {
 				// location of input pixel in patch
 				int m = i + it->first - rowOffset;
 				int n = j + it->second - colOffset;
 
-				if(m >= 0 && m < mask.rows() && n >= 0 && n < mask.cols())
+				if(m >= 0 && m < mRows && n >= 0 && n < mCols)
 					indices.push_back(make_pair(m, n));
 			}
 
@@ -130,8 +137,8 @@ template <class CD, class Parameters>
 bool PatchModel<CD, Parameters>::train(const MatrixXd& data, const Parameters& params) {
 	bool converged = true;
 
-	for(int i = 0; i < rows * cols; ++i)
-		converged &= mConditionalDistributions[i].train(data, data, params);
+//	for(int i = 0; i < mRows * mCols; ++i)
+//		converged &= mConditionalDistributions[i].train(data, data, params);
 
 	return converged;
 }
