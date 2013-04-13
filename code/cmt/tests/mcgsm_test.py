@@ -90,8 +90,13 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(mcgsm.features - features)), 1e-20)
 		self.assertLess(max(abs(mcgsm.predictors[0] - predictor)), 1e-20)
 
+		count = []
 		def callback(i, mcgsm):
+			count.append(i)
 			return
+
+		max_iter = 10
+		cb_iter = 2
 
 		# make sure training doesn't throw any errors
 		mcgsm.train(
@@ -99,12 +104,15 @@ class Tests(unittest.TestCase):
 			randn(mcgsm.dim_out, 10000),
 			parameters={
 				'verbosity': 0,
-				'max_iter': 10,
+				'max_iter': max_iter,
 				'threshold': 0.,
 				'batch_size': 1999,
 				'callback': callback,
-				'cb_iter': 1,
+				'cb_iter': cb_iter,
 				})
+
+		# test callback
+		self.assertTrue(range(cb_iter, max_iter + 1, cb_iter) == count)
 
 
 

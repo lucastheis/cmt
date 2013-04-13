@@ -137,8 +137,22 @@ template <class CD, class Parameters>
 bool PatchModel<CD, Parameters>::train(const MatrixXd& data, const Parameters& params) {
 	bool converged = true;
 
-//	for(int i = 0; i < mRows * mCols; ++i)
-//		converged &= mConditionalDistributions[i].train(data, data, params);
+	for(int i = 0; i < mRows * mCols; ++i) {
+		// assumes patch is stored in row-major order
+		MatrixXd output = data.row(i);
+		MatrixXd input(mInputIndices[i].size(), data.cols());
+
+		for(int j = 0; j < mInputIndices[i].size(); ++j) {
+			// coordinates of j-th input to i-th model
+			int m = mInputIndices[i][j].first;
+			int n = mInputIndices[i][j].second;
+
+			// assumes patch is stored in row-major order
+			input.row(j) = data.row(m * mCols + n);
+		}
+
+		converged &= mConditionalDistributions[i].train(input, output, params);
+	}
 
 	return converged;
 }

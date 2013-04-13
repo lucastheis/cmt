@@ -159,5 +159,23 @@ class Tests(unittest.TestCase):
 
 
 
+	def test_patchmcbm_train(self):
+		xmask = ones([2, 2], dtype='bool')
+		ymask = zeros([2, 2], dtype='bool')
+		xmask[-1, -1] = False
+		ymask[-1, -1] = True
+
+		model = PatchMCBM(2, 2, xmask, ymask, MCBM(sum(xmask), 1))
+
+		data = array([[0, 1], [1, 0]], dtype='bool').reshape(-1, 1)
+		data = tile(data, (1, 1000)) & (randn(1, 1000) > .5)
+#
+		model.train(data)
+
+		import ipdb
+		ipdb.set_trace()
+
+
+
 if __name__ == '__main__':
 	unittest.main()

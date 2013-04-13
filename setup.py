@@ -59,7 +59,7 @@ modules = [
 	Extension('cmt',
 		language='c++',
 		sources=[
-			'code/cmt/src/callbacktrain.cpp',
+			'code/cmt/src/callbackinterface.cpp',
 			'code/cmt/src/conditionaldistribution.cpp',
 			'code/cmt/src/conditionaldistributioninterface.cpp',
 			'code/cmt/src/distribution.cpp',

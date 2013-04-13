@@ -21,7 +21,7 @@ PYTHONPATH = \
 SRCDIR = code/cmt/src
 OBJDIR = build
 SOURCES = \
-	$(SRCDIR)/callbacktrain.cpp \
+	$(SRCDIR)/callbackinterface.cpp \
 	$(SRCDIR)/conditionaldistribution.cpp \
 	$(SRCDIR)/conditionaldistributioninterface.cpp \
 	$(SRCDIR)/distribution.cpp \

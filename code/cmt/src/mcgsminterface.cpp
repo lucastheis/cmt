@@ -1,13 +1,13 @@
 #include "mcgsminterface.h"
 #include "Eigen/Core"
 #include "exception.h"
-#include "callbacktrain.h"
+#include "callbackinterface.h"
 
 #include <iostream>
 
 using namespace Eigen;
 
-MCGSM::Parameters PyObject_ToParameters(MCGSMObject* self, PyObject* parameters) {
+MCGSM::Parameters PyObject_ToMCGSMParameters(PyObject* parameters) {
 	MCGSM::Parameters params;
 
 	// read parameters from dictionary
@@ -63,7 +63,7 @@ MCGSM::Parameters PyObject_ToParameters(MCGSMObject* self, PyObject* parameters)
 		PyObject* callback = PyDict_GetItemString(parameters, "callback");
 		if(callback)
 			if(PyCallable_Check(callback))
-				params.callback = new CallbackTrain(reinterpret_cast<CDObject*>(self), callback);
+				params.callback = new CallbackInterface(&MCGSM_type, callback);
 			else if(callback != Py_None)
 				throw Exception("callback should be a function or callable object.");
 
@@ -531,7 +531,7 @@ PyObject* MCGSM_initialize(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 		self->mcgsm->initialize(
 			PyArray_ToMatrixXd(input), 
 			PyArray_ToMatrixXd(output), 
-			PyObject_ToParameters(self, parameters));
+			PyObject_ToMCGSMParameters(parameters));
 		Py_DECREF(input);
 		Py_DECREF(output);
 		Py_INCREF(Py_None);
@@ -630,7 +630,7 @@ PyObject* MCGSM_train(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 		if(self->mcgsm->train(
 				PyArray_ToMatrixXd(input), 
 				PyArray_ToMatrixXd(output), 
-				PyObject_ToParameters(self, parameters)))
+				PyObject_ToMCGSMParameters(parameters)))
 		{
 			Py_DECREF(input);
 			Py_DECREF(output);
@@ -684,7 +684,7 @@ PyObject* MCGSM_check_performance(MCGSMObject* self, PyObject* args, PyObject* k
 			PyArray_ToMatrixXd(input),
 			PyArray_ToMatrixXd(output),
 			repetitions, 
-			PyObject_ToParameters(self, parameters));
+			PyObject_ToMCGSMParameters(parameters));
 		Py_DECREF(input);
 		Py_DECREF(output);
 		return PyFloat_FromDouble(err);
@@ -732,7 +732,7 @@ PyObject* MCGSM_check_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds
 			PyArray_ToMatrixXd(input),
 			PyArray_ToMatrixXd(output),
 			epsilon,
-			PyObject_ToParameters(self, parameters));
+			PyObject_ToMCGSMParameters(parameters));
 		Py_DECREF(input);
 		Py_DECREF(output);
 		return PyFloat_FromDouble(err);
@@ -874,7 +874,7 @@ PyObject* MCGSM_parameters(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 		return 0;
 
 	try {
-		MCGSM::Parameters params = PyObject_ToParameters(self, parameters);
+		MCGSM::Parameters params = PyObject_ToMCGSMParameters(parameters);
 
 		lbfgsfloatval_t* x = self->mcgsm->parameters(params);
 
@@ -928,7 +928,7 @@ PyObject* MCGSM_set_parameters(MCGSMObject* self, PyObject* args, PyObject* kwds
 	try {
 		self->mcgsm->setParameters(
 			PyArray_ToMatrixXd(x).data(), // TODO: PyArray_ToMatrixXd unnecessary
-			PyObject_ToParameters(self, parameters));
+			PyObject_ToMCGSMParameters(parameters));
 
 		Py_DECREF(x);
 		Py_INCREF(Py_None);
@@ -976,7 +976,7 @@ PyObject* MCGSM_compute_gradient(MCGSMObject* self, PyObject* args, PyObject* kw
 		x = PyArray_FROM_OTF(x, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	try {
-		MCGSM::Parameters params = PyObject_ToParameters(self, parameters);
+		MCGSM::Parameters params = PyObject_ToMCGSMParameters(parameters);
 
 		MatrixXd gradient(self->mcgsm->numParameters(params), 1); // TODO: don't use MatrixXd
 

@@ -2,13 +2,13 @@
 #include "mcbminterface.h"
 #include "Eigen/Core"
 #include "exception.h"
-#include "callbacktrain.h"
+#include "callbackinterface.h"
 
 #include <iostream>
 
 using namespace Eigen;
 
-MCBM::Parameters PyObject_ToParameters(MCBMObject* self, PyObject* parameters) {
+MCBM::Parameters PyObject_ToMCBMParameters(PyObject* parameters) {
 	MCBM::Parameters params;
 
 	// read parameters from dictionary
@@ -64,7 +64,7 @@ MCBM::Parameters PyObject_ToParameters(MCBMObject* self, PyObject* parameters) {
 		PyObject* callback = PyDict_GetItemString(parameters, "callback");
 		if(callback)
 			if(PyCallable_Check(callback))
-				params.callback = new CallbackTrain(reinterpret_cast<CDObject*>(self), callback);
+				params.callback = new CallbackInterface(&MCBM_type, callback);
 			else if(callback != Py_None)
 				throw Exception("callback should be a function or callable object.");
 
@@ -515,7 +515,7 @@ PyObject* MCBM_train(MCBMObject* self, PyObject* args, PyObject* kwds) {
 		if(self->mcbm->train(
 				PyArray_ToMatrixXd(input), 
 				PyArray_ToMatrixXd(output), 
-				PyObject_ToParameters(self, parameters)))
+				PyObject_ToMCBMParameters(parameters)))
 		{
 			Py_DECREF(input);
 			Py_DECREF(output);
@@ -563,7 +563,7 @@ PyObject* MCBM_parameters(MCBMObject* self, PyObject* args, PyObject* kwds) {
 		return 0;
 
 	try {
-		MCBM::Parameters params = PyObject_ToParameters(self, parameters);
+		MCBM::Parameters params = PyObject_ToMCBMParameters(parameters);
 
 		lbfgsfloatval_t* x = self->mcbm->parameters(params);
 
@@ -617,7 +617,7 @@ PyObject* MCBM_set_parameters(MCBMObject* self, PyObject* args, PyObject* kwds) 
 	try {
 		self->mcbm->setParameters(
 			PyArray_ToMatrixXd(x).data(), // TODO: PyArray_ToMatrixXd unnecessary
-			PyObject_ToParameters(self, parameters));
+			PyObject_ToMCBMParameters(parameters));
 
 		Py_DECREF(x);
 		Py_INCREF(Py_None);
@@ -665,7 +665,7 @@ PyObject* MCBM_compute_gradient(MCBMObject* self, PyObject* args, PyObject* kwds
 		x = PyArray_FROM_OTF(x, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	try {
-		MCBM::Parameters params = PyObject_ToParameters(self, parameters);
+		MCBM::Parameters params = PyObject_ToMCBMParameters(parameters);
 
 		MatrixXd gradient(self->mcbm->numParameters(params), 1); // TODO: don't use MatrixXd
 
@@ -732,7 +732,7 @@ PyObject* MCBM_check_gradient(MCBMObject* self, PyObject* args, PyObject* kwds) 
 			PyArray_ToMatrixXd(input),
 			PyArray_ToMatrixXd(output),
 			epsilon,
-			PyObject_ToParameters(self, parameters));
+			PyObject_ToMCBMParameters(parameters));
 		Py_DECREF(input);
 		Py_DECREF(output);
 		return PyFloat_FromDouble(err);
@@ -896,4 +896,67 @@ PyObject* PatchMCBM_subscript(PatchMCBMObject* self, PyObject* key) {
 	Py_INCREF(mcbmObject);
 
 	return mcbmObject;
+}
+
+
+
+const char* PatchMCBM_train_doc =
+	"train(self, data, parameters=None)\n"
+	"\n"
+	"Trains the model to the given image patches by fitting each conditional\n"
+	"distribution in turn.\n"
+	"\n"
+	"It is assumed that the patches are stored in row-order ('C') in the columns of\n"
+	"L{data}. If hyperparameters are given, they are passed on to each conditional\n"
+	"distribution.\n"
+	"\n"
+	"@type  data: ndarray\n"
+	"@param input: image patches stored column-wise\n"
+	"\n"
+	"@type  parameters: dict\n"
+	"@param parameters: a dictionary containing hyperparameters\n"
+	"\n"
+	"@rtype: bool\n"
+	"@return: C{True} if training of all models converged, otherwise C{False}";
+
+PyObject* PatchMCBM_train(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"data", "parameters", 0};
+
+	PyObject* data;
+	PyObject* parameters = 0;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", const_cast<char**>(kwlist),
+		&data,
+		&parameters))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	data = PyArray_FROM_OTF(data, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!data) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+//		if(self->patchMCBM->train(
+//				PyArray_ToMatrixXd(data), 
+//				PyObject_ToMCBMParameters(parameters)))
+//		{
+//			Py_DECREF(data);
+//			Py_INCREF(Py_True);
+//			return Py_True;
+//		} else {
+			Py_DECREF(data);
+			Py_INCREF(Py_False);
+			return Py_False;
+//		}
+	} catch(Exception exception) {
+		Py_DECREF(data);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
 }
