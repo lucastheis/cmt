@@ -160,7 +160,7 @@ MCGSM::~MCGSM() {
 
 
 
-void MCGSM::initialize(const MatrixXd& input, const MatrixXd& output, const Parameters& params) {
+void MCGSM::initialize(const MatrixXd& input, const MatrixXd& output) {
 	MatrixXd covXX = covariance(input);
 	MatrixXd covXY = covariance(input, output);
 

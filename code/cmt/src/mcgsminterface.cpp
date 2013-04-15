@@ -489,7 +489,7 @@ int MCGSM_set_predictors(MCGSMObject* self, PyObject* value, void*) {
 
 
 const char* MCGSM_initialize_doc =
-	"initialize(self, input, output, parameters)\n"
+	"initialize(self, input, output)\n"
 	"\n"
 	"Tries to guess more sensible initial values for the model parameters from data.\n"
 	"\n"
@@ -497,23 +497,18 @@ const char* MCGSM_initialize_doc =
 	"@param input: inputs stored in columns\n"
 	"\n"
 	"@type  output: ndarray\n"
-	"@param output: outputs stored in columns\n"
-	"\n"
-	"@type  parameters: dict\n"
-	"@param parameters: a dictionary containing hyperparameters";
+	"@param output: outputs stored in columns";
 
 PyObject* MCGSM_initialize(MCGSMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", "parameters", 0};
+	const char* kwlist[] = {"input", "output", 0};
 
 	PyObject* input;
 	PyObject* output;
-	PyObject* parameters = 0;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|O", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist),
 		&input,
-		&output,
-		&parameters))
+		&output))
 		return 0;
 
 	// make sure data is stored in NumPy array
@@ -530,8 +525,7 @@ PyObject* MCGSM_initialize(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	try {
 		self->mcgsm->initialize(
 			PyArray_ToMatrixXd(input), 
-			PyArray_ToMatrixXd(output), 
-			PyObject_ToMCGSMParameters(parameters));
+			PyArray_ToMatrixXd(output));
 		Py_DECREF(input);
 		Py_DECREF(output);
 		Py_INCREF(Py_None);
