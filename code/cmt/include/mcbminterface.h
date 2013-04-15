@@ -36,6 +36,7 @@ extern const char* MCBM_reduce_doc;
 extern const char* MCBM_setstate_doc;
 
 extern const char* PatchMCBM_doc;
+extern const char* PatchMCBM_initialize_doc;
 extern const char* PatchMCBM_train_doc;
 
 int MCBM_init(MCBMObject*, PyObject*, PyObject*);
@@ -77,6 +78,7 @@ PyObject* MCBM_setstate(MCBMObject*, PyObject*, PyObject*);
 int PatchMCBM_init(PatchMCBMObject*, PyObject*, PyObject*);
 
 PyObject* PatchMCBM_subscript(PatchMCBMObject*, PyObject*);
+PyObject* PatchMCBM_initialize(PatchMCBMObject*, PyObject*, PyObject*);
 PyObject* PatchMCBM_train(PatchMCBMObject*, PyObject*, PyObject*);
 
 #endif

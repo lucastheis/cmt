@@ -223,7 +223,7 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, const Parameter
 	// free memory used by LBFGS
 	lbfgs_free(x);
 
-	if(!status) {
+	if(status >= 0) {
 		return true;
 	} else {
 		if(status != LBFGSERR_MAXIMUMITERATION)

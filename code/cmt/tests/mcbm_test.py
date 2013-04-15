@@ -88,9 +88,9 @@ class Tests(unittest.TestCase):
 				'callback': callback,
 				'cb_iter': 1,
 				})
-
-
-
+#
+#
+#
 	def test_gradient(self):
 		mcbm = MCBM(5, 2, 10)
 
@@ -167,13 +167,23 @@ class Tests(unittest.TestCase):
 
 		model = PatchMCBM(2, 2, xmask, ymask, MCBM(sum(xmask), 1))
 
+		# checkerboard
 		data = array([[0, 1], [1, 0]], dtype='bool').reshape(-1, 1)
-		data = tile(data, (1, 1000)) & (randn(1, 1000) > .5)
-#
-		model.train(data)
+		data = tile(data, (1, 1000)) ^ (randn(1, 1000) > .5)
 
-		import ipdb
-		ipdb.set_trace()
+		model.initialize(data, parameters={'max_iter': 100})
+
+		# training should converge in much less than 2000 iterations
+		self.assertTrue(model.train(data, parameters={'max_iter': 2000}))
+		
+		samples = model.sample(1000) > .5
+		samples ^= samples[0]
+
+		# less than 1 percent should have wrong pattern
+		self.assertLess(mean(0 - samples[0]), 0.01)
+		self.assertLess(mean(1 - samples[1]), 0.01)
+		self.assertLess(mean(1 - samples[2]), 0.01)
+		self.assertLess(mean(0 - samples[3]), 0.01)
 
 
 

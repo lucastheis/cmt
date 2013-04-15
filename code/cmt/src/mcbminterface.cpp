@@ -900,6 +900,57 @@ PyObject* PatchMCBM_subscript(PatchMCBMObject* self, PyObject* key) {
 
 
 
+const char* PatchMCBM_initialize_doc =
+	"initialize(self, data, parameters=None)\n"
+	"\n"
+	"Trains the model assuming shift-invariance of the patch statistics.\n"
+	"\n"
+	"A single conditional distribution is fitted to the given data and all models with\n"
+	"a I{complete} neighborhood are initialized with this one set of parameters.\n"
+	"\n"
+	"It is assumed that the patches are stored in row-order ('C') in the columns of\n"
+	"L{data}.\n"
+	"\n"
+	"@type  data: ndarray\n"
+	"@param data: image patches stored column-wise";
+
+PyObject* PatchMCBM_initialize(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"data", "parameters", 0};
+
+	PyObject* data;
+	PyObject* parameters = 0;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", const_cast<char**>(kwlist), 
+		&data, &parameters))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	data = PyArray_FROM_OTF(data, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!data) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		self->patchMCBM->initialize(
+			PyArray_ToMatrixXd(data),
+			PyObject_ToMCBMParameters(parameters));
+		Py_DECREF(data);
+		Py_INCREF(Py_None);
+		return Py_None;
+	} catch(Exception exception) {
+		Py_DECREF(data);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
 const char* PatchMCBM_train_doc =
 	"train(self, data, parameters=None)\n"
 	"\n"
@@ -911,7 +962,7 @@ const char* PatchMCBM_train_doc =
 	"distribution.\n"
 	"\n"
 	"@type  data: ndarray\n"
-	"@param input: image patches stored column-wise\n"
+	"@param data: image patches stored column-wise\n"
 	"\n"
 	"@type  parameters: dict\n"
 	"@param parameters: a dictionary containing hyperparameters\n"
@@ -940,18 +991,18 @@ PyObject* PatchMCBM_train(PatchMCBMObject* self, PyObject* args, PyObject* kwds)
 	}
 
 	try {
-//		if(self->patchMCBM->train(
-//				PyArray_ToMatrixXd(data), 
-//				PyObject_ToMCBMParameters(parameters)))
-//		{
-//			Py_DECREF(data);
-//			Py_INCREF(Py_True);
-//			return Py_True;
-//		} else {
+		if(self->patchMCBM->train(
+				PyArray_ToMatrixXd(data), 
+				PyObject_ToMCBMParameters(parameters)))
+		{
+			Py_DECREF(data);
+			Py_INCREF(Py_True);
+			return Py_True;
+		} else {
 			Py_DECREF(data);
 			Py_INCREF(Py_False);
 			return Py_False;
-//		}
+		}
 	} catch(Exception exception) {
 		Py_DECREF(data);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());

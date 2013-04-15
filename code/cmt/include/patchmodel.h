@@ -9,6 +9,7 @@ using Eigen::Dynamic;
 
 #include <iostream>
 
+#include "utils.h"
 #include "distribution.h"
 #include "exception.h"
 #include "conditionaldistribution.h"
@@ -16,7 +17,7 @@ using Eigen::Dynamic;
 
 typedef Array<bool, Dynamic, Dynamic> ArrayXXb;
 
-template <class CD, class Parameters>
+template <class CD, class Parameters = ConditionalDistribution::Parameters>
 class PatchModel : public Distribution {
 	public:
 		PatchModel(
@@ -31,8 +32,8 @@ class PatchModel : public Distribution {
 		CD& operator()(int i, int j);
 		const CD& operator()(int i, int j) const;
 
-		bool initialize(const MatrixXd& data);
-		bool train(const MatrixXd& data, const Parameters& params);
+		void initialize(const MatrixXd& data, const Parameters& params = Parameters());
+		bool train(const MatrixXd& data, const Parameters& params = Parameters());
 
 		Array<double, 1, Dynamic> logLikelihood(const MatrixXd& data) const;
 
@@ -55,7 +56,11 @@ PatchModel<CD, Parameters>::PatchModel(
 	int cols,
 	const ArrayXXb& inputMask,
 	const ArrayXXb& outputMask,
-	const CD& model) : mRows(rows), mCols(cols)
+	const CD& model) : 
+	mRows(rows),
+	mCols(cols),
+	mInputMask(inputMask),
+	mOutputMask(outputMask)
 {
 	// this ensures that CD is a subclass of ConditionalDistribution
 	ConditionalDistribution* cd = new CD(model);
@@ -74,6 +79,10 @@ PatchModel<CD, Parameters>::PatchModel(
 
 	int rowOffset = outputIndices[0].first;
 	int colOffset = outputIndices[0].second;
+
+	for(Tuples::iterator it = inputIndices.begin(); it != inputIndices.end(); ++it)
+		if(it->first > rowOffset || it->first == rowOffset && it->second > colOffset)
+			throw Exception("Invalid masks. Only top-left to bottom-right sampling is currently supported.");
 
 	// initialize conditional distributions with copy constructor
 	for(int i = 0; i < rows; ++i)
@@ -127,8 +136,52 @@ const CD& PatchModel<CD, Parameters>::operator()(int i, int j) const {
 
 
 template <class CD, class Parameters>
-bool PatchModel<CD, Parameters>::initialize(const MatrixXd& data) {
-	return false;
+void PatchModel<CD, Parameters>::initialize(const MatrixXd& data, const Parameters& params) {
+	pair<Tuples, Tuples> inOutIndices = masksToIndices(mInputMask, mOutputMask);
+	Tuples& inputIndices = inOutIndices.first;
+	Tuples& outputIndices = inOutIndices.second;
+
+	vector<MatrixXd> inputs;
+	vector<MatrixXd> outputs;
+
+	for(int i = 0; i < mRows * mCols; ++i) {
+		MatrixXd output = data.row(i);
+		MatrixXd input(mInputIndices[i].size(), data.cols());
+
+		for(int j = 0; j < mInputIndices[i].size(); ++j) {
+			// coordinates of j-th input to i-th model
+			int m = mInputIndices[i][j].first;
+			int n = mInputIndices[i][j].second;
+
+			// assumes patch is stored in row-major order
+			input.row(j) = data.row(m * mCols + n);
+		}
+
+		if(mInputIndices[i].size() == inputIndices.size()) {
+			inputs.push_back(input);
+			outputs.push_back(output);
+		} else {
+			// initialize models with an incomplete neighborhood
+			mConditionalDistributions[i].initialize(input, output);
+		}
+	}
+
+	MatrixXd input = concatenate(inputs);
+	MatrixXd output = concatenate(outputs);
+
+	for(int i = 0; i < mRows * mCols; ++i)
+		if(mConditionalDistributions[i].dimIn() == inputIndices.size()) {
+			// train one model
+			mConditionalDistributions[i].initialize(input, output);
+			mConditionalDistributions[i].train(input, output, params);
+
+			// copy parameters to other models with similar inputs
+			for(int j = i + 1; j < mRows * mCols; ++j)
+				if(mConditionalDistributions[j].dimIn() == inputIndices.size())
+					mConditionalDistributions[j] = mConditionalDistributions[i];
+
+			break;
+		}
 }
 
 
@@ -170,5 +223,23 @@ Array<double, 1, Dynamic> PatchModel<CD, Parameters>::logLikelihood(
 
 template<class CD, class Parameters>
 MatrixXd PatchModel<CD, Parameters>::sample(int num_samples) const {
-	return MatrixXd::Zero(mRows * mCols, num_samples);
+	MatrixXd samples = MatrixXd::Zero(mRows * mCols, num_samples);
+
+	for(int i = 0; i < mRows * mCols; ++i) {
+		MatrixXd input(mInputIndices[i].size(), num_samples);
+
+		// construct input from already sampled patch
+		for(int j = 0; j < mInputIndices[i].size(); ++j) {
+			// coordinates of j-th input to i-th model
+			int m = mInputIndices[i][j].first;
+			int n = mInputIndices[i][j].second;
+
+			// assumes patch is stored in row-major order
+			input.row(j) = samples.row(m * mCols + n);
+		}
+
+		samples.row(i) = mConditionalDistributions[i].sample(input);
+	}
+
+	return samples;
 }

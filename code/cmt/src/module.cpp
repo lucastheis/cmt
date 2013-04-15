@@ -358,6 +358,7 @@ static PyMappingMethods PatchMCBM_as_mapping = {
 };
 
 static PyMethodDef PatchMCBM_methods[] = {
+	{"initialize", (PyCFunction)PatchMCBM_initialize, METH_VARARGS|METH_KEYWORDS, PatchMCBM_initialize_doc},
 	{"train", (PyCFunction)PatchMCBM_train, METH_VARARGS|METH_KEYWORDS, PatchMCBM_train_doc},
 	{0}
 };
