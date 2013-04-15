@@ -165,7 +165,7 @@ class Tests(unittest.TestCase):
 		xmask[-1, -1] = False
 		ymask[-1, -1] = True
 
-		model = PatchMCBM(2, 2, xmask, ymask, MCBM(sum(xmask), 1))
+		model = PatchMCBM(2, 2, xmask, ymask, MCBM(sum(xmask), 1, 1))
 
 		# checkerboard
 		data = array([[0, 1], [1, 0]], dtype='bool').reshape(-1, 1)
@@ -184,6 +184,45 @@ class Tests(unittest.TestCase):
 		self.assertLess(mean(1 - samples[1]), 0.01)
 		self.assertLess(mean(1 - samples[2]), 0.01)
 		self.assertLess(mean(0 - samples[3]), 0.01)
+
+
+
+	def test_patchmcbm_subscript(self):
+		xmask = ones([2, 2], dtype='bool')
+		ymask = zeros([2, 2], dtype='bool')
+		xmask[-1, -1] = False
+		ymask[-1, -1] = True
+
+		model = PatchMCBM(2, 2, xmask, ymask)
+
+		mcbm = MCBM(model[0, 1].dim_in, 12, 47)
+
+		model[0, 1] = mcbm
+
+		self.assertEqual(model[0, 1].num_components, mcbm.num_components)
+		self.assertEqual(model[0, 1].num_features, mcbm.num_features)
+
+
+
+	def test_patchmcbm_pickle(self):
+		xmask = ones([2, 2], dtype='bool')
+		ymask = zeros([2, 2], dtype='bool')
+		xmask[-1, -1] = False
+		ymask[-1, -1] = True
+
+		model0 = PatchMCBM(2, 2, xmask, ymask)
+
+		tmp_file = mkstemp()[1]
+
+		# store model
+		with open(tmp_file, 'w') as handle:
+			dump({'model': model0}, handle)
+
+		# load model
+		with open(tmp_file) as handle:
+			model = load(handle)['model']
+
+		# make sure parameters haven't changed
 
 
 

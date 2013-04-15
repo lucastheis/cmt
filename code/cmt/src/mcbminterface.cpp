@@ -843,10 +843,10 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 	int cols;
 	PyObject* xmask;
 	PyObject* ymask;
-	MCBMObject* model;
+	MCBMObject* model = 0;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiOOO!", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiOO|O!", const_cast<char**>(kwlist),
 		&rows, &cols, &xmask, &ymask, &MCBM_type, &model))
 		return -1;
 
@@ -867,13 +867,35 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 			cols,
 			PyArray_ToMatrixXb(xmask),
 			PyArray_ToMatrixXb(ymask),
-			*model->mcbm);
+			model ? model->mcbm : 0);
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return -1;
 	}
 
 	return 0;
+}
+
+
+
+PyObject* PatchMCBM_input_mask(PatchMCBMObject* self, PyObject*, void*) {
+	PyObject* array = PyArray_FromMatrixXb(self->patchMCBM->inputMask());
+
+	// make array immutable
+	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
+
+	return array;
+}
+
+
+
+PyObject* PatchMCBM_output_mask(PatchMCBMObject* self, PyObject*, void*) {
+	PyObject* array = PyArray_FromMatrixXb(self->patchMCBM->outputMask());
+
+	// make array immutable
+	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
+
+	return array;
 }
 
 
@@ -887,8 +909,10 @@ PyObject* PatchMCBM_subscript(PatchMCBMObject* self, PyObject* key) {
 	int i;
 	int j;
 
-	if(!PyArg_ParseTuple(key, "ii", &i, &j))
+	if(!PyArg_ParseTuple(key, "ii", &i, &j)) {
+		PyErr_SetString(PyExc_TypeError, "Index should consist of a row and a column.");
 		return 0;
+	}
 
 	PyObject* mcbmObject = CD_new(&MCBM_type, 0, 0);
 	reinterpret_cast<MCBMObject*>(mcbmObject)->mcbm = &self->patchMCBM->operator()(i, j);
@@ -896,6 +920,32 @@ PyObject* PatchMCBM_subscript(PatchMCBMObject* self, PyObject* key) {
 	Py_INCREF(mcbmObject);
 
 	return mcbmObject;
+}
+
+
+
+int PatchMCBM_ass_subscript(PatchMCBMObject* self, PyObject* key, PyObject* value) {
+	if(!PyType_IsSubtype(Py_TYPE(value), &MCBM_type)) {
+		PyErr_SetString(PyExc_TypeError, "Conditional distribution should be an MCBM.");
+		return -1;
+	}
+
+	if(!PyTuple_Check(key)) {
+		PyErr_SetString(PyExc_TypeError, "Index must be a tuple.");
+		return -1;
+	}
+
+	int i;
+	int j;
+
+	if(!PyArg_ParseTuple(key, "ii", &i, &j)) {
+		PyErr_SetString(PyExc_TypeError, "Index should consist of a row and a column.");
+		return -1;
+	}
+
+	self->patchMCBM->operator()(i, j) = *reinterpret_cast<MCBMObject*>(value)->mcbm;
+
+	return 0;
 }
 
 
@@ -1010,4 +1060,68 @@ PyObject* PatchMCBM_train(PatchMCBMObject* self, PyObject* args, PyObject* kwds)
 	}
 
 	return 0;
+}
+
+
+
+const char* PatchMCBM_reduce_doc =
+	"__reduce__(self)\n"
+	"\n"
+	"Method used by Pickle.";
+
+PyObject* PatchMCBM_reduce(PatchMCBMObject* self, PyObject*, PyObject*) {
+	int rows = self->patchMCBM->rows();
+	int cols = self->patchMCBM->cols();
+
+	// constructor arguments
+	PyObject* args = Py_BuildValue("(iiOO)", 
+		rows,
+		cols,
+		PatchMCBM_input_mask(self, 0, 0),
+		PatchMCBM_output_mask(self, 0, 0)
+		);
+
+	// parameters
+	PyObject* state = PyList_New(self->patchMCBM->dim());
+
+	for(int i = 0; i < rows; ++i)
+		for(int j = 0; j < cols; ++j) {
+			PyObject* index = Py_BuildValue("(ii)", i, j);
+			PyObject* mcbm = PatchMCBM_subscript(self, index);
+
+			// add MCBM to list of models
+			PyList_SetItem(state, i * cols + j, mcbm);
+
+			Py_DECREF(index);
+		}
+
+	PyObject* result = Py_BuildValue("(OOO)", self->ob_type, args, state);
+
+	Py_DECREF(args);
+	Py_DECREF(state);
+
+	return result;
+}
+
+
+
+const char* PatchMCBM_setstate_doc =
+	"__setstate__(self)\n"
+	"\n"
+	"Method used by Pickle.";
+
+PyObject* PatchMCBM_setstate(PatchMCBMObject* self, PyObject* state, PyObject*) {
+	int rows = self->patchMCBM->rows();
+	int cols = self->patchMCBM->cols();
+
+	for(int i = 0; i < self->patchMCBM->dim(); ++i) {
+		PyObject* index = Py_BuildValue("(ii)", i / cols, i % cols);
+
+		PatchMCBM_ass_subscript(self, index, PyList_GetItem(state, i));
+
+		Py_DECREF(index);
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
 }

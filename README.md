@@ -1,6 +1,6 @@
 # Conditional Modeling Toolkit
 
-A C++ implementation of conditional models such as the MCGSM.
+A C++ implementation of conditional models such as the MCGSM and MCBM.
 
 ## Requirements
 

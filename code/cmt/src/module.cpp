@@ -352,14 +352,16 @@ PyTypeObject MCBM_type = {
 };
 
 static PyMappingMethods PatchMCBM_as_mapping = {
-	0,                                /*mp_length*/
-	(binaryfunc)PatchMCBM_subscript,  /*mp_subscript*/
-	0,                                /*mp_ass_subscript*/
+	0,                                      /*mp_length*/
+	(binaryfunc)PatchMCBM_subscript,        /*mp_subscript*/
+	(objobjargproc)PatchMCBM_ass_subscript, /*mp_ass_subscript*/
 };
 
 static PyMethodDef PatchMCBM_methods[] = {
 	{"initialize", (PyCFunction)PatchMCBM_initialize, METH_VARARGS|METH_KEYWORDS, PatchMCBM_initialize_doc},
 	{"train", (PyCFunction)PatchMCBM_train, METH_VARARGS|METH_KEYWORDS, PatchMCBM_train_doc},
+	{"__reduce__", (PyCFunction)PatchMCBM_reduce, METH_NOARGS, PatchMCBM_reduce_doc},
+	{"__setstate__", (PyCFunction)PatchMCBM_setstate, METH_VARARGS, PatchMCBM_setstate_doc},
 	{0}
 };
 

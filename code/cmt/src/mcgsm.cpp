@@ -138,8 +138,6 @@ MCGSM::MCGSM(
 		throw Exception("The number of scales has to be positive.");
 	if(mNumComponents < 1)
 		throw Exception("The number of components has to be positive.");
-	if(mNumFeatures < 1)
-		throw Exception("The number of features has to be positive.");
 
 	// initialize parameters
 	mPriors = ArrayXXd::Zero(mNumComponents, mNumScales);
@@ -165,12 +163,6 @@ MCGSM::MCGSM(int dimIn, int dimOut, const MCGSM& mcgsm) :
 	// check hyperparameters
 	if(mDimOut < 1)
 		throw Exception("The number of output dimensions has to be positive.");
-	if(mNumScales < 1)
-		throw Exception("The number of scales has to be positive.");
-	if(mNumComponents < 1)
-		throw Exception("The number of components has to be positive.");
-	if(mNumFeatures < 1)
-		throw Exception("The number of features has to be positive.");
 
 	// initialize parameters
 	mPriors = ArrayXXd::Zero(mNumComponents, mNumScales);
@@ -193,16 +185,6 @@ MCGSM::MCGSM(int dimIn, const MCGSM& mcgsm) :
 	mNumScales(mcgsm.numScales()),
 	mNumFeatures(mcgsm.numFeatures())
 {
-	// check hyperparameters
-	if(mDimOut < 1)
-		throw Exception("The number of output dimensions has to be positive.");
-	if(mNumScales < 1)
-		throw Exception("The number of scales has to be positive.");
-	if(mNumComponents < 1)
-		throw Exception("The number of components has to be positive.");
-	if(mNumFeatures < 1)
-		throw Exception("The number of features has to be positive.");
-
 	// initialize parameters
 	mPriors = ArrayXXd::Zero(mNumComponents, mNumScales);
 	mScales = ArrayXXd::Random(mNumComponents, mNumScales);

@@ -25,9 +25,13 @@ class PatchModel : public Distribution {
 			int cols,
 			const ArrayXXb& inputMask,
 			const ArrayXXb& outputMask,
-			const CD& model);
+			const CD* model = 0);
 
 		int dim() const;
+		int rows() const;
+		int cols() const;
+		ArrayXXb inputMask() const;
+		ArrayXXb outputMask() const;
 
 		CD& operator()(int i, int j);
 		const CD& operator()(int i, int j) const;
@@ -56,16 +60,12 @@ PatchModel<CD, Parameters>::PatchModel(
 	int cols,
 	const ArrayXXb& inputMask,
 	const ArrayXXb& outputMask,
-	const CD& model) : 
+	const CD* model) :
 	mRows(rows),
 	mCols(cols),
 	mInputMask(inputMask),
 	mOutputMask(outputMask)
 {
-	// this ensures that CD is a subclass of ConditionalDistribution
-	ConditionalDistribution* cd = new CD(model);
-	delete cd;
-
 	// compute locations of active pixels
 	pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask, outputMask);
 	Tuples& inputIndices = inOutIndices.first;
@@ -74,8 +74,9 @@ PatchModel<CD, Parameters>::PatchModel(
 	if(outputIndices.size() > 1)
 		throw Exception("Only one-dimensional outputs are currently supported.");
 
-	if(inputIndices.size() != model.dimIn() || outputIndices.size() != model.dimOut())
-		throw Exception("Model and masks are incompatible.");
+	if(model)
+		if(inputIndices.size() != model->dimIn() || outputIndices.size() != model->dimOut())
+			throw Exception("Model and masks are incompatible.");
 
 	int rowOffset = outputIndices[0].first;
 	int colOffset = outputIndices[0].second;
@@ -101,10 +102,13 @@ PatchModel<CD, Parameters>::PatchModel(
 
 			mInputIndices.push_back(indices);
 
-			if(indices.size() == inputIndices.size())
-				mConditionalDistributions.push_back(model);
+			if(model)
+				if(indices.size() == inputIndices.size())
+					mConditionalDistributions.push_back(*model);
+				else
+					mConditionalDistributions.push_back(CD(indices.size(), *model));
 			else
-				mConditionalDistributions.push_back(CD(indices.size(), model));
+				mConditionalDistributions.push_back(CD(indices.size()));
 		}
 }
 
@@ -113,6 +117,34 @@ PatchModel<CD, Parameters>::PatchModel(
 template <class CD, class Parameters>
 int PatchModel<CD, Parameters>::dim() const {
 	return mRows * mCols;
+}
+
+
+
+template <class CD, class Parameters>
+int PatchModel<CD, Parameters>::rows() const {
+	return mRows;
+}
+
+
+
+template <class CD, class Parameters>
+int PatchModel<CD, Parameters>::cols() const {
+	return mCols;
+}
+
+
+
+template <class CD, class Parameters>
+ArrayXXb PatchModel<CD, Parameters>::inputMask() const {
+	return mInputMask;
+}
+
+
+
+template <class CD, class Parameters>
+ArrayXXb PatchModel<CD, Parameters>::outputMask() const {
+	return mOutputMask;
 }
 
 
