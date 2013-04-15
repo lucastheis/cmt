@@ -43,6 +43,9 @@ class ConditionalDistribution {
 			const MatrixXd& output) const = 0;
 		virtual double evaluate(const MatrixXd& input, const MatrixXd& output) const;
 
+		virtual void initialize(const MatrixXd& input, const MatrixXd& output) const;
+		virtual bool train(const MatrixXd& input, const MatrixXd& output) const;
+
 		virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
 			const MatrixXd& input,
 			const MatrixXd& output) const = 0;

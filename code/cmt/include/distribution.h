@@ -12,7 +12,12 @@ using Eigen::Dynamic;
 class Distribution {
 	public:
 		virtual int dim() const = 0;
+
+		virtual void initialize(const MatrixXd& data) const;
+		virtual bool train(const MatrixXd& data) const;
+
 		virtual MatrixXd sample(int num_samples) const = 0;
+
 		virtual Array<double, 1, Dynamic> logLikelihood(
 			const MatrixXd& data) const = 0;
 		virtual double evaluate(const MatrixXd& data) const;

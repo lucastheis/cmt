@@ -3,15 +3,6 @@
 
 using std::log;
 
-double ConditionalDistribution::evaluate(
-	const MatrixXd& input,
-	const MatrixXd& output) const 
-{
-	return -logLikelihood(input, output).mean() / log(2.) / dimOut();
-}
-
-
-
 ConditionalDistribution::Callback::~Callback() {
 }
 
@@ -63,4 +54,30 @@ ConditionalDistribution::Parameters& ConditionalDistribution::Parameters::operat
 	cbIter = params.cbIter;
 
 	return *this;
+}
+
+
+
+double ConditionalDistribution::evaluate(
+	const MatrixXd& input,
+	const MatrixXd& output) const
+{
+	return -logLikelihood(input, output).mean() / log(2.) / dimOut();
+}
+
+
+
+void ConditionalDistribution::initialize(
+	const MatrixXd& input,
+	const MatrixXd& output) const
+{
+}
+
+
+
+bool ConditionalDistribution::train(
+	const MatrixXd& input,
+	const MatrixXd& output) const
+{
+	return true;
 }
