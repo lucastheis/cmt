@@ -1,9 +1,7 @@
 #include "Eigen/Cholesky"
 #include "Eigen/SVD"
 #include "utils.h"
-#include "exception.h"
 #include <algorithm>
-#include <vector>
 #include <iostream>
 #include <cstdlib>
 
