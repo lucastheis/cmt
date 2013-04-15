@@ -19,4 +19,4 @@ class CallbackInterface : public ConditionalDistribution::Callback {
 		PyObject* mCallback;
 };
 
-#endi
+#endif
