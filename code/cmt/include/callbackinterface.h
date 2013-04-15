@@ -8,9 +8,9 @@
 class CallbackInterface : public ConditionalDistribution::Callback {
 	public:
 		CallbackInterface(PyTypeObject* type, PyObject* callback);
-		CallbackInterface(const CallbackInterface& callbackTrain);
+		CallbackInterface(const CallbackInterface& callbackInterface);
 		virtual ~CallbackInterface();
-		virtual CallbackInterface& operator=(const CallbackInterface& callbackTrain);
+		virtual CallbackInterface& operator=(const CallbackInterface& callbackInterface);
 		virtual CallbackInterface* copy();
 		virtual bool operator()(int iter, const ConditionalDistribution&);
 
@@ -19,4 +19,4 @@ class CallbackInterface : public ConditionalDistribution::Callback {
 		PyObject* mCallback;
 };
 
-#endif
+#endi
