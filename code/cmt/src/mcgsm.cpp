@@ -155,6 +155,68 @@ MCGSM::MCGSM(
 
 
 
+MCGSM::MCGSM(int dimIn, int dimOut, const MCGSM& mcgsm) : 
+	mDimIn(dimIn),
+	mDimOut(dimOut),
+	mNumComponents(mcgsm.numComponents()),
+	mNumScales(mcgsm.numScales()),
+	mNumFeatures(mcgsm.numFeatures())
+{
+	// check hyperparameters
+	if(mDimOut < 1)
+		throw Exception("The number of output dimensions has to be positive.");
+	if(mNumScales < 1)
+		throw Exception("The number of scales has to be positive.");
+	if(mNumComponents < 1)
+		throw Exception("The number of components has to be positive.");
+	if(mNumFeatures < 1)
+		throw Exception("The number of features has to be positive.");
+
+	// initialize parameters
+	mPriors = ArrayXXd::Zero(mNumComponents, mNumScales);
+	mScales = ArrayXXd::Random(mNumComponents, mNumScales);
+	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100. + 0.01;
+	mFeatures = sampleNormal(mDimIn, mNumFeatures) / 100.;
+
+	for(int i = 0; i < mNumComponents; ++i) {
+		mCholeskyFactors.push_back(MatrixXd::Identity(mDimOut, mDimOut));
+		mPredictors.push_back(sampleNormal(mDimOut, mDimIn) / 10.);
+	}
+}
+
+
+
+MCGSM::MCGSM(int dimIn, const MCGSM& mcgsm) :
+	mDimIn(dimIn),
+	mDimOut(mcgsm.dimOut()),
+	mNumComponents(mcgsm.numComponents()),
+	mNumScales(mcgsm.numScales()),
+	mNumFeatures(mcgsm.numFeatures())
+{
+	// check hyperparameters
+	if(mDimOut < 1)
+		throw Exception("The number of output dimensions has to be positive.");
+	if(mNumScales < 1)
+		throw Exception("The number of scales has to be positive.");
+	if(mNumComponents < 1)
+		throw Exception("The number of components has to be positive.");
+	if(mNumFeatures < 1)
+		throw Exception("The number of features has to be positive.");
+
+	// initialize parameters
+	mPriors = ArrayXXd::Zero(mNumComponents, mNumScales);
+	mScales = ArrayXXd::Random(mNumComponents, mNumScales);
+	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100. + 0.01;
+	mFeatures = sampleNormal(mDimIn, mNumFeatures) / 100.;
+
+	for(int i = 0; i < mNumComponents; ++i) {
+		mCholeskyFactors.push_back(MatrixXd::Identity(mDimOut, mDimOut));
+		mPredictors.push_back(sampleNormal(mDimOut, mDimIn) / 10.);
+	}
+}
+
+
+
 MCGSM::~MCGSM() {
 }
 

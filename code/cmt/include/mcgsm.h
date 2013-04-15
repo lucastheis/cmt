@@ -44,6 +44,8 @@ class MCGSM : public ConditionalDistribution {
 			int numComponents = 8,
 			int numScales = 6,
 			int numFeatures = -1);
+		MCGSM(int dimIn, const MCGSM& mcgsm);
+		MCGSM(int dimIn, int dimOut, const MCGSM& mcgsm);
 		virtual ~MCGSM();
 
 		inline int dimIn() const;
