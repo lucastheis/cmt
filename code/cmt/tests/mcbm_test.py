@@ -88,9 +88,9 @@ class Tests(unittest.TestCase):
 				'callback': callback,
 				'cb_iter': 1,
 				})
-#
-#
-#
+
+
+
 	def test_gradient(self):
 		mcbm = MCBM(5, 2, 10)
 

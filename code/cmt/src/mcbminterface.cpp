@@ -1133,7 +1133,6 @@ const char* PatchMCBM_setstate_doc =
 	"Method used by Pickle.";
 
 PyObject* PatchMCBM_setstate(PatchMCBMObject* self, PyObject* state, PyObject*) {
-	int rows = self->patchMCBM->rows();
 	int cols = self->patchMCBM->cols();
 
 	// for some reason the actual state is encapsulated in another tuple

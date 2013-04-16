@@ -362,6 +362,7 @@ static PyGetSetDef PatchMCBM_getset[] = {
 	{"cols", (getter)PatchMCBM_cols, 0, "Number of columns of the modeled patches."},
 	{"input_mask", (getter)PatchMCBM_input_mask, 0, "A Boolean mask defining the input to each conditional distribution."},
 	{"output_mask", (getter)PatchMCBM_output_mask, 0, "A Boolean mask defining the output relative to the input."},
+	{0}
 };
 
 static PyMethodDef PatchMCBM_methods[] = {

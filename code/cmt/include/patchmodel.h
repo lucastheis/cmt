@@ -169,9 +169,7 @@ const CD& PatchModel<CD, Parameters>::operator()(int i, int j) const {
 
 template <class CD, class Parameters>
 void PatchModel<CD, Parameters>::initialize(const MatrixXd& data, const Parameters& params) {
-	pair<Tuples, Tuples> inOutIndices = masksToIndices(mInputMask, mOutputMask);
-	Tuples& inputIndices = inOutIndices.first;
-	Tuples& outputIndices = inOutIndices.second;
+	Tuples inputIndices = maskToIndices(mInputMask);
 
 	vector<MatrixXd> inputs;
 	vector<MatrixXd> outputs;
