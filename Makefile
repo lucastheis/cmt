@@ -1,9 +1,9 @@
 # compiler and linker options
-CC = \
-	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CC')[0]);")
-CFLAGS = -Wno-write-strings \
-	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);")
-LD = $(CC)
+CXX = \
+	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CXX')[0]);")
+CFLAGS = $(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);") \
+	-Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses -Wno-cpp -fPIC
+LD = $(CXX)
 LDFLAGS = code/liblbfgs/lib/.libs/liblbfgs.a \
 	$(shell python -c "import sysconfig; print(' '.join(sysconfig.get_config_vars('LDSHARED')[0].split(' ')[1:]));")
 
@@ -51,7 +51,7 @@ clean:
 	rm -f $(OBJECTS) $(MODULE)
 
 install: $(MODULE)
-	@cp $(MODULE) $(PYTHONPATH)
+	cp $(MODULE) $(PYTHONPATH)
 
 $(MODULE): $(OBJECTS) 
 	@echo $(LD) $(LDFLAGS) -o $@
@@ -59,5 +59,5 @@ $(MODULE): $(OBJECTS)
 
 $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(@D)
-	@echo $(CC) -o $@ -c $^
-	@$(CC) $(INCLUDE) $(CFLAGS) -o $@ -c $^
+	@echo $(CXX) -o $@ -c $^
+	@$(CXX) $(INCLUDE) $(CFLAGS) -o $@ -c $^
