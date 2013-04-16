@@ -202,6 +202,11 @@ class Tests(unittest.TestCase):
 		self.assertEqual(model[0, 1].num_components, mcbm.num_components)
 		self.assertEqual(model[0, 1].num_features, mcbm.num_features)
 
+		def wrong_assign():
+			model[1, 1] = 'string'
+
+		self.assertRaises(TypeError, wrong_assign)
+
 
 
 	def test_patchmcbm_pickle(self):
@@ -220,9 +225,17 @@ class Tests(unittest.TestCase):
 
 		# load model
 		with open(tmp_file) as handle:
-			model = load(handle)['model']
+			model1 = load(handle)['model']
 
 		# make sure parameters haven't changed
+		self.assertEqual(model0.rows, model1.rows)
+		self.assertEqual(model0.cols, model1.cols)
+		self.assertLess(max(abs(model0[0, 0].priors - model1[0, 0].priors)), 1e-20)
+		self.assertLess(max(abs(model0[1, 0].weights - model1[1, 0].weights)), 1e-20)
+		self.assertLess(max(abs(model0[1, 0].features - model1[1, 0].features)), 1e-20)
+		self.assertLess(max(abs(model0[0, 1].predictors - model1[0, 1].predictors)), 1e-20)
+		self.assertLess(max(abs(model0[1, 1].input_bias - model1[1, 1].input_bias)), 1e-20)
+		self.assertLess(max(abs(model0[1, 1].output_bias - model1[1, 1].output_bias)), 1e-20)
 
 
 

@@ -754,19 +754,23 @@ const char* MCBM_reduce_doc =
 	"Method used by Pickle.";
 
 PyObject* MCBM_reduce(MCBMObject* self, PyObject*, PyObject*) {
+	// constructor arguments
 	PyObject* args = Py_BuildValue("(iii)", 
 		self->mcbm->dimIn(),
 		self->mcbm->numComponents(),
 		self->mcbm->numFeatures());
 
+	// parameters
 	PyObject* priors = MCBM_priors(self, 0, 0);
 	PyObject* weights = MCBM_weights(self, 0, 0);
 	PyObject* features = MCBM_features(self, 0, 0);
 	PyObject* predictors = MCBM_predictors(self, 0, 0);
 	PyObject* input_bias = MCBM_input_bias(self, 0, 0);
 	PyObject* output_bias = MCBM_output_bias(self, 0, 0);
+
 	PyObject* state = Py_BuildValue("(OOOOOO)", 
 		priors, weights, features, predictors, input_bias, output_bias);
+
 	Py_DECREF(priors);
 	Py_DECREF(weights);
 	Py_DECREF(features);
@@ -774,7 +778,8 @@ PyObject* MCBM_reduce(MCBMObject* self, PyObject*, PyObject*) {
 	Py_DECREF(input_bias);
 	Py_DECREF(output_bias);
 
-	PyObject* result = Py_BuildValue("(OOO)", self->ob_type, args, state);
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
+
 	Py_DECREF(args);
 	Py_DECREF(state);
 
@@ -874,6 +879,18 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 	}
 
 	return 0;
+}
+
+
+
+PyObject* PatchMCBM_rows(PatchMCBMObject* self, PyObject*, void*) {
+	return PyInt_FromLong(self->patchMCBM->rows());
+}
+
+
+
+PyObject* PatchMCBM_cols(PatchMCBMObject* self, PyObject*, void*) {
+	return PyInt_FromLong(self->patchMCBM->cols());
 }
 
 
@@ -1073,16 +1090,21 @@ PyObject* PatchMCBM_reduce(PatchMCBMObject* self, PyObject*, PyObject*) {
 	int rows = self->patchMCBM->rows();
 	int cols = self->patchMCBM->cols();
 
+	PyObject* inputMask = PatchMCBM_input_mask(self, 0, 0);
+	PyObject* outputMask = PatchMCBM_output_mask(self, 0, 0);
+
 	// constructor arguments
-	PyObject* args = Py_BuildValue("(iiOO)", 
+	PyObject* args = Py_BuildValue("(iiOO)",
 		rows,
 		cols,
-		PatchMCBM_input_mask(self, 0, 0),
-		PatchMCBM_output_mask(self, 0, 0)
-		);
+		inputMask,
+		outputMask);
+	
+	Py_DECREF(inputMask);
+	Py_DECREF(outputMask);
 
 	// parameters
-	PyObject* state = PyList_New(self->patchMCBM->dim());
+	PyObject* state = PyTuple_New(self->patchMCBM->dim());
 
 	for(int i = 0; i < rows; ++i)
 		for(int j = 0; j < cols; ++j) {
@@ -1090,12 +1112,12 @@ PyObject* PatchMCBM_reduce(PatchMCBMObject* self, PyObject*, PyObject*) {
 			PyObject* mcbm = PatchMCBM_subscript(self, index);
 
 			// add MCBM to list of models
-			PyList_SetItem(state, i * cols + j, mcbm);
+			PyTuple_SetItem(state, i * cols + j, mcbm);
 
 			Py_DECREF(index);
 		}
 
-	PyObject* result = Py_BuildValue("(OOO)", self->ob_type, args, state);
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
 
 	Py_DECREF(args);
 	Py_DECREF(state);
@@ -1114,12 +1136,23 @@ PyObject* PatchMCBM_setstate(PatchMCBMObject* self, PyObject* state, PyObject*) 
 	int rows = self->patchMCBM->rows();
 	int cols = self->patchMCBM->cols();
 
-	for(int i = 0; i < self->patchMCBM->dim(); ++i) {
-		PyObject* index = Py_BuildValue("(ii)", i / cols, i % cols);
+	// for some reason the actual state is encapsulated in another tuple
+	state = PyTuple_GetItem(state, 0);
 
-		PatchMCBM_ass_subscript(self, index, PyList_GetItem(state, i));
+	if(PyTuple_Size(state) != self->patchMCBM->dim()) {
+		PyErr_SetString(PyExc_RuntimeError, "Something went wrong while unpickling the model.");
+		return 0;
+	}
 
-		Py_DECREF(index);
+	try {
+		for(int i = 0; i < self->patchMCBM->dim(); ++i) {
+			PyObject* index = Py_BuildValue("(ii)", i / cols, i % cols);
+			PatchMCBM_ass_subscript(self, index, PyTuple_GetItem(state, i));
+			Py_DECREF(index);
+		}
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
 	}
 
 	Py_INCREF(Py_None);

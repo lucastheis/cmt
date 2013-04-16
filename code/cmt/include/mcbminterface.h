@@ -79,6 +79,8 @@ PyObject* MCBM_setstate(MCBMObject*, PyObject*, PyObject*);
 
 int PatchMCBM_init(PatchMCBMObject*, PyObject*, PyObject*);
 
+PyObject* PatchMCBM_rows(PatchMCBMObject*, PyObject*, void*);
+PyObject* PatchMCBM_cols(PatchMCBMObject*, PyObject*, void*);
 PyObject* PatchMCBM_input_mask(PatchMCBMObject*, PyObject*, void*);
 PyObject* PatchMCBM_output_mask(PatchMCBMObject*, PyObject*, void*);
 

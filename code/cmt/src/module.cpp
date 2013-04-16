@@ -357,6 +357,13 @@ static PyMappingMethods PatchMCBM_as_mapping = {
 	(objobjargproc)PatchMCBM_ass_subscript, /*mp_ass_subscript*/
 };
 
+static PyGetSetDef PatchMCBM_getset[] = {
+	{"rows", (getter)PatchMCBM_rows, 0, "Number of rows of the modeled patches."},
+	{"cols", (getter)PatchMCBM_cols, 0, "Number of columns of the modeled patches."},
+	{"input_mask", (getter)PatchMCBM_input_mask, 0, "A Boolean mask defining the input to each conditional distribution."},
+	{"output_mask", (getter)PatchMCBM_output_mask, 0, "A Boolean mask defining the output relative to the input."},
+};
+
 static PyMethodDef PatchMCBM_methods[] = {
 	{"initialize", (PyCFunction)PatchMCBM_initialize, METH_VARARGS|METH_KEYWORDS, PatchMCBM_initialize_doc},
 	{"train", (PyCFunction)PatchMCBM_train, METH_VARARGS|METH_KEYWORDS, PatchMCBM_train_doc},
@@ -396,7 +403,7 @@ PyTypeObject PatchMCBM_type = {
 	0,                                 /*tp_iternext*/
 	PatchMCBM_methods,                 /*tp_methods*/
 	0,                                 /*tp_members*/
-	0,                                 /*tp_getset*/
+	PatchMCBM_getset,                  /*tp_getset*/
 	&Distribution_type,                /*tp_base*/
 	0,                                 /*tp_dict*/
 	0,                                 /*tp_descr_get*/
