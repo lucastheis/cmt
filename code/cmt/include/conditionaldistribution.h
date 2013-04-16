@@ -35,6 +35,8 @@ class ConditionalDistribution {
 				virtual Parameters& operator=(const Parameters& params);
 		};
 
+		virtual ~ConditionalDistribution();
+
 		virtual int dimIn() const = 0;
 		virtual int dimOut() const = 0;
 		virtual MatrixXd sample(const MatrixXd& input) const = 0;

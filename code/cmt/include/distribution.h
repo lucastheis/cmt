@@ -11,6 +11,8 @@ using Eigen::Dynamic;
 
 class Distribution {
 	public:
+		virtual ~Distribution();
+
 		virtual int dim() const = 0;
 
 		virtual void initialize(const MatrixXd& data) const;

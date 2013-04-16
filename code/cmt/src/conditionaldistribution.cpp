@@ -58,6 +58,11 @@ ConditionalDistribution::Parameters& ConditionalDistribution::Parameters::operat
 
 
 
+ConditionalDistribution::~ConditionalDistribution() {
+}
+
+
+
 double ConditionalDistribution::evaluate(
 	const MatrixXd& input,
 	const MatrixXd& output) const
