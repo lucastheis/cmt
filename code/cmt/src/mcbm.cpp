@@ -11,6 +11,8 @@ using std::make_pair;
 
 #include <cmath>
 using std::min;
+using std::exp;
+using std::log;
 
 #include <iostream>
 using std::cout;
@@ -176,55 +178,83 @@ MCBM::~MCBM() {
 
 
 MatrixXd MCBM::sample(const MatrixXd& input) const {
-	// some intermediate computations
-	ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
-	ArrayXXd biasEnergy = mInputBias.transpose() * input;
-	ArrayXXd predictorEnergy = mPredictors * input;
+	if(mDimIn) {
+		// some intermediate computations
+		ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
+		ArrayXXd biasEnergy = mInputBias.transpose() * input;
+		ArrayXXd predictorEnergy = mPredictors * input;
 
-	// unnormalized probabilities of generating a 0 or 1 for each component
-	ArrayXXd logProb0 = (featureEnergy + biasEnergy).colwise() + mPriors.array();
-	ArrayXXd logProb1 = (logProb0 + predictorEnergy).colwise() + mOutputBias.array();
+		// unnormalized probabilities of generating a 0 or 1 for each component
+		ArrayXXd logProb0 = (featureEnergy + biasEnergy).colwise() + mPriors.array();
+		ArrayXXd logProb1 = (logProb0 + predictorEnergy).colwise() + mOutputBias.array();
 
-	// sum over components
-	logProb0 = logSumExp(logProb0);
-	logProb1 = logSumExp(logProb1);
+		// sum over components
+		logProb0 = logSumExp(logProb0);
+		logProb1 = logSumExp(logProb1);
 
-	// stack row vectors
-	ArrayXXd logProb01(2, input.cols());
-	logProb01 << logProb0, logProb1; 
+		// stack row vectors
+		ArrayXXd logProb01(2, input.cols());
+		logProb01 << logProb0, logProb1; 
 
-	// normalize log-probability
-	logProb1 -= logSumExp(logProb01);
+		// normalize log-probability
+		logProb1 -= logSumExp(logProb01);
 
-	return (Array<double, 1, Dynamic>::Random(input.cols()).abs() < logProb1.exp()).cast<double>();
+		return (Array<double, 1, Dynamic>::Random(input.cols()).abs() < logProb1.exp()).cast<double>();
+	} else {
+		// input is zero-dimensional
+		double logProb0 = logSumExp(mPriors)[0];
+		double logProb1 = logSumExp(mPriors + mOutputBias)[0];
+
+		ArrayXXd logProb01(2, 1);
+		logProb01 << logProb0, logProb1;
+
+		logProb1 -= logSumExp(logProb01)[0];
+
+		return (Array<double, 1, Dynamic>::Random(input.cols()).abs() < Array<double, 1, Dynamic>::Zero(input.cols()) + exp(logProb1)).cast<double>();
+	}
 }
 
 
 
 Array<double, 1, Dynamic> MCBM::logLikelihood(const MatrixXd& input, const MatrixXd& output) const {
-	// some intermediate computations
-	ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
-	ArrayXXd biasEnergy = mInputBias.transpose() * input;
-	ArrayXXd predictorEnergy = mPredictors * input;
+	if(mDimIn) {
+		// some intermediate computations
+		ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
+		ArrayXXd biasEnergy = mInputBias.transpose() * input;
+		ArrayXXd predictorEnergy = mPredictors * input;
 
-	// unnormalized probabilities of generating a 0 or 1 for each component
-	ArrayXXd logProb0 = (featureEnergy + biasEnergy).colwise() + mPriors.array();
-	ArrayXXd logProb1 = (logProb0 + predictorEnergy).colwise() + mOutputBias.array();
+		// unnormalized probabilities of generating a 0 or 1 for each component
+		ArrayXXd logProb0 = (featureEnergy + biasEnergy).colwise() + mPriors.array();
+		ArrayXXd logProb1 = (logProb0 + predictorEnergy).colwise() + mOutputBias.array();
 
-	// sum over components
-	logProb0 = logSumExp(logProb0);
-	logProb1 = logSumExp(logProb1);
+		// sum over components
+		logProb0 = logSumExp(logProb0);
+		logProb1 = logSumExp(logProb1);
 
-	// stack row vectors
-	ArrayXXd logProb01(2, input.cols());
-	logProb01 << logProb0, logProb1; 
+		// stack row vectors
+		ArrayXXd logProb01(2, input.cols());
+		logProb01 << logProb0, logProb1; 
 
-	// normalized log-probabilities
-	Array<double, 1, Dynamic> logNorm = logSumExp(logProb01);
-	logProb1 -= logNorm;
-	logProb0 -= logNorm;
+		// normalized log-probabilities
+		Array<double, 1, Dynamic> logNorm = logSumExp(logProb01);
+		logProb1 -= logNorm;
+		logProb0 -= logNorm;
 
-	return output.array() * logProb1 + (1. - output.array()) * logProb0;
+		return output.array() * logProb1 + (1. - output.array()) * logProb0;
+	} else {
+		// input is zero-dimensional
+		double logProb0 = logSumExp(mPriors)[0];
+		double logProb1 = logSumExp(mPriors + mOutputBias)[0];
+
+		ArrayXXd logProb01(2, 1);
+		logProb01 << logProb0, logProb1;
+
+		double logNorm = logSumExp(logProb01)[0];
+		logProb0 -= logNorm;
+		logProb1 -= logNorm;
+
+		return output.array() * logProb1 + (1. - output.array()) * logProb0;
+	}
 }
 
 
@@ -232,43 +262,51 @@ Array<double, 1, Dynamic> MCBM::logLikelihood(const MatrixXd& input, const Matri
 bool MCBM::train(const MatrixXd& input, const MatrixXd& output, const Parameters& params) {
 	if(input.rows() != mDimIn || output.rows() != 1)
 		throw Exception("Data has wrong dimensionality.");
-	if(input.cols() != output.cols())
-		throw Exception("The number of inputs and outputs should be the same.");
 
-	// copy parameters for L-BFGS
-	lbfgsfloatval_t* x = parameters(params);
-
-	// optimization hyperparameters
-	lbfgs_parameter_t hyperparams;
-	lbfgs_parameter_init(&hyperparams);
-	hyperparams.max_iterations = params.maxIter;
-	hyperparams.m = params.numGrad;
-	hyperparams.epsilon = params.threshold;
-	hyperparams.linesearch = LBFGS_LINESEARCH_MORETHUENTE;
- 	hyperparams.max_linesearch = 100;
- 	hyperparams.ftol = 1e-4;
- 	hyperparams.xtol = 1e-32;
-
-	// wrap additional arguments
-	InstanceLBFGS instance = { this, &params, &input, &output };
-
-	// start LBFGS optimization
-	int status = LBFGSERR_MAXIMUMITERATION;
-	if(params.maxIter > 0)
-		status = lbfgs(numParameters(params), x, 0, &evaluateLBFGS, &callbackLBFGS, &instance, &hyperparams);
-
-	// copy parameters back
-	setParameters(x, params);
-
-	// free memory used by LBFGS
-	lbfgs_free(x);
-
-	if(status >= 0) {
+	if(!mDimIn) {
+		// zero-dimensional inputs; MCBM reduces to Bernoulli
+		mPriors.setZero();
+		mOutputBias.setConstant(log(output.array().mean()));
 		return true;
 	} else {
-		if(status != LBFGSERR_MAXIMUMITERATION)
-			cout << "There seems to be something not quite right with the optimization (" << status << ")." << endl;
-		return false;
+		if(input.cols() != output.cols())
+			throw Exception("The number of inputs and outputs should be the same.");
+
+		// copy parameters for L-BFGS
+		lbfgsfloatval_t* x = parameters(params);
+
+		// optimization hyperparameters
+		lbfgs_parameter_t hyperparams;
+		lbfgs_parameter_init(&hyperparams);
+		hyperparams.max_iterations = params.maxIter;
+		hyperparams.m = params.numGrad;
+		hyperparams.epsilon = params.threshold;
+		hyperparams.linesearch = LBFGS_LINESEARCH_MORETHUENTE;
+		hyperparams.max_linesearch = 100;
+		hyperparams.ftol = 1e-4;
+		hyperparams.xtol = 1e-32;
+
+		// wrap additional arguments
+		InstanceLBFGS instance = { this, &params, &input, &output };
+
+		// start LBFGS optimization
+		int status = LBFGSERR_MAXIMUMITERATION;
+		if(params.maxIter > 0)
+			status = lbfgs(numParameters(params), x, 0, &evaluateLBFGS, &callbackLBFGS, &instance, &hyperparams);
+
+		// copy parameters back
+		setParameters(x, params);
+
+		// free memory used by LBFGS
+		lbfgs_free(x);
+
+		if(status >= 0) {
+			return true;
+		} else {
+			if(status != LBFGSERR_MAXIMUMITERATION)
+				cout << "There seems to be something not quite right with the optimization (" << status << ")." << endl;
+			return false;
+		}
 	}
 }
 
