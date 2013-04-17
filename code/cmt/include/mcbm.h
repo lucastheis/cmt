@@ -41,7 +41,7 @@ class MCBM : public ConditionalDistribution {
 
 		inline int numComponents() const;
 		inline int numFeatures() const;
-		inline int numParameters(const Parameters& params) const;
+		inline int numParameters(const Parameters& params = Parameters()) const;
 
 		inline VectorXd priors() const;
 		inline void setPriors(const VectorXd& priors);

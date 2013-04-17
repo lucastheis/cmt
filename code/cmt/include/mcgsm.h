@@ -53,7 +53,7 @@ class MCGSM : public ConditionalDistribution {
 		inline int numComponents() const;
 		inline int numScales() const;
 		inline int numFeatures() const;
-		inline int numParameters(const Parameters& params) const;
+		inline int numParameters(const Parameters& params = Parameters()) const;
 
 		inline ArrayXXd priors() const;
 		inline void setPriors(const ArrayXXd& priors);
