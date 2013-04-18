@@ -8,8 +8,11 @@
 #include <arrayobject.h>
 #include "pyutils.h"
 
-#include "whiteningpreconditioner.h"
+#include "affinepreconditioner.h"
 using CMT::Preconditioner;
+using CMT::AffinePreconditioner;
+
+#include "whiteningpreconditioner.h"
 using CMT::WhiteningPreconditioner;
 
 #include "pcapreconditioner.h"
@@ -18,6 +21,11 @@ using CMT::PCAPreconditioner;
 struct PreconditionerObject {
 	PyObject_HEAD
 	Preconditioner* preconditioner;
+};
+
+struct AffinePreconditionerObject {
+	PyObject_HEAD
+	AffinePreconditioner* preconditioner;
 };
 
 struct WhiteningPreconditionerObject {
@@ -33,6 +41,7 @@ struct PCAPreconditionerObject {
 extern const char* Preconditioner_doc;
 extern const char* Preconditioner_inverse_doc;
 extern const char* Preconditioner_logjacobian_doc;
+extern const char* AffinePreconditioner_doc;
 extern const char* WhiteningPreconditioner_doc;
 extern const char* PCAPreconditioner_doc;
 
@@ -48,6 +57,14 @@ void Preconditioner_dealloc(PreconditionerObject*);
 
 PyObject* Preconditioner_dim_in(PreconditionerObject*, PyObject*, void*);
 PyObject* Preconditioner_dim_out(PreconditionerObject*, PyObject*, void*);
+
+int AffinePreconditioner_init(AffinePreconditionerObject*, PyObject*, PyObject*);
+
+PyObject* AffinePreconditioner_mean_in(AffinePreconditionerObject*, PyObject*, void*);
+PyObject* AffinePreconditioner_mean_out(AffinePreconditionerObject*, PyObject*, void*);
+
+PyObject* AffinePreconditioner_reduce(AffinePreconditionerObject*, PyObject*, PyObject*);
+PyObject* AffinePreconditioner_setstate(AffinePreconditionerObject*, PyObject*, PyObject*);
 
 int WhiteningPreconditioner_init(WhiteningPreconditionerObject*, PyObject*, PyObject*);
 

@@ -1,8 +1,18 @@
+OS = $(shell uname)
+
 # compiler and linker options
+ifeq ($(OS), Darwin)
+CXX = \
+	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CC')[0]);")
+CFLAGS = $(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);") \
+	-Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses
+else
 CXX = \
 	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CXX')[0]);")
 CFLAGS = $(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);") \
 	-Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses -Wno-cpp -fPIC
+endif
+
 LD = $(CXX)
 LDFLAGS = code/liblbfgs/lib/.libs/liblbfgs.a \
 	$(shell python -c "import sysconfig; print(' '.join(sysconfig.get_config_vars('LDSHARED')[0].split(' ')[1:]));")
@@ -21,6 +31,7 @@ PYTHONPATH = \
 SRCDIR = code/cmt/src
 OBJDIR = build
 SOURCES = \
+	$(SRCDIR)/affinepreconditioner.cpp \
 	$(SRCDIR)/callbackinterface.cpp \
 	$(SRCDIR)/conditionaldistribution.cpp \
 	$(SRCDIR)/conditionaldistributioninterface.cpp \

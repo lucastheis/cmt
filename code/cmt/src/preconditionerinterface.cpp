@@ -243,6 +243,205 @@ PyObject* Preconditioner_dim_out(PreconditionerObject* self, PyObject*, void*) {
 
 
 
+const char* AffinePreconditioner_doc =
+	"Performs a affine transformations on the input and the output.\n"
+	"\n"
+	"The transformation defined by the preconditioner is\n"
+	"\n"
+	"$$\\mathbf{\\hat x} = \\mathbf{P}_x(\\mathbf{x} - \\mathbf{m}_x),$$\n"
+	"$$\\mathbf{\\hat y} = \\mathbf{P}_y(\\mathbf{y} - \\mathbf{m}_y - \\mathbf{A}\\mathbf{\\hat x}),$$\n"
+	"\n"
+	"where $\\mathbf{x}$ represents the input and $\\mathbf{y}$ represents the output.\n"
+	"\n"
+	"@type  mean_in: ndarray\n"
+	"@param mean_in: a column vector which will be subtracted from the input ($\\mathbf{m}_x$)\n"
+	"\n"
+	"@type  mean_out: ndarray\n"
+	"@param mean_out: a column vector which will be subtracted from the output ($\\mathbf{m}_y$)\n"
+	"\n"
+	"@type  pre_in: ndarray\n"
+	"@param pre_in: a preconditioner for the input ($\\mathbf{P}_x$)\n"
+	"\n"
+	"@type  pre_out: ndarray\n"
+	"@param pre_out: a preconditioner for the output ($\\mathbf{P}_y$)\n"
+	"\n"
+	"@type  predictor: ndarray\n"
+	"@param predictor: a linear predictor of the output ($\\mathbf{A}$)";
+
+int AffinePreconditioner_init(AffinePreconditionerObject* self, PyObject* args, PyObject* kwds) {
+	PyObject* meanIn;
+	PyObject* meanOut;
+	PyObject* preIn;
+	PyObject* preInInv;
+	PyObject* preOut;
+	PyObject* preOutInv;
+	PyObject* predictor;
+
+	// test if this call to __init__ is the result of unpickling
+	if(PyArg_ParseTuple(args, "OOOOOOO", &meanIn, &meanOut, &preIn, &preInInv, &preOut, &preOutInv, &predictor)) {
+		meanIn = PyArray_FROM_OTF(meanIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		meanOut = PyArray_FROM_OTF(meanOut, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preIn = PyArray_FROM_OTF(preIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preInInv = PyArray_FROM_OTF(preInInv, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preOut = PyArray_FROM_OTF(preOut, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preOutInv = PyArray_FROM_OTF(preOutInv, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		predictor = PyArray_FROM_OTF(predictor, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!meanIn || !meanOut || !preIn || !preInInv || !preOut || !preOutInv || !predictor) {
+			Py_XDECREF(meanIn);
+			Py_XDECREF(meanOut);
+			Py_XDECREF(preIn);
+			Py_XDECREF(preInInv);
+			Py_XDECREF(preOut);
+			Py_XDECREF(preOutInv);
+			Py_XDECREF(predictor);
+			PyErr_SetString(PyExc_TypeError, "Parameters of preconditioner should be of type `ndarray`.");
+			return -1;
+		}
+
+		try {
+			self->preconditioner = new AffinePreconditioner(
+				PyArray_ToMatrixXd(meanIn),
+				PyArray_ToMatrixXd(meanOut),
+				PyArray_ToMatrixXd(preIn),
+				PyArray_ToMatrixXd(preInInv),
+				PyArray_ToMatrixXd(preOut),
+				PyArray_ToMatrixXd(preOutInv),
+				PyArray_ToMatrixXd(predictor));
+		} catch(Exception exception) {
+			PyErr_SetString(PyExc_RuntimeError, exception.message());
+			Py_DECREF(meanIn);
+			Py_DECREF(meanOut);
+			Py_DECREF(preIn);
+			Py_DECREF(preInInv);
+			Py_DECREF(preOut);
+			Py_DECREF(preOutInv);
+			Py_DECREF(predictor);
+			return -1;
+		}
+
+		Py_DECREF(meanIn);
+		Py_DECREF(meanOut);
+		Py_DECREF(preIn);
+		Py_DECREF(preInInv);
+		Py_DECREF(preOut);
+		Py_DECREF(preOutInv);
+		Py_DECREF(predictor);
+	} else {
+		PyErr_Clear();
+
+		const char* kwlist[] = {"mean_in", "mean_out", "pre_in", "pre_out", "predictor", 0};
+
+		if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOOOO", const_cast<char**>(kwlist),
+			&meanIn,
+			&meanOut,
+			&preIn,
+			&preOut,
+			&predictor)) 
+		{
+			return -1;
+		}
+
+		meanIn = PyArray_FROM_OTF(meanIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		meanOut = PyArray_FROM_OTF(meanOut, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preIn = PyArray_FROM_OTF(preIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preOut = PyArray_FROM_OTF(preOut, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		predictor = PyArray_FROM_OTF(predictor, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!meanIn || !meanOut || !preIn || !preOut || !predictor) {
+			Py_XDECREF(meanIn);
+			Py_XDECREF(meanOut);
+			Py_XDECREF(preIn);
+			Py_XDECREF(preOut);
+			Py_XDECREF(predictor);
+			PyErr_SetString(PyExc_TypeError, "All parameters should be of type `ndarray`.");
+			return -1;
+		}
+
+		try {
+			self->preconditioner = new AffinePreconditioner(
+				PyArray_ToMatrixXd(meanIn),
+				PyArray_ToMatrixXd(meanOut),
+				PyArray_ToMatrixXd(preIn),
+				PyArray_ToMatrixXd(preOut),
+				PyArray_ToMatrixXd(predictor));
+		} catch(Exception exception) {
+			Py_DECREF(meanIn);
+			Py_DECREF(meanOut);
+			Py_DECREF(preIn);
+			Py_DECREF(preOut);
+			Py_DECREF(predictor);
+			PyErr_SetString(PyExc_RuntimeError, exception.message());
+			return -1;
+		}
+
+		Py_DECREF(meanIn);
+		Py_DECREF(meanOut);
+		Py_DECREF(preIn);
+		Py_DECREF(preOut);
+		Py_DECREF(predictor);
+	}
+
+	return 0;
+}
+
+
+
+PyObject* AffinePreconditioner_mean_in(AffinePreconditionerObject* self, PyObject*, void*) {
+	return PyArray_FromMatrixXd(self->preconditioner->meanIn());
+}
+
+
+
+PyObject* AffinePreconditioner_mean_out(AffinePreconditionerObject* self, PyObject*, void*) {
+	return PyArray_FromMatrixXd(self->preconditioner->meanOut());
+}
+
+
+
+PyObject* AffinePreconditioner_reduce(AffinePreconditionerObject* self, PyObject*, PyObject*) {
+	PyObject* meanIn = PyArray_FromMatrixXd(self->preconditioner->meanIn());
+	PyObject* meanOut = PyArray_FromMatrixXd(self->preconditioner->meanOut());
+	PyObject* preIn = PyArray_FromMatrixXd(self->preconditioner->preIn());
+	PyObject* preInInv = PyArray_FromMatrixXd(self->preconditioner->preInInv());
+	PyObject* preOut = PyArray_FromMatrixXd(self->preconditioner->preOut());
+	PyObject* preOutInv = PyArray_FromMatrixXd(self->preconditioner->preOutInv());
+	PyObject* predictor = PyArray_FromMatrixXd(self->preconditioner->predictor());
+
+	PyObject* args = Py_BuildValue("(OOOOOOO)", 
+		meanIn,
+		meanOut,
+		preIn,
+		preInInv,
+		preOut,
+		preOutInv,
+		predictor);
+	PyObject* state = Py_BuildValue("()");
+	PyObject* result = Py_BuildValue("(OOO)", self->ob_type, args, state);
+
+	Py_DECREF(meanIn);
+	Py_DECREF(meanOut);
+	Py_DECREF(preIn);
+	Py_DECREF(preInInv);
+	Py_DECREF(preOut);
+	Py_DECREF(preOutInv);
+	Py_DECREF(predictor);
+	Py_DECREF(args);
+	Py_DECREF(state);
+
+	return result;
+}
+
+
+
+PyObject* AffinePreconditioner_setstate(AffinePreconditionerObject* self, PyObject* state, PyObject*) {
+	// AffinePreconditioner_init does everything
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
+
 const char* WhiteningPreconditioner_doc =
 	"Decorrelates inputs and outputs.\n"
 	"\n"
