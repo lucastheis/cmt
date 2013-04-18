@@ -1,11 +1,7 @@
 #include "utils.h"
 #include "exception.h"
 #include "affinepreconditioner.h"
-
-#include "Eigen/Eigenvalues"
-using Eigen::SelfAdjointEigenSolver;
-
-#include <iostream>
+#include "Eigen/LU"
 
 CMT::AffinePreconditioner::AffinePreconditioner(
 	const VectorXd& meanIn,
@@ -20,8 +16,8 @@ CMT::AffinePreconditioner::AffinePreconditioner(
 	mPreOut(preOut),
 	mPreOutInv(preOut.inverse()),
 	mPredictor(predictor),
-	mLogJacobian(mPreOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum()),
-	mGradTransform(mPreOut * mPredictor * mPreIn)
+	mLogJacobian(preOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum()),
+	mGradTransform(preOut * predictor * preIn)
 {
 }
 
@@ -42,14 +38,19 @@ CMT::AffinePreconditioner::AffinePreconditioner(
 	mPreOut(preOut),
 	mPreOutInv(preOutInv),
 	mPredictor(predictor),
-	mLogJacobian(mPreOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum()),
-	mGradTransform(mPreOut * mPredictor * mPreIn)
+	mLogJacobian(preOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum()),
+	mGradTransform(preOut * predictor * preIn)
 {
 }
 
 
 
 CMT::AffinePreconditioner::AffinePreconditioner() {
+}
+
+
+
+CMT::AffinePreconditioner::~AffinePreconditioner() {
 }
 
 

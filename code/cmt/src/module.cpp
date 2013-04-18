@@ -523,18 +523,6 @@ PyTypeObject AffinePreconditioner_type = {
 	Preconditioner_new,                     /*tp_new*/
 };
 
-static PyGetSetDef WhiteningPreconditioner_getset[] = {
-	{"mean_in", (getter)WhiteningPreconditioner_mean_in, 0, 0},
-	{"mean_out", (getter)WhiteningPreconditioner_mean_out, 0, 0},
-	{0}
-};
-
-static PyMethodDef WhiteningPreconditioner_methods[] = {
-	{"__reduce__", (PyCFunction)WhiteningPreconditioner_reduce, METH_NOARGS, 0},
-	{"__setstate__", (PyCFunction)WhiteningPreconditioner_setstate, METH_VARARGS, 0},
-	{0}
-};
-
 PyTypeObject WhiteningPreconditioner_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                      /*ob_size*/
@@ -564,10 +552,10 @@ PyTypeObject WhiteningPreconditioner_type = {
 	0,                                      /*tp_weaklistoffset*/
 	0,                                      /*tp_iter*/
 	0,                                      /*tp_iternext*/
-	WhiteningPreconditioner_methods,        /*tp_methods*/
+	0,        /*tp_methods*/
 	0,                                      /*tp_members*/
-	WhiteningPreconditioner_getset,         /*tp_getset*/
-	&Preconditioner_type,                   /*tp_base*/
+	0,                                      /*tp_getset*/
+	&AffinePreconditioner_type,             /*tp_base*/
 	0,                                      /*tp_dict*/
 	0,                                      /*tp_descr_get*/
 	0,                                      /*tp_descr_set*/
@@ -577,13 +565,8 @@ PyTypeObject WhiteningPreconditioner_type = {
 	Preconditioner_new,                     /*tp_new*/
 };
 
-static PyGetSetDef PCAPreconditioner_getset[] = {
-	{0}
-};
-
 static PyMethodDef PCAPreconditioner_methods[] = {
 	{"__reduce__", (PyCFunction)PCAPreconditioner_reduce, METH_NOARGS, 0},
-	{"__setstate__", (PyCFunction)PCAPreconditioner_setstate, METH_VARARGS, 0},
 	{0}
 };
 
@@ -618,8 +601,8 @@ PyTypeObject PCAPreconditioner_type = {
 	0,                                      /*tp_iternext*/
 	PCAPreconditioner_methods,              /*tp_methods*/
 	0,                                      /*tp_members*/
-	PCAPreconditioner_getset,               /*tp_getset*/
-	&WhiteningPreconditioner_type,          /*tp_base*/
+	0,                                      /*tp_getset*/
+	&AffinePreconditioner_type,             /*tp_base*/
 	0,                                      /*tp_dict*/
 	0,                                      /*tp_descr_get*/
 	0,                                      /*tp_descr_set*/

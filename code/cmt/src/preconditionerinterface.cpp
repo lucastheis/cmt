@@ -417,7 +417,7 @@ PyObject* AffinePreconditioner_reduce(AffinePreconditionerObject* self, PyObject
 		preOutInv,
 		predictor);
 	PyObject* state = Py_BuildValue("()");
-	PyObject* result = Py_BuildValue("(OOO)", self->ob_type, args, state);
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
 
 	Py_DECREF(meanIn);
 	Py_DECREF(meanOut);
@@ -454,29 +454,29 @@ const char* WhiteningPreconditioner_doc =
 int WhiteningPreconditioner_init(WhiteningPreconditionerObject* self, PyObject* args, PyObject* kwds) {
 	PyObject* meanIn;
 	PyObject* meanOut;
-	PyObject* whiteIn;
-	PyObject* whiteInInv;
-	PyObject* whiteOut;
-	PyObject* whiteOutInv;
+	PyObject* preIn;
+	PyObject* preInInv;
+	PyObject* preOut;
+	PyObject* preOutInv;
 	PyObject* predictor;
 
 	// test if this call to __init__ is the result of unpickling
-	if(PyArg_ParseTuple(args, "OOOOOOO", &meanIn, &meanOut, &whiteIn, &whiteInInv, &whiteOut, &whiteOutInv, &predictor)) {
+	if(PyArg_ParseTuple(args, "OOOOOOO", &meanIn, &meanOut, &preIn, &preInInv, &preOut, &preOutInv, &predictor)) {
 		meanIn = PyArray_FROM_OTF(meanIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 		meanOut = PyArray_FROM_OTF(meanOut, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-		whiteIn = PyArray_FROM_OTF(whiteIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-		whiteInInv = PyArray_FROM_OTF(whiteInInv, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-		whiteOut = PyArray_FROM_OTF(whiteOut, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-		whiteOutInv = PyArray_FROM_OTF(whiteOutInv, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preIn = PyArray_FROM_OTF(preIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preInInv = PyArray_FROM_OTF(preInInv, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preOut = PyArray_FROM_OTF(preOut, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preOutInv = PyArray_FROM_OTF(preOutInv, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 		predictor = PyArray_FROM_OTF(predictor, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
-		if(!meanIn || !meanOut || !whiteIn || !whiteInInv || !whiteOut || !whiteOutInv || !predictor) {
+		if(!meanIn || !meanOut || !preIn || !preInInv || !preOut || !preOutInv || !predictor) {
 			Py_XDECREF(meanIn);
 			Py_XDECREF(meanOut);
-			Py_XDECREF(whiteIn);
-			Py_XDECREF(whiteInInv);
-			Py_XDECREF(whiteOut);
-			Py_XDECREF(whiteOutInv);
+			Py_XDECREF(preIn);
+			Py_XDECREF(preInInv);
+			Py_XDECREF(preOut);
+			Py_XDECREF(preOutInv);
 			Py_XDECREF(predictor);
 			PyErr_SetString(PyExc_TypeError, "Parameters of preconditioner should be of type `ndarray`.");
 			return -1;
@@ -486,29 +486,29 @@ int WhiteningPreconditioner_init(WhiteningPreconditionerObject* self, PyObject* 
 			self->preconditioner = new WhiteningPreconditioner(
 				PyArray_ToMatrixXd(meanIn),
 				PyArray_ToMatrixXd(meanOut),
-				PyArray_ToMatrixXd(whiteIn),
-				PyArray_ToMatrixXd(whiteInInv),
-				PyArray_ToMatrixXd(whiteOut),
-				PyArray_ToMatrixXd(whiteOutInv),
+				PyArray_ToMatrixXd(preIn),
+				PyArray_ToMatrixXd(preInInv),
+				PyArray_ToMatrixXd(preOut),
+				PyArray_ToMatrixXd(preOutInv),
 				PyArray_ToMatrixXd(predictor));
 		} catch(Exception exception) {
 			PyErr_SetString(PyExc_RuntimeError, exception.message());
 			Py_DECREF(meanIn);
 			Py_DECREF(meanOut);
-			Py_DECREF(whiteIn);
-			Py_DECREF(whiteInInv);
-			Py_DECREF(whiteOut);
-			Py_DECREF(whiteOutInv);
+			Py_DECREF(preIn);
+			Py_DECREF(preInInv);
+			Py_DECREF(preOut);
+			Py_DECREF(preOutInv);
 			Py_DECREF(predictor);
 			return -1;
 		}
 
 		Py_DECREF(meanIn);
 		Py_DECREF(meanOut);
-		Py_DECREF(whiteIn);
-		Py_DECREF(whiteInInv);
-		Py_DECREF(whiteOut);
-		Py_DECREF(whiteOutInv);
+		Py_DECREF(preIn);
+		Py_DECREF(preInInv);
+		Py_DECREF(preOut);
+		Py_DECREF(preOutInv);
 		Py_DECREF(predictor);
 	} else {
 		PyErr_Clear();
@@ -554,61 +554,6 @@ int WhiteningPreconditioner_init(WhiteningPreconditionerObject* self, PyObject* 
 
 
 
-PyObject* WhiteningPreconditioner_mean_in(WhiteningPreconditionerObject* self, PyObject*, void*) {
-	return PyArray_FromMatrixXd(self->preconditioner->meanIn());
-}
-
-
-
-PyObject* WhiteningPreconditioner_mean_out(WhiteningPreconditionerObject* self, PyObject*, void*) {
-	return PyArray_FromMatrixXd(self->preconditioner->meanOut());
-}
-
-
-
-PyObject* WhiteningPreconditioner_reduce(WhiteningPreconditionerObject* self, PyObject*, PyObject*) {
-	PyObject* meanIn = PyArray_FromMatrixXd(self->preconditioner->meanIn());
-	PyObject* meanOut = PyArray_FromMatrixXd(self->preconditioner->meanOut());
-	PyObject* whiteIn = PyArray_FromMatrixXd(self->preconditioner->whiteIn());
-	PyObject* whiteInInv = PyArray_FromMatrixXd(self->preconditioner->whiteInInv());
-	PyObject* whiteOut = PyArray_FromMatrixXd(self->preconditioner->whiteOut());
-	PyObject* whiteOutInv = PyArray_FromMatrixXd(self->preconditioner->whiteOutInv());
-	PyObject* predictor = PyArray_FromMatrixXd(self->preconditioner->predictor());
-
-	PyObject* args = Py_BuildValue("(OOOOOOO)", 
-		meanIn,
-		meanOut,
-		whiteIn,
-		whiteInInv,
-		whiteOut,
-		whiteOutInv,
-		predictor);
-	PyObject* state = Py_BuildValue("()");
-	PyObject* result = Py_BuildValue("(OOO)", self->ob_type, args, state);
-
-	Py_DECREF(meanIn);
-	Py_DECREF(meanOut);
-	Py_DECREF(whiteIn);
-	Py_DECREF(whiteInInv);
-	Py_DECREF(whiteOut);
-	Py_DECREF(whiteOutInv);
-	Py_DECREF(predictor);
-	Py_DECREF(args);
-	Py_DECREF(state);
-
-	return result;
-}
-
-
-
-PyObject* WhiteningPreconditioner_setstate(WhiteningPreconditionerObject* self, PyObject* state, PyObject*) {
-	// WhiteningPreconditioner_init handles everything
-	Py_INCREF(Py_None);
-	return Py_None;
-}
-
-
-
 const char* PCAPreconditioner_doc =
 	"This preconditioner can be used to reduce the dimensionality of the input.\n"
 	"\n"
@@ -647,34 +592,34 @@ int PCAPreconditioner_init(PCAPreconditionerObject* self, PyObject* args, PyObje
 	PyObject* eigenvalues;
 	PyObject* meanIn;
 	PyObject* meanOut;
-	PyObject* whiteIn;
-	PyObject* whiteInInv;
-	PyObject* whiteOut;
-	PyObject* whiteOutInv;
+	PyObject* preIn;
+	PyObject* preInInv;
+	PyObject* preOut;
+	PyObject* preOutInv;
 	PyObject* predictor;
 
 	// test if this call to __init__ is the result of unpickling
 	if(PyArg_ParseTuple(args, "OOOOOOOO",
-		&eigenvalues, &meanIn, &meanOut, &whiteIn,
-		&whiteInInv, &whiteOut, &whiteOutInv, &predictor))
+		&eigenvalues, &meanIn, &meanOut, &preIn,
+		&preInInv, &preOut, &preOutInv, &predictor))
 	{
 		eigenvalues = PyArray_FROM_OTF(eigenvalues, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 		meanIn = PyArray_FROM_OTF(meanIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 		meanOut = PyArray_FROM_OTF(meanOut, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-		whiteIn = PyArray_FROM_OTF(whiteIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-		whiteInInv = PyArray_FROM_OTF(whiteInInv, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-		whiteOut = PyArray_FROM_OTF(whiteOut, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-		whiteOutInv = PyArray_FROM_OTF(whiteOutInv, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preIn = PyArray_FROM_OTF(preIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preInInv = PyArray_FROM_OTF(preInInv, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preOut = PyArray_FROM_OTF(preOut, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preOutInv = PyArray_FROM_OTF(preOutInv, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 		predictor = PyArray_FROM_OTF(predictor, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
-		if(!eigenvalues || !meanIn || !meanOut || !whiteIn || !whiteInInv || !whiteOut || !whiteOutInv || !predictor) {
+		if(!eigenvalues || !meanIn || !meanOut || !preIn || !preInInv || !preOut || !preOutInv || !predictor) {
 			Py_XDECREF(eigenvalues);
 			Py_XDECREF(meanIn);
 			Py_XDECREF(meanOut);
-			Py_XDECREF(whiteIn);
-			Py_XDECREF(whiteInInv);
-			Py_XDECREF(whiteOut);
-			Py_XDECREF(whiteOutInv);
+			Py_XDECREF(preIn);
+			Py_XDECREF(preInInv);
+			Py_XDECREF(preOut);
+			Py_XDECREF(preOutInv);
 			Py_XDECREF(predictor);
 			PyErr_SetString(PyExc_TypeError, "Parameters of preconditioner should be of type `ndarray`.");
 			return -1;
@@ -685,20 +630,20 @@ int PCAPreconditioner_init(PCAPreconditionerObject* self, PyObject* args, PyObje
 				PyArray_ToMatrixXd(eigenvalues),
 				PyArray_ToMatrixXd(meanIn),
 				PyArray_ToMatrixXd(meanOut),
-				PyArray_ToMatrixXd(whiteIn),
-				PyArray_ToMatrixXd(whiteInInv),
-				PyArray_ToMatrixXd(whiteOut),
-				PyArray_ToMatrixXd(whiteOutInv),
+				PyArray_ToMatrixXd(preIn),
+				PyArray_ToMatrixXd(preInInv),
+				PyArray_ToMatrixXd(preOut),
+				PyArray_ToMatrixXd(preOutInv),
 				PyArray_ToMatrixXd(predictor));
 		} catch(Exception exception) {
 			PyErr_SetString(PyExc_RuntimeError, exception.message());
 			Py_DECREF(eigenvalues);
 			Py_DECREF(meanIn);
 			Py_DECREF(meanOut);
-			Py_DECREF(whiteIn);
-			Py_DECREF(whiteInInv);
-			Py_DECREF(whiteOut);
-			Py_DECREF(whiteOutInv);
+			Py_DECREF(preIn);
+			Py_DECREF(preInInv);
+			Py_DECREF(preOut);
+			Py_DECREF(preOutInv);
 			Py_DECREF(predictor);
 			return -1;
 		}
@@ -706,10 +651,10 @@ int PCAPreconditioner_init(PCAPreconditionerObject* self, PyObject* args, PyObje
 		Py_DECREF(eigenvalues);
 		Py_DECREF(meanIn);
 		Py_DECREF(meanOut);
-		Py_DECREF(whiteIn);
-		Py_DECREF(whiteInInv);
-		Py_DECREF(whiteOut);
-		Py_DECREF(whiteOutInv);
+		Py_DECREF(preIn);
+		Py_DECREF(preInInv);
+		Py_DECREF(preOut);
+		Py_DECREF(preOutInv);
 		Py_DECREF(predictor);
 	} else {
 		PyErr_Clear();
@@ -764,42 +709,34 @@ PyObject* PCAPreconditioner_reduce(PCAPreconditionerObject* self, PyObject*, PyO
 	PyObject* eigenvalues = PyArray_FromMatrixXd(self->preconditioner->eigenvalues());
 	PyObject* meanIn = PyArray_FromMatrixXd(self->preconditioner->meanIn());
 	PyObject* meanOut = PyArray_FromMatrixXd(self->preconditioner->meanOut());
-	PyObject* whiteIn = PyArray_FromMatrixXd(self->preconditioner->whiteIn());
-	PyObject* whiteInInv = PyArray_FromMatrixXd(self->preconditioner->whiteInInv());
-	PyObject* whiteOut = PyArray_FromMatrixXd(self->preconditioner->whiteOut());
-	PyObject* whiteOutInv = PyArray_FromMatrixXd(self->preconditioner->whiteOutInv());
+	PyObject* preIn = PyArray_FromMatrixXd(self->preconditioner->preIn());
+	PyObject* preInInv = PyArray_FromMatrixXd(self->preconditioner->preInInv());
+	PyObject* preOut = PyArray_FromMatrixXd(self->preconditioner->preOut());
+	PyObject* preOutInv = PyArray_FromMatrixXd(self->preconditioner->preOutInv());
 	PyObject* predictor = PyArray_FromMatrixXd(self->preconditioner->predictor());
 
 	PyObject* args = Py_BuildValue("(OOOOOOOO)",
 		eigenvalues,
 		meanIn,
 		meanOut,
-		whiteIn,
-		whiteInInv,
-		whiteOut,
-		whiteOutInv,
+		preIn,
+		preInInv,
+		preOut,
+		preOutInv,
 		predictor);
 	PyObject* state = Py_BuildValue("()");
-	PyObject* result = Py_BuildValue("(OOO)", self->ob_type, args, state);
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
 
 	Py_DECREF(eigenvalues);
 	Py_DECREF(meanIn);
 	Py_DECREF(meanOut);
-	Py_DECREF(whiteIn);
-	Py_DECREF(whiteInInv);
-	Py_DECREF(whiteOut);
-	Py_DECREF(whiteOutInv);
+	Py_DECREF(preIn);
+	Py_DECREF(preInInv);
+	Py_DECREF(preOut);
+	Py_DECREF(preOutInv);
 	Py_DECREF(predictor);
 	Py_DECREF(args);
 	Py_DECREF(state);
 
 	return result;
-}
-
-
-
-PyObject* PCAPreconditioner_setstate(PCAPreconditionerObject* self, PyObject* state, PyObject*) {
-	// PCAPreconditioner_init handles everything
-	Py_INCREF(Py_None);
-	return Py_None;
 }
