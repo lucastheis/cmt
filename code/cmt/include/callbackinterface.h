@@ -10,8 +10,10 @@ class CallbackInterface : public ConditionalDistribution::Callback {
 		CallbackInterface(PyTypeObject* type, PyObject* callback);
 		CallbackInterface(const CallbackInterface& callbackInterface);
 		virtual ~CallbackInterface();
-		virtual CallbackInterface& operator=(const CallbackInterface& callbackInterface);
+
 		virtual CallbackInterface* copy();
+
+		virtual CallbackInterface& operator=(const CallbackInterface& callbackInterface);
 		virtual bool operator()(int iter, const ConditionalDistribution&);
 
 	private:
