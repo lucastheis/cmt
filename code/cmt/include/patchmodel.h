@@ -17,9 +17,11 @@ using Eigen::Dynamic;
 
 typedef Array<bool, Dynamic, Dynamic> ArrayXXb;
 
-template <class CD, class Parameters = ConditionalDistribution::Parameters>
+template <class CD>
 class PatchModel : public Distribution {
 	public:
+		typedef typename CD::Parameters Parameters;
+
 		PatchModel(
 			int rows,
 			int cols,
@@ -54,8 +56,8 @@ class PatchModel : public Distribution {
 
 
 
-template <class CD, class Parameters>
-PatchModel<CD, Parameters>::PatchModel(
+template <class CD>
+PatchModel<CD>::PatchModel(
 	int rows,
 	int cols,
 	const ArrayXXb& inputMask,
@@ -114,61 +116,61 @@ PatchModel<CD, Parameters>::PatchModel(
 
 
 
-template <class CD, class Parameters>
-int PatchModel<CD, Parameters>::dim() const {
+template <class CD>
+int PatchModel<CD>::dim() const {
 	return mRows * mCols;
 }
 
 
 
-template <class CD, class Parameters>
-int PatchModel<CD, Parameters>::rows() const {
+template <class CD>
+int PatchModel<CD>::rows() const {
 	return mRows;
 }
 
 
 
-template <class CD, class Parameters>
-int PatchModel<CD, Parameters>::cols() const {
+template <class CD>
+int PatchModel<CD>::cols() const {
 	return mCols;
 }
 
 
 
-template <class CD, class Parameters>
-ArrayXXb PatchModel<CD, Parameters>::inputMask() const {
+template <class CD>
+ArrayXXb PatchModel<CD>::inputMask() const {
 	return mInputMask;
 }
 
 
 
-template <class CD, class Parameters>
-ArrayXXb PatchModel<CD, Parameters>::outputMask() const {
+template <class CD>
+ArrayXXb PatchModel<CD>::outputMask() const {
 	return mOutputMask;
 }
 
 
 
-template <class CD, class Parameters>
-CD& PatchModel<CD, Parameters>::operator()(int i, int j) {
+template <class CD>
+CD& PatchModel<CD>::operator()(int i, int j) {
 	if(j >= mCols || i >= mRows)
 		throw Exception("Invalid indices.");
 	return mConditionalDistributions[i * mCols + j];
-};
+}
 
 
 
-template <class CD, class Parameters>
-const CD& PatchModel<CD, Parameters>::operator()(int i, int j) const {
+template <class CD>
+const CD& PatchModel<CD>::operator()(int i, int j) const {
 	if(j >= mCols || i >= mRows)
 		throw Exception("Invalid indices.");
 	return mConditionalDistributions[i * mCols + j];
-};
+}
 
 
 
-template <class CD, class Parameters>
-void PatchModel<CD, Parameters>::initialize(const MatrixXd& data, const Parameters& params) {
+template <class CD>
+void PatchModel<CD>::initialize(const MatrixXd& data, const Parameters& params) {
 	Tuples inputIndices = maskToIndices(mInputMask);
 
 	vector<MatrixXd> inputs;
@@ -216,8 +218,8 @@ void PatchModel<CD, Parameters>::initialize(const MatrixXd& data, const Paramete
 
 
 
-template <class CD, class Parameters>
-bool PatchModel<CD, Parameters>::train(const MatrixXd& data, const Parameters& params) {
+template <class CD>
+bool PatchModel<CD>::train(const MatrixXd& data, const Parameters& params) {
 	bool converged = true;
 
 	for(int i = 0; i < mRows * mCols; ++i) {
@@ -245,8 +247,8 @@ bool PatchModel<CD, Parameters>::train(const MatrixXd& data, const Parameters& p
 
 
 
-template <class CD, class Parameters>
-Array<double, 1, Dynamic> PatchModel<CD, Parameters>::logLikelihood(
+template <class CD>
+Array<double, 1, Dynamic> PatchModel<CD>::logLikelihood(
 	const MatrixXd& data) const 
 {
 	Array<double, 1, Dynamic> logLik = Array<double, 1, Dynamic>::Zero(data.cols());
@@ -271,8 +273,8 @@ Array<double, 1, Dynamic> PatchModel<CD, Parameters>::logLikelihood(
 
 
 
-template<class CD, class Parameters>
-MatrixXd PatchModel<CD, Parameters>::sample(int num_samples) const {
+template<class CD>
+MatrixXd PatchModel<CD>::sample(int num_samples) const {
 	MatrixXd samples = MatrixXd::Zero(mRows * mCols, num_samples);
 
 	for(int i = 0; i < mRows * mCols; ++i) {
