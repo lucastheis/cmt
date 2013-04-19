@@ -13,6 +13,9 @@ namespace CMT {
 				const MatrixXd& preIn,
 				const MatrixXd& preInInv,
 				int dimOut = 1);
+
+		private:
+			void initialize(const ArrayXXd& input, int dimOut);
 	};
 }
 

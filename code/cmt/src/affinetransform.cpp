@@ -44,18 +44,6 @@ CMT::AffineTransform::AffineTransform() {
 
 
 
-int CMT::AffineTransform::dim() const {
-	return dimIn();
-}
-
-
-
-int CMT::AffineTransform::dimTr() const {
-	return dimInPre();
-}
-
-
-
 pair<ArrayXXd, ArrayXXd> CMT::AffineTransform::operator()(
 	const ArrayXXd& input,
 	const ArrayXXd& output) const

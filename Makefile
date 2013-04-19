@@ -44,6 +44,7 @@ SOURCES = \
 	$(SRCDIR)/mcbminterface.cpp \
 	$(SRCDIR)/module.cpp \
 	$(SRCDIR)/pcapreconditioner.cpp \
+	$(SRCDIR)/pcatransform.cpp \
 	$(SRCDIR)/preconditionerinterface.cpp \
 	$(SRCDIR)/pyutils.cpp \
 	$(SRCDIR)/tools.cpp \

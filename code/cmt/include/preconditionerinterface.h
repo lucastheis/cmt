@@ -24,6 +24,9 @@ using CMT::WhiteningTransform;
 #include "pcapreconditioner.h"
 using CMT::PCAPreconditioner;
 
+#include "pcatransform.h"
+using CMT::PCATransform;
+
 struct PreconditionerObject {
 	PyObject_HEAD
 	Preconditioner* preconditioner;
@@ -54,6 +57,11 @@ struct PCAPreconditionerObject {
 	PCAPreconditioner* preconditioner;
 };
 
+struct PCATransformObject {
+	PyObject_HEAD
+	PCATransform* preconditioner;
+};
+
 extern const char* Preconditioner_doc;
 extern const char* Preconditioner_inverse_doc;
 extern const char* Preconditioner_logjacobian_doc;
@@ -62,6 +70,7 @@ extern const char* AffineTransform_doc;
 extern const char* WhiteningPreconditioner_doc;
 extern const char* WhiteningTransform_doc;
 extern const char* PCAPreconditioner_doc;
+extern const char* PCATransform_doc;
 
 int Preconditioner_init(WhiteningPreconditionerObject*, PyObject*, PyObject*);
 
@@ -91,8 +100,9 @@ int WhiteningPreconditioner_init(WhiteningPreconditionerObject*, PyObject*, PyOb
 int WhiteningTransform_init(WhiteningTransformObject*, PyObject*, PyObject*);
 
 int PCAPreconditioner_init(PCAPreconditionerObject*, PyObject*, PyObject*);
+int PCATransform_init(PCATransformObject*, PyObject*, PyObject*);
 
 PyObject* PCAPreconditioner_reduce(PCAPreconditionerObject*, PyObject*, PyObject*);
-PyObject* PCAPreconditioner_setstate(PCAPreconditionerObject*, PyObject*, PyObject*);
+PyObject* PCATransform_reduce(PCATransformObject*, PyObject*, PyObject*);
 
 #endif

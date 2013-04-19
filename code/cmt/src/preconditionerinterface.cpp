@@ -931,6 +931,129 @@ int PCAPreconditioner_init(PCAPreconditionerObject* self, PyObject* args, PyObje
 
 
 
+const char* PCATransform_doc =
+	"This class behaves like L{PCAPreconditioner}, but does not change the output.\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: ndarray\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@type  dim_out: integer\n"
+	"@param dim_out: number of outputs (default: 1)\n"
+	"\n"
+	"@type  var_explained: double\n"
+	"@param var_explained: the amount of variance retained after dimensionality reduction\n"
+	"\n"
+	"@type  num_pcs: integer\n"
+	"@param num_pcs: the number of principal components of the input kept";
+
+int PCATransform_init(PCATransformObject* self, PyObject* args, PyObject* kwds) {
+	PyObject* eigenvalues;
+	PyObject* meanIn;
+	PyObject* preIn;
+	PyObject* preInInv;
+	int dimOut = 1;
+
+	// test if this call to __init__ is the result of unpickling
+	if(PyArg_ParseTuple(args, "OOOOi", &eigenvalues, &meanIn, &preIn, &preInInv, &dimOut) && PyArray_Check(preIn)) {
+		eigenvalues = PyArray_FROM_OTF(eigenvalues, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		meanIn = PyArray_FROM_OTF(meanIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preIn = PyArray_FROM_OTF(preIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preInInv = PyArray_FROM_OTF(preInInv, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!eigenvalues || !meanIn || !preIn || !preInInv) {
+			Py_XDECREF(eigenvalues);
+			Py_XDECREF(meanIn);
+			Py_XDECREF(preIn);
+			Py_XDECREF(preInInv);
+			PyErr_SetString(PyExc_TypeError, "Parameters of transform should be of type `ndarray`.");
+			return -1;
+		}
+
+		try {
+			self->preconditioner = new PCATransform(
+				PyArray_ToMatrixXd(eigenvalues),
+				PyArray_ToMatrixXd(meanIn),
+				PyArray_ToMatrixXd(preIn),
+				PyArray_ToMatrixXd(preInInv),
+				dimOut);
+		} catch(Exception exception) {
+			PyErr_SetString(PyExc_RuntimeError, exception.message());
+			Py_DECREF(eigenvalues);
+			Py_DECREF(meanIn);
+			Py_DECREF(preIn);
+			Py_DECREF(preInInv);
+			return -1;
+		}
+
+		Py_DECREF(eigenvalues);
+		Py_DECREF(meanIn);
+		Py_DECREF(preIn);
+		Py_DECREF(preInInv);
+	} else {
+		PyErr_Clear();
+
+		const char* kwlist[] = {"input", "output", "var_explained", "num_pcs", "dim_out", 0};
+
+		PyObject* input;
+		PyObject* output = 0;
+		double var_explained = 99.;
+		int num_pcs = -1;
+
+		if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|Odii", const_cast<char**>(kwlist),
+			&input, &output, &var_explained, &num_pcs, &dimOut))
+		{
+			return -1;
+		}
+
+		input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!input) {
+			PyErr_SetString(PyExc_TypeError, "Input should be of type `ndarray`.");
+			return -1;
+		}
+
+		if(output) {
+			output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+			if(!output) {
+				PyErr_SetString(PyExc_TypeError, "Output should be of type `ndarray`.");
+				return -1;
+			}
+		}
+
+		try {
+			if(output)
+				self->preconditioner = new PCATransform(
+					PyArray_ToMatrixXd(input),
+					PyArray_ToMatrixXd(output),
+					var_explained,
+					num_pcs);
+			else
+				self->preconditioner = new PCATransform(
+					PyArray_ToMatrixXd(input),
+					var_explained,
+					num_pcs,
+					dimOut);
+		} catch(Exception exception) {
+			Py_DECREF(input);
+			Py_DECREF(output);
+			PyErr_SetString(PyExc_RuntimeError, exception.message());
+			return -1;
+		}
+
+		Py_DECREF(input);
+		Py_DECREF(output);
+
+	}
+
+	return 0;
+}
+
+
+
 PyObject* PCAPreconditioner_reduce(PCAPreconditionerObject* self, PyObject*, PyObject*) {
 	PyObject* eigenvalues = PyArray_FromMatrixXd(self->preconditioner->eigenvalues());
 	PyObject* meanIn = PyArray_FromMatrixXd(self->preconditioner->meanIn());
@@ -961,6 +1084,34 @@ PyObject* PCAPreconditioner_reduce(PCAPreconditionerObject* self, PyObject*, PyO
 	Py_DECREF(preOut);
 	Py_DECREF(preOutInv);
 	Py_DECREF(predictor);
+	Py_DECREF(args);
+	Py_DECREF(state);
+
+	return result;
+}
+
+
+
+PyObject* PCATransform_reduce(PCATransformObject* self, PyObject*, PyObject*) {
+	PyObject* eigenvalues = PyArray_FromMatrixXd(self->preconditioner->eigenvalues());
+	PyObject* meanIn = PyArray_FromMatrixXd(self->preconditioner->meanIn());
+	PyObject* preIn = PyArray_FromMatrixXd(self->preconditioner->preIn());
+	PyObject* preInInv = PyArray_FromMatrixXd(self->preconditioner->preInInv());
+	int dimOut = self->preconditioner->dimOut();
+
+	PyObject* args = Py_BuildValue("(OOOOi)",
+		eigenvalues,
+		meanIn,
+		preIn,
+		preInInv,
+		dimOut);
+	PyObject* state = Py_BuildValue("()");
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
+
+	Py_DECREF(eigenvalues);
+	Py_DECREF(meanIn);
+	Py_DECREF(preIn);
+	Py_DECREF(preInInv);
 	Py_DECREF(args);
 	Py_DECREF(state);
 

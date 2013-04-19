@@ -702,6 +702,53 @@ PyTypeObject PCAPreconditioner_type = {
 	Preconditioner_new,                     /*tp_new*/
 };
 
+static PyMethodDef PCATransform_methods[] = {
+	{"__reduce__", (PyCFunction)PCATransform_reduce, METH_NOARGS, 0},
+	{0}
+};
+
+PyTypeObject PCATransform_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                      /*ob_size*/
+	"cmt.PCATransform",                     /*tp_name*/
+	sizeof(PCATransformObject),             /*tp_basicsize*/
+	0,                                      /*tp_itemsize*/
+	(destructor)Preconditioner_dealloc,     /*tp_dealloc*/
+	0,                                      /*tp_print*/
+	0,                                      /*tp_getattr*/
+	0,                                      /*tp_setattr*/
+	0,                                      /*tp_compare*/
+	0,                                      /*tp_repr*/
+	0,                                      /*tp_as_number*/
+	0,                                      /*tp_as_sequence*/
+	0,                                      /*tp_as_mapping*/
+	0,                                      /*tp_hash */
+	0,                                      /*tp_call*/
+	0,                                      /*tp_str*/
+	0,                                      /*tp_getattro*/
+	0,                                      /*tp_setattro*/
+	0,                                      /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                     /*tp_flags*/
+	PCATransform_doc,                       /*tp_doc*/
+	0,                                      /*tp_traverse*/
+	0,                                      /*tp_clear*/
+	0,                                      /*tp_richcompare*/
+	0,                                      /*tp_weaklistoffset*/
+	0,                                      /*tp_iter*/
+	0,                                      /*tp_iternext*/
+	PCATransform_methods,                   /*tp_methods*/
+	0,                                      /*tp_members*/
+	0,                                      /*tp_getset*/
+	&AffineTransform_type,                  /*tp_base*/
+	0,                                      /*tp_dict*/
+	0,                                      /*tp_descr_get*/
+	0,                                      /*tp_descr_set*/
+	0,                                      /*tp_dictoffset*/
+	(initproc)PCATransform_init,            /*tp_init*/
+	0,                                      /*tp_alloc*/
+	Preconditioner_new,                     /*tp_new*/
+};
+
 static PyMethodDef cmt_methods[] = {
 	{"random_select", (PyCFunction)random_select, METH_VARARGS|METH_KEYWORDS, random_select_doc},
 	{"generate_data_from_image", (PyCFunction)generate_data_from_image, METH_VARARGS|METH_KEYWORDS, generate_data_from_image_doc},
@@ -746,6 +793,8 @@ PyMODINIT_FUNC initcmt() {
 		return;
 	if(PyType_Ready(&PCAPreconditioner_type) < 0)
 		return;
+	if(PyType_Ready(&PCATransform_type) < 0)
+		return;
 
 	// initialize Eigen
 	Eigen::initParallel();
@@ -761,6 +810,7 @@ PyMODINIT_FUNC initcmt() {
 	Py_INCREF(&WhiteningPreconditioner_type);
 	Py_INCREF(&WhiteningTransform_type);
 	Py_INCREF(&PCAPreconditioner_type);
+	Py_INCREF(&PCATransform_type);
 	PyModule_AddObject(module, "ConditionalDistribution", reinterpret_cast<PyObject*>(&CD_type));
 	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));
 	PyModule_AddObject(module, "MCBM", reinterpret_cast<PyObject*>(&MCBM_type));
@@ -771,4 +821,5 @@ PyMODINIT_FUNC initcmt() {
 	PyModule_AddObject(module, "WhiteningPreconditioner", reinterpret_cast<PyObject*>(&WhiteningPreconditioner_type));
 	PyModule_AddObject(module, "WhiteningTransform", reinterpret_cast<PyObject*>(&WhiteningTransform_type));
 	PyModule_AddObject(module, "PCAPreconditioner", reinterpret_cast<PyObject*>(&PCAPreconditioner_type));
+	PyModule_AddObject(module, "PCATransform", reinterpret_cast<PyObject*>(&PCATransform_type));
 }
