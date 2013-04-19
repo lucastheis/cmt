@@ -244,7 +244,7 @@ PyObject* Preconditioner_dim_out(PreconditionerObject* self, PyObject*, void*) {
 
 
 const char* AffinePreconditioner_doc =
-	"Performs a affine transformations on the input and the output.\n"
+	"Performs affine transformations on the input and the output.\n"
 	"\n"
 	"The transformation defined by the preconditioner is\n"
 	"\n"
@@ -387,6 +387,102 @@ int AffinePreconditioner_init(AffinePreconditionerObject* self, PyObject* args, 
 
 
 
+const char* AffineTransform_doc =
+	"Performs an affine transformation on inputs.\n"
+	"\n"
+	"$$\\mathbf{\\hat x} = \\mathbf{P}_x(\\mathbf{x} - \\mathbf{m}_x),$$\n"
+	"\n"
+	"Unlike L{AffinePreconditioner}, this class does not touch the output and can thus\n"
+	"be used with discrete data, for example.\n"
+	"\n"
+	"@type  mean_in: ndarray\n"
+	"@param mean_in: a column vector which will be subtracted from the input ($\\mathbf{m}_x$)\n"
+	"\n"
+	"@type  pre_in: ndarray\n"
+	"@param pre_in: a preconditioner for the input ($\\mathbf{P}_x$)\n"
+	"\n"
+	"@type  dim_out: integer\n"
+	"@param dim_out: dimensionality of the output (default: 1)";
+
+int AffineTransform_init(AffineTransformObject* self, PyObject* args, PyObject* kwds) {
+	PyObject* meanIn;
+	PyObject* preIn;
+	PyObject* preInInv;
+	int dimOut = 1;
+
+	// test if this call to __init__ is the result of unpickling
+	if(PyArg_ParseTuple(args, "OOOi", &meanIn, &preIn, &preInInv, &dimOut)) {
+		meanIn = PyArray_FROM_OTF(meanIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preIn = PyArray_FROM_OTF(preIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preInInv = PyArray_FROM_OTF(preInInv, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!meanIn || !preIn || !preInInv) {
+			Py_XDECREF(meanIn);
+			Py_XDECREF(preIn);
+			Py_XDECREF(preInInv);
+			PyErr_SetString(PyExc_TypeError, "Parameters of transform should be of type `ndarray`.");
+			return -1;
+		}
+
+		try {
+			self->preconditioner = new AffineTransform(
+				PyArray_ToMatrixXd(meanIn),
+				PyArray_ToMatrixXd(preIn),
+				PyArray_ToMatrixXd(preInInv),
+				dimOut);
+		} catch(Exception exception) {
+			PyErr_SetString(PyExc_RuntimeError, exception.message());
+			Py_DECREF(meanIn);
+			Py_DECREF(preIn);
+			Py_DECREF(preInInv);
+			return -1;
+		}
+
+		Py_DECREF(meanIn);
+		Py_DECREF(preIn);
+		Py_DECREF(preInInv);
+	} else {
+		PyErr_Clear();
+
+		const char* kwlist[] = {"mean_in", "pre_in", "dim_out", 0};
+
+		if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|i", const_cast<char**>(kwlist),
+			&meanIn, &preIn, &dimOut))
+		{
+			return -1;
+		}
+
+		meanIn = PyArray_FROM_OTF(meanIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preIn = PyArray_FROM_OTF(preIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!meanIn || !preIn) {
+			Py_XDECREF(meanIn);
+			Py_XDECREF(preIn);
+			PyErr_SetString(PyExc_TypeError, "Parameters of transform should be of type `ndarray`.");
+			return -1;
+		}
+
+		try {
+			self->preconditioner = new AffineTransform(
+				PyArray_ToMatrixXd(meanIn),
+				PyArray_ToMatrixXd(preIn),
+				dimOut);
+		} catch(Exception exception) {
+			Py_DECREF(meanIn);
+			Py_DECREF(preIn);
+			PyErr_SetString(PyExc_RuntimeError, exception.message());
+			return -1;
+		}
+
+		Py_DECREF(meanIn);
+		Py_DECREF(preIn);
+	}
+
+	return 0;
+}
+
+
+
 PyObject* AffinePreconditioner_mean_in(AffinePreconditionerObject* self, PyObject*, void*) {
 	return PyArray_FromMatrixXd(self->preconditioner->meanIn());
 }
@@ -438,6 +534,31 @@ PyObject* AffinePreconditioner_setstate(AffinePreconditionerObject* self, PyObje
 	// AffinePreconditioner_init does everything
 	Py_INCREF(Py_None);
 	return Py_None;
+}
+
+
+
+PyObject* AffineTransform_reduce(AffineTransformObject* self, PyObject*, PyObject*) {
+	PyObject* meanIn = PyArray_FromMatrixXd(self->preconditioner->meanIn());
+	PyObject* preIn = PyArray_FromMatrixXd(self->preconditioner->preIn());
+	PyObject* preInInv = PyArray_FromMatrixXd(self->preconditioner->preInInv());
+	int dimOut = self->preconditioner->dimOut();
+
+	PyObject* args = Py_BuildValue("(OOOi)", 
+		meanIn,
+		preIn,
+		preInInv,
+		dimOut);
+	PyObject* state = Py_BuildValue("()");
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
+
+	Py_DECREF(meanIn);
+	Py_DECREF(preIn);
+	Py_DECREF(preInInv);
+	Py_DECREF(args);
+	Py_DECREF(state);
+
+	return result;
 }
 
 
@@ -547,6 +668,111 @@ int WhiteningPreconditioner_init(WhiteningPreconditionerObject* self, PyObject* 
 		Py_DECREF(input);
 		Py_DECREF(output);
 
+	}
+
+	return 0;
+}
+
+
+
+const char* WhiteningTransform_doc =
+	"Decorrelates inputs.\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: ndarray\n"
+	"@param output: outputs stored in columns (optional)\n"
+	"\n"
+	"@type  dim_out: integer\n"
+	"@param dim_out: dimensionality of the output (default: 1)";
+
+int WhiteningTransform_init(WhiteningTransformObject* self, PyObject* args, PyObject* kwds) {
+	PyObject* meanIn;
+	PyObject* preIn;
+	PyObject* preInInv;
+	int dimOut = 1;
+
+	// test if this call to __init__ is the result of unpickling
+	if(PyArg_ParseTuple(args, "OOOi", &meanIn, &preIn, &preInInv, &dimOut)) {
+		meanIn = PyArray_FROM_OTF(meanIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preIn = PyArray_FROM_OTF(preIn, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		preInInv = PyArray_FROM_OTF(preInInv, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!meanIn || !preIn || !preInInv) {
+			Py_XDECREF(meanIn);
+			Py_XDECREF(preIn);
+			Py_XDECREF(preInInv);
+			PyErr_SetString(PyExc_TypeError, "Parameters of transform should be of type `ndarray`.");
+			return -1;
+		}
+
+		try {
+			self->preconditioner = new WhiteningTransform(
+				PyArray_ToMatrixXd(meanIn),
+				PyArray_ToMatrixXd(preIn),
+				PyArray_ToMatrixXd(preInInv),
+				dimOut);
+		} catch(Exception exception) {
+			PyErr_SetString(PyExc_RuntimeError, exception.message());
+			Py_DECREF(meanIn);
+			Py_DECREF(preIn);
+			Py_DECREF(preInInv);
+			return -1;
+		}
+
+		Py_DECREF(meanIn);
+		Py_DECREF(preIn);
+		Py_DECREF(preInInv);
+	} else {
+		PyErr_Clear();
+
+		const char* kwlist[] = {"input", "output", "dim_out", 0};
+
+		PyObject* input;
+		PyObject* output = 0;
+
+		if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|Oi", const_cast<char**>(kwlist),
+			&input, &output, &dimOut))
+		{
+			return -1;
+		}
+
+		input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!input) {
+			PyErr_SetString(PyExc_TypeError, "Input should be of type `ndarray`.");
+			return -1;
+		}
+
+		if(output) {
+			output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+			if(!output) {
+				Py_DECREF(input);
+				PyErr_SetString(PyExc_TypeError, "Output should be of type `ndarray`.");
+				return -1;
+			}
+		}
+
+		try {
+			if(output)
+				self->preconditioner = new WhiteningTransform(
+					PyArray_ToMatrixXd(input),
+					PyArray_ToMatrixXd(output));
+			else
+				self->preconditioner = new WhiteningTransform(
+					PyArray_ToMatrixXd(input),
+					dimOut);
+		} catch(Exception exception) {
+			Py_DECREF(input);
+			Py_XDECREF(output);
+			PyErr_SetString(PyExc_RuntimeError, exception.message());
+			return -1;
+		}
+
+		Py_DECREF(input);
+		Py_XDECREF(output);
 	}
 
 	return 0;

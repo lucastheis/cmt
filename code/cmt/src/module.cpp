@@ -484,8 +484,8 @@ static PyMethodDef AffinePreconditioner_methods[] = {
 PyTypeObject AffinePreconditioner_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                      /*ob_size*/
-	"cmt.AffinePreconditioner",          /*tp_name*/
-	sizeof(AffinePreconditionerObject),  /*tp_basicsize*/
+	"cmt.AffinePreconditioner",             /*tp_name*/
+	sizeof(AffinePreconditionerObject),     /*tp_basicsize*/
 	0,                                      /*tp_itemsize*/
 	(destructor)Preconditioner_dealloc,     /*tp_dealloc*/
 	0,                                      /*tp_print*/
@@ -503,22 +503,70 @@ PyTypeObject AffinePreconditioner_type = {
 	0,                                      /*tp_setattro*/
 	0,                                      /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,                     /*tp_flags*/
-	AffinePreconditioner_doc,            /*tp_doc*/
+	AffinePreconditioner_doc,               /*tp_doc*/
 	0,                                      /*tp_traverse*/
 	0,                                      /*tp_clear*/
 	0,                                      /*tp_richcompare*/
 	0,                                      /*tp_weaklistoffset*/
 	0,                                      /*tp_iter*/
 	0,                                      /*tp_iternext*/
-	AffinePreconditioner_methods,        /*tp_methods*/
+	AffinePreconditioner_methods,           /*tp_methods*/
 	0,                                      /*tp_members*/
-	AffinePreconditioner_getset,         /*tp_getset*/
+	AffinePreconditioner_getset,            /*tp_getset*/
 	&Preconditioner_type,                   /*tp_base*/
 	0,                                      /*tp_dict*/
 	0,                                      /*tp_descr_get*/
 	0,                                      /*tp_descr_set*/
 	0,                                      /*tp_dictoffset*/
-	(initproc)AffinePreconditioner_init, /*tp_init*/
+	(initproc)AffinePreconditioner_init,    /*tp_init*/
+	0,                                      /*tp_alloc*/
+	Preconditioner_new,                     /*tp_new*/
+};
+
+static PyMethodDef AffineTransform_methods[] = {
+	{"__reduce__", (PyCFunction)AffineTransform_reduce, METH_NOARGS, 0},
+	{0}
+};
+
+
+PyTypeObject AffineTransform_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                      /*ob_size*/
+	"cmt.AffineTransform",                  /*tp_name*/
+	sizeof(AffineTransformObject),          /*tp_basicsize*/
+	0,                                      /*tp_itemsize*/
+	(destructor)Preconditioner_dealloc,     /*tp_dealloc*/
+	0,                                      /*tp_print*/
+	0,                                      /*tp_getattr*/
+	0,                                      /*tp_setattr*/
+	0,                                      /*tp_compare*/
+	0,                                      /*tp_repr*/
+	0,                                      /*tp_as_number*/
+	0,                                      /*tp_as_sequence*/
+	0,                                      /*tp_as_mapping*/
+	0,                                      /*tp_hash */
+	0,                                      /*tp_call*/
+	0,                                      /*tp_str*/
+	0,                                      /*tp_getattro*/
+	0,                                      /*tp_setattro*/
+	0,                                      /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                     /*tp_flags*/
+	AffineTransform_doc,                    /*tp_doc*/
+	0,                                      /*tp_traverse*/
+	0,                                      /*tp_clear*/
+	0,                                      /*tp_richcompare*/
+	0,                                      /*tp_weaklistoffset*/
+	0,                                      /*tp_iter*/
+	0,                                      /*tp_iternext*/
+	AffineTransform_methods,                /*tp_methods*/
+	0,                                      /*tp_members*/
+	0,                                      /*tp_getset*/
+	&AffinePreconditioner_type,             /*tp_base*/
+	0,                                      /*tp_dict*/
+	0,                                      /*tp_descr_get*/
+	0,                                      /*tp_descr_set*/
+	0,                                      /*tp_dictoffset*/
+	(initproc)AffineTransform_init,         /*tp_init*/
 	0,                                      /*tp_alloc*/
 	Preconditioner_new,                     /*tp_new*/
 };
@@ -552,7 +600,7 @@ PyTypeObject WhiteningPreconditioner_type = {
 	0,                                      /*tp_weaklistoffset*/
 	0,                                      /*tp_iter*/
 	0,                                      /*tp_iternext*/
-	0,        /*tp_methods*/
+	0,                                      /*tp_methods*/
 	0,                                      /*tp_members*/
 	0,                                      /*tp_getset*/
 	&AffinePreconditioner_type,             /*tp_base*/
@@ -561,6 +609,48 @@ PyTypeObject WhiteningPreconditioner_type = {
 	0,                                      /*tp_descr_set*/
 	0,                                      /*tp_dictoffset*/
 	(initproc)WhiteningPreconditioner_init, /*tp_init*/
+	0,                                      /*tp_alloc*/
+	Preconditioner_new,                     /*tp_new*/
+};
+
+PyTypeObject WhiteningTransform_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                      /*ob_size*/
+	"cmt.WhiteningTransform",               /*tp_name*/
+	sizeof(WhiteningTransformObject),       /*tp_basicsize*/
+	0,                                      /*tp_itemsize*/
+	(destructor)Preconditioner_dealloc,     /*tp_dealloc*/
+	0,                                      /*tp_print*/
+	0,                                      /*tp_getattr*/
+	0,                                      /*tp_setattr*/
+	0,                                      /*tp_compare*/
+	0,                                      /*tp_repr*/
+	0,                                      /*tp_as_number*/
+	0,                                      /*tp_as_sequence*/
+	0,                                      /*tp_as_mapping*/
+	0,                                      /*tp_hash */
+	0,                                      /*tp_call*/
+	0,                                      /*tp_str*/
+	0,                                      /*tp_getattro*/
+	0,                                      /*tp_setattro*/
+	0,                                      /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                     /*tp_flags*/
+	WhiteningTransform_doc,                 /*tp_doc*/
+	0,                                      /*tp_traverse*/
+	0,                                      /*tp_clear*/
+	0,                                      /*tp_richcompare*/
+	0,                                      /*tp_weaklistoffset*/
+	0,                                      /*tp_iter*/
+	0,                                      /*tp_iternext*/
+	0,                                      /*tp_methods*/
+	0,                                      /*tp_members*/
+	0,                                      /*tp_getset*/
+	&AffineTransform_type,                  /*tp_base*/
+	0,                                      /*tp_dict*/
+	0,                                      /*tp_descr_get*/
+	0,                                      /*tp_descr_set*/
+	0,                                      /*tp_dictoffset*/
+	(initproc)WhiteningTransform_init,      /*tp_init*/
 	0,                                      /*tp_alloc*/
 	Preconditioner_new,                     /*tp_new*/
 };
@@ -648,7 +738,11 @@ PyMODINIT_FUNC initcmt() {
 		return;
 	if(PyType_Ready(&AffinePreconditioner_type) < 0)
 		return;
+	if(PyType_Ready(&AffineTransform_type) < 0)
+		return;
 	if(PyType_Ready(&WhiteningPreconditioner_type) < 0)
+		return;
+	if(PyType_Ready(&WhiteningTransform_type) < 0)
 		return;
 	if(PyType_Ready(&PCAPreconditioner_type) < 0)
 		return;
@@ -663,7 +757,9 @@ PyMODINIT_FUNC initcmt() {
 	Py_INCREF(&PatchMCBM_type);
 	Py_INCREF(&Preconditioner_type);
 	Py_INCREF(&AffinePreconditioner_type);
+	Py_INCREF(&AffineTransform_type);
 	Py_INCREF(&WhiteningPreconditioner_type);
+	Py_INCREF(&WhiteningTransform_type);
 	Py_INCREF(&PCAPreconditioner_type);
 	PyModule_AddObject(module, "ConditionalDistribution", reinterpret_cast<PyObject*>(&CD_type));
 	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));
@@ -671,6 +767,8 @@ PyMODINIT_FUNC initcmt() {
 	PyModule_AddObject(module, "PatchMCBM", reinterpret_cast<PyObject*>(&PatchMCBM_type));
 	PyModule_AddObject(module, "Preconditioner", reinterpret_cast<PyObject*>(&Preconditioner_type));
 	PyModule_AddObject(module, "AffinePreconditioner", reinterpret_cast<PyObject*>(&AffinePreconditioner_type));
+	PyModule_AddObject(module, "AffineTransform", reinterpret_cast<PyObject*>(&AffineTransform_type));
 	PyModule_AddObject(module, "WhiteningPreconditioner", reinterpret_cast<PyObject*>(&WhiteningPreconditioner_type));
+	PyModule_AddObject(module, "WhiteningTransform", reinterpret_cast<PyObject*>(&WhiteningTransform_type));
 	PyModule_AddObject(module, "PCAPreconditioner", reinterpret_cast<PyObject*>(&PCAPreconditioner_type));
 }

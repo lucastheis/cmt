@@ -60,6 +60,7 @@ modules = [
 		language='c++',
 		sources=[
 			'code/cmt/src/affinepreconditioner.cpp',
+			'code/cmt/src/affinetransform.cpp',
 			'code/cmt/src/callbackinterface.cpp',
 			'code/cmt/src/conditionaldistribution.cpp',
 			'code/cmt/src/conditionaldistributioninterface.cpp',
@@ -76,7 +77,8 @@ modules = [
 			'code/cmt/src/tools.cpp',
 			'code/cmt/src/toolsinterface.cpp',
 			'code/cmt/src/utils.cpp',
-			'code/cmt/src/whiteningpreconditioner.cpp'],
+			'code/cmt/src/whiteningpreconditioner.cpp'
+			'code/cmt/src/whiteningtransform.cpp'],
 		include_dirs=[
 			'code',
 			'code/cmt/include',

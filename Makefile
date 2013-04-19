@@ -32,6 +32,7 @@ SRCDIR = code/cmt/src
 OBJDIR = build
 SOURCES = \
 	$(SRCDIR)/affinepreconditioner.cpp \
+	$(SRCDIR)/affinetransform.cpp \
 	$(SRCDIR)/callbackinterface.cpp \
 	$(SRCDIR)/conditionaldistribution.cpp \
 	$(SRCDIR)/conditionaldistributioninterface.cpp \
@@ -48,7 +49,8 @@ SOURCES = \
 	$(SRCDIR)/tools.cpp \
 	$(SRCDIR)/toolsinterface.cpp \
 	$(SRCDIR)/utils.cpp \
-	$(SRCDIR)/whiteningpreconditioner.cpp
+	$(SRCDIR)/whiteningpreconditioner.cpp \
+	$(SRCDIR)/whiteningtransform.cpp
 OBJECTS = $(patsubst %,$(OBJDIR)/%,$(SOURCES:.cpp=.o))
 
 MODULE = $(OBJDIR)/cmt.so

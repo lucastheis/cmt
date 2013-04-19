@@ -8,6 +8,8 @@ using Eigen::SelfAdjointEigenSolver;
 CMT::WhiteningPreconditioner::WhiteningPreconditioner(const ArrayXXd& input, const ArrayXXd& output) {
 	if(input.cols() != output.cols())
 		throw Exception("Number of inputs and outputs must be the same."); 
+	if(input.cols() < input.rows())
+		throw Exception("Too few inputs to compute whitening transform."); 
 
 	mMeanIn = input.rowwise().mean();
 	mMeanOut = output.rowwise().mean();
