@@ -72,12 +72,13 @@ modules = [
 			'code/cmt/src/mcbminterface.cpp',
 			'code/cmt/src/module.cpp',
 			'code/cmt/src/pcapreconditioner.cpp',
+			'code/cmt/src/pcatransform.cpp',
 			'code/cmt/src/preconditionerinterface.cpp',
 			'code/cmt/src/pyutils.cpp',
 			'code/cmt/src/tools.cpp',
 			'code/cmt/src/toolsinterface.cpp',
 			'code/cmt/src/utils.cpp',
-			'code/cmt/src/whiteningpreconditioner.cpp'
+			'code/cmt/src/whiteningpreconditioner.cpp',
 			'code/cmt/src/whiteningtransform.cpp'],
 		include_dirs=[
 			'code',

@@ -269,6 +269,8 @@ Array<double, 1, Dynamic> PatchModel<CD>::logLikelihood(
 
 		logLik += mConditionalDistributions[i].logLikelihood(input, output);
 	}
+
+	return logLik;
 }
 
 

@@ -65,7 +65,7 @@ void CMT::PCATransform::initialize(
 	mMeanOut = VectorXd::Zero(dimOut);
 	mPreOut = MatrixXd::Identity(dimOut, dimOut);
 	mPreOutInv = MatrixXd::Identity(dimOut, dimOut);
-	mPredictor = MatrixXd::Zero(dimOut, input.rows());
+	mPredictor = MatrixXd::Zero(dimOut, numPCs);
 	mGradTransform = MatrixXd::Zero(dimOut, input.rows());
 	mLogJacobian = 1.;
 }
@@ -77,7 +77,7 @@ CMT::PCATransform::PCATransform(
 	const VectorXd& meanIn,
 	const MatrixXd& preIn,
 	const MatrixXd& preInInv,
-	int dimOut) : 
+	int dimOut) :
 	AffineTransform(meanIn, preIn, preInInv, dimOut),
 	mEigenvalues(eigenvalues)
 {
