@@ -35,7 +35,10 @@ Tuples maskToIndices(const ArrayXXb& mask) {
 
 
 
-pair<Tuples, Tuples> masksToIndices(const ArrayXXb& inputMask, const ArrayXXb& outputMask) {
+pair<Tuples, Tuples> masksToIndices(
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask)
+{
 	if(inputMask.cols() != outputMask.cols() || inputMask.rows() != outputMask.rows())
 		throw Exception("Input and output masks should be of the same size.");
 
@@ -70,13 +73,47 @@ VectorXd extractFromImage(const ArrayXXd& img, const Tuples& indices) {
 
 
 pair<ArrayXXd, ArrayXXd> generateDataFromImage(
-	ArrayXXd img,
-	ArrayXXb inputMask,
-	ArrayXXb outputMask,
+	const ArrayXXd& img,
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask)
+{
+	int w = img.cols() - inputMask.cols() + 1;
+	int h = img.rows() - inputMask.rows() + 1;
+
+	// precompute indices of active pixels in masks
+	pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask, outputMask);
+	Tuples& inputIndices = inOutIndices.first;
+	Tuples& outputIndices = inOutIndices.second;
+
+	pair<ArrayXXd, ArrayXXd> data = make_pair(
+		ArrayXXd(inputIndices.size(), w * h),
+		ArrayXXd(outputIndices.size(), w * h));
+
+	for(int k = 0, i = 0; i < h; ++i)
+		for(int j = 0; j < w; ++j, ++k) {
+			// extract input and output
+			MatrixXd patch = img.block(i, j, inputMask.rows(), inputMask.cols());
+
+			data.first.col(k) = extractFromImage(patch, inputIndices);
+			data.second.col(k) = extractFromImage(patch, outputIndices);
+		}
+
+	return data;
+}
+
+
+
+pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+	const ArrayXXd& img,
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask,
 	int numSamples)
 {
 	int w = img.cols() - inputMask.cols() + 1;
 	int h = img.rows() - inputMask.rows() + 1;
+
+	if(numSamples <= 0)
+		return generateDataFromImage(img, inputMask, outputMask);
 
 	if(numSamples > w * h)
 		throw Exception("Image not large enough for this many samples.");
@@ -113,11 +150,56 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 
 pair<ArrayXXd, ArrayXXd> generateDataFromImage(
-	vector<ArrayXXd> img,
-	ArrayXXb inputMask,
-	ArrayXXb outputMask,
+	const vector<ArrayXXd>& img,
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask)
+{
+	int numChannels = img.size();
+
+	if(!numChannels)
+		throw Exception("Image should have at least one channel.");
+
+	if(inputMask.cols() != outputMask.cols() || inputMask.rows() != outputMask.rows())
+		throw Exception("Input and output masks should be of the same size.");
+
+	int w = img[0].cols() - inputMask.cols() + 1;
+	int h = img[0].rows() - inputMask.rows() + 1;
+
+	// precompute indices of active pixels in masks
+	pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask, outputMask);
+	Tuples& inputIndices = inOutIndices.first;
+	Tuples& outputIndices = inOutIndices.second;
+
+	int numInputs = inputIndices.size();
+	int numOutputs = outputIndices.size();
+
+	pair<ArrayXXd, ArrayXXd> data = make_pair(
+		ArrayXXd(numChannels * numInputs, w * h),
+		ArrayXXd(numChannels * numOutputs, w * h));
+
+	// extract inputs and outputs
+	for(int k = 0, i = 0; i < h; ++i)
+		for(int j = 0; j < w; ++j, ++k)
+			for(int m = 0; m < numChannels; ++m) {
+				MatrixXd patch = img[m].block(i, j, inputMask.rows(), inputMask.cols());
+				data.first.block(m * numInputs, k, numInputs, 1) = extractFromImage(patch, inputIndices);
+				data.second.block(m * numOutputs, k, numOutputs, 1) = extractFromImage(patch, outputIndices);
+			}
+
+	return data;
+}
+
+
+
+pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+	const vector<ArrayXXd>& img,
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask,
 	int numSamples)
 {
+	if(numSamples <= 0)
+		return generateDataFromImage(img, inputMask, outputMask);
+
 	int numChannels = img.size();
 
 	if(!numChannels)
@@ -168,11 +250,78 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 
 pair<ArrayXXd, ArrayXXd> generateDataFromImage(
-	vector<ArrayXXd> img,
-	vector<ArrayXXb> inputMask,
-	vector<ArrayXXb> outputMask,
+	const vector<ArrayXXd>& img,
+	const vector<ArrayXXb>& inputMask,
+	const vector<ArrayXXb>& outputMask)
+{
+	int numChannels = img.size();
+
+	if(!numChannels)
+		throw Exception("Image should have at least one channel.");
+
+	if(inputMask.size() != numChannels || outputMask.size() != numChannels)
+		throw Exception("Image and masks need to have the same number of channels.");
+
+	int w = img[0].cols() - inputMask[0].cols() + 1;
+	int h = img[0].rows() - inputMask[0].rows() + 1;
+
+	vector<Tuples> inputIndices;
+	vector<Tuples> outputIndices;
+
+	int numInputs = 0;
+	int numOutputs = 0;
+
+	// precompute indices of active pixels in masks
+	for(int m = 0; m < numChannels; ++m) {
+		if(inputMask[m].cols() != inputMask[0].cols() || inputMask[m].rows() != outputMask[0].rows())
+			throw Exception("Input and output masks should be of the same size.");
+		if(img[m].cols() != img[0].cols() || img[m].rows() != img[0].rows())
+			throw Exception("All image channels should be of the same size.");
+
+		// precompute indices of active pixels in masks
+		pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask[m], outputMask[m]);
+		inputIndices.push_back(inOutIndices.first);
+		outputIndices.push_back(inOutIndices.second);
+
+		numInputs += inputIndices[m].size();
+		numOutputs += outputIndices[m].size();
+	}
+
+	pair<ArrayXXd, ArrayXXd> data = make_pair(
+		ArrayXXd(numInputs, w * h),
+		ArrayXXd(numOutputs, w * h));
+
+	for(int k = 0, i = 0; i < h; ++i)
+		for(int j = 0; j < w; ++j, ++k) {
+			int offsetIn = 0;
+			int offsetOut = 0;
+
+			// extract input and output
+			for(int m = 0; m < numChannels; ++m) {
+				MatrixXd patch = img[m].block(i, j, inputMask[m].rows(), inputMask[m].cols());
+
+				data.first.block(offsetIn, k, inputIndices[m].size(), 1) = extractFromImage(patch, inputIndices[m]);
+				data.second.block(offsetOut, k, outputIndices[m].size(), 1) = extractFromImage(patch, outputIndices[m]);
+
+				offsetIn += inputIndices[m].size();
+				offsetOut += outputIndices[m].size();
+			}
+		}
+
+	return data;
+}
+
+
+
+pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+	const vector<ArrayXXd>& img,
+	const vector<ArrayXXb>& inputMask,
+	const vector<ArrayXXb>& outputMask,
 	int numSamples)
 {
+	if(numSamples <= 0)
+		return generateDataFromImage(img, inputMask, outputMask);
+
 	int numChannels = img.size();
 
 	if(!numChannels)
@@ -244,11 +393,77 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 
 pair<ArrayXXd, ArrayXXd> generateDataFromVideo(
-	vector<ArrayXXd> video,
-	vector<ArrayXXb> inputMask,
-	vector<ArrayXXb> outputMask,
+	const vector<ArrayXXd>& video,
+	const vector<ArrayXXb>& inputMask,
+	const vector<ArrayXXb>& outputMask)
+{
+	if(video.size() < inputMask.size())
+		throw Exception("Video has less frames than masks.");
+
+	if(inputMask.size() != outputMask.size())
+		throw Exception("Masks need to have the same number of frames.");
+
+	int w = video[0].cols() - inputMask[0].cols() + 1;
+	int h = video[0].rows() - inputMask[0].rows() + 1;
+	int l = video.size() - inputMask.size() + 1;
+
+	vector<Tuples> inputIndices;
+	vector<Tuples> outputIndices;
+
+	int numInputs = 0;
+	int numOutputs = 0;
+
+	// precompute indices of active pixels in masks
+	for(int m = 0; m < inputMask.size(); ++m) {
+		if(inputMask[m].cols() != inputMask[0].cols() || inputMask[m].rows() != outputMask[0].rows())
+			throw Exception("Input and output masks should be of the same size.");
+		if(video[m].cols() != video[0].cols() || video[m].rows() != video[0].rows())
+			throw Exception("All video frames should be of the same size.");
+
+		pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask[m], outputMask[m]);
+		inputIndices.push_back(inOutIndices.first);
+		outputIndices.push_back(inOutIndices.second);
+
+		numInputs += inputIndices[m].size();
+		numOutputs += outputIndices[m].size();
+	}
+
+	pair<ArrayXXd, ArrayXXd> data = make_pair(
+		ArrayXXd(numInputs, w * h * l),
+		ArrayXXd(numOutputs, w * h * l));
+
+	for(int k = 0, f = 0; f < l; ++f)
+		for(int i = 0; i < h; ++i)
+			for(int j = 0; j < w; ++j, ++k) {
+				int offsetIn = 0;
+				int offsetOut = 0;
+
+				// extract input and output
+				for(int m = 0; m < inputMask.size(); ++m) {
+					MatrixXd patch = video[m + f].block(i, j, inputMask[m].rows(), inputMask[m].cols());
+
+					data.first.block(offsetIn, k, inputIndices[m].size(), 1) = extractFromImage(patch, inputIndices[m]);
+					data.second.block(offsetOut, k, outputIndices[m].size(), 1) = extractFromImage(patch, outputIndices[m]);
+
+					offsetIn += inputIndices[m].size();
+					offsetOut += outputIndices[m].size();
+				}
+			}
+
+	return data;
+}
+
+
+
+pair<ArrayXXd, ArrayXXd> generateDataFromVideo(
+	const vector<ArrayXXd>& video,
+	const vector<ArrayXXb>& inputMask,
+	const vector<ArrayXXb>& outputMask,
 	int numSamples)
 {
+	if(numSamples <= 0)
+		return generateDataFromVideo(video, inputMask, outputMask);
+
 	if(video.size() < inputMask.size())
 		throw Exception("Video has less frames than masks.");
 
@@ -322,8 +537,8 @@ pair<ArrayXXd, ArrayXXd> generateDataFromVideo(
 ArrayXXd sampleImage(
 	ArrayXXd img,
 	const ConditionalDistribution& model,
-	ArrayXXb inputMask,
-	ArrayXXb outputMask,
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask,
 	const Preconditioner* preconditioner)
 {
 	if(inputMask.cols() != outputMask.cols() || inputMask.rows() != outputMask.rows())
@@ -405,8 +620,8 @@ ArrayXXd sampleImage(
 vector<ArrayXXd> sampleImage(
 	vector<ArrayXXd> img,
 	const ConditionalDistribution& model,
-	ArrayXXb inputMask,
-	ArrayXXb outputMask,
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask,
 	const Preconditioner* preconditioner)
 {
 	if(!img.size())
@@ -505,8 +720,8 @@ vector<ArrayXXd> sampleImage(
 vector<ArrayXXd> sampleImage(
 	vector<ArrayXXd> img,
 	const ConditionalDistribution& model,
-	vector<ArrayXXb> inputMask,
-	vector<ArrayXXb> outputMask,
+	const vector<ArrayXXb>& inputMask,
+	const vector<ArrayXXb>& outputMask,
 	const Preconditioner* preconditioner)
 {
 	int numChannels = img.size();
@@ -620,8 +835,8 @@ vector<ArrayXXd> sampleImage(
 vector<ArrayXXd> sampleVideo(
 	vector<ArrayXXd> video,
 	const ConditionalDistribution& model,
-	vector<ArrayXXb> inputMask,
-	vector<ArrayXXb> outputMask,
+	const vector<ArrayXXb>& inputMask,
+	const vector<ArrayXXb>& outputMask,
 	const Preconditioner* preconditioner)
 {
 	if(video.size() < inputMask.size())
@@ -781,9 +996,9 @@ inline double computeEnergy(
 ArrayXXd fillInImage(
 	ArrayXXd img,
 	const ConditionalDistribution& model,
-	ArrayXXb inputMask,
-	ArrayXXb outputMask,
-	ArrayXXb fillInMask,
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask,
+	const ArrayXXb& fillInMask,
 	const Preconditioner* preconditioner,
 	int numIterations,
 	int numSteps)
@@ -953,9 +1168,9 @@ lbfgsfloatval_t fillInImageMAPGradient(
 ArrayXXd fillInImageMAP(
 	ArrayXXd img,
 	const ConditionalDistribution& model,
-	ArrayXXb inputMask,
-	ArrayXXb outputMask,
-	ArrayXXb fillInMask,
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask,
+	const ArrayXXb& fillInMask,
 	const Preconditioner* preconditioner,
 	int numIterations,
 	int patchSize)

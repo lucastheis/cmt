@@ -60,6 +60,9 @@ const char* generate_data_from_image_doc =
 	"\n"
 	"Uniformly samples inputs and outputs for conditional models from images.\n"
 	"\n"
+	"If no number of samples is specified, all possible inputs and outputs are\n"
+	"extracted from the image and returned in row-major order.\n"
+	"\n"
 	"@type  img: C{ndarray}\n"
 	"@param img: an array representing a grayscale or color image\n"
 	"\n"
@@ -81,9 +84,9 @@ PyObject* generate_data_from_image(PyObject* self, PyObject* args, PyObject* kwd
 	PyObject* img;
 	PyObject* xmask;
 	PyObject* ymask;
-	int num_samples;
+	int num_samples = 0;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOOi", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOO|i", const_cast<char**>(kwlist),
 		&img, &xmask, &ymask, &num_samples))
 		return 0;
 
@@ -93,7 +96,7 @@ PyObject* generate_data_from_image(PyObject* self, PyObject* args, PyObject* kwd
 	ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	if(!img) {
-		PyErr_SetString(PyExc_TypeError, "The initial image has to be given as an array.");
+		PyErr_SetString(PyExc_TypeError, "The image has to be given as an array.");
 		return 0;
 	}
 
@@ -164,6 +167,9 @@ const char* generate_data_from_video_doc =
 	"\n"
 	"Uniformly samples inputs and outputs for conditional models from videos.\n"
 	"\n"
+	"If no number of samples is specified, all possible inputs and outputs are\n"
+	"extracted from the image and returned in row-major order.\n"
+	"\n"
 	"@type  video: C{ndarray}\n"
 	"@param video: a three-dimensional array representing the video\n"
 	"\n"
@@ -185,9 +191,9 @@ PyObject* generate_data_from_video(PyObject* self, PyObject* args, PyObject* kwd
 	PyObject* video;
 	PyObject* xmask;
 	PyObject* ymask;
-	int num_samples;
+	int num_samples = 0;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOOi", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOO|i", const_cast<char**>(kwlist),
 		&video, &xmask, &ymask, &num_samples))
 		return 0;
 
