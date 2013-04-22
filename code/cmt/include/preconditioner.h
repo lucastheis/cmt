@@ -7,6 +7,8 @@ using std::make_pair;
 
 #include "Eigen/Core"
 using Eigen::ArrayXXd;
+using Eigen::Array;
+using Eigen::Dynamic;
 
 namespace CMT {
 	class Preconditioner {

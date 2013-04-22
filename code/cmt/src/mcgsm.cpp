@@ -49,7 +49,7 @@ static int callbackLBFGS(
 
 
 
-lbfgsfloatval_t evaluateLBFGS(
+static lbfgsfloatval_t evaluateLBFGS(
 	void* instance,
 	const lbfgsfloatval_t* x,
 	lbfgsfloatval_t* g,
@@ -66,19 +66,10 @@ lbfgsfloatval_t evaluateLBFGS(
 
 
 
-MCGSM::Callback::~Callback() {
-}
 
-
-
-MCGSM::Parameters::Parameters() {
-	verbosity = 0;
-	maxIter = 1000;
-	threshold = 1e-5;
-	numGrad = 20;
-	batchSize = 2000;
-	callback = 0;
-	cbIter = 25;
+MCGSM::Parameters::Parameters() :
+	ConditionalDistribution::Parameters::Parameters()
+{
 	trainPriors = true;
 	trainScales = true;
 	trainWeights = true;
@@ -92,13 +83,7 @@ MCGSM::Parameters::Parameters() {
 
 
 MCGSM::Parameters::Parameters(const Parameters& params) :
-	verbosity(params.verbosity),
-	maxIter(params.maxIter),
-	threshold(params.threshold),
-	numGrad(params.numGrad),
-	batchSize(params.batchSize),
-	callback(0),
-	cbIter(params.cbIter),
+	ConditionalDistribution::Parameters::Parameters(params),
 	trainPriors(params.trainPriors),
 	trainScales(params.trainScales),
 	trainWeights(params.trainWeights),
@@ -108,27 +93,18 @@ MCGSM::Parameters::Parameters(const Parameters& params) :
 	regularizeFeatures(params.regularizeFeatures),
 	regularizePredictors(params.regularizePredictors)
 {
-	if(params.callback)
-		callback = params.callback->copy();
 }
 
 
 
 MCGSM::Parameters::~Parameters() {
-	if(callback)
-		delete callback;
 }
 
 
 
 MCGSM::Parameters& MCGSM::Parameters::operator=(const Parameters& params) {
-	verbosity = params.verbosity;
-	maxIter = params.maxIter;
-	threshold = params.threshold;
-	numGrad = params.numGrad;
-	batchSize = params.batchSize;
-	callback = params.callback ? params.callback->copy() : 0;
-	cbIter = params.cbIter;
+	ConditionalDistribution::Parameters::operator=(params);
+
 	trainPriors = params.trainPriors;
 	trainScales = params.trainScales;
 	trainWeights = params.trainWeights;
@@ -144,7 +120,7 @@ MCGSM::Parameters& MCGSM::Parameters::operator=(const Parameters& params) {
 
 
 MCGSM::MCGSM(
-	int dimIn, 
+	int dimIn,
 	int dimOut,
 	int numComponents,
 	int numScales,
@@ -153,7 +129,7 @@ MCGSM::MCGSM(
 	mDimOut(dimOut),
 	mNumComponents(numComponents),
 	mNumScales(numScales),
-	mNumFeatures(numFeatures < 0 ? mDimIn : numFeatures)
+	mNumFeatures(numFeatures < 0 ? dimIn : numFeatures)
 {
 	// check hyperparameters
 	if(mDimOut < 1)
@@ -162,9 +138,53 @@ MCGSM::MCGSM(
 		throw Exception("The number of scales has to be positive.");
 	if(mNumComponents < 1)
 		throw Exception("The number of components has to be positive.");
-	if(mNumFeatures < 1)
-		throw Exception("The number of features has to be positive.");
 
+	// initialize parameters
+	mPriors = ArrayXXd::Zero(mNumComponents, mNumScales);
+	mScales = ArrayXXd::Random(mNumComponents, mNumScales);
+	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100. + 0.01;
+	mFeatures = sampleNormal(mDimIn, mNumFeatures) / 100.;
+
+	for(int i = 0; i < mNumComponents; ++i) {
+		mCholeskyFactors.push_back(MatrixXd::Identity(mDimOut, mDimOut));
+		mPredictors.push_back(sampleNormal(mDimOut, mDimIn) / 10.);
+	}
+}
+
+
+
+MCGSM::MCGSM(int dimIn, int dimOut, const MCGSM& mcgsm) : 
+	mDimIn(dimIn),
+	mDimOut(dimOut),
+	mNumComponents(mcgsm.numComponents()),
+	mNumScales(mcgsm.numScales()),
+	mNumFeatures(mcgsm.numFeatures())
+{
+	// check hyperparameters
+	if(mDimOut < 1)
+		throw Exception("The number of output dimensions has to be positive.");
+
+	// initialize parameters
+	mPriors = ArrayXXd::Zero(mNumComponents, mNumScales);
+	mScales = ArrayXXd::Random(mNumComponents, mNumScales);
+	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100. + 0.01;
+	mFeatures = sampleNormal(mDimIn, mNumFeatures) / 100.;
+
+	for(int i = 0; i < mNumComponents; ++i) {
+		mCholeskyFactors.push_back(MatrixXd::Identity(mDimOut, mDimOut));
+		mPredictors.push_back(sampleNormal(mDimOut, mDimIn) / 10.);
+	}
+}
+
+
+
+MCGSM::MCGSM(int dimIn, const MCGSM& mcgsm) :
+	mDimIn(dimIn),
+	mDimOut(mcgsm.dimOut()),
+	mNumComponents(mcgsm.numComponents()),
+	mNumScales(mcgsm.numScales()),
+	mNumFeatures(mcgsm.numFeatures())
+{
 	// initialize parameters
 	mPriors = ArrayXXd::Zero(mNumComponents, mNumScales);
 	mScales = ArrayXXd::Random(mNumComponents, mNumScales);
@@ -184,7 +204,7 @@ MCGSM::~MCGSM() {
 
 
 
-void MCGSM::initialize(const MatrixXd& input, const MatrixXd& output, Parameters params) {
+void MCGSM::initialize(const MatrixXd& input, const MatrixXd& output) {
 	MatrixXd covXX = covariance(input);
 	MatrixXd covXY = covariance(input, output);
 
@@ -209,7 +229,7 @@ void MCGSM::initialize(const MatrixXd& input, const MatrixXd& output, Parameters
 
 
 
-bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters params) {
+bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, const Parameters& params) {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
 	if(input.cols() != output.cols())
@@ -247,7 +267,7 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, Parameters para
 	// free memory used by LBFGS
 	lbfgs_free(x);
 
-	if(!status) {
+	if(status >= 0) {
 		return true;
 	} else {
 		if(status != LBFGSERR_MAXIMUMITERATION)
@@ -262,7 +282,7 @@ double MCGSM::checkGradient(
 	const MatrixXd& input,
 	const MatrixXd& output,
 	double epsilon,
-	Parameters params) const
+	const Parameters& params) const
 {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
@@ -318,7 +338,7 @@ double MCGSM::checkPerformance(
 	const MatrixXd& input,
 	const MatrixXd& output,
 	int repetitions,
-	Parameters params) const
+	const Parameters& params) const
 {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
@@ -691,7 +711,7 @@ double MCGSM::computeGradient(
 	int offset = 0;
 
 	MatrixLBFGS priors(params.trainPriors ? y : const_cast<double*>(mPriors.data()), mNumComponents, mNumScales);
-	MatrixLBFGS priorsGrad = MatrixLBFGS(g, mNumComponents, mNumScales);
+	MatrixLBFGS priorsGrad(g, mNumComponents, mNumScales);
 	if(params.trainPriors)
 		offset += priors.size();
 
@@ -744,14 +764,14 @@ double MCGSM::computeGradient(
 
 	if(g) {
 		// initialize gradients
-		if(params.trainFeatures)
-			featuresGrad.setZero();
-		if(params.trainWeights)
-			weightsGrad.setZero();
 		if(params.trainPriors)
 			priorsGrad.setZero();
 		if(params.trainScales)
 			scalesGrad.setZero();
+		if(params.trainWeights)
+			weightsGrad.setZero();
+		if(params.trainFeatures)
+			featuresGrad.setZero();
 		if(params.trainPredictors)
 			for(int i = 0; i < mNumComponents; ++i)
 				predictorsGrad[i].setZero();
@@ -762,6 +782,7 @@ double MCGSM::computeGradient(
 	int batchSize = min(params.batchSize, numData);
 
 	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
+		// TODO: copying memory necessary?
 		const MatrixXd input = inputCompl.middleCols(b, min(batchSize, numData - b));
 		const MatrixXd output = outputCompl.middleCols(b, min(batchSize, numData - b));
 

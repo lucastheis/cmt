@@ -5,8 +5,10 @@
 PyObject* CD_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	PyObject* self = type->tp_alloc(type, 0);
 
-	if(self)
+	if(self) {
 		reinterpret_cast<CDObject*>(self)->cd = 0;
+		reinterpret_cast<CDObject*>(self)->owner = true;
+	}
 
 	return self;
 }
@@ -25,7 +27,8 @@ int CD_init(CDObject* self, PyObject* args, PyObject* kwds) {
 
 void CD_dealloc(CDObject* self) {
 	// delete actual instance
-	delete self->cd;
+	if(self->owner)
+		delete self->cd;
 
 	// delete CDObject
 	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
@@ -77,6 +80,7 @@ PyObject* CD_sample(CDObject* self, PyObject* args, PyObject* kwds) {
 		return result;
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		Py_DECREF(input);
 		return 0;
 	}
 

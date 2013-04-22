@@ -5,8 +5,6 @@
 #include "Eigen/Eigenvalues"
 using Eigen::SelfAdjointEigenSolver;
 
-#include <iostream>
-
 CMT::PCAPreconditioner::PCAPreconditioner(
 	const ArrayXXd& input,
 	const ArrayXXd& output,
@@ -48,21 +46,21 @@ CMT::PCAPreconditioner::PCAPreconditioner(
 	}
 
 	// input whitening
-	mWhiteIn = mEigenvalues.tail(numPCs).cwiseSqrt().cwiseInverse().asDiagonal() *
+	mPreIn = mEigenvalues.tail(numPCs).cwiseSqrt().cwiseInverse().asDiagonal() *
 		eigenSolver.eigenvectors().rightCols(numPCs).transpose();
-	mWhiteInInv = eigenSolver.eigenvectors().rightCols(numPCs) *
+	mPreInInv = eigenSolver.eigenvectors().rightCols(numPCs) *
 		mEigenvalues.tail(numPCs).cwiseSqrt().asDiagonal();
 
 	// optimal linear predictor
-	mPredictor = covYX * mWhiteIn.transpose();
+	mPredictor = covYX * mPreIn.transpose();
 
 	// output whitening
 	eigenSolver.compute(covYY - mPredictor * mPredictor.transpose());
-	mWhiteOut = eigenSolver.operatorInverseSqrt();
-	mWhiteOutInv = eigenSolver.operatorSqrt();
+	mPreOut = eigenSolver.operatorInverseSqrt();
+	mPreOutInv = eigenSolver.operatorSqrt();
 
 	// log-Jacobian determinant
-	mLogJacobian = mWhiteOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum();
+	mLogJacobian = mPreOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum();
 }
 
 
@@ -71,13 +69,13 @@ CMT::PCAPreconditioner::PCAPreconditioner(
 	const VectorXd& eigenvalues,
 	const VectorXd& meanIn,
 	const VectorXd& meanOut,
-	const MatrixXd& whiteIn,
-	const MatrixXd& whiteInInv,
-	const MatrixXd& whiteOut,
-	const MatrixXd& whiteOutInv,
+	const MatrixXd& preIn,
+	const MatrixXd& preInInv,
+	const MatrixXd& preOut,
+	const MatrixXd& preOutInv,
 	const MatrixXd& predictor) :
-	WhiteningPreconditioner(
-		meanIn, meanOut, whiteIn, whiteInInv, whiteOut, whiteOutInv, predictor),
+	AffinePreconditioner(
+		meanIn, meanOut, preIn, preInInv, preOut, preOutInv, predictor),
 	mEigenvalues(eigenvalues)
 {
 }

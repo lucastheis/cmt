@@ -21,22 +21,8 @@ using Eigen::ArrayXXd;
 
 class MCGSM : public ConditionalDistribution {
 	public:
-		class Callback {
+		struct Parameters : public ConditionalDistribution::Parameters {
 			public:
-				virtual ~Callback();
-				virtual Callback* copy() = 0;
-				virtual bool operator()(int iter, const MCGSM& mcgsm) = 0;
-		};
-
-		struct Parameters {
-			public:
-				int verbosity;
-				int maxIter;
-				double threshold;
-				int numGrad;
-				int batchSize;
-				Callback* callback;
-				int cbIter;
 				bool trainPriors;
 				bool trainScales;
 				bool trainWeights;
@@ -58,6 +44,8 @@ class MCGSM : public ConditionalDistribution {
 			int numComponents = 8,
 			int numScales = 6,
 			int numFeatures = -1);
+		MCGSM(int dimIn, const MCGSM& mcgsm);
+		MCGSM(int dimIn, int dimOut, const MCGSM& mcgsm);
 		virtual ~MCGSM();
 
 		inline int dimIn() const;
@@ -65,61 +53,66 @@ class MCGSM : public ConditionalDistribution {
 		inline int numComponents() const;
 		inline int numScales() const;
 		inline int numFeatures() const;
-		inline int numParameters(Parameters params) const;
+		inline int numParameters(const Parameters& params = Parameters()) const;
 
 		inline ArrayXXd priors() const;
-		inline void setPriors(ArrayXXd priors);
+		inline void setPriors(const ArrayXXd& priors);
 
 		inline ArrayXXd scales() const;
-		inline void setScales(ArrayXXd scales);
+		inline void setScales(const ArrayXXd& scales);
 
 		inline ArrayXXd weights() const;
-		inline void setWeights(ArrayXXd weights);
+		inline void setWeights(const ArrayXXd& weights);
 
 		inline MatrixXd features() const;
-		inline void setFeatures(MatrixXd features);
+		inline void setFeatures(const MatrixXd& features);
 
 		inline vector<MatrixXd> choleskyFactors() const;
-		inline void setCholeskyFactors(vector<MatrixXd> choleskyFactors);
+		inline void setCholeskyFactors(const vector<MatrixXd>& choleskyFactors);
 
 		inline vector<MatrixXd> predictors() const;
-		inline void setPredictors(vector<MatrixXd> predictors);
+		inline void setPredictors(const vector<MatrixXd>& predictors);
 
-		virtual void initialize(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			Parameters params = Parameters());
+		virtual void initialize(const MatrixXd& input, const MatrixXd& output);
 		virtual bool train(
 			const MatrixXd& input,
 			const MatrixXd& output,
-			Parameters params = Parameters());
+			const Parameters& params = Parameters());
 
 		virtual double checkGradient(
 			const MatrixXd& input,
 			const MatrixXd& output,
 			double epsilon = 1e-5,
-			Parameters params = Parameters()) const;
+			const Parameters& params = Parameters()) const;
 		virtual double checkPerformance(
 			const MatrixXd& input,
 			const MatrixXd& output,
 			int repetitions = 2,
-			Parameters params = Parameters()) const;
+			const Parameters& params = Parameters()) const;
 
 		virtual MatrixXd sample(const MatrixXd& input) const;
-		virtual MatrixXd sample(const MatrixXd& input, const Array<int, 1, Dynamic>& labels) const;
+		virtual MatrixXd sample(
+			const MatrixXd& input,
+			const Array<int, 1, Dynamic>& labels) const;
 		virtual MatrixXd reconstruct(const MatrixXd& input, const MatrixXd& output) const;
 		virtual Array<int, 1, Dynamic> samplePrior(const MatrixXd& input) const;
-		virtual Array<int, 1, Dynamic> samplePosterior(const MatrixXd& input, const MatrixXd& output) const;
+		virtual Array<int, 1, Dynamic> samplePosterior(
+			const MatrixXd& input,
+			const MatrixXd& output) const;
 
 		virtual ArrayXXd prior(const MatrixXd& input) const;
 		virtual ArrayXXd posterior(const MatrixXd& input, const MatrixXd& output) const;
-		virtual Array<double, 1, Dynamic> logLikelihood(const MatrixXd& input, const MatrixXd& output) const;
+		virtual Array<double, 1, Dynamic> logLikelihood(
+			const MatrixXd& input,
+			const MatrixXd& output) const;
 
-		virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(const MatrixXd& input, const MatrixXd& output) const;
+		virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
+			const MatrixXd& input,
+			const MatrixXd& output) const;
 
 		lbfgsfloatval_t* parameters(const Parameters& params) const;
 		void setParameters(const lbfgsfloatval_t* x, const Parameters& params);
-		double computeGradient(
+		virtual double computeGradient(
 			const MatrixXd& input,
 			const MatrixXd& output,
 			const lbfgsfloatval_t* x,
@@ -175,7 +168,7 @@ inline int MCGSM::numFeatures() const {
 
 
 
-inline int MCGSM::numParameters(Parameters params) const {
+inline int MCGSM::numParameters(const Parameters& params) const {
 	int numParams = 0;
 	if(params.trainPriors)
 		numParams += mPriors.size();
@@ -200,7 +193,7 @@ inline ArrayXXd MCGSM::scales() const {
 
 
 
-inline void MCGSM::setScales(ArrayXXd scales) {
+inline void MCGSM::setScales(const ArrayXXd& scales) {
 	if(scales.rows() != mNumComponents || scales.cols() != mNumScales)
 		throw Exception("Wrong number of scales.");
 	mScales = scales;
@@ -214,7 +207,7 @@ inline ArrayXXd MCGSM::weights() const {
 
 
 
-inline void MCGSM::setWeights(ArrayXXd weights) {
+inline void MCGSM::setWeights(const ArrayXXd& weights) {
 	if(weights.rows() != mNumComponents || weights.cols() != mNumFeatures)
 		throw Exception("Wrong number of weights.");
 	mWeights = weights;
@@ -228,7 +221,7 @@ inline ArrayXXd MCGSM::priors() const {
 
 
 
-inline void MCGSM::setPriors(ArrayXXd priors) {
+inline void MCGSM::setPriors(const ArrayXXd& priors) {
 	if(priors.rows() != mNumComponents || priors.cols() != mNumScales)
 		throw Exception("Wrong number of prior weights.");
 	mPriors = priors;
@@ -242,7 +235,7 @@ inline MatrixXd MCGSM::features() const {
 
 
 
-inline void MCGSM::setFeatures(MatrixXd features) {
+inline void MCGSM::setFeatures(const MatrixXd& features) {
 	if(features.rows() != mDimIn)
 		throw Exception("Features have wrong dimensionality.");
 	if(features.cols() != mNumFeatures)
@@ -258,7 +251,7 @@ inline vector<MatrixXd> MCGSM::choleskyFactors() const {
 
 
 
-inline void MCGSM::setCholeskyFactors(vector<MatrixXd> choleskyFactors) {
+inline void MCGSM::setCholeskyFactors(const vector<MatrixXd>& choleskyFactors) {
 	if(choleskyFactors.size() != mNumComponents)
 		throw Exception("Wrong number of Cholesky factors.");
 
@@ -287,7 +280,7 @@ inline vector<MatrixXd> MCGSM::predictors() const {
 
 
 
-inline void MCGSM::setPredictors(vector<MatrixXd> predictors) {
+inline void MCGSM::setPredictors(const vector<MatrixXd>& predictors) {
 	if(predictors.size() != mNumComponents)
 		throw Exception("Wrong number of predictors.");
 

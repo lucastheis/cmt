@@ -1,13 +1,13 @@
 #include "mcgsminterface.h"
 #include "Eigen/Core"
 #include "exception.h"
-#include "callbacktrain.h"
+#include "callbackinterface.h"
 
 #include <iostream>
 
 using namespace Eigen;
 
-MCGSM::Parameters PyObject_ToParameters(MCGSMObject* self, PyObject* parameters) {
+MCGSM::Parameters PyObject_ToMCGSMParameters(PyObject* parameters) {
 	MCGSM::Parameters params;
 
 	// read parameters from dictionary
@@ -63,7 +63,7 @@ MCGSM::Parameters PyObject_ToParameters(MCGSMObject* self, PyObject* parameters)
 		PyObject* callback = PyDict_GetItemString(parameters, "callback");
 		if(callback)
 			if(PyCallable_Check(callback))
-				params.callback = new CallbackTrain(self, callback);
+				params.callback = new CallbackInterface(&MCGSM_type, callback);
 			else if(callback != Py_None)
 				throw Exception("callback should be a function or callable object.");
 
@@ -209,7 +209,7 @@ int MCGSM_init(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	if(!num_features)
 		num_features = dim_in;
 
-	// create actual GSM instance
+	// create actual MCGSM instance
 	try {
 		self->mcgsm = new MCGSM(dim_in, dim_out, num_components, num_scales, num_features);
 	} catch(Exception exception) {
@@ -489,7 +489,7 @@ int MCGSM_set_predictors(MCGSMObject* self, PyObject* value, void*) {
 
 
 const char* MCGSM_initialize_doc =
-	"initialize(self, input, output, parameters)\n"
+	"initialize(self, input, output)\n"
 	"\n"
 	"Tries to guess more sensible initial values for the model parameters from data.\n"
 	"\n"
@@ -497,23 +497,18 @@ const char* MCGSM_initialize_doc =
 	"@param input: inputs stored in columns\n"
 	"\n"
 	"@type  output: ndarray\n"
-	"@param output: outputs stored in columns\n"
-	"\n"
-	"@type  parameters: dict\n"
-	"@param parameters: a dictionary containing hyperparameters";
+	"@param output: outputs stored in columns";
 
 PyObject* MCGSM_initialize(MCGSMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", "parameters", 0};
+	const char* kwlist[] = {"input", "output", 0};
 
 	PyObject* input;
 	PyObject* output;
-	PyObject* parameters = 0;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|O", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist),
 		&input,
-		&output,
-		&parameters))
+		&output))
 		return 0;
 
 	// make sure data is stored in NumPy array
@@ -530,8 +525,7 @@ PyObject* MCGSM_initialize(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	try {
 		self->mcgsm->initialize(
 			PyArray_ToMatrixXd(input), 
-			PyArray_ToMatrixXd(output), 
-			PyObject_ToParameters(self, parameters));
+			PyArray_ToMatrixXd(output));
 		Py_DECREF(input);
 		Py_DECREF(output);
 		Py_INCREF(Py_None);
@@ -630,7 +624,7 @@ PyObject* MCGSM_train(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 		if(self->mcgsm->train(
 				PyArray_ToMatrixXd(input), 
 				PyArray_ToMatrixXd(output), 
-				PyObject_ToParameters(self, parameters)))
+				PyObject_ToMCGSMParameters(parameters)))
 		{
 			Py_DECREF(input);
 			Py_DECREF(output);
@@ -684,7 +678,7 @@ PyObject* MCGSM_check_performance(MCGSMObject* self, PyObject* args, PyObject* k
 			PyArray_ToMatrixXd(input),
 			PyArray_ToMatrixXd(output),
 			repetitions, 
-			PyObject_ToParameters(self, parameters));
+			PyObject_ToMCGSMParameters(parameters));
 		Py_DECREF(input);
 		Py_DECREF(output);
 		return PyFloat_FromDouble(err);
@@ -721,6 +715,8 @@ PyObject* MCGSM_check_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds
 	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	if(!input || !output) {
+		Py_XDECREF(input);
+		Py_XDECREF(output);
 		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
 		return 0;
 	}
@@ -730,7 +726,7 @@ PyObject* MCGSM_check_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds
 			PyArray_ToMatrixXd(input),
 			PyArray_ToMatrixXd(output),
 			epsilon,
-			PyObject_ToParameters(self, parameters));
+			PyObject_ToMCGSMParameters(parameters));
 		Py_DECREF(input);
 		Py_DECREF(output);
 		return PyFloat_FromDouble(err);
@@ -872,7 +868,7 @@ PyObject* MCGSM_parameters(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 		return 0;
 
 	try {
-		MCGSM::Parameters params = PyObject_ToParameters(self, parameters);
+		MCGSM::Parameters params = PyObject_ToMCGSMParameters(parameters);
 
 		lbfgsfloatval_t* x = self->mcgsm->parameters(params);
 
@@ -926,7 +922,7 @@ PyObject* MCGSM_set_parameters(MCGSMObject* self, PyObject* args, PyObject* kwds
 	try {
 		self->mcgsm->setParameters(
 			PyArray_ToMatrixXd(x).data(), // TODO: PyArray_ToMatrixXd unnecessary
-			PyObject_ToParameters(self, parameters));
+			PyObject_ToMCGSMParameters(parameters));
 
 		Py_DECREF(x);
 		Py_INCREF(Py_None);
@@ -974,23 +970,23 @@ PyObject* MCGSM_compute_gradient(MCGSMObject* self, PyObject* args, PyObject* kw
 		x = PyArray_FROM_OTF(x, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	try {
-		MCGSM::Parameters params = PyObject_ToParameters(self, parameters);
+		MCGSM::Parameters params = PyObject_ToMCGSMParameters(parameters);
 
-		MatrixXd gradient(self->mcgsm->numParameters(params), 1);
+		MatrixXd gradient(self->mcgsm->numParameters(params), 1); // TODO: don't use MatrixXd
 
 		if(x)
 			self->mcgsm->computeGradient(
 				PyArray_ToMatrixXd(input), 
 				PyArray_ToMatrixXd(output), 
 				PyArray_ToMatrixXd(x).data(), // TODO: PyArray_ToMatrixXd unnecessary
-				gradient.data(), // TODO: don't use MatrixXd
+				gradient.data(),
 				params);
 		else
 			self->mcgsm->computeGradient(
 				PyArray_ToMatrixXd(input), 
 				PyArray_ToMatrixXd(output), 
-				self->mcgsm->parameters(params), // TODO: PyArray_ToMatrixXd unnecessary
-				gradient.data(), // TODO: don't use MatrixXd
+				self->mcgsm->parameters(params),
+				gradient.data(),
 				params);
 
 		Py_DECREF(input);
@@ -1085,7 +1081,7 @@ PyObject* MCGSM_reduce(MCGSMObject* self, PyObject*, PyObject*) {
 	Py_DECREF(cholesky_factors);
 	Py_DECREF(predictors);
 
-	PyObject* result = Py_BuildValue("(OOO)", self->ob_type, args, state);
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
 	Py_DECREF(args);
 	Py_DECREF(state);
 

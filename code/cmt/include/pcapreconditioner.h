@@ -1,10 +1,10 @@
 #ifndef PCAPRECONDITIONER_H
 #define PCAPRECONDITIONER_H
 
-#include "whiteningpreconditioner.h"
+#include "affinepreconditioner.h"
 
 namespace CMT {
-	class PCAPreconditioner : public WhiteningPreconditioner {
+	class PCAPreconditioner : public AffinePreconditioner {
 		public:
 			PCAPreconditioner(
 				const ArrayXXd& input,
@@ -15,10 +15,10 @@ namespace CMT {
 				const VectorXd& eigenvalues,
 				const VectorXd& meanIn,
 				const VectorXd& meanOut,
-				const MatrixXd& whiteIn,
-				const MatrixXd& whiteInInv,
-				const MatrixXd& whiteOut,
-				const MatrixXd& whiteOutInv,
+				const MatrixXd& preIn,
+				const MatrixXd& preInInv,
+				const MatrixXd& preOut,
+				const MatrixXd& preOutInv,
 				const MatrixXd& predictor);
 
 			inline VectorXd eigenvalues() const;

@@ -86,6 +86,32 @@ class ToolsTest(unittest.TestCase):
 
 		self.assertRaises(Exception, generate_data_from_image, img, xmask, ymask, 1)
 
+		# test extracting of 
+		xmask = asarray([
+			[1, 1],
+			[1, 1],
+			[1, 0]], dtype='bool')
+		ymask = asarray([
+			[0, 0],
+			[0, 0],
+			[0, 1]], dtype='bool')
+
+		# test extracting of all possible inputs and outputs
+		img = randn(64, 64)
+		inputs, outputs = generate_data_from_image(img, xmask, ymask)
+
+		# try reconstructing image from outputs
+		self.assertLess(max(abs(outputs.reshape(62, 63, order='C') - img[2:, 1:])), 1e-16)
+
+		img = randn(64, 64, 3)
+		inputs, outputs = generate_data_from_image(img, xmask, ymask)
+
+		img_rec = outputs.reshape(3, 62, 63, order='C')
+		img_rec = transpose(img_rec, [1, 2, 0])
+
+		self.assertLess(max(abs(img_rec - img[2:, 1:])), 1e-16)
+
+
 
 
 	def test_generate_data_from_video(self):
@@ -110,6 +136,14 @@ class ToolsTest(unittest.TestCase):
 		self.assertEqual(inputs.shape[1], 100)
 		self.assertEqual(outputs.shape[0], 1)
 		self.assertEqual(outputs.shape[1], 100)
+
+		video = randn(38, 63, 10)
+
+		inputs, outputs = generate_data_from_video(video, xmask, ymask)
+
+		video_rec = outputs.reshape(9, 37, 62, order='C').transpose([1, 2, 0])
+
+		self.assertLess(max(abs(video[1:, 1:, 1:] - video_rec)), 1e-16)
 
 		# invalid masks due to overlap
 		xmask = dstack([
@@ -213,8 +247,6 @@ class ToolsTest(unittest.TestCase):
 
 		# this should raise no exception
 		wt = WhiteningPreconditioner(randn(4, 1000), randn(1, 1000))
-#		fill_in_image(img, model, xmask, ymask, fmask, wt, num_iter=1, num_steps=2)
-
 		fill_in_image_map(img, model, xmask, ymask, fmask, wt, num_iter=1, patch_size=20)
 
 
