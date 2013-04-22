@@ -187,6 +187,20 @@ class Tests(unittest.TestCase):
 
 
 
+	def test_patchmcbm_loglikelihood(self):
+		xmask = ones([2, 2], dtype='bool')
+		ymask = zeros([2, 2], dtype='bool')
+		xmask[-1, -1] = False
+		ymask[-1, -1] = True
+
+		model = PatchMCBM(2, 2, xmask, ymask)
+
+		samples = model.sample(100)
+
+		self.assertFalse(isnan(mean(model.loglikelihood(samples))))
+
+
+
 	def test_patchmcbm_subscript(self):
 		xmask = ones([2, 2], dtype='bool')
 		ymask = zeros([2, 2], dtype='bool')

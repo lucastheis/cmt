@@ -103,7 +103,7 @@ setup(
 	version='0.1.0',
 	author='Lucas Theis',
 	author_email='lucas@theis.io',
-	description='A C++ implementation of conditional models such as the MCGSM.',
+	description='C++ implementations of conditional probabilistic models.',
 	url='http://github.com/lucastheis/cmt',
 	license='MIT',
 	ext_modules=modules)
