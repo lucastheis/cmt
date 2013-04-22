@@ -100,7 +100,7 @@ CCompiler.compile = parallelCCompiler
 
 setup(
 	name='cmt',
-	version='0.1.0',
+	version='0.2.0',
 	author='Lucas Theis',
 	author_email='lucas@theis.io',
 	description='C++ implementations of conditional probabilistic models.',
