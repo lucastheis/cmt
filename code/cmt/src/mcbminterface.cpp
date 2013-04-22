@@ -77,6 +77,15 @@ MCBM::Parameters PyObject_ToMCBMParameters(PyObject* parameters) {
 			else
 				throw Exception("cb_iter should be of type `int`.");
 
+		PyObject* val_iter = PyDict_GetItemString(parameters, "val_iter");
+		if(val_iter)
+			if(PyInt_Check(val_iter))
+				params.valIter = PyInt_AsLong(val_iter);
+			else if(PyFloat_Check(val_iter))
+				params.valIter = static_cast<int>(PyFloat_AsDouble(val_iter));
+			else
+				throw Exception("val_iter should be of type `int`.");
+
 		PyObject* train_priors = PyDict_GetItemString(parameters, "train_priors");
 		if(train_priors)
 			if(PyBool_Check(train_priors))
@@ -434,7 +443,7 @@ int MCBM_set_output_bias(MCBMObject* self, PyObject* value, void*) {
 
 
 const char* MCBM_train_doc =
-	"train(self, input, output, parameters=None)\n"
+	"train(self, input, output, input_val=None, output_val=None, parameters=None)\n"
 	"\n"
 	"Fits model parameters to given data using L-BFGS.\n"
 	"\n"
@@ -448,6 +457,7 @@ const char* MCBM_train_doc =
 	"\t>>> \t'batch_size': 2000\n"
 	"\t>>> \t'callback': None\n"
 	"\t>>> \t'cb_iter': 25\n"
+	"\t>>> \t'val_iter': 25\n"
 	"\t>>> \t'train_priors': True\n"
 	"\t>>> \t'train_weights': True\n"
 	"\t>>> \t'train_features': True\n"
@@ -480,6 +490,12 @@ const char* MCBM_train_doc =
 	"@type  output: ndarray\n"
 	"@param output: outputs stored in columns\n"
 	"\n"
+	"@type  input_val: ndarray\n"
+	"@param input_val: inputs used for computing validation error\n"
+	"\n"
+	"@type  output_val: ndarray\n"
+	"@param output_val: outputs used for computing validation error\n"
+	"\n"
 	"@type  parameters: dict\n"
 	"@param parameters: a dictionary containing hyperparameters\n"
 	"\n"
@@ -487,16 +503,20 @@ const char* MCBM_train_doc =
 	"@return: C{True} if training converged, otherwise C{False}";
 
 PyObject* MCBM_train(MCBMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", "parameters", 0};
+	const char* kwlist[] = {"input", "output", "input_val", "output_val", "parameters", 0};
 
 	PyObject* input;
 	PyObject* output;
+	PyObject* input_val = 0;
+	PyObject* output_val = 0;
 	PyObject* parameters = 0;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|O", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|OOO", const_cast<char**>(kwlist),
 		&input,
 		&output,
+		&input_val,
+		&output_val,
 		&parameters))
 		return 0;
 
@@ -511,12 +531,41 @@ PyObject* MCBM_train(MCBMObject* self, PyObject* args, PyObject* kwds) {
 		return 0;
 	}
 
+	if(input_val == Py_None)
+		input_val = 0;
+	if(output_val == Py_None)
+		output_val = 0;
+
+	if(input_val || output_val) {
+		input_val = PyArray_FROM_OTF(input_val, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		output_val = PyArray_FROM_OTF(output_val, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!input_val || !output_val) {
+			Py_DECREF(input);
+			Py_DECREF(output);
+			Py_XDECREF(input_val);
+			Py_XDECREF(output_val);
+			PyErr_SetString(PyExc_TypeError, "Validation data has to be stored in NumPy arrays.");
+			return 0;
+		}
+	}
+
 	try {
-		if(self->mcbm->train(
+		bool converged;
+
+		if(input_val && output_val) {
+			converged = self->mcbm->train(
 				PyArray_ToMatrixXd(input), 
 				PyArray_ToMatrixXd(output), 
-				PyObject_ToMCBMParameters(parameters)))
-		{
+				PyObject_ToMCBMParameters(parameters));
+		} else {
+			converged = self->mcbm->train(
+				PyArray_ToMatrixXd(input), 
+				PyArray_ToMatrixXd(output), 
+				PyObject_ToMCBMParameters(parameters));
+		}
+
+		if(converged) {
 			Py_DECREF(input);
 			Py_DECREF(output);
 			Py_INCREF(Py_True);

@@ -70,6 +70,12 @@ class MCBM : public ConditionalDistribution {
 			const MatrixXd& input,
 			const MatrixXd& output,
 			const Parameters& params = Parameters());
+		virtual bool train(
+			const MatrixXd& input,
+			const MatrixXd& output,
+			const MatrixXd* inputVal,
+			const MatrixXd* outputVal,
+			const Parameters& params = Parameters());
 
 		lbfgsfloatval_t* parameters(const Parameters& params) const;
 		void setParameters(const lbfgsfloatval_t* x, const Parameters& params);

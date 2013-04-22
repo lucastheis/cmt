@@ -28,6 +28,10 @@ class ConditionalDistribution {
 				int batchSize;
 				Callback* callback;
 				int cbIter;
+				int valIter;
+
+				ArrayXXd* valInput;
+				ArrayXXd* valOutput;
 
 				Parameters();
 				Parameters(const Parameters& params);

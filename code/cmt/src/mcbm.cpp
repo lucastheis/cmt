@@ -22,15 +22,73 @@ using std::endl;
 using std::setw;
 using std::setprecision;
 
+#include <limits>
+using std::numeric_limits;
+
 struct InstanceLBFGS {
 	const MCBM* mcbm;
 	const MCBM::Parameters* params;
+
 	const MatrixXd* input;
 	const MatrixXd* output;
+
+	// used for computing and checking validation error
+	const MatrixXd* inputVal;
+	const MatrixXd* outputVal;
+	double logLoss;
+
+	InstanceLBFGS(
+		const MCBM* mcbm,
+		const MCBM::Parameters* params,
+		const MatrixXd* input,
+		const MatrixXd* output);
+	InstanceLBFGS(
+		const MCBM* mcbm,
+		const MCBM::Parameters* params,
+		const MatrixXd* input,
+		const MatrixXd* output,
+		const MatrixXd* inputVal,
+		const MatrixXd* outputVal);
 };
 
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, 1> > VectorLBFGS;
+
+InstanceLBFGS::InstanceLBFGS(
+	const MCBM* mcbm,
+	const MCBM::Parameters* params,
+	const MatrixXd* input,
+	const MatrixXd* output) :
+	mcbm(mcbm),
+	params(params),
+	input(input),
+	output(output),
+	inputVal(0),
+	outputVal(0),
+	logLoss(numeric_limits<double>::max())
+{
+}
+
+
+
+InstanceLBFGS::InstanceLBFGS(
+	const MCBM* mcbm,
+	const MCBM::Parameters* params,
+	const MatrixXd* input,
+	const MatrixXd* output,
+	const MatrixXd* inputVal,
+	const MatrixXd* outputVal) :
+	mcbm(mcbm),
+	params(params),
+	input(input),
+	output(output),
+	inputVal(inputVal),
+	outputVal(outputVal),
+	logLoss(numeric_limits<double>::max())
+{
+}
+
+
 
 static int callbackLBFGS(
 	void *instance,
@@ -44,12 +102,29 @@ static int callbackLBFGS(
 	int)
 {
 	// unpack user data
-	const InstanceLBFGS& inst = *static_cast<InstanceLBFGS*>(instance);
+	InstanceLBFGS& inst = *static_cast<InstanceLBFGS*>(instance);
 	const MCBM& mcbm = *inst.mcbm;
 	const MCBM::Parameters& params = *inst.params;
 
-	if(params.verbosity > 0)
-		cout << setw(6) << iteration << setw(11) << setprecision(5) << fx << endl;
+	if(inst.inputVal && inst.outputVal && iteration % params.valIter == 0) {
+		const_cast<MCBM&>(mcbm).setParameters(x, params);
+
+		double logLoss = mcbm.evaluate(*inst.inputVal, *inst.outputVal);
+
+		if(params.verbosity > 0) {
+			cout << setw(6) << iteration;
+			cout << setw(11) << setprecision(5) << fx;
+			cout << setw(11) << setprecision(5) << logLoss << endl;
+		}
+
+		if(inst.logLoss < logLoss)
+			return 1;
+
+		inst.logLoss = logLoss;
+	} else {
+		if(params.verbosity > 0)
+			cout << setw(6) << iteration << setw(11) << setprecision(5) << fx << endl;
+	}
 
 	if(params.callback && iteration % params.cbIter == 0) {
 		// TODO: fix this nasty hack
@@ -259,7 +334,23 @@ Array<double, 1, Dynamic> MCBM::logLikelihood(const MatrixXd& input, const Matri
 
 
 
-bool MCBM::train(const MatrixXd& input, const MatrixXd& output, const Parameters& params) {
+bool MCBM::train(
+	const MatrixXd& input,
+	const MatrixXd& output,
+	const Parameters& params)
+{
+	return train(input, output, 0, 0, params);
+}
+
+
+
+bool MCBM::train(
+	const MatrixXd& input,
+	const MatrixXd& output,
+	const MatrixXd* inputVal,
+	const MatrixXd* outputVal,
+	const Parameters& params)
+{
 	if(input.rows() != mDimIn || output.rows() != 1)
 		throw Exception("Data has wrong dimensionality.");
 
@@ -287,12 +378,16 @@ bool MCBM::train(const MatrixXd& input, const MatrixXd& output, const Parameters
 		hyperparams.xtol = 1e-32;
 
 		// wrap additional arguments
-		InstanceLBFGS instance = { this, &params, &input, &output };
+		InstanceLBFGS instance(this, &params, &input, &output, inputVal, outputVal);
 
 		// start LBFGS optimization
 		int status = LBFGSERR_MAXIMUMITERATION;
 		if(params.maxIter > 0)
-			status = lbfgs(numParameters(params), x, 0, &evaluateLBFGS, &callbackLBFGS, &instance, &hyperparams);
+			status = lbfgs(numParameters(params), x, 0,
+				&evaluateLBFGS,
+				&callbackLBFGS,
+				&instance,
+				&hyperparams);
 
 		// copy parameters back
 		setParameters(x, params);
@@ -544,7 +639,7 @@ double MCBM::checkGradient(
 		y[i] = x[i];
 
 	// arguments to LBFGS function
-	InstanceLBFGS instance = { this, &params, &input, &output };
+	InstanceLBFGS instance(this, &params, &input, &output);
 
 	// compute numerical gradient using central differences
 	for(int i = 0; i < numParams; ++i) {

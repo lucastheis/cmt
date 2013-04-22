@@ -56,7 +56,7 @@ PyObject* random_select(PyObject* self, PyObject* args, PyObject* kwds) {
 
 
 const char* generate_data_from_image_doc =
-	"generate_data_from_image(img, xmask, ymask, num_samples)\n"
+	"generate_data_from_image(img, xmask, ymask, num_samples=0)\n"
 	"\n"
 	"Uniformly samples inputs and outputs for conditional models from images.\n"
 	"\n"
@@ -163,7 +163,7 @@ PyObject* generate_data_from_image(PyObject* self, PyObject* args, PyObject* kwd
 
 
 const char* generate_data_from_video_doc =
-	"generate_data_from_video(video, xmask, ymask, num_samples)\n"
+	"generate_data_from_video(video, xmask, ymask, num_samples=0)\n"
 	"\n"
 	"Uniformly samples inputs and outputs for conditional models from videos.\n"
 	"\n"
