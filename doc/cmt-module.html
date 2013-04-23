@@ -97,8 +97,32 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="cmt.AffinePreconditioner-class.html" class="summary-name">AffinePreconditioner</a><br />
+      Performs affine transformations on the input and the output.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.AffineTransform-class.html" class="summary-name">AffineTransform</a><br />
+      Performs an affine transformation on inputs.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="cmt.ConditionalDistribution-class.html" class="summary-name">ConditionalDistribution</a><br />
       Abstract base class for conditional models.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.MCBM-class.html" class="summary-name">MCBM</a><br />
+      An implementation of a mixture of conditional Boltzmann machines.
     </td>
   </tr>
 <tr>
@@ -123,6 +147,24 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="cmt.PCATransform-class.html" class="summary-name">PCATransform</a><br />
+      This class behaves like <a href="cmt.PCAPreconditioner-class.html" 
+        class="link">PCAPreconditioner</a>, but does not change the output.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.PatchMCBM-class.html" class="summary-name">PatchMCBM</a><br />
+      Model image patches by using an <a href="cmt.MCBM-class.html" 
+        class="link">MCBM</a> for each conditional distribution.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="cmt.Preconditioner-class.html" class="summary-name">Preconditioner</a><br />
       Abstract base class for preconditioners of inputs and outputs.
     </td>
@@ -133,6 +175,14 @@
     </td><td class="summary">
         <a href="cmt.WhiteningPreconditioner-class.html" class="summary-name">WhiteningPreconditioner</a><br />
       Decorrelates inputs and outputs.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.WhiteningTransform-class.html" class="summary-name">WhiteningTransform</a><br />
+      Decorrelates inputs.
     </td>
   </tr>
 </table>
@@ -179,6 +229,22 @@
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="fill_in_image_map"></a><span class="summary-sig-name">fill_in_image_map</span>(<span class="summary-sig-arg">...</span>)</span></td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type"><code>tuple</code></span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -186,7 +252,7 @@
           <td><span class="summary-sig"><a href="cmt-module.html#generate_data_from_image" class="summary-sig-name">generate_data_from_image</a>(<span class="summary-sig-arg">img</span>,
         <span class="summary-sig-arg">xmask</span>,
         <span class="summary-sig-arg">ymask</span>,
-        <span class="summary-sig-arg">num_samples</span>)</span><br />
+        <span class="summary-sig-arg">num_samples</span>=<span class="summary-sig-default">0</span>)</span><br />
       Uniformly samples inputs and outputs for conditional models from 
       images.</td>
           <td align="right" valign="top">
@@ -207,7 +273,7 @@
           <td><span class="summary-sig"><a href="cmt-module.html#generate_data_from_video" class="summary-sig-name">generate_data_from_video</a>(<span class="summary-sig-arg">video</span>,
         <span class="summary-sig-arg">xmask</span>,
         <span class="summary-sig-arg">ymask</span>,
-        <span class="summary-sig-arg">num_samples</span>)</span><br />
+        <span class="summary-sig-arg">num_samples</span>=<span class="summary-sig-default">0</span>)</span><br />
       Uniformly samples inputs and outputs for conditional models from 
       videos.</td>
           <td align="right" valign="top">
@@ -375,7 +441,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">generate_data_from_image</span>(<span class="sig-arg">img</span>,
         <span class="sig-arg">xmask</span>,
         <span class="sig-arg">ymask</span>,
-        <span class="sig-arg">num_samples</span>)</span>
+        <span class="sig-arg">num_samples</span>=<span class="sig-default">0</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     >&nbsp;
@@ -384,6 +450,8 @@
   
   <p>Uniformly samples inputs and outputs for conditional models from 
   images.</p>
+  <p>If no number of samples is specified, all possible inputs and outputs 
+  are extracted from the image and returned in row-major order.</p>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
@@ -407,7 +475,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">generate_data_from_video</span>(<span class="sig-arg">video</span>,
         <span class="sig-arg">xmask</span>,
         <span class="sig-arg">ymask</span>,
-        <span class="sig-arg">num_samples</span>)</span>
+        <span class="sig-arg">num_samples</span>=<span class="sig-default">0</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     >&nbsp;
@@ -416,6 +484,8 @@
   
   <p>Uniformly samples inputs and outputs for conditional models from 
   videos.</p>
+  <p>If no number of samples is specified, all possible inputs and outputs 
+  are extracted from the image and returned in row-major order.</p>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
@@ -564,7 +634,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Mar 11 18:25:48 2013
+    Generated by Epydoc 3.0.1 on Tue Apr 23 15:30:42 2013
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
