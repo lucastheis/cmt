@@ -357,13 +357,19 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(Xr - X)), 1e-10)
 		self.assertLess(max(abs(Yr - Y)), 1e-10)
 
-		pca = PCAPreconditioner(X, Y, num_pcs=3)
+		wt = PCATransform(X, dim_out=Y.shape[0], num_pcs=X.shape[0] - 1)
+
+		# joint covariance
+		C = cov(wt(X), bias=True)
+
+		self.assertLess(max(abs(C - eye(4))), 1e-8)
 
 		# test inverse
-		Xp, Yp = pca(X, Y)
-		Xr, Yr = pca.inverse(Xp, Yp)
+		Xw, Yw = wt(X, Y)
+		Xr, Yr = wt.inverse(Xw, Yw)
 
 		self.assertLess(max(abs(Yr - Y)), 1e-10)
+
 
 
 

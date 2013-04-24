@@ -1039,14 +1039,13 @@ int PCATransform_init(PCATransformObject* self, PyObject* args, PyObject* kwds) 
 					dimOut);
 		} catch(Exception exception) {
 			Py_DECREF(input);
-			Py_DECREF(output);
+			Py_XDECREF(output);
 			PyErr_SetString(PyExc_RuntimeError, exception.message());
 			return -1;
 		}
 
 		Py_DECREF(input);
-		Py_DECREF(output);
-
+		Py_XDECREF(output);
 	}
 
 	return 0;
