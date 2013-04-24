@@ -25,6 +25,9 @@ using std::setprecision;
 #include <limits>
 using std::numeric_limits;
 
+#include <cstring>
+using std::memcpy;
+
 struct InstanceLBFGS {
 	const MCBM* mcbm;
 	const MCBM::Parameters* params;
@@ -36,6 +39,8 @@ struct InstanceLBFGS {
 	const MatrixXd* inputVal;
 	const MatrixXd* outputVal;
 	double logLoss;
+	int counter;
+	lbfgsfloatval_t* parameters;
 
 	InstanceLBFGS(
 		const MCBM* mcbm,
@@ -49,6 +54,7 @@ struct InstanceLBFGS {
 		const MatrixXd* output,
 		const MatrixXd* inputVal,
 		const MatrixXd* outputVal);
+	~InstanceLBFGS();
 };
 
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
@@ -65,7 +71,9 @@ InstanceLBFGS::InstanceLBFGS(
 	output(output),
 	inputVal(0),
 	outputVal(0),
-	logLoss(numeric_limits<double>::max())
+	logLoss(numeric_limits<double>::max()),
+	counter(0),
+	parameters(0)
 {
 }
 
@@ -84,8 +92,16 @@ InstanceLBFGS::InstanceLBFGS(
 	output(output),
 	inputVal(inputVal),
 	outputVal(outputVal),
-	logLoss(numeric_limits<double>::max())
+	logLoss(numeric_limits<double>::max()),
+	counter(0),
+	parameters(mcbm->parameters(*params))
 {
+}
+
+
+
+InstanceLBFGS::~InstanceLBFGS() {
+	lbfgs_free(parameters);
 }
 
 
@@ -117,17 +133,26 @@ static int callbackLBFGS(
 			cout << setw(11) << setprecision(5) << logLoss << endl;
 		}
 
-		if(inst.logLoss < logLoss)
-			return 1;
+		if(logLoss < inst.logLoss) {
+			// store current parameters for later
+			for(int i = 0, N = mcbm.numParameters(params); i < N; ++i)
+				inst.parameters[i] = x[i];
 
-		inst.logLoss = logLoss;
+			inst.counter = 0;
+			inst.logLoss = logLoss;
+		} else {
+			inst.counter += 1;
+
+			if(params.valLookAhead > 0 && inst.counter >= params.valLookAhead)
+				// performance did not improve for valLookAhead times
+				return 1;
+		}
 	} else {
 		if(params.verbosity > 0)
 			cout << setw(6) << iteration << setw(11) << setprecision(5) << fx << endl;
 	}
 
 	if(params.callback && iteration % params.cbIter == 0) {
-		// TODO: fix this nasty hack
 		const_cast<MCBM&>(mcbm).setParameters(x, params);
 
 		if(!(*params.callback)(iteration, mcbm))
@@ -157,7 +182,7 @@ static lbfgsfloatval_t evaluateLBFGS(
 
 
 
-MCBM::Parameters::Parameters() : 
+MCBM::Parameters::Parameters() :
 	ConditionalDistribution::Parameters::Parameters()
 {
 	trainPriors = true;
@@ -347,6 +372,18 @@ bool MCBM::train(
 bool MCBM::train(
 	const MatrixXd& input,
 	const MatrixXd& output,
+	const MatrixXd& inputVal,
+	const MatrixXd& outputVal,
+	const Parameters& params)
+{
+	return train(input, output, &inputVal, &outputVal, params);
+}
+
+
+
+bool MCBM::train(
+	const MatrixXd& input,
+	const MatrixXd& output,
 	const MatrixXd* inputVal,
 	const MatrixXd* outputVal,
 	const Parameters& params)
@@ -380,6 +417,16 @@ bool MCBM::train(
 		// wrap additional arguments
 		InstanceLBFGS instance(this, &params, &input, &output, inputVal, outputVal);
 
+		if(params.verbosity > 0)
+			if(inputVal && outputVal) {
+				cout << setw(6) << 0;
+				cout << setw(11) << setprecision(5) << evaluate(input, output);
+				cout << setw(11) << setprecision(5) << evaluate(*inputVal, *outputVal) << endl;
+			} else {
+				cout << setw(6) << 0;
+				cout << setw(11) << setprecision(5) << evaluate(input, output) << endl;
+			}
+
 		// start LBFGS optimization
 		int status = LBFGSERR_MAXIMUMITERATION;
 		if(params.maxIter > 0)
@@ -391,6 +438,18 @@ bool MCBM::train(
 
 		// copy parameters back
 		setParameters(x, params);
+
+		if(inputVal && outputVal && instance.parameters) {
+			double logLoss = evaluate(*inputVal, *outputVal);
+
+			// use parameters which minimize the validation error
+			setParameters(instance.parameters, params);
+
+			// check that they really give a smaller validation error
+			if(evaluate(*inputVal, *outputVal) > logLoss)
+				// otherwise, use other parameters after all
+				setParameters(x, params);
+		}
 
 		// free memory used by LBFGS
 		lbfgs_free(x);
@@ -601,7 +660,7 @@ double MCBM::computeGradient(
 			outputBiasGrad -= post1Tmp.rowwise().sum().matrix();
 	}
 
-	double normConst = inputCompl.cols() / log(2.);
+	double normConst = inputCompl.cols() * log(2.);
 
 	if(g)
 		for(int i = 0; i < offset; ++i)

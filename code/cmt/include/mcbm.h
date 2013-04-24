@@ -73,6 +73,12 @@ class MCBM : public ConditionalDistribution {
 		virtual bool train(
 			const MatrixXd& input,
 			const MatrixXd& output,
+			const MatrixXd& inputVal,
+			const MatrixXd& outputVal,
+			const Parameters& params = Parameters());
+		virtual bool train(
+			const MatrixXd& input,
+			const MatrixXd& output,
 			const MatrixXd* inputVal,
 			const MatrixXd* outputVal,
 			const Parameters& params = Parameters());

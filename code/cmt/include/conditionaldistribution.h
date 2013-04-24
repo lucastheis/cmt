@@ -29,6 +29,7 @@ class ConditionalDistribution {
 				Callback* callback;
 				int cbIter;
 				int valIter;
+				int valLookAhead;
 
 				ArrayXXd* valInput;
 				ArrayXXd* valOutput;
