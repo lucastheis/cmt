@@ -25,6 +25,9 @@ using std::setprecision;
 #include <limits>
 using std::numeric_limits;
 
+#include <cstring>
+using std::memcpy;
+
 struct InstanceLBFGS {
 	const MCBM* mcbm;
 	const MCBM::Parameters* params;
@@ -36,6 +39,8 @@ struct InstanceLBFGS {
 	const MatrixXd* inputVal;
 	const MatrixXd* outputVal;
 	double logLoss;
+	int counter;
+	lbfgsfloatval_t* parameters;
 
 	InstanceLBFGS(
 		const MCBM* mcbm,
@@ -49,6 +54,7 @@ struct InstanceLBFGS {
 		const MatrixXd* output,
 		const MatrixXd* inputVal,
 		const MatrixXd* outputVal);
+	~InstanceLBFGS();
 };
 
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
@@ -65,7 +71,9 @@ InstanceLBFGS::InstanceLBFGS(
 	output(output),
 	inputVal(0),
 	outputVal(0),
-	logLoss(numeric_limits<double>::max())
+	logLoss(numeric_limits<double>::max()),
+	counter(0),
+	parameters(0)
 {
 }
 
@@ -84,8 +92,16 @@ InstanceLBFGS::InstanceLBFGS(
 	output(output),
 	inputVal(inputVal),
 	outputVal(outputVal),
-	logLoss(numeric_limits<double>::max())
+	logLoss(numeric_limits<double>::max()),
+	counter(0),
+	parameters(mcbm->parameters(*params))
 {
+}
+
+
+
+InstanceLBFGS::~InstanceLBFGS() {
+	lbfgs_free(parameters);
 }
 
 
@@ -117,17 +133,26 @@ static int callbackLBFGS(
 			cout << setw(11) << setprecision(5) << logLoss << endl;
 		}
 
-		if(inst.logLoss < logLoss)
-			return 1;
+		if(logLoss < inst.logLoss) {
+			// store current parameters for later
+			for(int i = 0, N = mcbm.numParameters(params); i < N; ++i)
+				inst.parameters[i] = x[i];
 
-		inst.logLoss = logLoss;
+			inst.counter = 0;
+			inst.logLoss = logLoss;
+		} else {
+			inst.counter += 1;
+
+			if(params.valLookAhead > 0 && inst.counter >= params.valLookAhead)
+				// performance did not improve for valLookAhead times
+				return 1;
+		}
 	} else {
 		if(params.verbosity > 0)
 			cout << setw(6) << iteration << setw(11) << setprecision(5) << fx << endl;
 	}
 
 	if(params.callback && iteration % params.cbIter == 0) {
-		// TODO: fix this nasty hack
 		const_cast<MCBM&>(mcbm).setParameters(x, params);
 
 		if(!(*params.callback)(iteration, mcbm))
@@ -157,7 +182,7 @@ static lbfgsfloatval_t evaluateLBFGS(
 
 
 
-MCBM::Parameters::Parameters() : 
+MCBM::Parameters::Parameters() :
 	ConditionalDistribution::Parameters::Parameters()
 {
 	trainPriors = true;
@@ -168,6 +193,7 @@ MCBM::Parameters::Parameters() :
 	trainOutputBias = true;
 	regularizeFeatures = 0.;
 	regularizePredictors = 0.;
+	regularizer = L1;
 }
 
 
@@ -181,7 +207,8 @@ MCBM::Parameters::Parameters(const Parameters& params) :
 	trainInputBias(params.trainInputBias),
 	trainOutputBias(params.trainOutputBias),
 	regularizeFeatures(params.regularizeFeatures),
-	regularizePredictors(params.regularizePredictors)
+	regularizePredictors(params.regularizePredictors),
+	regularizer(params.regularizer)
 {
 	if(params.callback)
 		callback = params.callback->copy();
@@ -205,6 +232,7 @@ MCBM::Parameters& MCBM::Parameters::operator=(const Parameters& params) {
 	trainOutputBias = params.trainOutputBias;
 	regularizeFeatures = params.regularizeFeatures;
 	regularizePredictors = params.regularizePredictors;
+	regularizer = params.regularizer;
 
 	return *this;
 }
@@ -347,6 +375,18 @@ bool MCBM::train(
 bool MCBM::train(
 	const MatrixXd& input,
 	const MatrixXd& output,
+	const MatrixXd& inputVal,
+	const MatrixXd& outputVal,
+	const Parameters& params)
+{
+	return train(input, output, &inputVal, &outputVal, params);
+}
+
+
+
+bool MCBM::train(
+	const MatrixXd& input,
+	const MatrixXd& output,
 	const MatrixXd* inputVal,
 	const MatrixXd* outputVal,
 	const Parameters& params)
@@ -356,8 +396,9 @@ bool MCBM::train(
 
 	if(!mDimIn) {
 		// zero-dimensional inputs; MCBM reduces to Bernoulli
+		double prob = output.array().mean();
 		mPriors.setZero();
-		mOutputBias.setConstant(log(output.array().mean()));
+		mOutputBias.setConstant(prob > 0. ? log(prob) : -50.);
 		return true;
 	} else {
 		if(input.cols() != output.cols())
@@ -380,6 +421,16 @@ bool MCBM::train(
 		// wrap additional arguments
 		InstanceLBFGS instance(this, &params, &input, &output, inputVal, outputVal);
 
+		if(params.verbosity > 0)
+			if(inputVal && outputVal) {
+				cout << setw(6) << 0;
+				cout << setw(11) << setprecision(5) << evaluate(input, output);
+				cout << setw(11) << setprecision(5) << evaluate(*inputVal, *outputVal) << endl;
+			} else {
+				cout << setw(6) << 0;
+				cout << setw(11) << setprecision(5) << evaluate(input, output) << endl;
+			}
+
 		// start LBFGS optimization
 		int status = LBFGSERR_MAXIMUMITERATION;
 		if(params.maxIter > 0)
@@ -391,6 +442,18 @@ bool MCBM::train(
 
 		// copy parameters back
 		setParameters(x, params);
+
+		if(inputVal && outputVal && instance.parameters) {
+			double logLoss = evaluate(*inputVal, *outputVal);
+
+			// use parameters which minimize the validation error
+			setParameters(instance.parameters, params);
+
+			// check that they really give a smaller validation error
+			if(evaluate(*inputVal, *outputVal) > logLoss)
+				// otherwise, use other parameters after all
+				setParameters(x, params);
+		}
 
 		// free memory used by LBFGS
 		lbfgs_free(x);
@@ -536,10 +599,10 @@ double MCBM::computeGradient(
 	int numData = static_cast<int>(inputCompl.cols());
 	int batchSize = min(params.batchSize, numData);
 
+	#pragma omp parallel for
 	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
-		// TODO: copying memory necessary?
-		const MatrixXd input = inputCompl.middleCols(b, min(batchSize, numData - b));
-		const MatrixXd output = outputCompl.middleCols(b, min(batchSize, numData - b));
+		const MatrixXd& input = inputCompl.middleCols(b, min(batchSize, numData - b));
+		const MatrixXd& output = outputCompl.middleCols(b, min(batchSize, numData - b));
 
 		ArrayXXd featureOutput = features.transpose() * input;
 		MatrixXd featureOutputSq = featureOutput.square();
@@ -580,34 +643,73 @@ double MCBM::computeGradient(
 		ArrayXXd postDiffTmp = post1Tmp - post0Tmp;
 
 		if(params.trainPriors)
+			#pragma omp critical
 			priorsGrad -= postDiffTmp.rowwise().sum().matrix();
 
 		if(params.trainWeights)
+			#pragma omp critical
 			weightsGrad -= postDiffTmp.matrix() * featureOutputSq.transpose();
 
 		if(params.trainFeatures) {
 			ArrayXXd tmp2 = weights.transpose() * postDiffTmp.matrix() * 2.;
 			MatrixXd tmp3 = featureOutput * tmp2;
+			#pragma omp critical
 			featuresGrad -= input * tmp3.transpose();
 		}
 
 		if(params.trainPredictors)
+			#pragma omp critical
 			predictorsGrad -= post1Tmp.matrix() * input.transpose();
 
 		if(params.trainInputBias)
+			#pragma omp critical
 			inputBiasGrad -= input * postDiffTmp.matrix().transpose();
 
 		if(params.trainOutputBias)
+			#pragma omp critical
 			outputBiasGrad -= post1Tmp.rowwise().sum().matrix();
 	}
 
-	double normConst = inputCompl.cols() / log(2.);
+	double normConst = inputCompl.cols() * log(2.);
 
-	if(g)
+	if(g) {
 		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
 
-	return -logLik / normConst;
+		if(params.regularizer == Parameters::L2) {
+			if(params.trainFeatures && params.regularizeFeatures > 0.)
+				featuresGrad += params.regularizeFeatures * 2. * features;
+
+			if(params.trainPredictors && params.regularizePredictors > 0.)
+				predictorsGrad += params.regularizePredictors * 2. * predictors;
+		} else {
+			if(params.trainFeatures && params.regularizeFeatures > 0.)
+				featuresGrad += params.regularizeFeatures *
+					(features.array() / features.array().abs()).matrix();
+
+			if(params.trainPredictors && params.regularizePredictors > 0.)
+				predictorsGrad += params.regularizePredictors *
+					(predictors.array() / predictors.array().abs()).matrix();
+		}
+	}
+
+	double value = -logLik / normConst;
+
+	if(params.regularizer == Parameters::L1) {
+		if(params.trainFeatures && params.regularizeFeatures > 0.)
+			value += params.regularizeFeatures * features.array().abs().sum();
+
+		if(params.trainPredictors && params.regularizePredictors > 0.)
+			value += params.regularizePredictors * predictors.array().abs().sum();
+	} else {
+		if(params.trainFeatures && params.regularizeFeatures > 0.)
+			value += params.regularizeFeatures * features.array().square().sum();
+
+		if(params.trainPredictors && params.regularizePredictors > 0.)
+			value += params.regularizePredictors * predictors.array().square().sum();
+	}
+
+	return value;
 }
 
 

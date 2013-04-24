@@ -17,6 +17,7 @@ ConditionalDistribution::Parameters::Parameters() {
 	callback = 0;
 	cbIter = 25;
 	valIter = 5;
+	valLookAhead = 0;
 }
 
 
@@ -36,7 +37,8 @@ ConditionalDistribution::Parameters::Parameters(const Parameters& params) :
 	batchSize(params.batchSize),
 	callback(0),
 	cbIter(params.cbIter),
-	valIter(params.valIter)
+	valIter(params.valIter),
+	valLookAhead(params.valLookAhead)
 {
 	if(params.callback)
 		callback = params.callback->copy();
@@ -55,6 +57,7 @@ ConditionalDistribution::Parameters& ConditionalDistribution::Parameters::operat
 	callback = params.callback ? params.callback->copy() : 0;
 	cbIter = params.cbIter;
 	valIter = params.valIter;
+	valLookAhead = params.valLookAhead;
 
 	return *this;
 }

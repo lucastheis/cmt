@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>cmt.MCGSM</title>
+  <title>cmt.MCBM</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 
@@ -55,7 +55,7 @@
     <td width="100%">
       <span class="breadcrumbs">
         <a href="cmt-module.html">Module&nbsp;cmt</a> ::
-        Class&nbsp;MCGSM
+        Class&nbsp;MCBM
       </span>
     </td>
     <td>
@@ -65,60 +65,44 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="cmt.MCGSM-class.html"
+            >]&nbsp;|&nbsp;<a href="cmt.MCBM-class.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class MCGSM</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Class MCBM</h1><p class="nomargin-top"></p>
 <pre class="base-tree">
              object --+    
                       |    
 <a href="cmt.ConditionalDistribution-class.html">ConditionalDistribution</a> --+
                           |
-                         <strong class="uidshort">MCGSM</strong>
+                         <strong class="uidshort">MCBM</strong>
 </pre>
 
 <hr />
-<p>An implementation of a mixture of conditional Gaussian scale 
-  mixtures.</p>
+<p>An implementation of a mixture of conditional Boltzmann machines.</p>
   <p>The distribution defined by the model is</p>
-  <p>$$p(\mathbf{y} \mid \mathbf{x}) = \sum_{c, s} p(c, s \mid \mathbf{x}) 
-  p(\mathbf{y} \mid c, s, \mathbf{x}),$$</p>
-  <p>where</p>
-  <p>\begin{align} p(c, s \mid \mathbf{x}) &amp;\propto \exp\left(\eta_{cs}
-  - \frac{1}{2} e^{\alpha_{cs}} \sum_i \beta_{ci}^2 \left(\mathbf{b}_i^\top
-  \mathbf{x}\right)^2 \right),\\ p(\mathbf{y} \mid c, s, \mathbf{x}) &amp;=
-  |\mathbf{L}_c| \exp\left(\frac{M}{2}\alpha_{cs} - \frac{1}{2} 
-  e^{\alpha_{cs}} (\mathbf{y} - \mathbf{A}_c \mathbf{x})^\top \mathbf{L}_c 
-  \mathbf{L}_c^\top (\mathbf{y} - \mathbf{A}_c \mathbf{x})\right) / 
-  (2\pi)^\frac{M}{2}. \end{align}</p>
-  <p>To create an MCGSM for $N$-dimensional inputs $\mathbf{x} \in 
-  \mathbb{R}^N$ and $M$-dimensional outputs $\mathbf{y} \in \mathbb{R}^M$ 
-  with, for example, 8 predictors $\mathbf{A}_c$, 6 scales $\alpha_{cs}$ 
-  per component $c$, and 100 features $\mathbf{b}_i$, use</p>
+  <p>$$p(\mathbf{y} \mid \mathbf{x}) \propto \sum_{c} \exp\left(\eta_c + 
+  \sum_i \beta_{ci} \left(\mathbf{b}_i^\top \mathbf{x}\right)^2 + 
+  \mathbf{w}_c^\top \mathbf{x} + \mathbf{y}_c^\top \mathbf{A}_c \mathbf{x} 
+  + v_c y\right),$$</p>
+  <p>where $\mathbf{x} \in \{0, 1\}^N$ and $y \in \{0, 1\}$.</p>
+  <p>To create an MCBM with $N$-dimensional inputs and, for example, 8 
+  components and 100 features $\mathbf{b}_i$, use</p>
 <pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>mcgsm = MCGSM(N, M, 8, 6, 100)</pre>
+<span class="py-prompt">&gt;&gt;&gt; </span>mcbm = MCBM(N, 8, 100)</pre>
   <p>To access the different parameters, you can use</p>
 <pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>mcgsm.priors
-<span class="py-prompt">&gt;&gt;&gt; </span>mcgsm.scales
-<span class="py-prompt">&gt;&gt;&gt; </span>mcgsm.weights
-<span class="py-prompt">&gt;&gt;&gt; </span>mcgsm.features
-<span class="py-prompt">&gt;&gt;&gt; </span>mcgsm.cholesky_factors
-<span class="py-prompt">&gt;&gt;&gt; </span>mcgsm.predictors</pre>
-  <p>which correspond to $\eta_{cs}$, $\alpha_{cs}$, $\beta_{ci}$, 
-  $\mathbf{b}_i$, $\mathbf{L}_c$, and $\mathbf{A}_c$, respectively.</p>
-  <p><b>References:</b></p>
-  <ul>
-    <li>
-      L. Theis, R. Hosseini, M. Bethge, <i>Mixtures of Conditional Gaussian
-      Scale Mixtures Applied to Multiscale Image Representations</i>, PLoS 
-      ONE, 2012.
-    </li>
-  </ul>
+<span class="py-prompt">&gt;&gt;&gt; </span>mcbm.priors
+<span class="py-prompt">&gt;&gt;&gt; </span>mcbm.weights
+<span class="py-prompt">&gt;&gt;&gt; </span>mcbm.features
+<span class="py-prompt">&gt;&gt;&gt; </span>mcbm.predictors
+<span class="py-prompt">&gt;&gt;&gt; </span>mcbm.input_bias
+<span class="py-prompt">&gt;&gt;&gt; </span>mcbm.output_bias</pre>
+  <p>which correspond to $\eta_{c}$, $\beta_{ci}$, $\mathbf{b}_i$, 
+  $\mathbf{A}_c$, $\mathbf{w}_c$,and $v_c$, respectively.</p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -143,7 +127,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.MCGSM-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.MCBM-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
             
@@ -160,7 +144,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.MCGSM-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
+          <td><span class="summary-sig"><a href="cmt.MCBM-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
         <span class="summary-sig-arg">S</span>,
         <span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
@@ -178,7 +162,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.MCGSM-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.MCBM-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Method used by Pickle.</td>
           <td align="right" valign="top">
             
@@ -228,38 +212,6 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="_check_performance"></a><span class="summary-sig-name">_check_performance</span>(<span class="summary-sig-arg">...</span>)</span></td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr class="private">
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="_compute_data_gradient"></a><span class="summary-sig-name">_compute_data_gradient</span>(<span class="summary-sig-arg">...</span>)</span></td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr class="private">
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a name="_compute_gradient"></a><span class="summary-sig-name">_compute_gradient</span>(<span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
             
@@ -276,7 +228,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.MCGSM-class.html#_parameters" class="summary-sig-name" onclick="show_private();">_parameters</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="cmt.MCBM-class.html#_parameters" class="summary-sig-name" onclick="show_private();">_parameters</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
       Summarizes the parameters of the model in a long vector.</td>
           <td align="right" valign="top">
@@ -294,7 +246,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.MCGSM-class.html#_set_parameters" class="summary-sig-name" onclick="show_private();">_set_parameters</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="cmt.MCBM-class.html#_set_parameters" class="summary-sig-name" onclick="show_private();">_set_parameters</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">x</span>,
         <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
       Loads all model parameters from a vector as produced by <code 
@@ -310,73 +262,15 @@
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt.MCGSM-class.html#initialize" class="summary-sig-name">initialize</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">input</span>,
-        <span class="summary-sig-arg">output</span>)</span><br />
-      Tries to guess more sensible initial values for the model parameters 
-      from data.</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">ndarray</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt.MCGSM-class.html#posterior" class="summary-sig-name">posterior</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">input</span>,
-        <span class="summary-sig-arg">output</span>)</span><br />
-      Computes the posterior distribution over component labels, $p(c \mid 
-      \mathbf{x}, \mathbf{y})$</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">ndarray</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt.MCGSM-class.html#sample_posterior" class="summary-sig-name">sample_posterior</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">input</span>,
-        <span class="summary-sig-arg">output</span>)</span><br />
-      Samples component labels $c$ from the posterior $p(c \mid \mathbf{x},
-      \mathbf{y})$.</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">bool</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.MCGSM-class.html#train" class="summary-sig-name">train</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="cmt.MCBM-class.html#train" class="summary-sig-name">train</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">input</span>,
         <span class="summary-sig-arg">output</span>,
+        <span class="summary-sig-arg">input_val</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">output_val</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
       Fits model parameters to given data using L-BFGS.</td>
           <td align="right" valign="top">
@@ -431,9 +325,16 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="cholesky_factors"></a><span class="summary-name">cholesky_factors</span><br />
-      A list of Cholesky factors of residual precision matrices, 
-      $\mathbf{L}_c$.
+        <a name="dim_in"></a><span class="summary-name">dim_in</span><br />
+      Dimensionality of inputs.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="dim_out"></a><span class="summary-name">dim_out</span><br />
+      Dimensionality of outputs.
     </td>
   </tr>
 <tr>
@@ -442,6 +343,14 @@
     </td><td class="summary">
         <a name="features"></a><span class="summary-name">features</span><br />
       Features used for capturing structure in inputs, $\mathbf{b}_i$.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="input_bias"></a><span class="summary-name">input_bias</span><br />
+      Input bias vectors, $\mathbf{w}_c$.
     </td>
   </tr>
 <tr>
@@ -464,8 +373,8 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="num_scales"></a><span class="summary-name">num_scales</span><br />
-      Number of scale variables per component.
+        <a name="output_bias"></a><span class="summary-name">output_bias</span><br />
+      Output biases, $\v_c$.
     </td>
   </tr>
 <tr>
@@ -473,7 +382,7 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="predictors"></a><span class="summary-name">predictors</span><br />
-      A list of linear predictors, $\mathbf{A}_c$.
+      Parameters relating inputs and outputs, $\mathbf{A}_c$.
     </td>
   </tr>
 <tr>
@@ -488,24 +397,12 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="scales"></a><span class="summary-name">scales</span><br />
-      Log-precision variables, $\alpha_{cs}$.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
         <a name="weights"></a><span class="summary-name">weights</span><br />
       Weights relating features and mixture components, $\beta_{ci}$.
     </td>
   </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.ConditionalDistribution-class.html">ConditionalDistribution</a></code></b>:
-      <code><a href="cmt.ConditionalDistribution-class.html#dim_in">dim_in</a></code>,
-      <code><a href="cmt.ConditionalDistribution-class.html#dim_out">dim_out</a></code>
-      </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__class__</code>
       </p>
@@ -550,9 +447,7 @@
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
         <li><strong class="pname"><code>dim_in</code></strong> (integer) - dimensionality of input</li>
-        <li><strong class="pname"><code>dim_out</code></strong> (integer) - dimensionality of output</li>
         <li><strong class="pname"><code>num_components</code></strong> (integer) - number of components</li>
-        <li><strong class="pname"><code>num_scales</code></strong> (integer) - number of scales per scale mixture component</li>
         <li><strong class="pname"><code>num_features</code></strong> (integer) - number of features used to approximate input covariance matrices</li>
     </ul></dd>
     <dt>Overrides:
@@ -663,93 +558,6 @@
   </dl>
 </td></tr></table>
 </div>
-<a name="initialize"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">initialize</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">input</span>,
-        <span class="sig-arg">output</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Tries to guess more sensible initial values for the model parameters 
-  from data.</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>input</code></strong> (ndarray) - inputs stored in columns</li>
-        <li><strong class="pname"><code>output</code></strong> (ndarray) - outputs stored in columns</li>
-    </ul></dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="posterior"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">posterior</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">input</span>,
-        <span class="sig-arg">output</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Computes the posterior distribution over component labels, $p(c \mid 
-  \mathbf{x}, \mathbf{y})$</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>input</code></strong> (ndarray) - inputs stored in columns</li>
-        <li><strong class="pname"><code>output</code></strong> (ndarray) - outputs stored in columns</li>
-    </ul></dd>
-    <dt>Returns: ndarray</dt>
-        <dd>a posterior distribution over labels for each given pair of input
-          and output</dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="sample_posterior"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">sample_posterior</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">input</span>,
-        <span class="sig-arg">output</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Samples component labels $c$ from the posterior $p(c \mid \mathbf{x}, 
-  \mathbf{y})$.</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>input</code></strong> (ndarray) - inputs stored in columns</li>
-        <li><strong class="pname"><code>output</code></strong> (ndarray) - inputs stored in columns</li>
-    </ul></dd>
-    <dt>Returns: ndarray</dt>
-        <dd>an integer array containing a sampled index for each input and 
-          output pair</dd>
-  </dl>
-</td></tr></table>
-</div>
 <a name="train"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -760,6 +568,8 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">train</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">input</span>,
         <span class="sig-arg">output</span>,
+        <span class="sig-arg">input_val</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">output_val</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -779,16 +589,17 @@
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'batch_size'</span>: 2000
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'callback'</span>: None
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'cb_iter'</span>: 25
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'val_iter'</span>: 25
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_priors'</span>: True
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_scales'</span>: True
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_weights'</span>: True
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_features'</span>: True
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_cholesky_factors'</span>: True
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_predictors'</span>: True
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_input_bias'</span>: True
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_output_bias'</span>: True
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_features'</span>: 0.
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_predictors'</span>: 0.
 <span class="py-prompt">&gt;&gt;&gt; </span>})</pre>
-  <p>The parameters <code>train_priors</code>, <code>train_scales</code>, 
+  <p>The parameters <code>train_priors</code>, <code>train_weights</code>, 
   and so on can be used to control which parameters will be optimized. 
   Optimization stops after <code>max_iter</code> iterations or if the 
   gradient is sufficiently small enough, as specified by 
@@ -802,13 +613,15 @@
   the current iteration, the second argument will be a <i>copy</i> of the 
   model.</p>
 <pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">def</span> <span class="py-defname">callback</span>(i, mcgsm):
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">def</span> <span class="py-defname">callback</span>(i, mcbm):
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-keyword">print</span> i</pre>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
         <li><strong class="pname"><code>input</code></strong> (ndarray) - inputs stored in columns</li>
         <li><strong class="pname"><code>output</code></strong> (ndarray) - outputs stored in columns</li>
+        <li><strong class="pname"><code>input_val</code></strong> (ndarray) - inputs used for computing validation error</li>
+        <li><strong class="pname"><code>output_val</code></strong> (ndarray) - outputs used for computing validation error</li>
         <li><strong class="pname"><code>parameters</code></strong> (dict) - a dictionary containing hyperparameters</li>
     </ul></dd>
     <dt>Returns: bool</dt>

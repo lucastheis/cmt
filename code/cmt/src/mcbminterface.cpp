@@ -86,6 +86,15 @@ MCBM::Parameters PyObject_ToMCBMParameters(PyObject* parameters) {
 			else
 				throw Exception("val_iter should be of type `int`.");
 
+		PyObject* val_look_ahead = PyDict_GetItemString(parameters, "val_look_ahead");
+		if(val_look_ahead)
+			if(PyInt_Check(val_look_ahead))
+				params.valLookAhead = PyInt_AsLong(val_look_ahead);
+			else if(PyFloat_Check(val_look_ahead))
+				params.valLookAhead = static_cast<int>(PyFloat_AsDouble(val_look_ahead));
+			else
+				throw Exception("val_look_ahead should be of type `int`.");
+
 		PyObject* train_priors = PyDict_GetItemString(parameters, "train_priors");
 		if(train_priors)
 			if(PyBool_Check(train_priors))
@@ -145,6 +154,20 @@ MCBM::Parameters PyObject_ToMCBMParameters(PyObject* parameters) {
 				params.regularizePredictors = static_cast<double>(PyFloat_AsDouble(regularize_predictors));
 			else
 				throw Exception("regularize_predictors should be of type `float`.");
+
+		PyObject* regularizer = PyDict_GetItemString(parameters, "regularizer");
+		if(regularizer)
+			if(PyString_Check(regularizer)) {
+				if(PyString_Size(regularizer) < 2)
+					throw Exception("Regularizer should be 'L1' or 'L2'.");
+
+				if(PyString_AsString(regularizer)[1] == '1')
+					params.regularizer = MCBM::Parameters::L1;
+				else
+					params.regularizer = MCBM::Parameters::L2;
+			} else {
+				throw Exception("regularize_predictors should be of type `str`.");
+			}
 	}
 
 	return params;
@@ -554,9 +577,13 @@ PyObject* MCBM_train(MCBMObject* self, PyObject* args, PyObject* kwds) {
 		bool converged;
 
 		if(input_val && output_val) {
+			MatrixXd inputVal = PyArray_ToMatrixXd(input_val);
+			MatrixXd outputVal = PyArray_ToMatrixXd(output_val);
 			converged = self->mcbm->train(
 				PyArray_ToMatrixXd(input), 
 				PyArray_ToMatrixXd(output), 
+				&inputVal,
+				&outputVal,
 				PyObject_ToMCBMParameters(parameters));
 		} else {
 			converged = self->mcbm->train(

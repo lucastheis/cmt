@@ -13,6 +13,8 @@ class MCBM : public ConditionalDistribution {
 	public:
 		struct Parameters : public ConditionalDistribution::Parameters {
 			public:
+				enum Regularizer { L1, L2 };
+
 				bool trainPriors;
 				bool trainWeights;
 				bool trainFeatures;
@@ -21,6 +23,7 @@ class MCBM : public ConditionalDistribution {
 				bool trainOutputBias;
 				double regularizeFeatures;
 				double regularizePredictors;
+				Regularizer regularizer;
 
 				Parameters();
 				Parameters(const Parameters& params);
@@ -69,6 +72,12 @@ class MCBM : public ConditionalDistribution {
 		virtual bool train(
 			const MatrixXd& input,
 			const MatrixXd& output,
+			const Parameters& params = Parameters());
+		virtual bool train(
+			const MatrixXd& input,
+			const MatrixXd& output,
+			const MatrixXd& inputVal,
+			const MatrixXd& outputVal,
 			const Parameters& params = Parameters());
 		virtual bool train(
 			const MatrixXd& input,

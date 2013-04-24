@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>cmt.WhiteningPreconditioner</title>
+  <title>cmt.AffineTransform</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 
@@ -55,7 +55,7 @@
     <td width="100%">
       <span class="breadcrumbs">
         <a href="cmt-module.html">Module&nbsp;cmt</a> ::
-        Class&nbsp;WhiteningPreconditioner
+        Class&nbsp;AffineTransform
       </span>
     </td>
     <td>
@@ -65,14 +65,14 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="cmt.WhiteningPreconditioner-class.html"
+            >]&nbsp;|&nbsp;<a href="cmt.AffineTransform-class.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class WhiteningPreconditioner</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Class AffineTransform</h1><p class="nomargin-top"></p>
 <pre class="base-tree">
       object --+        
                |        
@@ -80,11 +80,21 @@
                    |    
 <a href="cmt.AffinePreconditioner-class.html">AffinePreconditioner</a> --+
                        |
-                      <strong class="uidshort">WhiteningPreconditioner</strong>
+                      <strong class="uidshort">AffineTransform</strong>
 </pre>
 
+<dl><dt>Known Subclasses:</dt>
+<dd>
+      <ul class="subclass-list">
+<li><a href="cmt.PCATransform-class.html">PCATransform</a></li><li>, <a href="cmt.WhiteningTransform-class.html">WhiteningTransform</a></li>  </ul>
+</dd></dl>
+
 <hr />
-<p>Decorrelates inputs and outputs.</p>
+<p>Performs an affine transformation on inputs.</p>
+  <p>$$\mathbf{\hat x} = \mathbf{P}_x(\mathbf{x} - \mathbf{m}_x),$$</p>
+  <p>Unlike <a href="cmt.AffinePreconditioner-class.html" 
+  class="link">AffinePreconditioner</a>, this class does not touch the 
+  output and can thus be used with discrete data, for example.</p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -109,7 +119,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.WhiteningPreconditioner-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.AffineTransform-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
             
@@ -126,9 +136,26 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.WhiteningPreconditioner-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
+          <td><span class="summary-sig"><a href="cmt.AffineTransform-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
         <span class="summary-sig-arg">S</span>,
         <span class="summary-sig-arg">...</span>)</span></td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.AffineTransform-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+      helper for pickle</td>
           <td align="right" valign="top">
             
             
@@ -141,7 +168,6 @@
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.AffinePreconditioner-class.html">AffinePreconditioner</a></code></b>:
-      <code><a href="cmt.AffinePreconditioner-class.html#__reduce__">__reduce__</a></code>,
       <code><a href="cmt.AffinePreconditioner-class.html#__setstate__">__setstate__</a></code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.Preconditioner-class.html">Preconditioner</a></code></b>:
@@ -234,8 +260,10 @@
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>input</code></strong> (ndarray) - inputs stored in columns</li>
-        <li><strong class="pname"><code>output</code></strong> (ndarray) - outputs stored in columns</li>
+        <li><strong class="pname"><code>mean_in</code></strong> (ndarray) - a column vector which will be subtracted from the input 
+          ($\mathbf{m}_x$)</li>
+        <li><strong class="pname"><code>pre_in</code></strong> (ndarray) - a preconditioner for the input ($\mathbf{P}_x$)</li>
+        <li><strong class="pname"><code>dim_out</code></strong> (integer) - dimensionality of the output (default: 1)</li>
     </ul></dd>
     <dt>Overrides:
         object.__init__
@@ -264,6 +292,29 @@
     <dt>Returns: a new object with type S, a subtype of T</dt>
     <dt>Overrides:
         object.__new__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__reduce__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__reduce__</span>(<span class="sig-arg">...</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>helper for pickle</p>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__reduce__
+        <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
 </td></tr></table>
