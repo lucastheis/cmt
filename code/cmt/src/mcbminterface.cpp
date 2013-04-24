@@ -154,6 +154,20 @@ MCBM::Parameters PyObject_ToMCBMParameters(PyObject* parameters) {
 				params.regularizePredictors = static_cast<double>(PyFloat_AsDouble(regularize_predictors));
 			else
 				throw Exception("regularize_predictors should be of type `float`.");
+
+		PyObject* regularizer = PyDict_GetItemString(parameters, "regularizer");
+		if(regularizer)
+			if(PyString_Check(regularizer)) {
+				if(PyString_Size(regularizer) < 2)
+					throw Exception("Regularizer should be 'L1' or 'L2'.");
+
+				if(PyString_AsString(regularizer)[1] == '1')
+					params.regularizer = MCBM::Parameters::L1;
+				else
+					params.regularizer = MCBM::Parameters::L2;
+			} else {
+				throw Exception("regularize_predictors should be of type `str`.");
+			}
 	}
 
 	return params;

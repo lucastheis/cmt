@@ -193,6 +193,7 @@ MCBM::Parameters::Parameters() :
 	trainOutputBias = true;
 	regularizeFeatures = 0.;
 	regularizePredictors = 0.;
+	regularizer = L1;
 }
 
 
@@ -206,7 +207,8 @@ MCBM::Parameters::Parameters(const Parameters& params) :
 	trainInputBias(params.trainInputBias),
 	trainOutputBias(params.trainOutputBias),
 	regularizeFeatures(params.regularizeFeatures),
-	regularizePredictors(params.regularizePredictors)
+	regularizePredictors(params.regularizePredictors),
+	regularizer(params.regularizer)
 {
 	if(params.callback)
 		callback = params.callback->copy();
@@ -230,6 +232,7 @@ MCBM::Parameters& MCBM::Parameters::operator=(const Parameters& params) {
 	trainOutputBias = params.trainOutputBias;
 	regularizeFeatures = params.regularizeFeatures;
 	regularizePredictors = params.regularizePredictors;
+	regularizer = params.regularizer;
 
 	return *this;
 }
@@ -663,11 +666,44 @@ double MCBM::computeGradient(
 
 	double normConst = inputCompl.cols() * log(2.);
 
-	if(g)
+	if(g) {
 		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
 
-	return -logLik / normConst;
+		if(params.regularizer == Parameters::L2) {
+			if(params.trainFeatures && params.regularizeFeatures > 0.)
+				featuresGrad += params.regularizeFeatures * 2. * features;
+
+			if(params.trainPredictors && params.regularizePredictors > 0.)
+				predictorsGrad += params.regularizePredictors * 2. * predictors;
+		} else {
+			if(params.trainFeatures && params.regularizeFeatures > 0.)
+				featuresGrad += params.regularizeFeatures *
+					(features.array() / features.array().abs()).matrix();
+
+			if(params.trainPredictors && params.regularizePredictors > 0.)
+				predictorsGrad += params.regularizePredictors *
+					(predictors.array() / predictors.array().abs()).matrix();
+		}
+	}
+
+	double value = -logLik / normConst;
+
+	if(params.regularizer == Parameters::L1) {
+		if(params.trainFeatures && params.regularizeFeatures > 0.)
+			value += params.regularizeFeatures * features.array().abs().sum();
+
+		if(params.trainPredictors && params.regularizePredictors > 0.)
+			value += params.regularizePredictors * predictors.array().abs().sum();
+	} else {
+		if(params.trainFeatures && params.regularizeFeatures > 0.)
+			value += params.regularizeFeatures * features.array().square().sum();
+
+		if(params.trainPredictors && params.regularizePredictors > 0.)
+			value += params.regularizePredictors * predictors.array().square().sum();
+	}
+
+	return value;
 }
 
 
