@@ -599,10 +599,10 @@ double MCBM::computeGradient(
 	int numData = static_cast<int>(inputCompl.cols());
 	int batchSize = min(params.batchSize, numData);
 
+	#pragma omp parallel for
 	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
-		// TODO: copying memory necessary?
-		const MatrixXd input = inputCompl.middleCols(b, min(batchSize, numData - b));
-		const MatrixXd output = outputCompl.middleCols(b, min(batchSize, numData - b));
+		const MatrixXd& input = inputCompl.middleCols(b, min(batchSize, numData - b));
+		const MatrixXd& output = outputCompl.middleCols(b, min(batchSize, numData - b));
 
 		ArrayXXd featureOutput = features.transpose() * input;
 		MatrixXd featureOutputSq = featureOutput.square();
@@ -643,24 +643,30 @@ double MCBM::computeGradient(
 		ArrayXXd postDiffTmp = post1Tmp - post0Tmp;
 
 		if(params.trainPriors)
+			#pragma omp critical
 			priorsGrad -= postDiffTmp.rowwise().sum().matrix();
 
 		if(params.trainWeights)
+			#pragma omp critical
 			weightsGrad -= postDiffTmp.matrix() * featureOutputSq.transpose();
 
 		if(params.trainFeatures) {
 			ArrayXXd tmp2 = weights.transpose() * postDiffTmp.matrix() * 2.;
 			MatrixXd tmp3 = featureOutput * tmp2;
+			#pragma omp critical
 			featuresGrad -= input * tmp3.transpose();
 		}
 
 		if(params.trainPredictors)
+			#pragma omp critical
 			predictorsGrad -= post1Tmp.matrix() * input.transpose();
 
 		if(params.trainInputBias)
+			#pragma omp critical
 			inputBiasGrad -= input * postDiffTmp.matrix().transpose();
 
 		if(params.trainOutputBias)
+			#pragma omp critical
 			outputBiasGrad -= post1Tmp.rowwise().sum().matrix();
 	}
 
