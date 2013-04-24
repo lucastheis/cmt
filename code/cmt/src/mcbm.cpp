@@ -393,8 +393,9 @@ bool MCBM::train(
 
 	if(!mDimIn) {
 		// zero-dimensional inputs; MCBM reduces to Bernoulli
+		double prob = output.array().mean();
 		mPriors.setZero();
-		mOutputBias.setConstant(log(output.array().mean()));
+		mOutputBias.setConstant(prob > 0. ? log(prob) : -50.);
 		return true;
 	} else {
 		if(input.cols() != output.cols())
