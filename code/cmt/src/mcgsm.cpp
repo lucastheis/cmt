@@ -782,9 +782,8 @@ double MCGSM::computeGradient(
 	int batchSize = min(params.batchSize, numData);
 
 	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
-		// TODO: copying memory necessary?
-		const MatrixXd input = inputCompl.middleCols(b, min(batchSize, numData - b));
-		const MatrixXd output = outputCompl.middleCols(b, min(batchSize, numData - b));
+		const MatrixXd& input = inputCompl.middleCols(b, min(batchSize, numData - b));
+		const MatrixXd& output = outputCompl.middleCols(b, min(batchSize, numData - b));
 
 		// compute unnormalized posterior
 		MatrixXd featureOutput = features.transpose() * input;
