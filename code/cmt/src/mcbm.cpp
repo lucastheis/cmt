@@ -630,6 +630,7 @@ double MCBM::computeGradient(
 		logProb1 -= logNorm;
 		logProb0 -= logNorm;
 
+		#pragma omp critical
 		logLik += (output.array() * logProb1 + (1. - output.array()) * logProb0).sum();
 
 		if(!g)
@@ -642,6 +643,7 @@ double MCBM::computeGradient(
 		ArrayXXd post1Tmp = logPost1.exp().rowwise() * tmp;
 		ArrayXXd postDiffTmp = post1Tmp - post0Tmp;
 
+		// update gradients
 		if(params.trainPriors)
 			#pragma omp critical
 			priorsGrad -= postDiffTmp.rowwise().sum().matrix();
