@@ -155,6 +155,15 @@ MCBM::Parameters PyObject_ToMCBMParameters(PyObject* parameters) {
 			else
 				throw Exception("regularize_predictors should be of type `float`.");
 
+		PyObject* regularize_weights = PyDict_GetItemString(parameters, "regularize_weights");
+		if(regularize_weights)
+			if(PyFloat_Check(regularize_weights))
+				params.regularizeWeights = PyFloat_AsDouble(regularize_weights);
+			else if(PyInt_Check(regularize_weights))
+				params.regularizeWeights = static_cast<double>(PyFloat_AsDouble(regularize_weights));
+			else
+				throw Exception("regularize_weights should be of type `float`.");
+
 		PyObject* regularizer = PyDict_GetItemString(parameters, "regularizer");
 		if(regularizer)
 			if(PyString_Check(regularizer)) {

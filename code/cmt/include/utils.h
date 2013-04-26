@@ -4,8 +4,10 @@
 #include "Eigen/Core"
 using Eigen::Array;
 using Eigen::ArrayXXd;
+using Eigen::ArrayXXi;
 using Eigen::Dynamic;
 using Eigen::MatrixXd;
+using Eigen::MatrixXi;
 using Eigen::VectorXd;
 using Eigen::VectorXi;
 
@@ -21,6 +23,8 @@ using std::set;
 
 Array<double, 1, Dynamic> logSumExp(const ArrayXXd& array);
 Array<double, 1, Dynamic> logMeanExp(const ArrayXXd& array);
+
+MatrixXd signum(const MatrixXd& matrix);
 
 ArrayXXd sampleNormal(int m = 1, int n = 1);
 ArrayXXd sampleGamma(int m = 1, int n = 1, int k = 1);

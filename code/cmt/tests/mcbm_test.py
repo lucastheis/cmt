@@ -131,8 +131,9 @@ class Tests(unittest.TestCase):
 					'train_predictors': param == 'pred',
 					'train_input_bias': param == 'input_bias',
 					'train_output_bias': param == 'output_bias',
-					'regularize_features': True,
-					'regularize_predictors': True,
+					'regularize_features': 0.1,
+					'regularize_predictors': 0.1,
+					'regularize_weights': 0.1,
 				})
 			self.assertLess(err, 1e-8)
 

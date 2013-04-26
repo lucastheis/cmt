@@ -12,6 +12,12 @@
 using namespace Eigen;
 using namespace std;
 
+MatrixXd signum(const MatrixXd& matrix) {
+	return (matrix.array() > 0.).cast<double>() - (matrix.array() < 0.).cast<double>();
+}
+
+
+
 Array<double, 1, Dynamic> logSumExp(const ArrayXXd& array) {
 	Array<double, 1, Dynamic> arrayMax = array.colwise().maxCoeff() - 1.;
 	return arrayMax + (array.rowwise() - arrayMax).exp().colwise().sum().log();

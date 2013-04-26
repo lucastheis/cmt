@@ -23,6 +23,7 @@ class MCBM : public ConditionalDistribution {
 				bool trainOutputBias;
 				double regularizeFeatures;
 				double regularizePredictors;
+				double regularizeWeights;
 				Regularizer regularizer;
 
 				Parameters();

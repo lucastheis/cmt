@@ -193,6 +193,7 @@ MCBM::Parameters::Parameters() :
 	trainOutputBias = true;
 	regularizeFeatures = 0.;
 	regularizePredictors = 0.;
+	regularizeWeights = 0.;
 	regularizer = L1;
 }
 
@@ -208,6 +209,7 @@ MCBM::Parameters::Parameters(const Parameters& params) :
 	trainOutputBias(params.trainOutputBias),
 	regularizeFeatures(params.regularizeFeatures),
 	regularizePredictors(params.regularizePredictors),
+	regularizeWeights(params.regularizeWeights),
 	regularizer(params.regularizer)
 {
 	if(params.callback)
@@ -232,6 +234,7 @@ MCBM::Parameters& MCBM::Parameters::operator=(const Parameters& params) {
 	trainOutputBias = params.trainOutputBias;
 	regularizeFeatures = params.regularizeFeatures;
 	regularizePredictors = params.regularizePredictors;
+	regularizeWeights = params.regularizeWeights;
 	regularizer = params.regularizer;
 
 	return *this;
@@ -630,8 +633,10 @@ double MCBM::computeGradient(
 		logProb1 -= logNorm;
 		logProb0 -= logNorm;
 
+		double logLikBatch = (output.array() * logProb1 + (1. - output.array()) * logProb0).sum();
+
 		#pragma omp critical
-		logLik += (output.array() * logProb1 + (1. - output.array()) * logProb0).sum();
+		logLik += logLikBatch;
 
 		if(!g)
 			// don't compute gradients
@@ -684,14 +689,20 @@ double MCBM::computeGradient(
 
 			if(params.trainPredictors && params.regularizePredictors > 0.)
 				predictorsGrad += params.regularizePredictors * 2. * predictors;
+
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				weightsGrad += params.regularizeWeights * 2. * weights;
 		} else {
+			// TODO: compute signum in a numerically stable way
 			if(params.trainFeatures && params.regularizeFeatures > 0.)
-				featuresGrad += params.regularizeFeatures *
+				featuresGrad += params.regularizeFeatures * signum(features);
 					(features.array() / features.array().abs()).matrix();
 
 			if(params.trainPredictors && params.regularizePredictors > 0.)
-				predictorsGrad += params.regularizePredictors *
-					(predictors.array() / predictors.array().abs()).matrix();
+				predictorsGrad += params.regularizePredictors * signum(predictors);
+
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				weightsGrad += params.regularizeWeights * signum(weights);
 		}
 	}
 
@@ -703,12 +714,18 @@ double MCBM::computeGradient(
 
 		if(params.trainPredictors && params.regularizePredictors > 0.)
 			value += params.regularizePredictors * predictors.array().abs().sum();
+
+		if(params.trainWeights && params.regularizeWeights > 0.)
+			value += params.regularizeWeights * weights.array().abs().sum();
 	} else {
 		if(params.trainFeatures && params.regularizeFeatures > 0.)
 			value += params.regularizeFeatures * features.array().square().sum();
 
 		if(params.trainPredictors && params.regularizePredictors > 0.)
 			value += params.regularizePredictors * predictors.array().square().sum();
+
+		if(params.trainWeights && params.regularizeWeights > 0.)
+			value += params.regularizeWeights * weights.array().square().sum();
 	}
 
 	return value;

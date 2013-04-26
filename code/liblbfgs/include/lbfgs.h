@@ -68,7 +68,7 @@ typedef double lbfgsfloatval_t;
 
 /**
  * Return values of lbfgs().
- * 
+ *
  *  Roughly speaking, a negative value indicates an error.
  */
 enum {
