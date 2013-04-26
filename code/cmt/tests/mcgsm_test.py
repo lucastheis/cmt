@@ -160,22 +160,25 @@ class Tests(unittest.TestCase):
 			self.assertLess(err, 1e-8)
 
 		# with regularization
-		for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred']:
-			err = mcgsm._check_gradient(
-				randn(mcgsm.dim_in, 1000),
-				randn(mcgsm.dim_out, 1000),
-				1e-5,
-				parameters={
-					'train_prior': param == 'priors',
-					'train_scales': param == 'scales',
-					'train_weights': param == 'weights',
-					'train_features': param == 'features',
-					'train_cholesky_factors': param == 'chol',
-					'train_predictors': param == 'pred',
-					'regularize_features': 1.,
-					'regularize_predictors': 1.,
-				})
-			self.assertLess(err, 1e-8)
+		for regularizer in ['L1', 'L2']:
+			for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred']:
+				err = mcgsm._check_gradient(
+					randn(mcgsm.dim_in, 1000),
+					randn(mcgsm.dim_out, 1000),
+					1e-7,
+					parameters={
+						'train_prior': param == 'priors',
+						'train_scales': param == 'scales',
+						'train_weights': param == 'weights',
+						'train_features': param == 'features',
+						'train_cholesky_factors': param == 'chol',
+						'train_predictors': param == 'pred',
+						'regularizer': regularizer,
+						'regularize_features': 0.4,
+						'regularize_predictors': 0.5,
+						'regularize_weights': 0.7,
+					})
+				self.assertLess(err, 1e-6)
 
 
 

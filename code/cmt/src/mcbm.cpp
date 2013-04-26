@@ -25,42 +25,10 @@ using std::setprecision;
 #include <limits>
 using std::numeric_limits;
 
-#include <cstring>
-using std::memcpy;
-
-struct InstanceLBFGS {
-	const MCBM* mcbm;
-	const MCBM::Parameters* params;
-
-	const MatrixXd* input;
-	const MatrixXd* output;
-
-	// used for computing and checking validation error
-	const MatrixXd* inputVal;
-	const MatrixXd* outputVal;
-	double logLoss;
-	int counter;
-	lbfgsfloatval_t* parameters;
-
-	InstanceLBFGS(
-		const MCBM* mcbm,
-		const MCBM::Parameters* params,
-		const MatrixXd* input,
-		const MatrixXd* output);
-	InstanceLBFGS(
-		const MCBM* mcbm,
-		const MCBM::Parameters* params,
-		const MatrixXd* input,
-		const MatrixXd* output,
-		const MatrixXd* inputVal,
-		const MatrixXd* outputVal);
-	~InstanceLBFGS();
-};
-
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, 1> > VectorLBFGS;
 
-InstanceLBFGS::InstanceLBFGS(
+MCBM::InstanceLBFGS::InstanceLBFGS(
 	const MCBM* mcbm,
 	const MCBM::Parameters* params,
 	const MatrixXd* input,
@@ -79,7 +47,7 @@ InstanceLBFGS::InstanceLBFGS(
 
 
 
-InstanceLBFGS::InstanceLBFGS(
+MCBM::InstanceLBFGS::InstanceLBFGS(
 	const MCBM* mcbm,
 	const MCBM::Parameters* params,
 	const MatrixXd* input,
@@ -100,16 +68,17 @@ InstanceLBFGS::InstanceLBFGS(
 
 
 
-InstanceLBFGS::~InstanceLBFGS() {
-	lbfgs_free(parameters);
+MCBM::InstanceLBFGS::~InstanceLBFGS() {
+	if(parameters)
+		lbfgs_free(parameters);
 }
 
 
 
-static int callbackLBFGS(
-	void *instance,
-	const lbfgsfloatval_t *x,
-	const lbfgsfloatval_t *g,
+int MCBM::callbackLBFGS(
+	void* instance,
+	const lbfgsfloatval_t* x,
+	const lbfgsfloatval_t* g,
 	const lbfgsfloatval_t fx,
 	const lbfgsfloatval_t xnorm,
 	const lbfgsfloatval_t gnorm,
@@ -164,7 +133,7 @@ static int callbackLBFGS(
 
 
 
-static lbfgsfloatval_t evaluateLBFGS(
+lbfgsfloatval_t MCBM::evaluateLBFGS(
 	void* instance,
 	const lbfgsfloatval_t* x,
 	lbfgsfloatval_t* g,
@@ -193,6 +162,7 @@ MCBM::Parameters::Parameters() :
 	trainOutputBias = true;
 	regularizeFeatures = 0.;
 	regularizePredictors = 0.;
+	regularizeWeights = 0.;
 	regularizer = L1;
 }
 
@@ -208,6 +178,7 @@ MCBM::Parameters::Parameters(const Parameters& params) :
 	trainOutputBias(params.trainOutputBias),
 	regularizeFeatures(params.regularizeFeatures),
 	regularizePredictors(params.regularizePredictors),
+	regularizeWeights(params.regularizeWeights),
 	regularizer(params.regularizer)
 {
 	if(params.callback)
@@ -232,6 +203,7 @@ MCBM::Parameters& MCBM::Parameters::operator=(const Parameters& params) {
 	trainOutputBias = params.trainOutputBias;
 	regularizeFeatures = params.regularizeFeatures;
 	regularizePredictors = params.regularizePredictors;
+	regularizeWeights = params.regularizeWeights;
 	regularizer = params.regularizer;
 
 	return *this;
@@ -358,6 +330,14 @@ Array<double, 1, Dynamic> MCBM::logLikelihood(const MatrixXd& input, const Matri
 
 		return output.array() * logProb1 + (1. - output.array()) * logProb0;
 	}
+}
+
+
+
+void MCBM::initialize(
+	const MatrixXd& input,
+	const MatrixXd& output)
+{
 }
 
 
@@ -630,7 +610,10 @@ double MCBM::computeGradient(
 		logProb1 -= logNorm;
 		logProb0 -= logNorm;
 
-		logLik += (output.array() * logProb1 + (1. - output.array()) * logProb0).sum();
+		double logLikBatch = (output.array() * logProb1 + (1. - output.array()) * logProb0).sum();
+
+		#pragma omp critical
+		logLik += logLikBatch;
 
 		if(!g)
 			// don't compute gradients
@@ -642,6 +625,7 @@ double MCBM::computeGradient(
 		ArrayXXd post1Tmp = logPost1.exp().rowwise() * tmp;
 		ArrayXXd postDiffTmp = post1Tmp - post0Tmp;
 
+		// update gradients
 		if(params.trainPriors)
 			#pragma omp critical
 			priorsGrad -= postDiffTmp.rowwise().sum().matrix();
@@ -682,31 +666,49 @@ double MCBM::computeGradient(
 
 			if(params.trainPredictors && params.regularizePredictors > 0.)
 				predictorsGrad += params.regularizePredictors * 2. * predictors;
+
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				weightsGrad += params.regularizeWeights * 2. * weights;
 		} else {
+			// TODO: compute signum in a numerically stable way
 			if(params.trainFeatures && params.regularizeFeatures > 0.)
-				featuresGrad += params.regularizeFeatures *
+				featuresGrad += params.regularizeFeatures * signum(features);
 					(features.array() / features.array().abs()).matrix();
 
 			if(params.trainPredictors && params.regularizePredictors > 0.)
-				predictorsGrad += params.regularizePredictors *
-					(predictors.array() / predictors.array().abs()).matrix();
+				predictorsGrad += params.regularizePredictors * signum(predictors);
+
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				weightsGrad += params.regularizeWeights * signum(weights);
 		}
 	}
 
 	double value = -logLik / normConst;
 
-	if(params.regularizer == Parameters::L1) {
-		if(params.trainFeatures && params.regularizeFeatures > 0.)
-			value += params.regularizeFeatures * features.array().abs().sum();
+	switch(params.regularizer) {
+		case Parameters::L1:
+			if(params.trainFeatures && params.regularizeFeatures > 0.)
+				value += params.regularizeFeatures * features.array().abs().sum();
 
-		if(params.trainPredictors && params.regularizePredictors > 0.)
-			value += params.regularizePredictors * predictors.array().abs().sum();
-	} else {
-		if(params.trainFeatures && params.regularizeFeatures > 0.)
-			value += params.regularizeFeatures * features.array().square().sum();
+			if(params.trainPredictors && params.regularizePredictors > 0.)
+				value += params.regularizePredictors * predictors.array().abs().sum();
 
-		if(params.trainPredictors && params.regularizePredictors > 0.)
-			value += params.regularizePredictors * predictors.array().square().sum();
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				value += params.regularizeWeights * weights.array().abs().sum();
+
+			break;
+
+		case Parameters::L2:
+			if(params.trainFeatures && params.regularizeFeatures > 0.)
+				value += params.regularizeFeatures * features.array().square().sum();
+
+			if(params.trainPredictors && params.regularizePredictors > 0.)
+				value += params.regularizePredictors * predictors.array().square().sum();
+
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				value += params.regularizeWeights * weights.array().square().sum();
+			
+			break;
 	}
 
 	return value;

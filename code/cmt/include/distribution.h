@@ -15,9 +15,6 @@ class Distribution {
 
 		virtual int dim() const = 0;
 
-		virtual void initialize(const MatrixXd& data) const;
-		virtual bool train(const MatrixXd& data) const;
-
 		virtual MatrixXd sample(int num_samples) const = 0;
 
 		virtual Array<double, 1, Dynamic> logLikelihood(

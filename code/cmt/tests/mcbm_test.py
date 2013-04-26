@@ -113,24 +113,31 @@ class Tests(unittest.TestCase):
 					'train_weights': param == 'weights',
 					'train_features': param == 'features',
 					'train_predictors': param == 'pred',
+					'train_input_bias': param == 'input_bias',
+					'train_output_bias': param == 'output_bias',
 				})
-			self.assertLess(err, 1e-8)
+			self.assertLess(err, 1e-7)
 
 		# test with regularization turned on
-		for param in ['priors', 'weights', 'features', 'pred', 'input_bias', 'output_bias']:
-			err = mcbm._check_gradient(
-				randint(2, size=[mcbm.dim_in, 1000]),
-				randint(2, size=[mcbm.dim_out, 1000]),
-				1e-5,
-				parameters={
-					'train_prior': param == 'priors',
-					'train_weights': param == 'weights',
-					'train_features': param == 'features',
-					'train_predictors': param == 'pred',
-					'regularize_features': True,
-					'regularize_predictors': True,
-				})
-			self.assertLess(err, 1e-8)
+		for regularizer in ['L1', 'L2']:
+			for param in ['priors', 'weights', 'features', 'pred', 'input_bias', 'output_bias']:
+				err = mcbm._check_gradient(
+					randint(2, size=[mcbm.dim_in, 1000]),
+					randint(2, size=[mcbm.dim_out, 1000]),
+					1e-7,
+					parameters={
+						'train_prior': param == 'priors',
+						'train_weights': param == 'weights',
+						'train_features': param == 'features',
+						'train_predictors': param == 'pred',
+						'train_input_bias': param == 'input_bias',
+						'train_output_bias': param == 'output_bias',
+						'regularizer': regularizer,
+						'regularize_features': 0.5,
+						'regularize_predictors': 0.4,
+						'regularize_weights': 0.7,
+					})
+				self.assertLess(err, 1e-6)
 
 
 

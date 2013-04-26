@@ -23,6 +23,8 @@ class MCGSM : public ConditionalDistribution {
 	public:
 		struct Parameters : public ConditionalDistribution::Parameters {
 			public:
+				enum Regularizer { L1, L2 };
+
 				bool trainPriors;
 				bool trainScales;
 				bool trainWeights;
@@ -31,6 +33,8 @@ class MCGSM : public ConditionalDistribution {
 				bool trainPredictors;
 				double regularizeFeatures;
 				double regularizePredictors;
+				double regularizeWeights;
+				Regularizer regularizer;
 
 				Parameters();
 				Parameters(const Parameters& params);
@@ -39,7 +43,7 @@ class MCGSM : public ConditionalDistribution {
 		};
 
 		MCGSM(
-			int dimIn, 
+			int dimIn,
 			int dimOut = 1,
 			int numComponents = 8,
 			int numScales = 6,
@@ -77,6 +81,12 @@ class MCGSM : public ConditionalDistribution {
 		virtual bool train(
 			const MatrixXd& input,
 			const MatrixXd& output,
+			const Parameters& params = Parameters());
+		virtual bool train(
+			const MatrixXd& input,
+			const MatrixXd& output,
+			const MatrixXd& inputVal,
+			const MatrixXd& outputVal,
 			const Parameters& params = Parameters());
 
 		virtual double checkGradient(
@@ -134,6 +144,58 @@ class MCGSM : public ConditionalDistribution {
 		MatrixXd mFeatures;
 		vector<MatrixXd> mCholeskyFactors;
 		vector<MatrixXd> mPredictors;
+
+		virtual bool train(
+			const MatrixXd& input,
+			const MatrixXd& output,
+			const MatrixXd* inputVal = 0,
+			const MatrixXd* outputVal = 0,
+			const Parameters& params = Parameters());
+
+		struct InstanceLBFGS {
+			const MCGSM* mcgsm;
+			const MCGSM::Parameters* params;
+
+			const MatrixXd* input;
+			const MatrixXd* output;
+
+			// used for validation error based early stopping
+			const MatrixXd* inputVal;
+			const MatrixXd* outputVal;
+			double logLoss;
+			int counter;
+			lbfgsfloatval_t* parameters;
+
+			InstanceLBFGS(
+				const MCGSM* mcgsm,
+				const MCGSM::Parameters* params,
+				const MatrixXd* input,
+				const MatrixXd* output);
+			InstanceLBFGS(
+				const MCGSM* mcgsm,
+				const MCGSM::Parameters* params,
+				const MatrixXd* input,
+				const MatrixXd* output,
+				const MatrixXd* inputVal,
+				const MatrixXd* outputVal);
+			~InstanceLBFGS();
+		};
+
+		static int callbackLBFGS(
+			void*,
+			const lbfgsfloatval_t*,
+			const lbfgsfloatval_t*,
+			const lbfgsfloatval_t,
+			const lbfgsfloatval_t,
+			const lbfgsfloatval_t,
+			const lbfgsfloatval_t,
+			int, int, int);
+
+		static lbfgsfloatval_t evaluateLBFGS(
+			void*,
+			const lbfgsfloatval_t* x,
+			lbfgsfloatval_t* g,
+			int, double);
 };
 
 

@@ -1,7 +1,10 @@
 #include "conditionaldistribution.h"
-#include <cmath>
 
+#include <cmath>
 using std::log;
+
+#include <limits>
+using std::numeric_limits;
 
 ConditionalDistribution::Callback::~Callback() {
 }
@@ -74,21 +77,4 @@ double ConditionalDistribution::evaluate(
 	const MatrixXd& output) const
 {
 	return -logLikelihood(input, output).mean() / log(2.) / dimOut();
-}
-
-
-
-void ConditionalDistribution::initialize(
-	const MatrixXd& input,
-	const MatrixXd& output) const
-{
-}
-
-
-
-bool ConditionalDistribution::train(
-	const MatrixXd& input,
-	const MatrixXd& output) const
-{
-	return true;
 }

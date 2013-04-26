@@ -127,6 +127,15 @@ MCGSM::Parameters PyObject_ToMCGSMParameters(PyObject* parameters) {
 			else
 				throw Exception("regularize_features should be of type `float`.");
 
+		PyObject* regularize_weights = PyDict_GetItemString(parameters, "regularize_weights");
+		if(regularize_weights)
+			if(PyFloat_Check(regularize_weights))
+				params.regularizeWeights = PyFloat_AsDouble(regularize_weights);
+			else if(PyInt_Check(regularize_weights))
+				params.regularizeWeights = static_cast<double>(PyFloat_AsDouble(regularize_weights));
+			else
+				throw Exception("regularize_weights should be of type `float`.");
+
 		PyObject* regularize_predictors = PyDict_GetItemString(parameters, "regularize_predictors");
 		if(regularize_predictors)
 			if(PyFloat_Check(regularize_predictors))
@@ -135,6 +144,20 @@ MCGSM::Parameters PyObject_ToMCGSMParameters(PyObject* parameters) {
 				params.regularizePredictors = static_cast<double>(PyFloat_AsDouble(regularize_predictors));
 			else
 				throw Exception("regularize_predictors should be of type `float`.");
+
+		PyObject* regularizer = PyDict_GetItemString(parameters, "regularizer");
+		if(regularizer)
+			if(PyString_Check(regularizer)) {
+				if(PyString_Size(regularizer) != 2)
+					throw Exception("Regularizer should be 'L1' or 'L2'.");
+
+				if(PyString_AsString(regularizer)[1] == '1')
+					params.regularizer = MCGSM::Parameters::L1;
+				else
+					params.regularizer = MCGSM::Parameters::L2;
+			} else {
+				throw Exception("regularizer should be of type `str`.");
+			}
 	}
 
 	return params;
@@ -543,27 +566,29 @@ PyObject* MCGSM_initialize(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 
 
 const char* MCGSM_train_doc =
-	"train(self, input, output, parameters=None)\n"
+	"train(self, input, output, input_val=None, output_val=None, parameters=None)\n"
 	"\n"
 	"Fits model parameters to given data using L-BFGS.\n"
 	"\n"
 	"The following example demonstrates possible parameters and default settings.\n"
 	"\n"
 	"\t>>> model.train(input, output, parameters={\n"
-	"\t>>> \t'verbosity': 0\n"
-	"\t>>> \t'max_iter': 1000\n"
-	"\t>>> \t'threshold': 1e-5\n"
-	"\t>>> \t'num_grad': 20\n"
-	"\t>>> \t'batch_size': 2000\n"
-	"\t>>> \t'callback': None\n"
-	"\t>>> \t'cb_iter': 25\n"
-	"\t>>> \t'train_priors': True\n"
-	"\t>>> \t'train_scales': True\n"
-	"\t>>> \t'train_weights': True\n"
-	"\t>>> \t'train_features': True\n"
-	"\t>>> \t'train_cholesky_factors': True\n"
-	"\t>>> \t'train_predictors': True\n"
-	"\t>>> \t'regularize_features': 0.\n"
+	"\t>>> \t'verbosity': 0,\n"
+	"\t>>> \t'max_iter': 1000,\n"
+	"\t>>> \t'threshold': 1e-5,\n"
+	"\t>>> \t'num_grad': 20,\n"
+	"\t>>> \t'batch_size': 2000,\n"
+	"\t>>> \t'callback': None,\n"
+	"\t>>> \t'cb_iter': 25,\n"
+	"\t>>> \t'train_priors': True,\n"
+	"\t>>> \t'train_scales': True,\n"
+	"\t>>> \t'train_weights': True,\n"
+	"\t>>> \t'train_features': True,\n"
+	"\t>>> \t'train_cholesky_factors': True,\n"
+	"\t>>> \t'train_predictors': True,\n"
+	"\t>>> \t'regularizer': 'L1',\n"
+	"\t>>> \t'regularize_features': 0.,\n"
+	"\t>>> \t'regularize_weights': 0.,\n"
 	"\t>>> \t'regularize_predictors': 0.\n"
 	"\t>>> })\n"
 	"\n"
@@ -589,6 +614,12 @@ const char* MCGSM_train_doc =
 	"@type  output: ndarray\n"
 	"@param output: outputs stored in columns\n"
 	"\n"
+	"@type  input_val: ndarray\n"
+	"@param input_val: inputs used for early stopping based on validation error\n"
+	"\n"
+	"@type  output_val: ndarray\n"
+	"@param output_val: outputs used for early stopping based on validation error\n"
+	"\n"
 	"@type  parameters: dict\n"
 	"@param parameters: a dictionary containing hyperparameters\n"
 	"\n"
@@ -596,16 +627,20 @@ const char* MCGSM_train_doc =
 	"@return: C{True} if training converged, otherwise C{False}";
 
 PyObject* MCGSM_train(MCGSMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", "parameters", 0};
+	const char* kwlist[] = {"input", "output", "input_val", "output_val", "parameters", 0};
 
 	PyObject* input;
 	PyObject* output;
+	PyObject* input_val = 0;
+	PyObject* output_val = 0;
 	PyObject* parameters = 0;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|O", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|OOO", const_cast<char**>(kwlist),
 		&input,
 		&output,
+		&input_val,
+		&output_val,
 		&parameters))
 		return 0;
 
@@ -620,25 +655,62 @@ PyObject* MCGSM_train(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 		return 0;
 	}
 
-	try {
-		if(self->mcgsm->train(
-				PyArray_ToMatrixXd(input), 
-				PyArray_ToMatrixXd(output), 
-				PyObject_ToMCGSMParameters(parameters)))
-		{
+	if(input_val == Py_None)
+		input_val = 0;
+	if(output_val == Py_None)
+		output_val = 0;
+
+	if(input_val || output_val) {
+		input_val = PyArray_FROM_OTF(input_val, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		output_val = PyArray_FROM_OTF(output_val, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!input_val || !output_val) {
 			Py_DECREF(input);
 			Py_DECREF(output);
+			Py_XDECREF(input_val);
+			Py_XDECREF(output_val);
+			PyErr_SetString(PyExc_TypeError, "Validation data has to be stored in NumPy arrays.");
+			return 0;
+		}
+	}
+
+	try {
+		bool converged;
+
+		if(input_val && output_val) {
+			converged = self->mcgsm->train(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output),
+				PyArray_ToMatrixXd(input_val),
+				PyArray_ToMatrixXd(output_val),
+				PyObject_ToMCGSMParameters(parameters));
+		} else {
+			converged = self->mcgsm->train(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output),
+				PyObject_ToMCGSMParameters(parameters));
+		}
+
+		if(converged) {
+			Py_DECREF(input);
+			Py_DECREF(output);
+			Py_XDECREF(input_val);
+			Py_XDECREF(output_val);
 			Py_INCREF(Py_True);
 			return Py_True;
 		} else {
 			Py_DECREF(input);
 			Py_DECREF(output);
+			Py_XDECREF(input_val);
+			Py_XDECREF(output_val);
 			Py_INCREF(Py_False);
 			return Py_False;
 		}
 	} catch(Exception exception) {
 		Py_DECREF(input);
 		Py_DECREF(output);
+			Py_XDECREF(input_val);
+			Py_XDECREF(output_val);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}

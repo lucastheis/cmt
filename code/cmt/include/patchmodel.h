@@ -8,6 +8,11 @@ using Eigen::Array;
 using Eigen::Dynamic;
 
 #include <iostream>
+using std::cout;
+using std::endl;
+
+#include <cmath>
+using std::ceil;
 
 #include "utils.h"
 #include "distribution.h"
@@ -39,7 +44,12 @@ class PatchModel : public Distribution {
 		const CD& operator()(int i, int j) const;
 
 		void initialize(const MatrixXd& data, const Parameters& params = Parameters());
+
 		bool train(const MatrixXd& data, const Parameters& params = Parameters());
+		bool train(
+			const MatrixXd& data,
+			const MatrixXd& dataVal,
+			const Parameters& params = Parameters());
 
 		Array<double, 1, Dynamic> logLikelihood(const MatrixXd& data) const;
 
@@ -173,26 +183,51 @@ template <class CD>
 void PatchModel<CD>::initialize(const MatrixXd& data, const Parameters& params) {
 	Tuples inputIndices = maskToIndices(mInputMask);
 
+	// count how many pixels possess a complete neighborhood
+	int counter = 0;
+	for(int i = 0; i < mRows * mCols; ++i)
+		counter += mInputIndices[i].size() == inputIndices.size();
+
+	int numSamplesPerImage = ceil(2 * data.cols() / static_cast<double>(counter)) + .5;
+	if(numSamplesPerImage > data.cols())
+		numSamplesPerImage = data.cols();
+
+	// collect inputs and outputs
 	vector<MatrixXd> inputs;
 	vector<MatrixXd> outputs;
 
 	for(int i = 0; i < mRows * mCols; ++i) {
-		MatrixXd output = data.row(i);
-		MatrixXd input(mInputIndices[i].size(), data.cols());
-
-		for(int j = 0; j < mInputIndices[i].size(); ++j) {
-			// coordinates of j-th input to i-th model
-			int m = mInputIndices[i][j].first;
-			int n = mInputIndices[i][j].second;
-
-			// assumes patch is stored in row-major order
-			input.row(j) = data.row(m * mCols + n);
-		}
-
 		if(mInputIndices[i].size() == inputIndices.size()) {
+			// extract neighborhoods from images starting at offset
+			int offset = rand() % (data.cols() - numSamplesPerImage + 1);
+
+			MatrixXd output = data.block(i, offset, 1, numSamplesPerImage);
+			MatrixXd input(mInputIndices[i].size(), numSamplesPerImage);
+
+			for(int j = 0; j < mInputIndices[i].size(); ++j) {
+				// coordinates of j-th input to i-th model
+				int m = mInputIndices[i][j].first;
+				int n = mInputIndices[i][j].second;
+
+				// assumes patch is stored in row-major order
+				input.row(j) = data.block(m * mCols + n, offset, 1, numSamplesPerImage);
+			}
+
 			inputs.push_back(input);
 			outputs.push_back(output);
 		} else {
+			MatrixXd output = data.row(i);
+			MatrixXd input(mInputIndices[i].size(), data.cols());
+
+			for(int j = 0; j < mInputIndices[i].size(); ++j) {
+				// coordinates of j-th input to i-th model
+				int m = mInputIndices[i][j].first;
+				int n = mInputIndices[i][j].second;
+
+				// assumes patch is stored in row-major order
+				input.row(j) = data.row(m * mCols + n);
+			}
+
 			// initialize models with an incomplete neighborhood
 			mConditionalDistributions[i].initialize(input, output);
 		}
@@ -201,13 +236,26 @@ void PatchModel<CD>::initialize(const MatrixXd& data, const Parameters& params) 
 	MatrixXd input = concatenate(inputs);
 	MatrixXd output = concatenate(outputs);
 
+	// number of training and validation data points
+	int numTrain = ceil(input.cols() * 0.9) + .5;
+	int numValid = input.cols() - numTrain;
+
+	if(!numValid)
+		// too few data points
+		throw Exception("Too few data points.");
+
 	for(int i = 0; i < mRows * mCols; ++i)
 		if(mConditionalDistributions[i].dimIn() == inputIndices.size()) {
 			// train one model
 			mConditionalDistributions[i].initialize(input, output);
-			mConditionalDistributions[i].train(input, output, params);
+			mConditionalDistributions[i].train(
+				input.leftCols(numTrain),
+				output.leftCols(numTrain),
+				input.rightCols(numValid),
+				output.rightCols(numValid),
+				params);
 
-			// copy parameters to other models with similar inputs
+			// copy parameters to all other models with same input size
 			for(int j = i + 1; j < mRows * mCols; ++j)
 				if(mConditionalDistributions[j].dimIn() == inputIndices.size())
 					mConditionalDistributions[j] = mConditionalDistributions[i];
@@ -227,6 +275,7 @@ bool PatchModel<CD>::train(const MatrixXd& data, const Parameters& params) {
 		MatrixXd output = data.row(i);
 		MatrixXd input(mInputIndices[i].size(), data.cols());
 
+		#pragma omp parallel for
 		for(int j = 0; j < mInputIndices[i].size(); ++j) {
 			// coordinates of j-th input to i-th model
 			int m = mInputIndices[i][j].first;
@@ -237,9 +286,47 @@ bool PatchModel<CD>::train(const MatrixXd& data, const Parameters& params) {
 		}
 
 		if(params.verbosity > 0)
-			std::cout << "Training model " << i / mCols << ", " << i % mCols << std::endl;
+			cout << "Training model " << i / mCols << ", " << i % mCols << endl;
 
 		converged &= mConditionalDistributions[i].train(input, output, params);
+	}
+
+	return converged;
+}
+
+
+
+template <class CD>
+bool PatchModel<CD>::train(
+	const MatrixXd& data,
+	const MatrixXd& dataVal,
+	const Parameters& params)
+{
+	bool converged = true;
+
+	for(int i = 0; i < mRows * mCols; ++i) {
+		// assumes patch is stored in row-major order
+		MatrixXd output = data.row(i);
+		MatrixXd input(mInputIndices[i].size(), data.cols());
+		MatrixXd outputVal = dataVal.row(i);
+		MatrixXd inputVal(mInputIndices[i].size(), dataVal.cols());
+
+		#pragma omp parallel for
+		for(int j = 0; j < mInputIndices[i].size(); ++j) {
+			// coordinates of j-th input to i-th model
+			int m = mInputIndices[i][j].first;
+			int n = mInputIndices[i][j].second;
+
+			// assumes patch is stored in row-major order
+			input.row(j) = data.row(m * mCols + n);
+			inputVal.row(j) = dataVal.row(m * mCols + n);
+		}
+
+		if(params.verbosity > 0)
+			cout << "Training model " << i / mCols << ", " << i % mCols << endl;
+
+		converged &= mConditionalDistributions[i].train(
+			input, output, inputVal, outputVal, params);
 	}
 
 	return converged;
