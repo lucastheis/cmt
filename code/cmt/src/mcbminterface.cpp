@@ -588,13 +588,11 @@ PyObject* MCBM_train(MCBMObject* self, PyObject* args, PyObject* kwds) {
 		bool converged;
 
 		if(input_val && output_val) {
-			MatrixXd inputVal = PyArray_ToMatrixXd(input_val);
-			MatrixXd outputVal = PyArray_ToMatrixXd(output_val);
 			converged = self->mcbm->train(
 				PyArray_ToMatrixXd(input), 
 				PyArray_ToMatrixXd(output), 
-				&inputVal,
-				&outputVal,
+				PyArray_ToMatrixXd(input_val),
+				PyArray_ToMatrixXd(output_val),
 				PyObject_ToMCBMParameters(parameters));
 		} else {
 			converged = self->mcbm->train(
@@ -606,17 +604,23 @@ PyObject* MCBM_train(MCBMObject* self, PyObject* args, PyObject* kwds) {
 		if(converged) {
 			Py_DECREF(input);
 			Py_DECREF(output);
+			Py_XDECREF(input_val);
+			Py_XDECREF(output_val);
 			Py_INCREF(Py_True);
 			return Py_True;
 		} else {
 			Py_DECREF(input);
 			Py_DECREF(output);
+			Py_XDECREF(input_val);
+			Py_XDECREF(output_val);
 			Py_INCREF(Py_False);
 			return Py_False;
 		}
 	} catch(Exception exception) {
 		Py_DECREF(input);
 		Py_DECREF(output);
+		Py_XDECREF(input_val);
+		Py_XDECREF(output_val);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}

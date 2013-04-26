@@ -70,6 +70,9 @@ class MCBM : public ConditionalDistribution {
 			const MatrixXd& input,
 			const MatrixXd& output) const;
 
+		virtual void initialize(
+			const MatrixXd& input,
+			const MatrixXd& output);
 		virtual bool train(
 			const MatrixXd& input,
 			const MatrixXd& output,
@@ -79,12 +82,6 @@ class MCBM : public ConditionalDistribution {
 			const MatrixXd& output,
 			const MatrixXd& inputVal,
 			const MatrixXd& outputVal,
-			const Parameters& params = Parameters());
-		virtual bool train(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			const MatrixXd* inputVal,
-			const MatrixXd* outputVal,
 			const Parameters& params = Parameters());
 
 		lbfgsfloatval_t* parameters(const Parameters& params) const;
@@ -116,6 +113,58 @@ class MCBM : public ConditionalDistribution {
 		MatrixXd mPredictors;
 		MatrixXd mInputBias;
 		VectorXd mOutputBias;
+
+		virtual bool train(
+			const MatrixXd& input,
+			const MatrixXd& output,
+			const MatrixXd* inputVal = 0,
+			const MatrixXd* outputVal = 0,
+			const Parameters& params = Parameters());
+
+		struct InstanceLBFGS {
+			const MCBM* mcbm;
+			const MCBM::Parameters* params;
+
+			const MatrixXd* input;
+			const MatrixXd* output;
+
+			// used for validation error based early stopping
+			const MatrixXd* inputVal;
+			const MatrixXd* outputVal;
+			double logLoss;
+			int counter;
+			lbfgsfloatval_t* parameters;
+
+			InstanceLBFGS(
+				const MCBM* mcbm,
+				const MCBM::Parameters* params,
+				const MatrixXd* input,
+				const MatrixXd* output);
+			InstanceLBFGS(
+				const MCBM* mcbm,
+				const MCBM::Parameters* params,
+				const MatrixXd* input,
+				const MatrixXd* output,
+				const MatrixXd* inputVal,
+				const MatrixXd* outputVal);
+			~InstanceLBFGS();
+		};
+
+		static int callbackLBFGS(
+			void*,
+			const lbfgsfloatval_t*,
+			const lbfgsfloatval_t*,
+			const lbfgsfloatval_t,
+			const lbfgsfloatval_t,
+			const lbfgsfloatval_t,
+			const lbfgsfloatval_t,
+			int, int, int);
+
+		static lbfgsfloatval_t evaluateLBFGS(
+			void*,
+			const lbfgsfloatval_t* x,
+			lbfgsfloatval_t* g,
+			int, double);
 };
 
 

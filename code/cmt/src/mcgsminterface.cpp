@@ -566,7 +566,7 @@ PyObject* MCGSM_initialize(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 
 
 const char* MCGSM_train_doc =
-	"train(self, input, output, parameters=None)\n"
+	"train(self, input, output, input_val=None, output_val=None, parameters=None)\n"
 	"\n"
 	"Fits model parameters to given data using L-BFGS.\n"
 	"\n"
@@ -614,6 +614,12 @@ const char* MCGSM_train_doc =
 	"@type  output: ndarray\n"
 	"@param output: outputs stored in columns\n"
 	"\n"
+	"@type  input_val: ndarray\n"
+	"@param input_val: inputs used for computing validation error\n"
+	"\n"
+	"@type  output_val: ndarray\n"
+	"@param output_val: outputs used for computing validation error\n"
+	"\n"
 	"@type  parameters: dict\n"
 	"@param parameters: a dictionary containing hyperparameters\n"
 	"\n"
@@ -621,16 +627,20 @@ const char* MCGSM_train_doc =
 	"@return: C{True} if training converged, otherwise C{False}";
 
 PyObject* MCGSM_train(MCGSMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", "parameters", 0};
+	const char* kwlist[] = {"input", "output", "input_val", "output_val", "parameters", 0};
 
 	PyObject* input;
 	PyObject* output;
+	PyObject* input_val = 0;
+	PyObject* output_val = 0;
 	PyObject* parameters = 0;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|O", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|OOO", const_cast<char**>(kwlist),
 		&input,
 		&output,
+		&input_val,
+		&output_val,
 		&parameters))
 		return 0;
 
@@ -645,25 +655,62 @@ PyObject* MCGSM_train(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 		return 0;
 	}
 
-	try {
-		if(self->mcgsm->train(
-				PyArray_ToMatrixXd(input), 
-				PyArray_ToMatrixXd(output), 
-				PyObject_ToMCGSMParameters(parameters)))
-		{
+	if(input_val == Py_None)
+		input_val = 0;
+	if(output_val == Py_None)
+		output_val = 0;
+
+	if(input_val || output_val) {
+		input_val = PyArray_FROM_OTF(input_val, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		output_val = PyArray_FROM_OTF(output_val, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!input_val || !output_val) {
 			Py_DECREF(input);
 			Py_DECREF(output);
+			Py_XDECREF(input_val);
+			Py_XDECREF(output_val);
+			PyErr_SetString(PyExc_TypeError, "Validation data has to be stored in NumPy arrays.");
+			return 0;
+		}
+	}
+
+	try {
+		bool converged;
+
+		if(input_val && output_val) {
+			converged = self->mcgsm->train(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output),
+				PyObject_ToMCGSMParameters(parameters));
+		} else {
+			converged = self->mcgsm->train(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output),
+				PyArray_ToMatrixXd(input_val),
+				PyArray_ToMatrixXd(output_val),
+				PyObject_ToMCGSMParameters(parameters));
+		}
+
+		if(converged) {
+			Py_DECREF(input);
+			Py_DECREF(output);
+			Py_XDECREF(input_val);
+			Py_XDECREF(output_val);
 			Py_INCREF(Py_True);
 			return Py_True;
 		} else {
 			Py_DECREF(input);
 			Py_DECREF(output);
+			Py_XDECREF(input_val);
+			Py_XDECREF(output_val);
 			Py_INCREF(Py_False);
 			return Py_False;
 		}
 	} catch(Exception exception) {
 		Py_DECREF(input);
 		Py_DECREF(output);
+			Py_XDECREF(input_val);
+			Py_XDECREF(output_val);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}

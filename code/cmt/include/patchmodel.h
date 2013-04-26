@@ -42,6 +42,8 @@ class PatchModel : public Distribution {
 		bool train(const MatrixXd& data, const Parameters& params = Parameters());
 
 		Array<double, 1, Dynamic> logLikelihood(const MatrixXd& data) const;
+//		Array<double, 1, Dynamic> logLikelihood(const MatrixXd& data, const MatrixXd& dataVal) const;
+//		Array<double, 1, Dynamic> logLikelihood(const MatrixXd& data, const MatrixXd* dataVal) const;
 
 		MatrixXd sample(int num_samples) const;
 

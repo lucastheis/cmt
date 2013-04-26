@@ -28,39 +28,10 @@ using std::numeric_limits;
 #include <cstring>
 using std::memcpy;
 
-struct InstanceLBFGS {
-	const MCBM* mcbm;
-	const MCBM::Parameters* params;
-
-	const MatrixXd* input;
-	const MatrixXd* output;
-
-	// used for computing and checking validation error
-	const MatrixXd* inputVal;
-	const MatrixXd* outputVal;
-	double logLoss;
-	int counter;
-	lbfgsfloatval_t* parameters;
-
-	InstanceLBFGS(
-		const MCBM* mcbm,
-		const MCBM::Parameters* params,
-		const MatrixXd* input,
-		const MatrixXd* output);
-	InstanceLBFGS(
-		const MCBM* mcbm,
-		const MCBM::Parameters* params,
-		const MatrixXd* input,
-		const MatrixXd* output,
-		const MatrixXd* inputVal,
-		const MatrixXd* outputVal);
-	~InstanceLBFGS();
-};
-
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, 1> > VectorLBFGS;
 
-InstanceLBFGS::InstanceLBFGS(
+MCBM::InstanceLBFGS::InstanceLBFGS(
 	const MCBM* mcbm,
 	const MCBM::Parameters* params,
 	const MatrixXd* input,
@@ -79,7 +50,7 @@ InstanceLBFGS::InstanceLBFGS(
 
 
 
-InstanceLBFGS::InstanceLBFGS(
+MCBM::InstanceLBFGS::InstanceLBFGS(
 	const MCBM* mcbm,
 	const MCBM::Parameters* params,
 	const MatrixXd* input,
@@ -100,16 +71,17 @@ InstanceLBFGS::InstanceLBFGS(
 
 
 
-InstanceLBFGS::~InstanceLBFGS() {
-	lbfgs_free(parameters);
+MCBM::InstanceLBFGS::~InstanceLBFGS() {
+	if(parameters)
+		lbfgs_free(parameters);
 }
 
 
 
-static int callbackLBFGS(
-	void *instance,
-	const lbfgsfloatval_t *x,
-	const lbfgsfloatval_t *g,
+int MCBM::callbackLBFGS(
+	void* instance,
+	const lbfgsfloatval_t* x,
+	const lbfgsfloatval_t* g,
 	const lbfgsfloatval_t fx,
 	const lbfgsfloatval_t xnorm,
 	const lbfgsfloatval_t gnorm,
@@ -164,7 +136,7 @@ static int callbackLBFGS(
 
 
 
-static lbfgsfloatval_t evaluateLBFGS(
+lbfgsfloatval_t MCBM::evaluateLBFGS(
 	void* instance,
 	const lbfgsfloatval_t* x,
 	lbfgsfloatval_t* g,
@@ -361,6 +333,14 @@ Array<double, 1, Dynamic> MCBM::logLikelihood(const MatrixXd& input, const Matri
 
 		return output.array() * logProb1 + (1. - output.array()) * logProb0;
 	}
+}
+
+
+
+void MCBM::initialize(
+	const MatrixXd& input,
+	const MatrixXd& output)
+{
 }
 
 

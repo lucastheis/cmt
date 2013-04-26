@@ -6,6 +6,9 @@
 #include <cstdlib>
 #include <utility>
 
+#include <limits>
+using std::numeric_limits;
+
 #include <iomanip>
 #include <iostream>
 using std::cout;
@@ -14,14 +17,59 @@ using std::endl;
 using namespace std;
 using namespace Eigen;
 
-// TODO: use struct for ParamsLBFGS
-typedef pair<pair<const MCGSM*, const MCGSM::Parameters*>, pair<const MatrixXd*, const MatrixXd*> > ParamsLBFGS;
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
 
-static int callbackLBFGS(
-	void *instance,
-	const lbfgsfloatval_t *x,
-	const lbfgsfloatval_t *g,
+MCGSM::InstanceLBFGS::InstanceLBFGS(
+	const MCGSM* mcgsm,
+	const MCGSM::Parameters* params,
+	const MatrixXd* input,
+	const MatrixXd* output) :
+	mcgsm(mcgsm),
+	params(params),
+	input(input),
+	output(output),
+	inputVal(0),
+	outputVal(0),
+	logLoss(numeric_limits<double>::max()),
+	counter(0),
+	parameters(0)
+{
+}
+
+
+
+MCGSM::InstanceLBFGS::InstanceLBFGS(
+	const MCGSM* mcgsm,
+	const MCGSM::Parameters* params,
+	const MatrixXd* input,
+	const MatrixXd* output,
+	const MatrixXd* inputVal,
+	const MatrixXd* outputVal) :
+	mcgsm(mcgsm),
+	params(params),
+	input(input),
+	output(output),
+	inputVal(inputVal),
+	outputVal(outputVal),
+	logLoss(numeric_limits<double>::max()),
+	counter(0),
+	parameters(mcgsm->parameters(*params))
+{
+}
+
+
+
+MCGSM::InstanceLBFGS::~InstanceLBFGS() {
+	if(parameters)
+		lbfgs_free(parameters);
+}
+
+
+
+int MCGSM::callbackLBFGS(
+	void* instance,
+	const lbfgsfloatval_t* x,
+	const lbfgsfloatval_t* g,
 	const lbfgsfloatval_t fx,
 	const lbfgsfloatval_t xnorm,
 	const lbfgsfloatval_t gnorm,
@@ -30,11 +78,39 @@ static int callbackLBFGS(
 	int)
 {
 	// unpack user data
-	const MCGSM& mcgsm = *static_cast<ParamsLBFGS*>(instance)->first.first;
-	const MCGSM::Parameters& params = *static_cast<ParamsLBFGS*>(instance)->first.second;
+	InstanceLBFGS& inst = *static_cast<InstanceLBFGS*>(instance);
+	const MCGSM& mcgsm = *inst.mcgsm;
+	const MCGSM::Parameters& params = *inst.params;
 
-	if(params.verbosity > 0)
-		cout << setw(6) << iteration << setw(10) << setprecision(5) << fx << endl;
+	if(inst.inputVal && inst.outputVal && iteration % params.valIter == 0) {
+		const_cast<MCGSM&>(mcgsm).setParameters(x, params);
+
+		double logLoss = mcgsm.evaluate(*inst.inputVal, *inst.outputVal);
+
+		if(params.verbosity > 0) {
+			cout << setw(6) << iteration;
+			cout << setw(11) << setprecision(5) << fx;
+			cout << setw(11) << setprecision(5) << logLoss << endl;
+		}
+
+		if(logLoss < inst.logLoss) {
+			// store current parameters for later
+			for(int i = 0, N = mcgsm.numParameters(params); i < N; ++i)
+				inst.parameters[i] = x[i];
+
+			inst.counter = 0;
+			inst.logLoss = logLoss;
+		} else {
+			inst.counter += 1;
+
+			if(params.valLookAhead > 0 && inst.counter >= params.valLookAhead)
+				// performance did not improve for valLookAhead times
+				return 1;
+		}
+	} else {
+		if(params.verbosity > 0)
+			cout << setw(6) << iteration << setw(11) << setprecision(5) << fx << endl;
+	}
 
 	if(params.callback && iteration % params.cbIter == 0) {
 		// TODO: fix this nasty hack
@@ -49,21 +125,21 @@ static int callbackLBFGS(
 
 
 
-static lbfgsfloatval_t evaluateLBFGS(
+lbfgsfloatval_t MCGSM::evaluateLBFGS(
 	void* instance,
 	const lbfgsfloatval_t* x,
 	lbfgsfloatval_t* g,
 	int, double)
 {
 	// unpack user data
-	const MCGSM& mcgsm = *static_cast<ParamsLBFGS*>(instance)->first.first;
-	const MCGSM::Parameters& params = *static_cast<ParamsLBFGS*>(instance)->first.second;
-	const MatrixXd& input = *static_cast<ParamsLBFGS*>(instance)->second.first;
-	const MatrixXd& output = *static_cast<ParamsLBFGS*>(instance)->second.second;
+	const InstanceLBFGS& inst = *static_cast<InstanceLBFGS*>(instance);
+	const MCGSM& mcgsm = *inst.mcgsm;
+	const MCGSM::Parameters& params = *inst.params;
+	const MatrixXd& input = *inst.input;
+	const MatrixXd& output = *inst.output;
 
 	return mcgsm.computeGradient(input, output, x, g, params);
 }
-
 
 
 
@@ -232,7 +308,35 @@ void MCGSM::initialize(const MatrixXd& input, const MatrixXd& output) {
 
 
 
-bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, const Parameters& params) {
+bool MCGSM::train(
+		const MatrixXd& input,
+		const MatrixXd& output,
+		const Parameters& params)
+{
+	train(input, output, 0, 0, params);
+}
+
+
+
+bool MCGSM::train(
+		const MatrixXd& input,
+		const MatrixXd& output,
+		const MatrixXd& inputVal,
+		const MatrixXd& outputVal,
+		const Parameters& params)
+{
+	train(input, output, &inputVal, &outputVal, params);
+}
+
+
+
+bool MCGSM::train(
+		const MatrixXd& input,
+		const MatrixXd& output,
+		const MatrixXd* inputVal,
+		const MatrixXd* outputVal,
+		const Parameters& params)
+{
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
 	if(input.cols() != output.cols())
@@ -252,12 +356,7 @@ bool MCGSM::train(const MatrixXd& input, const MatrixXd& output, const Parameter
  	paramsLBFGS.ftol = 1e-4;
  	paramsLBFGS.xtol = 1e-32;
 
-	// wrap additional arguments
-	ParamsLBFGS instance;
-	instance.first.first = this;
-	instance.first.second = &params;
-	instance.second.first = &input;
-	instance.second.second = &output;
+	InstanceLBFGS instance(this, &params, &input, &output, inputVal, outputVal);
 
 	// start LBFGS optimization
 	int status = LBFGSERR_MAXIMUMITERATION;
@@ -308,11 +407,7 @@ double MCGSM::checkGradient(
 		y[i] = x[i];
 
 	// arguments to LBFGS function
-	ParamsLBFGS instance;
-	instance.first.first = this;
-	instance.first.second = &params;
-	instance.second.first = &input;
-	instance.second.second = &output;
+	InstanceLBFGS instance(this, &params, &input, &output);
 
 	// compute numerical gradient using central differences
 	for(int i = 0; i < numParams; ++i) {
@@ -358,11 +453,7 @@ double MCGSM::checkPerformance(
 	paramsLBFGS.m = params.numGrad;
 
 	// wrap additional arguments
-	ParamsLBFGS instance;
-	instance.first.first = this;
-	instance.first.second = &params;
-	instance.second.first = &input;
-	instance.second.second = &output;
+	InstanceLBFGS instance(this, &params, &input, &output);
 
 	// measure time it takes to evaluate gradient
 	lbfgsfloatval_t* g = lbfgs_malloc(numParameters(params));
