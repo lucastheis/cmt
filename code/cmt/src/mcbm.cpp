@@ -708,24 +708,30 @@ double MCBM::computeGradient(
 
 	double value = -logLik / normConst;
 
-	if(params.regularizer == Parameters::L1) {
-		if(params.trainFeatures && params.regularizeFeatures > 0.)
-			value += params.regularizeFeatures * features.array().abs().sum();
+	switch(params.regularizer) {
+		case Parameters::L1:
+			if(params.trainFeatures && params.regularizeFeatures > 0.)
+				value += params.regularizeFeatures * features.array().abs().sum();
 
-		if(params.trainPredictors && params.regularizePredictors > 0.)
-			value += params.regularizePredictors * predictors.array().abs().sum();
+			if(params.trainPredictors && params.regularizePredictors > 0.)
+				value += params.regularizePredictors * predictors.array().abs().sum();
 
-		if(params.trainWeights && params.regularizeWeights > 0.)
-			value += params.regularizeWeights * weights.array().abs().sum();
-	} else {
-		if(params.trainFeatures && params.regularizeFeatures > 0.)
-			value += params.regularizeFeatures * features.array().square().sum();
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				value += params.regularizeWeights * weights.array().abs().sum();
 
-		if(params.trainPredictors && params.regularizePredictors > 0.)
-			value += params.regularizePredictors * predictors.array().square().sum();
+			break;
 
-		if(params.trainWeights && params.regularizeWeights > 0.)
-			value += params.regularizeWeights * weights.array().square().sum();
+		case Parameters::L2:
+			if(params.trainFeatures && params.regularizeFeatures > 0.)
+				value += params.regularizeFeatures * features.array().square().sum();
+
+			if(params.trainPredictors && params.regularizePredictors > 0.)
+				value += params.regularizePredictors * predictors.array().square().sum();
+
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				value += params.regularizeWeights * weights.array().square().sum();
+			
+			break;
 	}
 
 	return value;

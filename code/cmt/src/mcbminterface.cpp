@@ -167,7 +167,7 @@ MCBM::Parameters PyObject_ToMCBMParameters(PyObject* parameters) {
 		PyObject* regularizer = PyDict_GetItemString(parameters, "regularizer");
 		if(regularizer)
 			if(PyString_Check(regularizer)) {
-				if(PyString_Size(regularizer) < 2)
+				if(PyString_Size(regularizer) != 2)
 					throw Exception("Regularizer should be 'L1' or 'L2'.");
 
 				if(PyString_AsString(regularizer)[1] == '1')
@@ -175,7 +175,7 @@ MCBM::Parameters PyObject_ToMCBMParameters(PyObject* parameters) {
 				else
 					params.regularizer = MCBM::Parameters::L2;
 			} else {
-				throw Exception("regularize_predictors should be of type `str`.");
+				throw Exception("regularizer should be of type `str`.");
 			}
 	}
 
@@ -482,21 +482,23 @@ const char* MCBM_train_doc =
 	"The following example demonstrates possible parameters and default settings.\n"
 	"\n"
 	"\t>>> model.train(input, output, parameters={\n"
-	"\t>>> \t'verbosity': 0\n"
-	"\t>>> \t'max_iter': 1000\n"
-	"\t>>> \t'threshold': 1e-5\n"
-	"\t>>> \t'num_grad': 20\n"
-	"\t>>> \t'batch_size': 2000\n"
-	"\t>>> \t'callback': None\n"
-	"\t>>> \t'cb_iter': 25\n"
-	"\t>>> \t'val_iter': 25\n"
-	"\t>>> \t'train_priors': True\n"
-	"\t>>> \t'train_weights': True\n"
-	"\t>>> \t'train_features': True\n"
-	"\t>>> \t'train_predictors': True\n"
-	"\t>>> \t'train_input_bias': True\n"
-	"\t>>> \t'train_output_bias': True\n"
-	"\t>>> \t'regularize_features': 0.\n"
+	"\t>>> \t'verbosity': 0,\n"
+	"\t>>> \t'max_iter': 1000,\n"
+	"\t>>> \t'threshold': 1e-5,\n"
+	"\t>>> \t'num_grad': 20,\n"
+	"\t>>> \t'batch_size': 2000,\n"
+	"\t>>> \t'callback': None,\n"
+	"\t>>> \t'cb_iter': 25,\n"
+	"\t>>> \t'val_iter': 25,\n"
+	"\t>>> \t'train_priors': True,\n"
+	"\t>>> \t'train_weights': True,\n"
+	"\t>>> \t'train_features': True,\n"
+	"\t>>> \t'train_predictors': True,\n"
+	"\t>>> \t'train_input_bias': True,\n"
+	"\t>>> \t'train_output_bias': True,\n"
+	"\t>>> \t'regularizer': 'L1',\n"
+	"\t>>> \t'regularize_features': 0.,\n"
+	"\t>>> \t'regularize_weights': 0.,\n"
 	"\t>>> \t'regularize_predictors': 0.\n"
 	"\t>>> })\n"
 	"\n"

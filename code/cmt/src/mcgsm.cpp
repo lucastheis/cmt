@@ -78,6 +78,7 @@ MCGSM::Parameters::Parameters() :
 	trainPredictors = true;
 	regularizeFeatures = 0.;
 	regularizePredictors = 0.;
+	regularizer = L1;
 }
 
 
@@ -91,7 +92,8 @@ MCGSM::Parameters::Parameters(const Parameters& params) :
 	trainCholeskyFactors(params.trainCholeskyFactors),
 	trainPredictors(params.trainPredictors),
 	regularizeFeatures(params.regularizeFeatures),
-	regularizePredictors(params.regularizePredictors)
+	regularizePredictors(params.regularizePredictors),
+	regularizer(params.regularizer)
 {
 }
 
@@ -113,6 +115,7 @@ MCGSM::Parameters& MCGSM::Parameters::operator=(const Parameters& params) {
 	trainPredictors = params.trainPredictors;
 	regularizeFeatures = params.regularizeFeatures;
 	regularizePredictors = params.regularizePredictors;
+	regularizer = params.regularizer;
 
 	return *this;
 }
@@ -153,7 +156,7 @@ MCGSM::MCGSM(
 
 
 
-MCGSM::MCGSM(int dimIn, int dimOut, const MCGSM& mcgsm) : 
+MCGSM::MCGSM(int dimIn, int dimOut, const MCGSM& mcgsm) :
 	mDimIn(dimIn),
 	mDimOut(dimOut),
 	mNumComponents(mcgsm.numComponents()),
@@ -930,24 +933,67 @@ double MCGSM::computeGradient(
 			g[i] /= normConst;
 
 		// regularization
-		if(params.trainFeatures && params.regularizeFeatures > 0.)
-			featuresGrad += params.regularizeFeatures * 2. * features;
+		switch(params.regularizer) {
+			case Parameters::L1:
+				if(params.trainFeatures && params.regularizeFeatures > 0.)
+					featuresGrad += params.regularizeFeatures * signum(features);
 
-		if(params.trainPredictors && params.regularizePredictors > 0.)
-			#pragma omp parallel for
-			for(int i = 0; i < mNumComponents; ++i)
-				predictorsGrad[i] += params.regularizePredictors * 2. * predictors[i];
+				if(params.trainWeights && params.regularizeWeights > 0.)
+					weightsGrad += params.regularizeWeights * signum(weights);
+
+				if(params.trainPredictors && params.regularizePredictors > 0.)
+					#pragma omp parallel for
+					for(int i = 0; i < mNumComponents; ++i)
+						predictorsGrad[i] += params.regularizePredictors * signum(predictors[i]);
+
+				break;
+
+			case Parameters::L2:
+				if(params.trainFeatures && params.regularizeFeatures > 0.)
+					featuresGrad += params.regularizeFeatures * 2. * features;
+
+				if(params.trainWeights && params.regularizeWeights > 0.)
+					weightsGrad += params.regularizeWeights * 2. * weights;
+
+				if(params.trainPredictors && params.regularizePredictors > 0.)
+					#pragma omp parallel for
+					for(int i = 0; i < mNumComponents; ++i)
+						predictorsGrad[i] += params.regularizePredictors * 2. * predictors[i];
+
+				break;
+		}
 	}
 
 	double value = -logLik / normConst;
 
 	// regularization
-	if(params.trainFeatures && params.regularizeFeatures > 0.)
-		value += params.regularizeFeatures * features.array().square().sum();
+	switch(params.regularizer) {
+		case Parameters::L1:
+			if(params.trainFeatures && params.regularizeFeatures > 0.)
+				value += params.regularizeFeatures * features.array().abs().sum();
 
-	if(params.trainPredictors && params.regularizePredictors > 0.)
-		for(int i = 0; i < mNumComponents; ++i)
-			value += params.regularizePredictors * predictors[i].array().square().sum();
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				value += params.regularizeWeights * weights.array().abs().sum();
+
+			if(params.trainPredictors && params.regularizePredictors > 0.)
+				for(int i = 0; i < mNumComponents; ++i)
+					value += params.regularizePredictors * predictors[i].array().abs().sum();
+
+			break;
+
+		case Parameters::L2:
+			if(params.trainFeatures && params.regularizeFeatures > 0.)
+				value += params.regularizeFeatures * features.array().square().sum();
+
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				value += params.regularizeWeights * weights.array().square().sum();
+
+			if(params.trainPredictors && params.regularizePredictors > 0.)
+				for(int i = 0; i < mNumComponents; ++i)
+					value += params.regularizePredictors * predictors[i].array().square().sum();
+
+			break;
+	}
 
 	// return negative penalized average log-likelihood
 	return value;

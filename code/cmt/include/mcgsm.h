@@ -23,6 +23,8 @@ class MCGSM : public ConditionalDistribution {
 	public:
 		struct Parameters : public ConditionalDistribution::Parameters {
 			public:
+				enum Regularizer { L1, L2 };
+
 				bool trainPriors;
 				bool trainScales;
 				bool trainWeights;
@@ -31,6 +33,8 @@ class MCGSM : public ConditionalDistribution {
 				bool trainPredictors;
 				double regularizeFeatures;
 				double regularizePredictors;
+				double regularizeWeights;
+				Regularizer regularizer;
 
 				Parameters();
 				Parameters(const Parameters& params);
