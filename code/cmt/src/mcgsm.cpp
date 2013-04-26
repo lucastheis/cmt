@@ -376,6 +376,18 @@ bool MCGSM::train(
 	// copy parameters back
 	setParameters(x, params);
 
+	if(inputVal && outputVal && instance.parameters) {
+		double logLoss = evaluate(*inputVal, *outputVal);
+
+		// use parameters which minimize the validation error
+		setParameters(instance.parameters, params);
+
+		// check that they really give a smaller validation error
+		if(evaluate(*inputVal, *outputVal) > logLoss)
+			// otherwise, use other parameters after all
+			setParameters(x, params);
+	}
+
 	// free memory used by LBFGS
 	lbfgs_free(x);
 
