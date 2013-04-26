@@ -681,13 +681,13 @@ PyObject* MCGSM_train(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 			converged = self->mcgsm->train(
 				PyArray_ToMatrixXd(input),
 				PyArray_ToMatrixXd(output),
+				PyArray_ToMatrixXd(input_val),
+				PyArray_ToMatrixXd(output_val),
 				PyObject_ToMCGSMParameters(parameters));
 		} else {
 			converged = self->mcgsm->train(
 				PyArray_ToMatrixXd(input),
 				PyArray_ToMatrixXd(output),
-				PyArray_ToMatrixXd(input_val),
-				PyArray_ToMatrixXd(output_val),
 				PyObject_ToMCGSMParameters(parameters));
 		}
 

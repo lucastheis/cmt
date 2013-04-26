@@ -25,9 +25,6 @@ using std::setprecision;
 #include <limits>
 using std::numeric_limits;
 
-#include <cstring>
-using std::memcpy;
-
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, 1> > VectorLBFGS;
 

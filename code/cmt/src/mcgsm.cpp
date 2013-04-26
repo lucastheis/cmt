@@ -1,21 +1,31 @@
 #include "mcgsm.h"
 #include "utils.h"
-#include "Eigen/Eigenvalues"
 #include <sys/time.h>
-#include <cmath>
 #include <cstdlib>
 #include <utility>
+
+#include "Eigen/Core"
+using Eigen::Matrix;
+using Eigen::Array;
+using Eigen::ArrayXd;
+using Eigen::Map;
+
+#include <cmath>
+using std::min;
+
+#include "Eigen/Eigenvalues"
+using Eigen::SelfAdjointEigenSolver;
 
 #include <limits>
 using std::numeric_limits;
 
 #include <iomanip>
+using std::setw;
+using std::setprecision;
+
 #include <iostream>
 using std::cout;
 using std::endl;
-
-using namespace std;
-using namespace Eigen;
 
 typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
 
