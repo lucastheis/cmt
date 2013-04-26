@@ -323,7 +323,7 @@ bool MCGSM::train(
 		const MatrixXd& output,
 		const Parameters& params)
 {
-	train(input, output, 0, 0, params);
+	return train(input, output, 0, 0, params);
 }
 
 
@@ -335,7 +335,7 @@ bool MCGSM::train(
 		const MatrixXd& outputVal,
 		const Parameters& params)
 {
-	train(input, output, &inputVal, &outputVal, params);
+	return train(input, output, &inputVal, &outputVal, params);
 }
 
 
