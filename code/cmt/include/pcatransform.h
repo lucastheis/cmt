@@ -9,11 +9,11 @@ namespace CMT {
 			PCATransform(
 				const ArrayXXd& input,
 				const ArrayXXd& output,
-				double varExplained = 99.0,
+				double varExplained = 99.,
 				int numPCs = -1);
 			PCATransform(
 				const ArrayXXd& input,
-				double varExplained = 99.0,
+				double varExplained = 99.,
 				int numPCs = -1,
 				int dimOut = 1);
 			PCATransform(

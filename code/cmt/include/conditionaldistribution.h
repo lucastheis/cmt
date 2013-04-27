@@ -46,9 +46,12 @@ class ConditionalDistribution {
 		virtual int dimOut() const = 0;
 		virtual MatrixXd sample(const MatrixXd& input) const = 0;
 		virtual Array<double, 1, Dynamic> logLikelihood(
+			const pair<ArrayXXd, ArrayXXd>& data) const;
+		virtual Array<double, 1, Dynamic> logLikelihood(
 			const MatrixXd& input,
 			const MatrixXd& output) const = 0;
 		virtual double evaluate(const MatrixXd& input, const MatrixXd& output) const;
+		virtual double evaluate(const pair<ArrayXXd, ArrayXXd>& data) const;
 
 		virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
 			const MatrixXd& input,

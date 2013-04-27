@@ -73,6 +73,7 @@ modules = [
 			'code/cmt/src/module.cpp',
 			'code/cmt/src/pcapreconditioner.cpp',
 			'code/cmt/src/pcatransform.cpp',
+			'code/cmt/src/preconditioner.cpp',
 			'code/cmt/src/preconditionerinterface.cpp',
 			'code/cmt/src/pyutils.cpp',
 			'code/cmt/src/tools.cpp',

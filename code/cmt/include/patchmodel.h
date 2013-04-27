@@ -163,7 +163,7 @@ ArrayXXb PatchModel<CD>::outputMask() const {
 
 template <class CD>
 CD& PatchModel<CD>::operator()(int i, int j) {
-	if(j >= mCols || i >= mRows)
+	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
 		throw Exception("Invalid indices.");
 	return mConditionalDistributions[i * mCols + j];
 }
@@ -172,7 +172,7 @@ CD& PatchModel<CD>::operator()(int i, int j) {
 
 template <class CD>
 const CD& PatchModel<CD>::operator()(int i, int j) const {
-	if(j >= mCols || i >= mRows)
+	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
 		throw Exception("Invalid indices.");
 	return mConditionalDistributions[i * mCols + j];
 }
@@ -249,8 +249,10 @@ void PatchModel<CD>::initialize(const MatrixXd& data, const Parameters& params) 
 			// train one model
 			mConditionalDistributions[i].initialize(input, output);
 			mConditionalDistributions[i].train(
+				// training set
 				input.leftCols(numTrain),
 				output.leftCols(numTrain),
+				// validation set
 				input.rightCols(numValid),
 				output.rightCols(numValid),
 				params);

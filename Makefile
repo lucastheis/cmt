@@ -45,6 +45,7 @@ SOURCES = \
 	$(SRCDIR)/module.cpp \
 	$(SRCDIR)/pcapreconditioner.cpp \
 	$(SRCDIR)/pcatransform.cpp \
+	$(SRCDIR)/preconditioner.cpp \
 	$(SRCDIR)/preconditionerinterface.cpp \
 	$(SRCDIR)/pyutils.cpp \
 	$(SRCDIR)/tools.cpp \
