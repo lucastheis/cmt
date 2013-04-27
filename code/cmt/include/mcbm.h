@@ -5,6 +5,9 @@ using Eigen::VectorXd;
 using Eigen::MatrixXd;
 using Eigen::ArrayXXd;
 
+#include <map>
+using std::pair;
+
 #include "conditionaldistribution.h"
 #include "exception.h"
 #include "lbfgs.h"
@@ -82,6 +85,13 @@ class MCBM : public ConditionalDistribution {
 			const MatrixXd& output,
 			const MatrixXd& inputVal,
 			const MatrixXd& outputVal,
+			const Parameters& params = Parameters());
+		virtual bool train(
+			const pair<ArrayXXd, ArrayXXd>& data,
+			const Parameters& params = Parameters());
+		virtual bool train(
+			const pair<ArrayXXd, ArrayXXd>& data,
+			const pair<ArrayXXd, ArrayXXd>& dataVal,
 			const Parameters& params = Parameters());
 
 		lbfgsfloatval_t* parameters(const Parameters& params) const;

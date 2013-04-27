@@ -341,6 +341,30 @@ bool MCGSM::train(
 
 
 bool MCGSM::train(
+	const pair<ArrayXXd, ArrayXXd>& data,
+	const Parameters& params)
+{
+	return train(data.first, data.second, 0, 0, params);
+}
+
+
+
+bool MCGSM::train(
+	const pair<ArrayXXd, ArrayXXd>& data,
+	const pair<ArrayXXd, ArrayXXd>& dataVal,
+	const Parameters& params)
+{
+	return train(
+		data.first,
+		data.second,
+		dataVal.first,
+		dataVal.second,
+		params);
+}
+
+
+
+bool MCGSM::train(
 		const MatrixXd& input,
 		const MatrixXd& output,
 		const MatrixXd* inputVal,

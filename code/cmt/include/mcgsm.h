@@ -88,6 +88,13 @@ class MCGSM : public ConditionalDistribution {
 			const MatrixXd& inputVal,
 			const MatrixXd& outputVal,
 			const Parameters& params = Parameters());
+		virtual bool train(
+			const pair<ArrayXXd, ArrayXXd>& data,
+			const Parameters& params = Parameters());
+		virtual bool train(
+			const pair<ArrayXXd, ArrayXXd>& data,
+			const pair<ArrayXXd, ArrayXXd>& dataVal,
+			const Parameters& params = Parameters());
 
 		virtual double checkGradient(
 			const MatrixXd& input,
