@@ -291,7 +291,10 @@ MatrixXd MCBM::sample(const MatrixXd& input) const {
 
 
 
-Array<double, 1, Dynamic> MCBM::logLikelihood(const MatrixXd& input, const MatrixXd& output) const {
+Array<double, 1, Dynamic> MCBM::logLikelihood(
+	const MatrixXd& input,
+	const MatrixXd& output) const 
+{
 	if(mDimIn) {
 		// some intermediate computations
 		ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
@@ -330,14 +333,6 @@ Array<double, 1, Dynamic> MCBM::logLikelihood(const MatrixXd& input, const Matri
 
 		return output.array() * logProb1 + (1. - output.array()) * logProb0;
 	}
-}
-
-
-
-Array<double, 1, Dynamic> MCBM::logLikelihood(
-	const pair<ArrayXXd, ArrayXXd>& data) const
-{
-	return logLikelihood(data.first, data.second);
 }
 
 

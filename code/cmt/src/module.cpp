@@ -362,12 +362,16 @@ static PyGetSetDef PatchMCBM_getset[] = {
 	{"cols", (getter)PatchMCBM_cols, 0, "Number of columns of the modeled patches."},
 	{"input_mask", (getter)PatchMCBM_input_mask, 0, "A Boolean mask defining the input to each conditional distribution."},
 	{"output_mask", (getter)PatchMCBM_output_mask, 0, "A Boolean mask defining the output relative to the input."},
+	{"preconditioners", 
+		(getter)PatchMCBM_preconditioners,
+		(setter)PatchMCBM_set_preconditioners,
+		"A dictionary containing all preconditioners."},
 	{0}
 };
 
 static PyMethodDef PatchMCBM_methods[] = {
-	{"initialize", (PyCFunction)PatchMCBM_initialize, METH_VARARGS|METH_KEYWORDS, PatchMCBM_initialize_doc},
-	{"train", (PyCFunction)PatchMCBM_train, METH_VARARGS|METH_KEYWORDS, PatchMCBM_train_doc},
+	{"initialize", (PyCFunction)PatchMCBM_initialize, METH_KEYWORDS, PatchMCBM_initialize_doc},
+	{"train", (PyCFunction)PatchMCBM_train, METH_KEYWORDS, PatchMCBM_train_doc},
 	{"preconditioner", (PyCFunction)PatchMCBM_preconditioner, METH_VARARGS, 0},
 	{"__reduce__", (PyCFunction)PatchMCBM_reduce, METH_NOARGS, PatchMCBM_reduce_doc},
 	{"__setstate__", (PyCFunction)PatchMCBM_setstate, METH_VARARGS, PatchMCBM_setstate_doc},

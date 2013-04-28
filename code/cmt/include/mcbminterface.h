@@ -45,28 +45,28 @@ extern const char* PatchMCBM_setstate_doc;
 
 int MCBM_init(MCBMObject*, PyObject*, PyObject*);
 
-PyObject* MCBM_dim_in(MCBMObject*, PyObject*, void*);
-PyObject* MCBM_dim_out(MCBMObject*, PyObject*, void*);
+PyObject* MCBM_dim_in(MCBMObject*, void*);
+PyObject* MCBM_dim_out(MCBMObject*, void*);
 
-PyObject* MCBM_num_components(MCBMObject*, PyObject*, void*);
-PyObject* MCBM_num_features(MCBMObject*, PyObject*, void*);
+PyObject* MCBM_num_components(MCBMObject*, void*);
+PyObject* MCBM_num_features(MCBMObject*, void*);
 
-PyObject* MCBM_priors(MCBMObject*, PyObject*, void*);
+PyObject* MCBM_priors(MCBMObject*, void*);
 int MCBM_set_priors(MCBMObject*, PyObject*, void*);
 
-PyObject* MCBM_weights(MCBMObject*, PyObject*, void*);
+PyObject* MCBM_weights(MCBMObject*, void*);
 int MCBM_set_weights(MCBMObject*, PyObject*, void*);
 
-PyObject* MCBM_features(MCBMObject*, PyObject*, void*);
+PyObject* MCBM_features(MCBMObject*, void*);
 int MCBM_set_features(MCBMObject*, PyObject*, void*);
 
-PyObject* MCBM_predictors(MCBMObject*, PyObject*, void*);
+PyObject* MCBM_predictors(MCBMObject*, void*);
 int MCBM_set_predictors(MCBMObject*, PyObject*, void*);
 
-PyObject* MCBM_input_bias(MCBMObject*, PyObject*, void*);
+PyObject* MCBM_input_bias(MCBMObject*, void*);
 int MCBM_set_input_bias(MCBMObject*, PyObject*, void*);
 
-PyObject* MCBM_output_bias(MCBMObject*, PyObject*, void*);
+PyObject* MCBM_output_bias(MCBMObject*, void*);
 int MCBM_set_output_bias(MCBMObject*, PyObject*, void*);
 
 PyObject* MCBM_train(MCBMObject*, PyObject*, PyObject*);
@@ -76,25 +76,27 @@ PyObject* MCBM_set_parameters(MCBMObject*, PyObject*, PyObject*);
 PyObject* MCBM_compute_gradient(MCBMObject*, PyObject*, PyObject*);
 PyObject* MCBM_check_gradient(MCBMObject*, PyObject*, PyObject*);
 
-PyObject* MCBM_reduce(MCBMObject*, PyObject*, PyObject*);
-PyObject* MCBM_setstate(MCBMObject*, PyObject*, PyObject*);
+PyObject* MCBM_reduce(MCBMObject*, PyObject*);
+PyObject* MCBM_setstate(MCBMObject*, PyObject*);
 
 int PatchMCBM_init(PatchMCBMObject*, PyObject*, PyObject*);
 
-PyObject* PatchMCBM_rows(PatchMCBMObject*, PyObject*, void*);
-PyObject* PatchMCBM_cols(PatchMCBMObject*, PyObject*, void*);
-PyObject* PatchMCBM_input_mask(PatchMCBMObject*, PyObject*, void*);
-PyObject* PatchMCBM_output_mask(PatchMCBMObject*, PyObject*, void*);
+PyObject* PatchMCBM_rows(PatchMCBMObject*, void*);
+PyObject* PatchMCBM_cols(PatchMCBMObject*, void*);
+PyObject* PatchMCBM_input_mask(PatchMCBMObject*, void*);
+PyObject* PatchMCBM_output_mask(PatchMCBMObject*, void*);
 
 PyObject* PatchMCBM_subscript(PatchMCBMObject*, PyObject*);
 int PatchMCBM_ass_subscript(PatchMCBMObject*, PyObject*, PyObject*);
 
-PyObject* PatchMCBM_preconditioner(PatchMCBMObject*, PyObject*, PyObject*);
+PyObject* PatchMCBM_preconditioner(PatchMCBMObject*, PyObject*);
+PyObject* PatchMCBM_preconditioners(PatchMCBMObject*, void*);
+int PatchMCBM_set_preconditioners(PatchMCBMObject*, PyObject*, void*);
 
 PyObject* PatchMCBM_initialize(PatchMCBMObject*, PyObject*, PyObject*);
 PyObject* PatchMCBM_train(PatchMCBMObject*, PyObject*, PyObject*);
 
-PyObject* PatchMCBM_reduce(PatchMCBMObject*, PyObject*, PyObject*);
-PyObject* PatchMCBM_setstate(PatchMCBMObject*, PyObject*, PyObject*);
+PyObject* PatchMCBM_reduce(PatchMCBMObject*, PyObject*);
+PyObject* PatchMCBM_setstate(PatchMCBMObject*, PyObject*);
 
 #endif

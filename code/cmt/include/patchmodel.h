@@ -41,6 +41,7 @@ class PatchModel : public Distribution {
 		int dim() const;
 		int rows() const;
 		int cols() const;
+		int maxPCs() const;
 		ArrayXXb inputMask() const;
 		ArrayXXb outputMask() const;
 
@@ -49,6 +50,7 @@ class PatchModel : public Distribution {
 
 		PC& preconditioner(int i, int j);
 		const PC& preconditioner(int i, int j) const;
+		void setPreconditioner(int i, int j, const PC& preconditioner);
 
 		void initialize(const MatrixXd& data, const Parameters& params = Parameters());
 
@@ -178,6 +180,13 @@ int PatchModel<CD, PC>::cols() const {
 
 
 template <class CD, class PC>
+int PatchModel<CD, PC>::maxPCs() const {
+	return mMaxPCs;
+}
+
+
+
+template <class CD, class PC>
 ArrayXXb PatchModel<CD, PC>::inputMask() const {
 	return mInputMask;
 }
@@ -232,6 +241,30 @@ const PC& PatchModel<CD, PC>::preconditioner(int i, int j) const {
 
 
 template <class CD, class PC>
+void PatchModel<CD, PC>::setPreconditioner(int i, int j, const PC& preconditioner) {
+	if(mMaxPCs < 0)
+		return;
+
+	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
+		throw Exception("Invalid indices.");
+
+	int index = i * mCols + j;
+
+	if(preconditioner.dimIn() != mInputIndices[index].size() ||
+		preconditioner.dimInPre() != mConditionalDistributions[index].dimIn() ||
+		preconditioner.dimOutPre() != mConditionalDistributions[index].dimOut())
+		throw Exception("Preconditioner is incompatible with model.");
+
+	PC* preconditionerOld = mPreconditioners[index];
+	mPreconditioners[index] = new PC(preconditioner);
+	
+	if(preconditionerOld)
+		delete preconditionerOld;
+}
+
+
+
+template <class CD, class PC>
 void PatchModel<CD, PC>::initialize(const MatrixXd& data, const Parameters& params) {
 	Tuples inputIndices = maskToIndices(mInputMask);
 
@@ -261,9 +294,13 @@ void PatchModel<CD, PC>::initialize(const MatrixXd& data, const Parameters& para
 			input.row(j) = data.row(m * mCols + n);
 		}
 
-		if(mMaxPCs >= 0)
+		if(mMaxPCs >= 0) {
+			if(mPreconditioners[i])
+				// delete existing preconditioner
+				delete mPreconditioners[i];
 			// create preconditioner
 			mPreconditioners[i] = new PC(input, output, 0., mMaxPCs);
+		}
 
 		// check whether causal neighboor fits completely into image patch
 		if(mInputIndices[i].size() == inputIndices.size()) {

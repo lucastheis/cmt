@@ -31,6 +31,27 @@ CMT::PCATransform::PCATransform(
 
 
 
+CMT::PCATransform::PCATransform(
+	const VectorXd& eigenvalues,
+	const VectorXd& meanIn,
+	const MatrixXd& preIn,
+	const MatrixXd& preInInv,
+	int dimOut) :
+	AffineTransform(meanIn, preIn, preInInv, dimOut),
+	mEigenvalues(eigenvalues)
+{
+}
+
+
+
+CMT::PCATransform::PCATransform(const PCATransform& transform) :
+	AffineTransform(transform),
+	mEigenvalues(transform.mEigenvalues)
+{
+}
+
+
+
 void CMT::PCATransform::initialize(
 	const ArrayXXd& input,
 	double varExplained,
@@ -75,17 +96,4 @@ void CMT::PCATransform::initialize(
 		eigenSolver.eigenvectors().rightCols(numPCs).transpose();
 	mPreInInv = eigenSolver.eigenvectors().rightCols(numPCs) *
 		mEigenvalues.tail(numPCs).cwiseSqrt().asDiagonal();
-}
-
-
-
-CMT::PCATransform::PCATransform(
-	const VectorXd& eigenvalues,
-	const VectorXd& meanIn,
-	const MatrixXd& preIn,
-	const MatrixXd& preInInv,
-	int dimOut) :
-	AffineTransform(meanIn, preIn, preInInv, dimOut),
-	mEigenvalues(eigenvalues)
-{
 }

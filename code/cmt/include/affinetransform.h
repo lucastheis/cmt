@@ -12,6 +12,7 @@ namespace CMT {
 				const MatrixXd& preIn,
 				const MatrixXd& preInInv,
 				int dimOut = 1);
+			AffineTransform(const AffineTransform& transform);
 
 			using AffinePreconditioner::operator();
 			using AffinePreconditioner::inverse;

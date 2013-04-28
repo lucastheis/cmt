@@ -219,16 +219,21 @@ class Tests(unittest.TestCase):
 
 		model = PatchMCBM(2, 2, xmask, ymask)
 
-		samples = model.sample(1000)
+		samples = model.sample(10000)
 
 		self.assertFalse(isnan(mean(model.loglikelihood(samples))))
 
 		model = PatchMCBM(2, 2, xmask, ymask, max_pcs=2)
 		model.initialize(samples)
 
-		samples = model.sample(100)
+		logLik = mean(model.loglikelihood(samples))
 
-		self.assertFalse(isnan(mean(model.loglikelihood(samples))))
+		preconditioners = model.preconditioners
+		model.preconditioners = preconditioners
+
+		self.assertAlmostEqual(mean(model.loglikelihood(samples)), logLik)
+
+		samples = model.sample(100)
 
 
 
@@ -262,6 +267,8 @@ class Tests(unittest.TestCase):
 
 		model0 = PatchMCBM(2, 2, xmask, ymask)
 
+		samples = model0.sample(1000)
+
 		tmp_file = mkstemp()[1]
 
 		# store model
@@ -281,6 +288,42 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(model0[0, 1].predictors - model1[0, 1].predictors)), 1e-20)
 		self.assertLess(max(abs(model0[1, 1].input_bias - model1[1, 1].input_bias)), 1e-20)
 		self.assertLess(max(abs(model0[1, 1].output_bias - model1[1, 1].output_bias)), 1e-20)
+
+		model0 = PatchMCBM(2, 2, xmask, ymask, max_pcs=3)
+
+		tmp_file = mkstemp()[1]
+
+		# store model
+		with open(tmp_file, 'w') as handle:
+			dump({'model': model0}, handle)
+
+		# load model
+		with open(tmp_file) as handle:
+			model1 = load(handle)['model']
+
+		# make sure parameters haven't changed
+		self.assertEqual(model0.rows, model1.rows)
+		self.assertEqual(model0.cols, model1.cols)
+		self.assertLess(max(abs(model0[0, 0].priors - model1[0, 0].priors)), 1e-20)
+		self.assertLess(max(abs(model0[1, 0].weights - model1[1, 0].weights)), 1e-20)
+		self.assertLess(max(abs(model0[1, 0].features - model1[1, 0].features)), 1e-20)
+		self.assertLess(max(abs(model0[0, 1].predictors - model1[0, 1].predictors)), 1e-20)
+		self.assertLess(max(abs(model0[1, 1].input_bias - model1[1, 1].input_bias)), 1e-20)
+		self.assertLess(max(abs(model0[1, 1].output_bias - model1[1, 1].output_bias)), 1e-20)
+
+		model0.initialize(samples)
+
+		logLik = mean(model0.loglikelihood(samples))
+
+		# store model
+		with open(tmp_file, 'w') as handle:
+			dump({'model': model0}, handle)
+
+		# load model
+		with open(tmp_file) as handle:
+			model1 = load(handle)['model']
+
+		self.assertAlmostEqual(mean(model1.loglikelihood(samples)), logLik)
 
 
 

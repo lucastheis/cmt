@@ -247,31 +247,31 @@ int MCBM_init(MCBMObject* self, PyObject* args, PyObject* kwds) {
 
 
 
-PyObject* MCBM_dim_in(MCBMObject* self, PyObject*, void*) {
+PyObject* MCBM_dim_in(MCBMObject* self, void*) {
 	return PyInt_FromLong(self->mcbm->dimIn());
 }
 
 
 
-PyObject* MCBM_dim_out(MCBMObject* self, PyObject*, void*) {
+PyObject* MCBM_dim_out(MCBMObject* self, void*) {
 	return PyInt_FromLong(self->mcbm->dimOut());
 }
 
 
 
-PyObject* MCBM_num_components(MCBMObject* self, PyObject*, void*) {
+PyObject* MCBM_num_components(MCBMObject* self, void*) {
 	return PyInt_FromLong(self->mcbm->numComponents());
 }
 
 
 
-PyObject* MCBM_num_features(MCBMObject* self, PyObject*, void*) {
+PyObject* MCBM_num_features(MCBMObject* self, void*) {
 	return PyInt_FromLong(self->mcbm->numFeatures());
 }
 
 
 
-PyObject* MCBM_priors(MCBMObject* self, PyObject*, void*) {
+PyObject* MCBM_priors(MCBMObject* self, void*) {
 	PyObject* array = PyArray_FromMatrixXd(self->mcbm->priors());
 
 	// make array immutable
@@ -305,7 +305,7 @@ int MCBM_set_priors(MCBMObject* self, PyObject* value, void*) {
 
 
 
-PyObject* MCBM_weights(MCBMObject* self, PyObject*, void*) {
+PyObject* MCBM_weights(MCBMObject* self, void*) {
 	PyObject* array = PyArray_FromMatrixXd(self->mcbm->weights());
 
 	// make array immutable
@@ -339,7 +339,7 @@ int MCBM_set_weights(MCBMObject* self, PyObject* value, void*) {
 
 
 
-PyObject* MCBM_features(MCBMObject* self, PyObject*, void*) {
+PyObject* MCBM_features(MCBMObject* self, void*) {
 	PyObject* array = PyArray_FromMatrixXd(self->mcbm->features());
 
 	// make array immutable
@@ -373,7 +373,7 @@ int MCBM_set_features(MCBMObject* self, PyObject* value, void*) {
 
 
 
-PyObject* MCBM_predictors(MCBMObject* self, PyObject*, void*) {
+PyObject* MCBM_predictors(MCBMObject* self, void*) {
 	PyObject* array = PyArray_FromMatrixXd(self->mcbm->predictors());
 
 	// make array immutable
@@ -407,7 +407,7 @@ int MCBM_set_predictors(MCBMObject* self, PyObject* value, void*) {
 
 
 
-PyObject* MCBM_input_bias(MCBMObject* self, PyObject*, void*) {
+PyObject* MCBM_input_bias(MCBMObject* self, void*) {
 	PyObject* array = PyArray_FromMatrixXd(self->mcbm->inputBias());
 
 	// make array immutable
@@ -441,7 +441,7 @@ int MCBM_set_input_bias(MCBMObject* self, PyObject* value, void*) {
 
 
 
-PyObject* MCBM_output_bias(MCBMObject* self, PyObject*, void*) {
+PyObject* MCBM_output_bias(MCBMObject* self, void*) {
 	PyObject* array = PyArray_FromMatrixXd(self->mcbm->outputBias());
 
 	// make array immutable
@@ -845,7 +845,7 @@ const char* MCBM_reduce_doc =
 	"\n"
 	"Method used by Pickle.";
 
-PyObject* MCBM_reduce(MCBMObject* self, PyObject*, PyObject*) {
+PyObject* MCBM_reduce(MCBMObject* self, PyObject*) {
 	// constructor arguments
 	PyObject* args = Py_BuildValue("(iii)", 
 		self->mcbm->dimIn(),
@@ -853,12 +853,12 @@ PyObject* MCBM_reduce(MCBMObject* self, PyObject*, PyObject*) {
 		self->mcbm->numFeatures());
 
 	// parameters
-	PyObject* priors = MCBM_priors(self, 0, 0);
-	PyObject* weights = MCBM_weights(self, 0, 0);
-	PyObject* features = MCBM_features(self, 0, 0);
-	PyObject* predictors = MCBM_predictors(self, 0, 0);
-	PyObject* input_bias = MCBM_input_bias(self, 0, 0);
-	PyObject* output_bias = MCBM_output_bias(self, 0, 0);
+	PyObject* priors = MCBM_priors(self, 0);
+	PyObject* weights = MCBM_weights(self, 0);
+	PyObject* features = MCBM_features(self, 0);
+	PyObject* predictors = MCBM_predictors(self, 0);
+	PyObject* input_bias = MCBM_input_bias(self, 0);
+	PyObject* output_bias = MCBM_output_bias(self, 0);
 
 	PyObject* state = Py_BuildValue("(OOOOOO)", 
 		priors, weights, features, predictors, input_bias, output_bias);
@@ -885,7 +885,7 @@ const char* MCBM_setstate_doc =
 	"\n"
 	"Method used by Pickle.";
 
-PyObject* MCBM_setstate(MCBMObject* self, PyObject* state, PyObject*) {
+PyObject* MCBM_setstate(MCBMObject* self, PyObject* state) {
 	PyObject* priors;
 	PyObject* weights;
 	PyObject* features;
@@ -943,13 +943,21 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 	int cols;
 	PyObject* xmask;
 	PyObject* ymask;
-	MCBMObject* model = 0;
+	PyObject* model = 0;
 	int max_pcs = -1;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiOO|O!i", const_cast<char**>(kwlist),
-		&rows, &cols, &xmask, &ymask, &MCBM_type, &model, &max_pcs))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiOO|Oi", const_cast<char**>(kwlist),
+		&rows, &cols, &xmask, &ymask, &model, &max_pcs))
 		return -1;
+
+	if(model == Py_None)
+		model = 0;
+
+	if(model && !PyType_IsSubtype(Py_TYPE(model), &MCBM_type)) {
+		PyErr_SetString(PyExc_TypeError, "Model has to be of type `MCBM`.");
+		return 0;
+	}
 
 	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
@@ -968,7 +976,7 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 			cols,
 			PyArray_ToMatrixXb(xmask),
 			PyArray_ToMatrixXb(ymask),
-			model ? model->mcbm : 0,
+			model ? reinterpret_cast<MCBMObject*>(model)->mcbm : 0,
 			max_pcs);
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
@@ -980,19 +988,19 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 
 
 
-PyObject* PatchMCBM_rows(PatchMCBMObject* self, PyObject*, void*) {
+PyObject* PatchMCBM_rows(PatchMCBMObject* self, void*) {
 	return PyInt_FromLong(self->patchMCBM->rows());
 }
 
 
 
-PyObject* PatchMCBM_cols(PatchMCBMObject* self, PyObject*, void*) {
+PyObject* PatchMCBM_cols(PatchMCBMObject* self, void*) {
 	return PyInt_FromLong(self->patchMCBM->cols());
 }
 
 
 
-PyObject* PatchMCBM_input_mask(PatchMCBMObject* self, PyObject*, void*) {
+PyObject* PatchMCBM_input_mask(PatchMCBMObject* self, void*) {
 	PyObject* array = PyArray_FromMatrixXb(self->patchMCBM->inputMask());
 
 	// make array immutable
@@ -1003,7 +1011,7 @@ PyObject* PatchMCBM_input_mask(PatchMCBMObject* self, PyObject*, void*) {
 
 
 
-PyObject* PatchMCBM_output_mask(PatchMCBMObject* self, PyObject*, void*) {
+PyObject* PatchMCBM_output_mask(PatchMCBMObject* self, void*) {
 	PyObject* array = PyArray_FromMatrixXb(self->patchMCBM->outputMask());
 
 	// make array immutable
@@ -1064,7 +1072,7 @@ int PatchMCBM_ass_subscript(PatchMCBMObject* self, PyObject* key, PyObject* valu
 
 
 
-PyObject* PatchMCBM_preconditioner(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
+PyObject* PatchMCBM_preconditioner(PatchMCBMObject* self, PyObject* args) {
 	const char* kwlist[] = {"i", "j", 0};
 
 	int i;
@@ -1086,6 +1094,71 @@ PyObject* PatchMCBM_preconditioner(PatchMCBMObject* self, PyObject* args, PyObje
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}
+
+	return 0;
+}
+
+
+
+PyObject* PatchMCBM_preconditioners(PatchMCBMObject* self, void*) {
+	if(self->patchMCBM->maxPCs() < 0)
+		return PyDict_New();
+
+	PyObject* preconditioners = PyDict_New();
+
+	for(int i = 0; i < self->patchMCBM->rows(); ++i) {
+		for(int j = 0; j < self->patchMCBM->cols(); ++j) {
+			PyObject* index = Py_BuildValue("(ii)", i, j);
+			PyObject* preconditioner = PatchMCBM_preconditioner(self, index);
+
+			if(!preconditioner) {
+				PyErr_Clear();
+				Py_DECREF(index);
+				continue;
+			}
+
+			PyDict_SetItem(preconditioners, index, preconditioner);
+
+			Py_DECREF(index);
+			Py_DECREF(preconditioner);
+		}
+	}
+
+	return preconditioners;
+}
+
+
+
+int PatchMCBM_set_preconditioners(PatchMCBMObject* self, PyObject* value, void*) {
+	if(!PyDict_Check(value)) {
+		PyErr_SetString(PyExc_RuntimeError, "Preconditioners have to be stored in a dictionary."); 
+		return -1;
+	}
+
+	for(int i = 0; i < self->patchMCBM->rows(); ++i)
+		for(int j = 0; j < self->patchMCBM->cols(); ++j) {
+			PyObject* index = Py_BuildValue("(ii)", i, j);
+			PyObject* preconditioner = PyDict_GetItem(value, index);
+
+			if(!preconditioner)
+				continue;
+
+			if(!PyType_IsSubtype(Py_TYPE(preconditioner), &PCATransform_type)) {
+				PyErr_SetString(PyExc_RuntimeError,
+					"All preconditioners must be of type `PCATransform`.");
+				return -1;
+			}
+
+			try {
+				self->patchMCBM->setPreconditioner(i, j,
+					*reinterpret_cast<PCATransformObject*>(preconditioner)->preconditioner);
+			} catch(Exception exception) {
+				PyErr_SetString(PyExc_RuntimeError, exception.message());
+				return -1;
+			}
+
+			Py_DECREF(index);
+		}
 
 	return 0;
 }
@@ -1242,25 +1315,28 @@ const char* PatchMCBM_reduce_doc =
 	"\n"
 	"Method used by Pickle.";
 
-PyObject* PatchMCBM_reduce(PatchMCBMObject* self, PyObject*, PyObject*) {
+PyObject* PatchMCBM_reduce(PatchMCBMObject* self, PyObject*) {
 	int rows = self->patchMCBM->rows();
 	int cols = self->patchMCBM->cols();
+	int maxPCs = self->patchMCBM->maxPCs();
 
-	PyObject* inputMask = PatchMCBM_input_mask(self, 0, 0);
-	PyObject* outputMask = PatchMCBM_output_mask(self, 0, 0);
+	PyObject* inputMask = PatchMCBM_input_mask(self, 0);
+	PyObject* outputMask = PatchMCBM_output_mask(self, 0);
 
 	// constructor arguments
-	PyObject* args = Py_BuildValue("(iiOO)",
+	PyObject* args = Py_BuildValue("(iiOOOi)",
 		rows,
 		cols,
 		inputMask,
-		outputMask);
+		outputMask,
+		Py_None,
+		maxPCs);
 	
 	Py_DECREF(inputMask);
 	Py_DECREF(outputMask);
 
 	// parameters
-	PyObject* state = PyTuple_New(self->patchMCBM->dim());
+	PyObject* models = PyTuple_New(self->patchMCBM->dim());
 
 	for(int i = 0; i < rows; ++i)
 		for(int j = 0; j < cols; ++j) {
@@ -1268,13 +1344,17 @@ PyObject* PatchMCBM_reduce(PatchMCBMObject* self, PyObject*, PyObject*) {
 			PyObject* mcbm = PatchMCBM_subscript(self, index);
 
 			// add MCBM to list of models
-			PyTuple_SetItem(state, i * cols + j, mcbm);
+			PyTuple_SetItem(models, i * cols + j, mcbm);
 
 			Py_DECREF(index);
 		}
 
+	PyObject* preconditioners = PatchMCBM_preconditioners(self, 0);
+
+	PyObject* state = Py_BuildValue("(OO)", models, preconditioners);
 	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
 
+	Py_DECREF(preconditioners);
 	Py_DECREF(args);
 	Py_DECREF(state);
 
@@ -1288,13 +1368,16 @@ const char* PatchMCBM_setstate_doc =
 	"\n"
 	"Method used by Pickle.";
 
-PyObject* PatchMCBM_setstate(PatchMCBMObject* self, PyObject* state, PyObject*) {
+PyObject* PatchMCBM_setstate(PatchMCBMObject* self, PyObject* state) {
 	int cols = self->patchMCBM->cols();
 
 	// for some reason the actual state is encapsulated in another tuple
 	state = PyTuple_GetItem(state, 0);
 
-	if(PyTuple_Size(state) != self->patchMCBM->dim()) {
+	PyObject* models = PyTuple_GetItem(state, 0);
+	PyObject* preconditioners = PyTuple_GetItem(state, 1);
+
+	if(PyTuple_Size(models) != self->patchMCBM->dim()) {
 		PyErr_SetString(PyExc_RuntimeError, "Something went wrong while unpickling the model.");
 		return 0;
 	}
@@ -1302,13 +1385,16 @@ PyObject* PatchMCBM_setstate(PatchMCBMObject* self, PyObject* state, PyObject*) 
 	try {
 		for(int i = 0; i < self->patchMCBM->dim(); ++i) {
 			PyObject* index = Py_BuildValue("(ii)", i / cols, i % cols);
-			PatchMCBM_ass_subscript(self, index, PyTuple_GetItem(state, i));
+			PatchMCBM_ass_subscript(self, index, PyTuple_GetItem(models, i));
 			Py_DECREF(index);
 		}
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}
+
+	if(preconditioners)
+		PatchMCBM_set_preconditioners(self, preconditioners, 0);
 
 	Py_INCREF(Py_None);
 	return Py_None;

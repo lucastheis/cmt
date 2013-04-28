@@ -24,6 +24,7 @@ namespace CMT {
 				const MatrixXd& preOut,
 				const MatrixXd& preOutInv,
 				const MatrixXd& predictor);
+			AffinePreconditioner(const AffinePreconditioner& preconditioner);
 			virtual ~AffinePreconditioner();
 
 			virtual int dimIn() const;

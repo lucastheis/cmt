@@ -22,6 +22,7 @@ namespace CMT {
 				const MatrixXd& preIn,
 				const MatrixXd& preInInv,
 				int dimOut);
+			PCATransform(const PCATransform& transform);
 
 			inline VectorXd eigenvalues() const;
 

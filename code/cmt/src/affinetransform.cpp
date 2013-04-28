@@ -44,6 +44,13 @@ CMT::AffineTransform::AffineTransform() {
 
 
 
+CMT::AffineTransform::AffineTransform(const AffineTransform& transform) :
+	AffinePreconditioner(transform)
+{
+}
+
+
+
 pair<ArrayXXd, ArrayXXd> CMT::AffineTransform::operator()(
 	const ArrayXXd& input,
 	const ArrayXXd& output) const

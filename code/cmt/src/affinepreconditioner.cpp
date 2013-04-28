@@ -3,8 +3,6 @@
 #include "affinepreconditioner.h"
 #include "Eigen/LU"
 
-#include <iostream>
-
 CMT::AffinePreconditioner::AffinePreconditioner(
 	const VectorXd& meanIn,
 	const VectorXd& meanOut,
@@ -42,6 +40,21 @@ CMT::AffinePreconditioner::AffinePreconditioner(
 	mPredictor(predictor),
 	mLogJacobian(preOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum()),
  	mGradTransform(preOut * predictor * preIn)
+{
+}
+
+
+
+CMT::AffinePreconditioner::AffinePreconditioner(const AffinePreconditioner& preconditioner) :
+	mMeanIn(preconditioner.mMeanIn),
+	mMeanOut(preconditioner.mMeanOut),
+	mPreIn(preconditioner.mPreIn),
+	mPreInInv(preconditioner.mPreInInv),
+	mPreOut(preconditioner.mPreOut),
+	mPreOutInv(preconditioner.mPreOutInv),
+	mPredictor(preconditioner.mPredictor),
+	mLogJacobian(preconditioner.mLogJacobian),
+ 	mGradTransform(preconditioner.mGradTransform)
 {
 }
 
