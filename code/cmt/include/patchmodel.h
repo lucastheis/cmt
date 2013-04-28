@@ -87,9 +87,9 @@ PatchModel<CD, PC>::PatchModel(
 	int maxPCs) :
 	mRows(rows),
 	mCols(cols),
+	mMaxPCs(maxPCs),
 	mInputMask(inputMask),
-	mOutputMask(outputMask),
-	mMaxPCs(maxPCs)
+	mOutputMask(outputMask)
 {
 	// compute locations of active pixels
 	pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask, outputMask);

@@ -29,6 +29,7 @@ if any(['intel' in arg for arg in sys.argv]) or 'intel' in get_default_compiler(
 	extra_compile_args = [
 		'-DEIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS',
 		'-DEIGEN_USE_MKL_ALL',
+		'-Wno-deprecated',
 		'-wd1224',
 		'-openmp']
 	extra_link_args = []
@@ -97,7 +98,7 @@ modules = [
 			'-Wno-write-strings'] + extra_compile_args)]
 
 # enable parallel compilation
-CCompiler.compile = parallelCCompiler
+#CCompiler.compile = parallelCCompiler
 
 setup(
 	name='cmt',

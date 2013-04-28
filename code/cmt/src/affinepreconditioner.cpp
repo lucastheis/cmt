@@ -54,7 +54,7 @@ CMT::AffinePreconditioner::AffinePreconditioner(const AffinePreconditioner& prec
 	mPreOutInv(preconditioner.mPreOutInv),
 	mPredictor(preconditioner.mPredictor),
 	mLogJacobian(preconditioner.mLogJacobian),
- 	mGradTransform(preconditioner.mGradTransform)
+	mGradTransform(preconditioner.mGradTransform)
 {
 }
 

@@ -1065,7 +1065,7 @@ int PatchMCBM_ass_subscript(PatchMCBMObject* self, PyObject* key, PyObject* valu
 		return -1;
 	}
 
-	self->patchMCBM->operator()(i, j) = *reinterpret_cast<MCBMObject*>(value)->mcbm;
+ 	self->patchMCBM->operator()(i, j) = *reinterpret_cast<MCBMObject*>(value)->mcbm;
 
 	return 0;
 }
@@ -1073,8 +1073,6 @@ int PatchMCBM_ass_subscript(PatchMCBMObject* self, PyObject* key, PyObject* valu
 
 
 PyObject* PatchMCBM_preconditioner(PatchMCBMObject* self, PyObject* args) {
-	const char* kwlist[] = {"i", "j", 0};
-
 	int i;
 	int j;
 
@@ -1150,8 +1148,8 @@ int PatchMCBM_set_preconditioners(PatchMCBMObject* self, PyObject* value, void*)
 			}
 
 			try {
-				self->patchMCBM->setPreconditioner(i, j,
-					*reinterpret_cast<PCATransformObject*>(preconditioner)->preconditioner);
+ 				self->patchMCBM->setPreconditioner(i, j,
+ 					*reinterpret_cast<PCATransformObject*>(preconditioner)->preconditioner);
 			} catch(Exception exception) {
 				PyErr_SetString(PyExc_RuntimeError, exception.message());
 				return -1;
@@ -1375,7 +1373,7 @@ PyObject* PatchMCBM_setstate(PatchMCBMObject* self, PyObject* state) {
 	state = PyTuple_GetItem(state, 0);
 
 	PyObject* models = PyTuple_GetItem(state, 0);
-	PyObject* preconditioners = PyTuple_GetItem(state, 1);
+  	PyObject* preconditioners = PyTuple_GetItem(state, 1);
 
 	if(PyTuple_Size(models) != self->patchMCBM->dim()) {
 		PyErr_SetString(PyExc_RuntimeError, "Something went wrong while unpickling the model.");
@@ -1393,8 +1391,8 @@ PyObject* PatchMCBM_setstate(PatchMCBMObject* self, PyObject* state) {
 		return 0;
 	}
 
-	if(preconditioners)
-		PatchMCBM_set_preconditioners(self, preconditioners, 0);
+  	if(preconditioners)
+  		PatchMCBM_set_preconditioners(self, preconditioners, 0);
 
 	Py_INCREF(Py_None);
 	return Py_None;
