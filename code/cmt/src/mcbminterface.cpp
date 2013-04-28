@@ -3,6 +3,7 @@
 #include "Eigen/Core"
 #include "exception.h"
 #include "callbackinterface.h"
+#include "preconditionerinterface.h"
 
 #include <iostream>
 
@@ -930,20 +931,24 @@ const char* PatchMCBM_doc =
 	"@param ymask: a Boolean array describing the output pixels\n"
 	"\n"
 	"@type  model: L{MCBM}\n"
-	"@param model: model used as a template to initialize all conditional distributions";
+	"@param model: model used as a template to initialize all conditional distributions\n"
+	"\n"
+	"@type  max_pcs: integer\n"
+	"@param max_pcs: can be used to reduce dimensionality of inputs to conditional models";
 
 int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"rows", "cols", "xmask", "ymask", "model", 0};
+	const char* kwlist[] = {"rows", "cols", "xmask", "ymask", "model", "max_pcs", 0};
 
 	int rows;
 	int cols;
 	PyObject* xmask;
 	PyObject* ymask;
 	MCBMObject* model = 0;
+	int max_pcs = -1;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiOO|O!", const_cast<char**>(kwlist),
-		&rows, &cols, &xmask, &ymask, &MCBM_type, &model))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiOO|O!i", const_cast<char**>(kwlist),
+		&rows, &cols, &xmask, &ymask, &MCBM_type, &model, &max_pcs))
 		return -1;
 
 	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
@@ -958,12 +963,13 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 
 	// create the actual model
 	try {
-		self->patchMCBM = new PatchModel<MCBM>(
+		self->patchMCBM = new PatchModel<MCBM, CMT::PCATransform>(
 			rows,
 			cols,
 			PyArray_ToMatrixXb(xmask),
 			PyArray_ToMatrixXb(ymask),
-			model ? model->mcbm : 0);
+			model ? model->mcbm : 0,
+			max_pcs);
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return -1;
@@ -1052,6 +1058,34 @@ int PatchMCBM_ass_subscript(PatchMCBMObject* self, PyObject* key, PyObject* valu
 	}
 
 	self->patchMCBM->operator()(i, j) = *reinterpret_cast<MCBMObject*>(value)->mcbm;
+
+	return 0;
+}
+
+
+
+PyObject* PatchMCBM_preconditioner(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"i", "j", 0};
+
+	int i;
+	int j;
+
+	if(!PyArg_ParseTuple(args, "ii", &i, &j)) {
+		PyErr_SetString(PyExc_TypeError, "Index should consist of a row and a column.");
+		return 0;
+	}
+
+	try {
+		PCATransform* pc = &self->patchMCBM->preconditioner(i, j);
+		PyObject* preconditioner = Preconditioner_new(&PCATransform_type, 0, 0);
+		reinterpret_cast<PCATransformObject*>(preconditioner)->owner = false;
+		reinterpret_cast<PCATransformObject*>(preconditioner)->preconditioner = pc;
+		Py_INCREF(preconditioner);
+		return preconditioner;
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
 
 	return 0;
 }

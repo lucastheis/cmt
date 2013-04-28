@@ -83,7 +83,9 @@ template <class CD, class PC>
 MatrixXd PreconditionedModel<CD, PC>::sample(const MatrixXd& input) const {
 	if(!mPC)
 		throw Exception("Model has to be initialized first.");
-	return mCD->sample(mPC->operator()(input));
+	MatrixXd inputPc = mPC->operator()(input);
+	MatrixXd outputPc = mCD->sample(inputPc);
+	return mPC->inverse(inputPc, outputPc).second;
 }
 
 

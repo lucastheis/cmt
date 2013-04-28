@@ -294,6 +294,11 @@ MCGSM::~MCGSM() {
 
 
 void MCGSM::initialize(const MatrixXd& input, const MatrixXd& output) {
+	if(input.rows() != mDimIn || output.rows() != mDimOut)
+		throw Exception("Data has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("The number of inputs and outputs should be the same.");
+
 	MatrixXd covXX = covariance(input);
 	MatrixXd covXY = covariance(input, output);
 
@@ -314,6 +319,12 @@ void MCGSM::initialize(const MatrixXd& input, const MatrixXd& output) {
 	}
 
 	setCholeskyFactors(choleskyFactors);
+}
+
+
+
+void MCGSM::initialize(const pair<ArrayXXd, ArrayXXd>& data) {
+	initialize(data.first, data.second);
 }
 
 

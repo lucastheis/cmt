@@ -334,10 +334,21 @@ Array<double, 1, Dynamic> MCBM::logLikelihood(const MatrixXd& input, const Matri
 
 
 
-void MCBM::initialize(
-	const MatrixXd& input,
-	const MatrixXd& output)
+Array<double, 1, Dynamic> MCBM::logLikelihood(
+	const pair<ArrayXXd, ArrayXXd>& data) const
 {
+	return logLikelihood(data.first, data.second);
+}
+
+
+
+void MCBM::initialize(const MatrixXd& input, const MatrixXd& output) {
+}
+
+
+
+void MCBM::initialize(const pair<ArrayXXd, ArrayXXd>& data) {
+	initialize(data.first, data.second);
 }
 
 

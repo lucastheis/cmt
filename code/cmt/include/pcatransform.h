@@ -29,7 +29,11 @@ namespace CMT {
 			VectorXd mEigenvalues;
 
 		private:
-			void initialize(const ArrayXXd& input, double varExplained, int numPCs, int dimOut);
+			void initialize(
+				const ArrayXXd& input,
+				double varExplained,
+				int numPCs,
+				int dimOut);
 	};
 }
 

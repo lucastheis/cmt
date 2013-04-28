@@ -12,17 +12,19 @@ using std::cout;
 using std::endl;
 
 #include <cmath>
+using std::min;
 using std::ceil;
 
 #include "utils.h"
 #include "distribution.h"
 #include "exception.h"
 #include "conditionaldistribution.h"
+#include "pcapreconditioner.h"
 #include "tools.h"
 
 typedef Array<bool, Dynamic, Dynamic> ArrayXXb;
 
-template <class CD>
+template <class CD, class PC = CMT::PCAPreconditioner>
 class PatchModel : public Distribution {
 	public:
 		typedef typename CD::Parameters Parameters;
@@ -32,7 +34,9 @@ class PatchModel : public Distribution {
 			int cols,
 			const ArrayXXb& inputMask,
 			const ArrayXXb& outputMask,
-			const CD* model = 0);
+			const CD* model = 0,
+			int maxPCs = -1);
+		virtual ~PatchModel();
 
 		int dim() const;
 		int rows() const;
@@ -42,6 +46,9 @@ class PatchModel : public Distribution {
 
 		CD& operator()(int i, int j);
 		const CD& operator()(int i, int j) const;
+
+		PC& preconditioner(int i, int j);
+		const PC& preconditioner(int i, int j) const;
 
 		void initialize(const MatrixXd& data, const Parameters& params = Parameters());
 
@@ -58,25 +65,29 @@ class PatchModel : public Distribution {
 	protected:
 		int mRows;
 		int mCols;
+		int mMaxPCs;
 		ArrayXXb mInputMask;
 		ArrayXXb mOutputMask;
 		vector<Tuples> mInputIndices;
 		vector<CD> mConditionalDistributions;
+		vector<PC*> mPreconditioners;
 };
 
 
 
-template <class CD>
-PatchModel<CD>::PatchModel(
+template <class CD, class PC>
+PatchModel<CD, PC>::PatchModel(
 	int rows,
 	int cols,
 	const ArrayXXb& inputMask,
 	const ArrayXXb& outputMask,
-	const CD* model) :
+	const CD* model,
+	int maxPCs) :
 	mRows(rows),
 	mCols(cols),
 	mInputMask(inputMask),
-	mOutputMask(outputMask)
+	mOutputMask(outputMask),
+	mMaxPCs(maxPCs)
 {
 	// compute locations of active pixels
 	pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask, outputMask);
@@ -100,7 +111,7 @@ PatchModel<CD>::PatchModel(
 	// initialize conditional distributions with copy constructor
 	for(int i = 0; i < rows; ++i)
 		for(int j = 0; j < cols; ++j) {
-			// compute input indices for
+			// compute indices of causal neighborhood at pixel (i, j)
 			Tuples indices;
 
 			for(Tuples::iterator it = inputIndices.begin(); it != inputIndices.end(); ++it) {
@@ -114,55 +125,74 @@ PatchModel<CD>::PatchModel(
 
 			mInputIndices.push_back(indices);
 
+			// dimensionality of input
+			int dimIn = mMaxPCs < 0 ? 
+				indices.size() : min(static_cast<int>(indices.size()), mMaxPCs);
+
+			// create model for pixel (i, j)
 			if(model)
-				if(indices.size() == inputIndices.size())
+				if(dimIn == model->dimIn())
+					// given model fits input
 					mConditionalDistributions.push_back(*model);
 				else
-					mConditionalDistributions.push_back(CD(indices.size(), *model));
+					// given model doesn't fit input
+					mConditionalDistributions.push_back(CD(dimIn, *model));
 			else
-				mConditionalDistributions.push_back(CD(indices.size()));
+				// no model was given
+				mConditionalDistributions.push_back(CD(dimIn));
+
+			mPreconditioners.push_back(0);
 		}
 }
 
 
 
-template <class CD>
-int PatchModel<CD>::dim() const {
+template <class CD, class PC>
+PatchModel<CD, PC>::~PatchModel() {
+	for(int i = 0; i < mRows * mCols; ++i)
+		if(mPreconditioners[i])
+			delete mPreconditioners[i];
+}
+
+
+
+template <class CD, class PC>
+int PatchModel<CD, PC>::dim() const {
 	return mRows * mCols;
 }
 
 
 
-template <class CD>
-int PatchModel<CD>::rows() const {
+template <class CD, class PC>
+int PatchModel<CD, PC>::rows() const {
 	return mRows;
 }
 
 
 
-template <class CD>
-int PatchModel<CD>::cols() const {
+template <class CD, class PC>
+int PatchModel<CD, PC>::cols() const {
 	return mCols;
 }
 
 
 
-template <class CD>
-ArrayXXb PatchModel<CD>::inputMask() const {
+template <class CD, class PC>
+ArrayXXb PatchModel<CD, PC>::inputMask() const {
 	return mInputMask;
 }
 
 
 
-template <class CD>
-ArrayXXb PatchModel<CD>::outputMask() const {
+template <class CD, class PC>
+ArrayXXb PatchModel<CD, PC>::outputMask() const {
 	return mOutputMask;
 }
 
 
 
-template <class CD>
-CD& PatchModel<CD>::operator()(int i, int j) {
+template <class CD, class PC>
+CD& PatchModel<CD, PC>::operator()(int i, int j) {
 	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
 		throw Exception("Invalid indices.");
 	return mConditionalDistributions[i * mCols + j];
@@ -170,8 +200,8 @@ CD& PatchModel<CD>::operator()(int i, int j) {
 
 
 
-template <class CD>
-const CD& PatchModel<CD>::operator()(int i, int j) const {
+template <class CD, class PC>
+const CD& PatchModel<CD, PC>::operator()(int i, int j) const {
 	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
 		throw Exception("Invalid indices.");
 	return mConditionalDistributions[i * mCols + j];
@@ -179,8 +209,30 @@ const CD& PatchModel<CD>::operator()(int i, int j) const {
 
 
 
-template <class CD>
-void PatchModel<CD>::initialize(const MatrixXd& data, const Parameters& params) {
+template <class CD, class PC>
+PC& PatchModel<CD, PC>::preconditioner(int i, int j) {
+	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
+		throw Exception("Invalid indices.");
+	if(!mPreconditioners[i * mCols + j])
+		throw Exception("The model at this pixel has no preconditioner.");
+	return *mPreconditioners[i * mCols + j];
+}
+
+
+
+template <class CD, class PC>
+const PC& PatchModel<CD, PC>::preconditioner(int i, int j) const {
+	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
+		throw Exception("Invalid indices.");
+	if(!mPreconditioners[i * mCols + j])
+		throw Exception("The model at this pixel has no preconditioner.");
+	return *mPreconditioners[i * mCols + j];
+}
+
+
+
+template <class CD, class PC>
+void PatchModel<CD, PC>::initialize(const MatrixXd& data, const Parameters& params) {
 	Tuples inputIndices = maskToIndices(mInputMask);
 
 	// count how many pixels possess a complete neighborhood
@@ -197,39 +249,37 @@ void PatchModel<CD>::initialize(const MatrixXd& data, const Parameters& params) 
 	vector<MatrixXd> outputs;
 
 	for(int i = 0; i < mRows * mCols; ++i) {
+		MatrixXd output = data.row(i);
+		MatrixXd input(mInputIndices[i].size(), data.cols());
+
+		for(int j = 0; j < mInputIndices[i].size(); ++j) {
+			// coordinates of j-th input to i-th model
+			int m = mInputIndices[i][j].first;
+			int n = mInputIndices[i][j].second;
+
+			// assumes patch is stored in row-major order
+			input.row(j) = data.row(m * mCols + n);
+		}
+
+		if(mMaxPCs >= 0)
+			// create preconditioner
+			mPreconditioners[i] = new PC(input, output, 0., mMaxPCs);
+
+		// check whether causal neighboor fits completely into image patch
 		if(mInputIndices[i].size() == inputIndices.size()) {
-			// extract neighborhoods from images starting at offset
+			// keep a more or less random subset of the data for later
 			int offset = rand() % (data.cols() - numSamplesPerImage + 1);
 
-			MatrixXd output = data.block(i, offset, 1, numSamplesPerImage);
-			MatrixXd input(mInputIndices[i].size(), numSamplesPerImage);
+			inputs.push_back(input.block(0, offset, input.rows(), numSamplesPerImage));
+			outputs.push_back(output.block(0, offset, output.rows(), numSamplesPerImage));
 
-			for(int j = 0; j < mInputIndices[i].size(); ++j) {
-				// coordinates of j-th input to i-th model
-				int m = mInputIndices[i][j].first;
-				int n = mInputIndices[i][j].second;
-
-				// assumes patch is stored in row-major order
-				input.row(j) = data.block(m * mCols + n, offset, 1, numSamplesPerImage);
-			}
-
-			inputs.push_back(input);
-			outputs.push_back(output);
 		} else {
-			MatrixXd output = data.row(i);
-			MatrixXd input(mInputIndices[i].size(), data.cols());
-
-			for(int j = 0; j < mInputIndices[i].size(); ++j) {
-				// coordinates of j-th input to i-th model
-				int m = mInputIndices[i][j].first;
-				int n = mInputIndices[i][j].second;
-
-				// assumes patch is stored in row-major order
-				input.row(j) = data.row(m * mCols + n);
-			}
-
 			// initialize models with an incomplete neighborhood
-			mConditionalDistributions[i].initialize(input, output);
+			if(mMaxPCs < 0)
+				mConditionalDistributions[i].initialize(input, output);
+			else
+				mConditionalDistributions[i].initialize(
+					mPreconditioners[i]->operator()(input, output));
 		}
 	}
 
@@ -245,21 +295,39 @@ void PatchModel<CD>::initialize(const MatrixXd& data, const Parameters& params) 
 		throw Exception("Too few data points.");
 
 	for(int i = 0; i < mRows * mCols; ++i)
-		if(mConditionalDistributions[i].dimIn() == inputIndices.size()) {
-			// train one model
-			mConditionalDistributions[i].initialize(input, output);
-			mConditionalDistributions[i].train(
-				// training set
-				input.leftCols(numTrain),
-				output.leftCols(numTrain),
-				// validation set
-				input.rightCols(numValid),
-				output.rightCols(numValid),
-				params);
+		if(mInputIndices[i].size() == inputIndices.size()) {
+			// train a single model
+			if(mMaxPCs < 0) {
+				mConditionalDistributions[i].initialize(input, output);
+				mConditionalDistributions[i].train(
+					// training set
+					input.leftCols(numTrain),
+					output.leftCols(numTrain),
+					// validation set
+					input.rightCols(numValid),
+					output.rightCols(numValid),
+					params);
+			} else {
+				// compute preconditioned input and output
+				PC pc(input, output, 0., mMaxPCs);
+				pair<ArrayXXd, ArrayXXd> data = pc(input, output);
+				const MatrixXd& inputPc = data.first;
+				const MatrixXd& outputPc = data.second;
 
-			// copy parameters to all other models with same input size
+				mConditionalDistributions[i].initialize(inputPc, outputPc);
+				mConditionalDistributions[i].train(
+					// training set
+					inputPc.leftCols(numTrain),
+					outputPc.leftCols(numTrain),
+					// validation set
+					inputPc.rightCols(numValid),
+					outputPc.rightCols(numValid),
+					params);
+			}
+
+			// copy parameters to all other models with the same input size
 			for(int j = i + 1; j < mRows * mCols; ++j)
-				if(mConditionalDistributions[j].dimIn() == inputIndices.size())
+				if(mConditionalDistributions[j].dimIn() == mConditionalDistributions[i].dimIn())
 					mConditionalDistributions[j] = mConditionalDistributions[i];
 
 			break;
@@ -268,8 +336,8 @@ void PatchModel<CD>::initialize(const MatrixXd& data, const Parameters& params) 
 
 
 
-template <class CD>
-bool PatchModel<CD>::train(const MatrixXd& data, const Parameters& params) {
+template <class CD, class PC>
+bool PatchModel<CD, PC>::train(const MatrixXd& data, const Parameters& params) {
 	bool converged = true;
 
 	for(int i = 0; i < mRows * mCols; ++i) {
@@ -277,6 +345,7 @@ bool PatchModel<CD>::train(const MatrixXd& data, const Parameters& params) {
 		MatrixXd output = data.row(i);
 		MatrixXd input(mInputIndices[i].size(), data.cols());
 
+		// extract inputs and outputs from patches
 		#pragma omp parallel for
 		for(int j = 0; j < mInputIndices[i].size(); ++j) {
 			// coordinates of j-th input to i-th model
@@ -290,7 +359,14 @@ bool PatchModel<CD>::train(const MatrixXd& data, const Parameters& params) {
 		if(params.verbosity > 0)
 			cout << "Training model " << i / mCols << ", " << i % mCols << endl;
 
-		converged &= mConditionalDistributions[i].train(input, output, params);
+		if(mMaxPCs < 0) {
+			converged &= mConditionalDistributions[i].train(input, output, params);
+		} else {
+			if(!mPreconditioners[i])
+				throw Exception("Model has to be initialized first.");
+			converged &= mConditionalDistributions[i].train(
+				mPreconditioners[i]->operator()(input, output), params);
+		}
 	}
 
 	return converged;
@@ -298,8 +374,8 @@ bool PatchModel<CD>::train(const MatrixXd& data, const Parameters& params) {
 
 
 
-template <class CD>
-bool PatchModel<CD>::train(
+template <class CD, class PC>
+bool PatchModel<CD, PC>::train(
 	const MatrixXd& data,
 	const MatrixXd& dataVal,
 	const Parameters& params)
@@ -313,6 +389,7 @@ bool PatchModel<CD>::train(
 		MatrixXd outputVal = dataVal.row(i);
 		MatrixXd inputVal(mInputIndices[i].size(), dataVal.cols());
 
+		// extract inputs and outputs from patches
 		#pragma omp parallel for
 		for(int j = 0; j < mInputIndices[i].size(); ++j) {
 			// coordinates of j-th input to i-th model
@@ -327,8 +404,17 @@ bool PatchModel<CD>::train(
 		if(params.verbosity > 0)
 			cout << "Training model " << i / mCols << ", " << i % mCols << endl;
 
-		converged &= mConditionalDistributions[i].train(
-			input, output, inputVal, outputVal, params);
+		if(mMaxPCs < 0) {
+			converged &= mConditionalDistributions[i].train(
+				input, output, inputVal, outputVal, params);
+		} else {
+			if(!mPreconditioners[i])
+				throw Exception("Model has to be initialized first.");
+			converged &= mConditionalDistributions[i].train(
+				mPreconditioners[i]->operator()(input, output),
+				mPreconditioners[i]->operator()(inputVal, outputVal),
+				params);
+		}
 	}
 
 	return converged;
@@ -336,8 +422,8 @@ bool PatchModel<CD>::train(
 
 
 
-template <class CD>
-Array<double, 1, Dynamic> PatchModel<CD>::logLikelihood(
+template <class CD, class PC>
+Array<double, 1, Dynamic> PatchModel<CD, PC>::logLikelihood(
 	const MatrixXd& data) const 
 {
 	Array<double, 1, Dynamic> logLik = Array<double, 1, Dynamic>::Zero(data.cols());
@@ -356,7 +442,15 @@ Array<double, 1, Dynamic> PatchModel<CD>::logLikelihood(
 			input.row(j) = data.row(m * mCols + n);
 		}
 
-		logLik += mConditionalDistributions[i].logLikelihood(input, output);
+		if(mMaxPCs < 0) {
+			logLik += mConditionalDistributions[i].logLikelihood(input, output);
+		} else {
+			if(!mPreconditioners[i])
+				throw Exception("Model has to be initialized first.");
+			logLik += mConditionalDistributions[i].logLikelihood(
+				mPreconditioners[i]->operator()(input, output));
+			logLik += mPreconditioners[i]->logJacobian(input, output);
+		}
 	}
 
 	return logLik;
@@ -364,8 +458,8 @@ Array<double, 1, Dynamic> PatchModel<CD>::logLikelihood(
 
 
 
-template<class CD>
-MatrixXd PatchModel<CD>::sample(int num_samples) const {
+template<class CD, class PC>
+MatrixXd PatchModel<CD, PC>::sample(int num_samples) const {
 	MatrixXd samples = MatrixXd::Zero(mRows * mCols, num_samples);
 
 	for(int i = 0; i < mRows * mCols; ++i) {
@@ -381,7 +475,15 @@ MatrixXd PatchModel<CD>::sample(int num_samples) const {
 			input.row(j) = samples.row(m * mCols + n);
 		}
 
-		samples.row(i) = mConditionalDistributions[i].sample(input);
+		if(mMaxPCs < 0) {
+			samples.row(i) = mConditionalDistributions[i].sample(input);
+		} else {
+			if(!mPreconditioners[i])
+				throw Exception("Model has to be initialized first.");
+			MatrixXd inputPc = mPreconditioners[i]->operator()(input);
+			MatrixXd outputPc = mConditionalDistributions[i].sample(inputPc);
+			samples.row(i) = mPreconditioners[i]->inverse(inputPc, outputPc).second;
+		}
 	}
 
 	return samples;

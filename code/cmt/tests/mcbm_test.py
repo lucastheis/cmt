@@ -219,6 +219,13 @@ class Tests(unittest.TestCase):
 
 		model = PatchMCBM(2, 2, xmask, ymask)
 
+		samples = model.sample(1000)
+
+		self.assertFalse(isnan(mean(model.loglikelihood(samples))))
+
+		model = PatchMCBM(2, 2, xmask, ymask, max_pcs=2)
+		model.initialize(samples)
+
 		samples = model.sample(100)
 
 		self.assertFalse(isnan(mean(model.loglikelihood(samples))))

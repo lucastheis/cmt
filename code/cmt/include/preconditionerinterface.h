@@ -1,5 +1,4 @@
-#ifndef PRECONDITIONERINTERFACE_H
-#define PRECONDITIONERINTERFACE_H
+#ifndef PRECONDITIONERINTERFACE_H#define PRECONDITIONERINTERFACE_H
 
 #define PY_ARRAY_UNIQUE_SYMBOL CMT_ARRAY_API
 #define NO_IMPORT_ARRAY
@@ -30,36 +29,43 @@ using CMT::PCATransform;
 struct PreconditionerObject {
 	PyObject_HEAD
 	Preconditioner* preconditioner;
+	bool owner;
 };
 
 struct AffinePreconditionerObject {
 	PyObject_HEAD
 	AffinePreconditioner* preconditioner;
+	bool owner;
 };
 
 struct AffineTransformObject {
 	PyObject_HEAD
 	AffineTransform* preconditioner;
+	bool owner;
 };
 
 struct WhiteningPreconditionerObject {
 	PyObject_HEAD
 	WhiteningPreconditioner* preconditioner;
+	bool owner;
 };
 
 struct WhiteningTransformObject {
 	PyObject_HEAD
 	WhiteningTransform* preconditioner;
+	bool owner;
 };
 
 struct PCAPreconditionerObject {
 	PyObject_HEAD
 	PCAPreconditioner* preconditioner;
+	bool owner;
 };
 
 struct PCATransformObject {
 	PyObject_HEAD
 	PCATransform* preconditioner;
+	bool owner;
 };
 
 extern const char* Preconditioner_doc;

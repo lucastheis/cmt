@@ -203,8 +203,10 @@ PyObject* Preconditioner_logjacobian(PreconditionerObject* self, PyObject* args,
 PyObject* Preconditioner_new(PyTypeObject* type, PyObject*, PyObject*) {
 	PyObject* self = type->tp_alloc(type, 0);
 
-	if(self)
+	if(self) {
 		reinterpret_cast<PreconditionerObject*>(self)->preconditioner = 0;
+		reinterpret_cast<PreconditionerObject*>(self)->owner = true;
+	}
 
 	return self;
 }
@@ -222,8 +224,9 @@ int Preconditioner_init(WhiteningPreconditionerObject* self, PyObject* args, PyO
 
 
 void Preconditioner_dealloc(PreconditionerObject* self) {
-	// delete actual instance
-	delete self->preconditioner;
+	if(self->owner)
+		// delete actual instance
+		delete self->preconditioner;
 
 	// delete Python object
 	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));

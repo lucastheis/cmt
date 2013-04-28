@@ -78,6 +78,8 @@ class MCGSM : public ConditionalDistribution {
 		inline void setPredictors(const vector<MatrixXd>& predictors);
 
 		virtual void initialize(const MatrixXd& input, const MatrixXd& output);
+		virtual void initialize(const pair<ArrayXXd, ArrayXXd>& data);
+
 		virtual bool train(
 			const MatrixXd& input,
 			const MatrixXd& output,
@@ -117,8 +119,12 @@ class MCGSM : public ConditionalDistribution {
 			const MatrixXd& input,
 			const MatrixXd& output) const;
 
+
 		virtual ArrayXXd prior(const MatrixXd& input) const;
 		virtual ArrayXXd posterior(const MatrixXd& input, const MatrixXd& output) const;
+
+		using ConditionalDistribution::logLikelihood;
+
 		virtual Array<double, 1, Dynamic> logLikelihood(
 			const MatrixXd& input,
 			const MatrixXd& output) const;

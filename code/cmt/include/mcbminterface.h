@@ -9,6 +9,7 @@
 #include "pyutils.h"
 #include "mcbm.h"
 #include "patchmodel.h"
+#include "pcatransform.h"
 
 struct MCBMObject {
 	PyObject_HEAD
@@ -18,12 +19,13 @@ struct MCBMObject {
 
 struct PatchMCBMObject {
 	PyObject_HEAD
-	PatchModel<MCBM>* patchMCBM;
+	PatchModel<MCBM, CMT::PCATransform>* patchMCBM;
 	bool owner;
 };
 
 extern PyTypeObject MCBM_type;
 extern PyTypeObject PatchMCBM_type;
+extern PyTypeObject PCATransform_type;
 
 extern const char* MCBM_doc;
 extern const char* MCBM_sample_doc;
@@ -86,8 +88,12 @@ PyObject* PatchMCBM_output_mask(PatchMCBMObject*, PyObject*, void*);
 
 PyObject* PatchMCBM_subscript(PatchMCBMObject*, PyObject*);
 int PatchMCBM_ass_subscript(PatchMCBMObject*, PyObject*, PyObject*);
+
+PyObject* PatchMCBM_preconditioner(PatchMCBMObject*, PyObject*, PyObject*);
+
 PyObject* PatchMCBM_initialize(PatchMCBMObject*, PyObject*, PyObject*);
 PyObject* PatchMCBM_train(PatchMCBMObject*, PyObject*, PyObject*);
+
 PyObject* PatchMCBM_reduce(PatchMCBMObject*, PyObject*, PyObject*);
 PyObject* PatchMCBM_setstate(PatchMCBMObject*, PyObject*, PyObject*);
 

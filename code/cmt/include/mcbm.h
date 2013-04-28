@@ -69,13 +69,16 @@ class MCBM : public ConditionalDistribution {
 		inline void setOutputBias(const VectorXd& outputBias);
 
 		virtual MatrixXd sample(const MatrixXd& input) const;
+
+		using ConditionalDistribution::logLikelihood;
+
 		virtual Array<double, 1, Dynamic> logLikelihood(
 			const MatrixXd& input,
 			const MatrixXd& output) const;
 
-		virtual void initialize(
-			const MatrixXd& input,
-			const MatrixXd& output);
+		virtual void initialize(const MatrixXd& input, const MatrixXd& output);
+		virtual void initialize(const pair<ArrayXXd, ArrayXXd>& data);
+
 		virtual bool train(
 			const MatrixXd& input,
 			const MatrixXd& output,

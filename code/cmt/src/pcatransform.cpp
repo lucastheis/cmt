@@ -5,6 +5,10 @@
 #include "Eigen/Eigenvalues"
 using Eigen::SelfAdjointEigenSolver;
 
+#include <iostream>
+using std::cout;
+using std::endl;
+
 CMT::PCATransform::PCATransform(
 	const ArrayXXd& input,
 	const ArrayXXd& output,
@@ -33,6 +37,16 @@ void CMT::PCATransform::initialize(
 	int numPCs,
 	int dimOut)
 {
+	mMeanOut = VectorXd::Zero(dimOut);
+	mPreOut = MatrixXd::Identity(dimOut, dimOut);
+	mPreOutInv = MatrixXd::Identity(dimOut, dimOut);
+	mPredictor = MatrixXd::Zero(dimOut, numPCs);
+	mGradTransform = MatrixXd::Zero(dimOut, input.rows());
+	mLogJacobian = 1.;
+
+	if(input.rows() < 1)
+		return;
+
 	mMeanIn = input.rowwise().mean();
 
 	// compute covariances
@@ -61,13 +75,6 @@ void CMT::PCATransform::initialize(
 		eigenSolver.eigenvectors().rightCols(numPCs).transpose();
 	mPreInInv = eigenSolver.eigenvectors().rightCols(numPCs) *
 		mEigenvalues.tail(numPCs).cwiseSqrt().asDiagonal();
-
-	mMeanOut = VectorXd::Zero(dimOut);
-	mPreOut = MatrixXd::Identity(dimOut, dimOut);
-	mPreOutInv = MatrixXd::Identity(dimOut, dimOut);
-	mPredictor = MatrixXd::Zero(dimOut, numPCs);
-	mGradTransform = MatrixXd::Zero(dimOut, input.rows());
-	mLogJacobian = 1.;
 }
 
 
