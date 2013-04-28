@@ -98,7 +98,7 @@ modules = [
 			'-Wno-write-strings'] + extra_compile_args)]
 
 # enable parallel compilation
-#CCompiler.compile = parallelCCompiler
+CCompiler.compile = parallelCCompiler
 
 setup(
 	name='cmt',

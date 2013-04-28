@@ -477,6 +477,9 @@ PyTypeObject Preconditioner_type = {
 static PyGetSetDef AffinePreconditioner_getset[] = {
 	{"mean_in", (getter)AffinePreconditioner_mean_in, 0, 0},
 	{"mean_out", (getter)AffinePreconditioner_mean_out, 0, 0},
+	{"pre_in", (getter)AffinePreconditioner_pre_in, 0, 0},
+	{"pre_out", (getter)AffinePreconditioner_pre_out, 0, 0},
+	{"predictor", (getter)AffinePreconditioner_predictor, 0, 0},
 	{0}
 };
 
@@ -660,6 +663,11 @@ PyTypeObject WhiteningTransform_type = {
 	Preconditioner_new,                     /*tp_new*/
 };
 
+static PyGetSetDef PCAPreconditioner_getset[] = {
+	{"eigenvalues", (getter)PCAPreconditioner_eigenvalues, 0, "Eigenvalues of the covariance of the input."},
+	{0}
+};
+
 static PyMethodDef PCAPreconditioner_methods[] = {
 	{"__reduce__", (PyCFunction)PCAPreconditioner_reduce, METH_NOARGS, 0},
 	{0}
@@ -696,7 +704,7 @@ PyTypeObject PCAPreconditioner_type = {
 	0,                                      /*tp_iternext*/
 	PCAPreconditioner_methods,              /*tp_methods*/
 	0,                                      /*tp_members*/
-	0,                                      /*tp_getset*/
+	PCAPreconditioner_getset,               /*tp_getset*/
 	&AffinePreconditioner_type,             /*tp_base*/
 	0,                                      /*tp_dict*/
 	0,                                      /*tp_descr_get*/
@@ -705,6 +713,11 @@ PyTypeObject PCAPreconditioner_type = {
 	(initproc)PCAPreconditioner_init,       /*tp_init*/
 	0,                                      /*tp_alloc*/
 	Preconditioner_new,                     /*tp_new*/
+};
+
+static PyGetSetDef PCATransform_getset[] = {
+	{"eigenvalues", (getter)PCATransform_eigenvalues, 0, "Eigenvalues of the covariance of the input."},
+	{0}
 };
 
 static PyMethodDef PCATransform_methods[] = {
@@ -743,7 +756,7 @@ PyTypeObject PCATransform_type = {
 	0,                                      /*tp_iternext*/
 	PCATransform_methods,                   /*tp_methods*/
 	0,                                      /*tp_members*/
-	0,                                      /*tp_getset*/
+	PCATransform_getset,                    /*tp_getset*/
 	&AffineTransform_type,                  /*tp_base*/
 	0,                                      /*tp_dict*/
 	0,                                      /*tp_descr_get*/

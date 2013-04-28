@@ -87,13 +87,22 @@ void CMT::PCATransform::initialize(
 			if(varExplainedSoFar > varExplained)
 				break;
 		}
+
+		if(numPCs < 1)
+			numPCs = 1;
 	} else if(numPCs > mEigenvalues.size()) {
 		numPCs = mEigenvalues.size();
 	}
 
+	// make sure directions of zero variance aren't touched
+	VectorXd tmp = mEigenvalues;
+	for(int i = 0; i < tmp.size(); ++i)
+		if(tmp[i] < 1e-8)
+			tmp[i] = 1.;
+
 	// input whitening
-	mPreIn = mEigenvalues.tail(numPCs).cwiseSqrt().cwiseInverse().asDiagonal() *
+	mPreIn = tmp.tail(numPCs).cwiseSqrt().cwiseInverse().asDiagonal() *
 		eigenSolver.eigenvectors().rightCols(numPCs).transpose();
 	mPreInInv = eigenSolver.eigenvectors().rightCols(numPCs) *
-		mEigenvalues.tail(numPCs).cwiseSqrt().asDiagonal();
+		tmp.tail(numPCs).cwiseSqrt().asDiagonal();
 }

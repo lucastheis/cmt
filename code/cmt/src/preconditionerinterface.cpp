@@ -234,13 +234,13 @@ void Preconditioner_dealloc(PreconditionerObject* self) {
 
 
 
-PyObject* Preconditioner_dim_in(PreconditionerObject* self, PyObject*, void*) {
+PyObject* Preconditioner_dim_in(PreconditionerObject* self, void*) {
 	return PyInt_FromLong(self->preconditioner->dimIn());
 }
 
 
 
-PyObject* Preconditioner_dim_out(PreconditionerObject* self, PyObject*, void*) {
+PyObject* Preconditioner_dim_out(PreconditionerObject* self, void*) {
 	return PyInt_FromLong(self->preconditioner->dimOut());
 }
 
@@ -486,19 +486,37 @@ int AffineTransform_init(AffineTransformObject* self, PyObject* args, PyObject* 
 
 
 
-PyObject* AffinePreconditioner_mean_in(AffinePreconditionerObject* self, PyObject*, void*) {
+PyObject* AffinePreconditioner_mean_in(AffinePreconditionerObject* self, void*) {
 	return PyArray_FromMatrixXd(self->preconditioner->meanIn());
 }
 
 
 
-PyObject* AffinePreconditioner_mean_out(AffinePreconditionerObject* self, PyObject*, void*) {
+PyObject* AffinePreconditioner_mean_out(AffinePreconditionerObject* self, void*) {
 	return PyArray_FromMatrixXd(self->preconditioner->meanOut());
 }
 
 
 
-PyObject* AffinePreconditioner_reduce(AffinePreconditionerObject* self, PyObject*, PyObject*) {
+PyObject* AffinePreconditioner_pre_in(AffinePreconditionerObject* self, void*) {
+	return PyArray_FromMatrixXd(self->preconditioner->preIn());
+}
+
+
+
+PyObject* AffinePreconditioner_pre_out(AffinePreconditionerObject* self, void*) {
+	return PyArray_FromMatrixXd(self->preconditioner->preOut());
+}
+
+
+
+PyObject* AffinePreconditioner_predictor(AffinePreconditionerObject* self, void*) {
+	return PyArray_FromMatrixXd(self->preconditioner->predictor());
+}
+
+
+
+PyObject* AffinePreconditioner_reduce(AffinePreconditionerObject* self, PyObject*) {
 	PyObject* meanIn = PyArray_FromMatrixXd(self->preconditioner->meanIn());
 	PyObject* meanOut = PyArray_FromMatrixXd(self->preconditioner->meanOut());
 	PyObject* preIn = PyArray_FromMatrixXd(self->preconditioner->preIn());
@@ -533,7 +551,7 @@ PyObject* AffinePreconditioner_reduce(AffinePreconditionerObject* self, PyObject
 
 
 
-PyObject* AffinePreconditioner_setstate(AffinePreconditionerObject* self, PyObject* state, PyObject*) {
+PyObject* AffinePreconditioner_setstate(AffinePreconditionerObject* self, PyObject* state) {
 	// AffinePreconditioner_init does everything
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -541,7 +559,7 @@ PyObject* AffinePreconditioner_setstate(AffinePreconditionerObject* self, PyObje
 
 
 
-PyObject* AffineTransform_reduce(AffineTransformObject* self, PyObject*, PyObject*) {
+PyObject* AffineTransform_reduce(AffineTransformObject* self, PyObject*) {
 	PyObject* meanIn = PyArray_FromMatrixXd(self->preconditioner->meanIn());
 	PyObject* preIn = PyArray_FromMatrixXd(self->preconditioner->preIn());
 	PyObject* preInInv = PyArray_FromMatrixXd(self->preconditioner->preInInv());
@@ -1056,7 +1074,19 @@ int PCATransform_init(PCATransformObject* self, PyObject* args, PyObject* kwds) 
 
 
 
-PyObject* PCAPreconditioner_reduce(PCAPreconditionerObject* self, PyObject*, PyObject*) {
+PyObject* PCAPreconditioner_eigenvalues(PCAPreconditionerObject* self, void*) {
+	return PyArray_FromMatrixXd(self->preconditioner->eigenvalues());
+}
+
+
+
+PyObject* PCATransform_eigenvalues(PCATransformObject* self, void*) {
+	return PyArray_FromMatrixXd(self->preconditioner->eigenvalues());
+}
+
+
+
+PyObject* PCAPreconditioner_reduce(PCAPreconditionerObject* self, PyObject*) {
 	PyObject* eigenvalues = PyArray_FromMatrixXd(self->preconditioner->eigenvalues());
 	PyObject* meanIn = PyArray_FromMatrixXd(self->preconditioner->meanIn());
 	PyObject* meanOut = PyArray_FromMatrixXd(self->preconditioner->meanOut());
@@ -1094,7 +1124,7 @@ PyObject* PCAPreconditioner_reduce(PCAPreconditionerObject* self, PyObject*, PyO
 
 
 
-PyObject* PCATransform_reduce(PCATransformObject* self, PyObject*, PyObject*) {
+PyObject* PCATransform_reduce(PCATransformObject* self, PyObject*) {
 	PyObject* eigenvalues = PyArray_FromMatrixXd(self->preconditioner->eigenvalues());
 	PyObject* meanIn = PyArray_FromMatrixXd(self->preconditioner->meanIn());
 	PyObject* preIn = PyArray_FromMatrixXd(self->preconditioner->preIn());

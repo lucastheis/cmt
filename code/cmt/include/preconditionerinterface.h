@@ -89,19 +89,22 @@ PyObject* Preconditioner_logjacobian(PreconditionerObject*, PyObject*, PyObject*
 PyObject* Preconditioner_new(PyTypeObject*, PyObject*, PyObject*);
 void Preconditioner_dealloc(PreconditionerObject*);
 
-PyObject* Preconditioner_dim_in(PreconditionerObject*, PyObject*, void*);
-PyObject* Preconditioner_dim_out(PreconditionerObject*, PyObject*, void*);
+PyObject* Preconditioner_dim_in(PreconditionerObject*, void*);
+PyObject* Preconditioner_dim_out(PreconditionerObject*, void*);
 
 int AffinePreconditioner_init(AffinePreconditionerObject*, PyObject*, PyObject*);
 int AffineTransform_init(AffineTransformObject*, PyObject*, PyObject*);
 
-PyObject* AffinePreconditioner_mean_in(AffinePreconditionerObject*, PyObject*, void*);
-PyObject* AffinePreconditioner_mean_out(AffinePreconditionerObject*, PyObject*, void*);
+PyObject* AffinePreconditioner_mean_in(AffinePreconditionerObject*, void*);
+PyObject* AffinePreconditioner_mean_out(AffinePreconditionerObject*, void*);
+PyObject* AffinePreconditioner_pre_in(AffinePreconditionerObject*, void*);
+PyObject* AffinePreconditioner_pre_out(AffinePreconditionerObject*, void*);
+PyObject* AffinePreconditioner_predictor(AffinePreconditionerObject*, void*);
 
-PyObject* AffinePreconditioner_reduce(AffinePreconditionerObject*, PyObject*, PyObject*);
-PyObject* AffinePreconditioner_setstate(AffinePreconditionerObject*, PyObject*, PyObject*);
+PyObject* AffinePreconditioner_reduce(AffinePreconditionerObject*, PyObject*);
+PyObject* AffinePreconditioner_setstate(AffinePreconditionerObject*, PyObject*);
 
-PyObject* AffineTransform_reduce(AffineTransformObject*, PyObject*, PyObject*);
+PyObject* AffineTransform_reduce(AffineTransformObject*, PyObject*);
 
 int WhiteningPreconditioner_init(WhiteningPreconditionerObject*, PyObject*, PyObject*);
 int WhiteningTransform_init(WhiteningTransformObject*, PyObject*, PyObject*);
@@ -109,7 +112,10 @@ int WhiteningTransform_init(WhiteningTransformObject*, PyObject*, PyObject*);
 int PCAPreconditioner_init(PCAPreconditionerObject*, PyObject*, PyObject*);
 int PCATransform_init(PCATransformObject*, PyObject*, PyObject*);
 
-PyObject* PCAPreconditioner_reduce(PCAPreconditionerObject*, PyObject*, PyObject*);
-PyObject* PCATransform_reduce(PCATransformObject*, PyObject*, PyObject*);
+PyObject* PCAPreconditioner_eigenvalues(PCAPreconditionerObject*, void*);
+PyObject* PCATransform_eigenvalues(PCATransformObject*, void*);
+
+PyObject* PCAPreconditioner_reduce(PCAPreconditionerObject*, PyObject*);
+PyObject* PCATransform_reduce(PCATransformObject*, PyObject*);
 
 #endif
