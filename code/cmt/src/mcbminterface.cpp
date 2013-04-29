@@ -1004,7 +1004,7 @@ PyObject* PatchMCBM_input_mask(PatchMCBMObject* self, PyObject* args) {
 	int i = -1;
 	int j = -1;
 
-	if(!PyArg_ParseTuple(args, "|ii", &i, &j))
+	if(args && !PyArg_ParseTuple(args, "|ii", &i, &j))
 		return 0;
 
 	if(i >= 0 && j < 0) {
@@ -1030,7 +1030,7 @@ PyObject* PatchMCBM_output_mask(PatchMCBMObject* self, PyObject* args) {
 	int i = -1;
 	int j = -1;
 
-	if(!PyArg_ParseTuple(args, "|ii", &i, &j))
+	if(args && !PyArg_ParseTuple(args, "|ii", &i, &j))
 		return 0;
 
 	if(i >= 0 && j < 0) {

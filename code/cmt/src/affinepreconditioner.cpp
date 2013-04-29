@@ -16,9 +16,12 @@ CMT::AffinePreconditioner::AffinePreconditioner(
 	mPreOut(preOut),
 	mPreOutInv(preOut.inverse()),
 	mPredictor(predictor),
-	mLogJacobian(preOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum()),
- 	mGradTransform(preOut * predictor * preIn)
+	mLogJacobian(preOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum())
 {
+	if(preIn.size() > 0)
+		mGradTransform = preOut * predictor * preIn;
+	else
+		mGradTransform = MatrixXd(preOut.rows(), preIn.cols());
 }
 
 
@@ -38,9 +41,12 @@ CMT::AffinePreconditioner::AffinePreconditioner(
 	mPreOut(preOut),
 	mPreOutInv(preOutInv),
 	mPredictor(predictor),
-	mLogJacobian(preOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum()),
- 	mGradTransform(preOut * predictor * preIn)
+	mLogJacobian(preOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum())
 {
+	if(preIn.size() > 0)
+		mGradTransform = preOut * predictor * preIn;
+	else
+		mGradTransform = MatrixXd(preOut.rows(), preIn.cols());
 }
 
 
