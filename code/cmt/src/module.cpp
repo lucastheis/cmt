@@ -372,6 +372,7 @@ static PyGetSetDef PatchMCBM_getset[] = {
 static PyMethodDef PatchMCBM_methods[] = {
 	{"initialize", (PyCFunction)PatchMCBM_initialize, METH_KEYWORDS, PatchMCBM_initialize_doc},
 	{"train", (PyCFunction)PatchMCBM_train, METH_KEYWORDS, PatchMCBM_train_doc},
+	{"loglikelihood", (PyCFunction)PatchMCBM_loglikelihood, METH_KEYWORDS, 0},
 	{"preconditioner", (PyCFunction)PatchMCBM_preconditioner, METH_VARARGS, 0},
 	{"__reduce__", (PyCFunction)PatchMCBM_reduce, METH_NOARGS, PatchMCBM_reduce_doc},
 	{"__setstate__", (PyCFunction)PatchMCBM_setstate, METH_VARARGS, PatchMCBM_setstate_doc},

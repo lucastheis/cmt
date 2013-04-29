@@ -63,7 +63,7 @@ void CMT::PCATransform::initialize(
 	mPreOutInv = MatrixXd::Identity(dimOut, dimOut);
 	mPredictor = MatrixXd::Zero(dimOut, numPCs);
 	mGradTransform = MatrixXd::Zero(dimOut, input.rows());
-	mLogJacobian = 1.;
+	mLogJacobian = 0.;
 
 	if(input.rows() < 1)
 		return;

@@ -59,8 +59,20 @@ class PatchModel : public Distribution {
 			const MatrixXd& data,
 			const MatrixXd& dataVal,
 			const Parameters& params = Parameters());
+		bool train(
+			int i,
+			int j,
+			const MatrixXd& data,
+			const Parameters& params = Parameters());
+		bool train(
+			int i,
+			int j,
+			const MatrixXd& data,
+			const MatrixXd& dataVal,
+			const Parameters& params = Parameters());
 
 		Array<double, 1, Dynamic> logLikelihood(const MatrixXd& data) const;
+		Array<double, 1, Dynamic> logLikelihood(int i, int j, const MatrixXd& data) const;
 
 		MatrixXd sample(int num_samples) const;
 
@@ -266,21 +278,6 @@ void PatchModel<CD, PC>::setPreconditioner(int i, int j, const PC& preconditione
 
 template <class CD, class PC>
 void PatchModel<CD, PC>::initialize(const MatrixXd& data, const Parameters& params) {
-	Tuples inputIndices = maskToIndices(mInputMask);
-
-	// count how many pixels possess a complete neighborhood
-	int counter = 0;
-	for(int i = 0; i < mRows * mCols; ++i)
-		counter += mInputIndices[i].size() == inputIndices.size();
-
-	int numSamplesPerImage = ceil(2 * data.cols() / static_cast<double>(counter)) + .5;
-	if(numSamplesPerImage > data.cols())
-		numSamplesPerImage = data.cols();
-
-	// collect inputs and outputs
-	vector<MatrixXd> inputs;
-	vector<MatrixXd> outputs;
-
 	for(int i = 0; i < mRows * mCols; ++i) {
 		MatrixXd output = data.row(i);
 		MatrixXd input(mInputIndices[i].size(), data.cols());
@@ -296,79 +293,14 @@ void PatchModel<CD, PC>::initialize(const MatrixXd& data, const Parameters& para
 
 		if(mMaxPCs >= 0) {
 			if(mPreconditioners[i])
-				// delete existing preconditioner
 				delete mPreconditioners[i];
-			// create preconditioner
 			mPreconditioners[i] = new PC(input, output, 0., mMaxPCs);
-		}
-
-		// check whether causal neighboor fits completely into image patch
-		if(mInputIndices[i].size() == inputIndices.size()) {
-			// keep a more or less random subset of the data for later
-			int offset = rand() % (data.cols() - numSamplesPerImage + 1);
-
-			inputs.push_back(input.block(0, offset, input.rows(), numSamplesPerImage));
-			outputs.push_back(output.block(0, offset, output.rows(), numSamplesPerImage));
-
+			mConditionalDistributions[i].initialize(
+				mPreconditioners[i]->operator()(input, output));
 		} else {
-			// initialize models with an incomplete neighborhood
-			if(mMaxPCs < 0)
-				mConditionalDistributions[i].initialize(input, output);
-			else
-				mConditionalDistributions[i].initialize(
-					mPreconditioners[i]->operator()(input, output));
+			mConditionalDistributions[i].initialize(input, output);
 		}
 	}
-
-	MatrixXd input = concatenate(inputs);
-	MatrixXd output = concatenate(outputs);
-
-	// number of training and validation data points
-	int numTrain = ceil(input.cols() * 0.9) + .5;
-	int numValid = input.cols() - numTrain;
-
-	if(!numValid)
-		// too few data points
-		throw Exception("Too few data points.");
-
-	for(int i = 0; i < mRows * mCols; ++i)
-		if(mInputIndices[i].size() == inputIndices.size()) {
-			// train a single model
-			if(mMaxPCs < 0) {
-				mConditionalDistributions[i].initialize(input, output);
-				mConditionalDistributions[i].train(
-					// training set
-					input.leftCols(numTrain),
-					output.leftCols(numTrain),
-					// validation set
-					input.rightCols(numValid),
-					output.rightCols(numValid),
-					params);
-			} else {
-				// compute preconditioned input and output
-				PC pc(input, output, 0., mMaxPCs);
-				pair<ArrayXXd, ArrayXXd> data = pc(input, output);
-				const MatrixXd& inputPc = data.first;
-				const MatrixXd& outputPc = data.second;
-
-				mConditionalDistributions[i].initialize(inputPc, outputPc);
-				mConditionalDistributions[i].train(
-					// training set
-					inputPc.leftCols(numTrain),
-					outputPc.leftCols(numTrain),
-					// validation set
-					inputPc.rightCols(numValid),
-					outputPc.rightCols(numValid),
-					params);
-			}
-
-			// copy parameters to all other models with the same input size
-			for(int j = i + 1; j < mRows * mCols; ++j)
-				if(mConditionalDistributions[j].dimIn() == mConditionalDistributions[i].dimIn())
-					mConditionalDistributions[j] = mConditionalDistributions[i];
-
-			break;
-		}
 }
 
 
@@ -400,7 +332,7 @@ bool PatchModel<CD, PC>::train(const MatrixXd& data, const Parameters& params) {
 			converged &= mConditionalDistributions[i].train(input, output, params);
 		} else {
 			if(!mPreconditioners[i])
-				throw Exception("Model has to be initialized first.");
+				mPreconditioners[i] = new PC(input, output, 0., mMaxPCs);
 			converged &= mConditionalDistributions[i].train(
 				mPreconditioners[i]->operator()(input, output), params);
 		}
@@ -446,7 +378,7 @@ bool PatchModel<CD, PC>::train(
 				input, output, inputVal, outputVal, params);
 		} else {
 			if(!mPreconditioners[i])
-				throw Exception("Model has to be initialized first.");
+				mPreconditioners[i] = new PC(input, output, 0., mMaxPCs);
 			converged &= mConditionalDistributions[i].train(
 				mPreconditioners[i]->operator()(input, output),
 				mPreconditioners[i]->operator()(inputVal, outputVal),
@@ -460,8 +392,80 @@ bool PatchModel<CD, PC>::train(
 
 
 template <class CD, class PC>
+bool PatchModel<CD, PC>::train(int i, int j, const MatrixXd& data, const Parameters& params) {
+	int k = i * mCols + j;
+
+	MatrixXd output = data.row(k);
+	MatrixXd input(mInputIndices[k].size(), data.cols());
+
+	// extract inputs and outputs from patches
+	#pragma omp parallel for
+	for(int l = 0; l < mInputIndices[k].size(); ++l) {
+		// coordinates of j-th input to i-th model
+		int m = mInputIndices[k][l].first;
+		int n = mInputIndices[k][l].second;
+
+		// assumes patch is stored in row-major order
+		input.row(l) = data.row(m * mCols + n);
+	}
+
+	if(mMaxPCs < 0) {
+		return mConditionalDistributions[k].train(input, output, params);
+	} else {
+		if(!mPreconditioners[k])
+			mPreconditioners[k] = new PC(input, output, 0., mMaxPCs);
+		return mConditionalDistributions[k].train(
+			mPreconditioners[k]->operator()(input, output), params);
+	}
+}
+
+
+
+template <class CD, class PC>
+bool PatchModel<CD, PC>::train(
+	int i,
+	int j,
+	const MatrixXd& data,
+	const MatrixXd& dataVal,
+	const Parameters& params)
+{
+	int k = i * mCols + j;
+
+	MatrixXd output = data.row(k);
+	MatrixXd input(mInputIndices[k].size(), data.cols());
+	MatrixXd outputVal = dataVal.row(k);
+	MatrixXd inputVal(mInputIndices[k].size(), dataVal.cols());
+
+	// extract inputs and outputs from patches
+	#pragma omp parallel for
+	for(int l = 0; l < mInputIndices[k].size(); ++l) {
+		// coordinates of j-th input to i-th model
+		int m = mInputIndices[k][l].first;
+		int n = mInputIndices[k][l].second;
+
+		// assumes patch is stored in row-major order
+		input.row(l) = data.row(m * mCols + n);
+		inputVal.row(l) = dataVal.row(m * mCols + n);
+	}
+
+	if(mMaxPCs < 0) {
+		return mConditionalDistributions[k].train(
+			input, output, inputVal, outputVal, params);
+	} else {
+		if(!mPreconditioners[k])
+			mPreconditioners[k] = new PC(input, output, 0., mMaxPCs);
+		return mConditionalDistributions[k].train(
+			mPreconditioners[k]->operator()(input, output),
+			mPreconditioners[k]->operator()(inputVal, outputVal),
+			params);
+	}
+}
+
+
+
+template <class CD, class PC>
 Array<double, 1, Dynamic> PatchModel<CD, PC>::logLikelihood(
-	const MatrixXd& data) const 
+	const MatrixXd& data) const
 {
 	Array<double, 1, Dynamic> logLik = Array<double, 1, Dynamic>::Zero(data.cols());
 
@@ -491,6 +495,40 @@ Array<double, 1, Dynamic> PatchModel<CD, PC>::logLikelihood(
 	}
 
 	return logLik;
+}
+
+
+
+template <class CD, class PC>
+Array<double, 1, Dynamic> PatchModel<CD, PC>::logLikelihood(
+	int i, int j, const MatrixXd& data) const
+{
+	int k = i * mCols + j;
+
+	Array<double, 1, Dynamic> logLik = Array<double, 1, Dynamic>::Zero(data.cols());
+
+	// assumes patch is stored in row-major order
+	MatrixXd output = data.row(k);
+	MatrixXd input(mInputIndices[k].size(), data.cols());
+
+	for(int l = 0; l < mInputIndices[k].size(); ++l) {
+		// coordinates of j-th input to i-th model
+		int m = mInputIndices[k][l].first;
+		int n = mInputIndices[k][l].second;
+
+		// assumes patch is stored in row-major order
+		input.row(l) = data.row(m * mCols + n);
+	}
+
+	if(mMaxPCs < 0) {
+		return mConditionalDistributions[k].logLikelihood(input, output);
+	} else {
+		if(!mPreconditioners[k])
+			throw Exception("Model has to be initialized first.");
+		return mConditionalDistributions[k].logLikelihood(
+			mPreconditioners[k]->operator()(input, output)) +
+			mPreconditioners[k]->logJacobian(input, output);
+	}
 }
 
 

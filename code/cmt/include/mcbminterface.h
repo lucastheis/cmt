@@ -95,6 +95,7 @@ int PatchMCBM_set_preconditioners(PatchMCBMObject*, PyObject*, void*);
 
 PyObject* PatchMCBM_initialize(PatchMCBMObject*, PyObject*, PyObject*);
 PyObject* PatchMCBM_train(PatchMCBMObject*, PyObject*, PyObject*);
+PyObject* PatchMCBM_loglikelihood(PatchMCBMObject*, PyObject*, PyObject*);
 
 PyObject* PatchMCBM_reduce(PatchMCBMObject*, PyObject*);
 PyObject* PatchMCBM_setstate(PatchMCBMObject*, PyObject*);

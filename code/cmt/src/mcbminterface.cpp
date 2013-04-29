@@ -1237,18 +1237,31 @@ const char* PatchMCBM_train_doc =
 	"@return: C{True} if training of all models converged, otherwise C{False}";
 
 PyObject* PatchMCBM_train(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"data", "data_val", "parameters", 0};
+	const char* kwlist[] = {"i", "j", "data", "data_val", "parameters", 0};
 
 	PyObject* data;
 	PyObject* data_val = 0;
 	PyObject* parameters = 0;
+	int i = -1;
+	int j = -1;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|OO", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiO|OO", const_cast<char**>(kwlist),
+		&i, &j,
 		&data,
 		&data_val,
 		&parameters))
-		return 0;
+	{
+		PyErr_Clear();
+
+		const char* kwlist[] = {"data", "data_val", "parameters", 0};
+
+		if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|OO", const_cast<char**>(kwlist),
+			&data,
+			&data_val,
+			&parameters))
+			return 0;
+	}
 
 	// make sure data is stored in NumPy array
 	data = PyArray_FROM_OTF(data, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
@@ -1275,14 +1288,27 @@ PyObject* PatchMCBM_train(PatchMCBMObject* self, PyObject* args, PyObject* kwds)
 		bool converged;
 
 		if(data_val) {
-			converged = self->patchMCBM->train(
-				PyArray_ToMatrixXd(data), 
-				PyArray_ToMatrixXd(data_val), 
-				PyObject_ToMCBMParameters(parameters));
+			if(i > -1 && j > -1)
+				converged = self->patchMCBM->train(
+					i, j,
+					PyArray_ToMatrixXd(data),
+					PyArray_ToMatrixXd(data_val),
+					PyObject_ToMCBMParameters(parameters));
+			else
+				converged = self->patchMCBM->train(
+					PyArray_ToMatrixXd(data),
+					PyArray_ToMatrixXd(data_val),
+					PyObject_ToMCBMParameters(parameters));
 		} else {
-			converged = self->patchMCBM->train(
-				PyArray_ToMatrixXd(data), 
-				PyObject_ToMCBMParameters(parameters));
+			if(i > -1 && j > -1)
+				converged = self->patchMCBM->train(
+					i, j,
+					PyArray_ToMatrixXd(data),
+					PyObject_ToMCBMParameters(parameters));
+			else
+				converged = self->patchMCBM->train(
+					PyArray_ToMatrixXd(data),
+					PyObject_ToMCBMParameters(parameters));
 		}
 
 		if(converged) {
@@ -1299,6 +1325,54 @@ PyObject* PatchMCBM_train(PatchMCBMObject* self, PyObject* args, PyObject* kwds)
 	} catch(Exception exception) {
 		Py_DECREF(data);
 		Py_XDECREF(data_val);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+PyObject* PatchMCBM_loglikelihood(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"i", "j", "data", 0};
+
+	PyObject* data;
+	int i = -1;
+	int j = -1;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiO", const_cast<char**>(kwlist),
+		&i, &j, &data)) 
+	{
+		PyErr_Clear();
+
+		const char* kwlist[] = {"data", 0};
+
+		if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &data))
+			return 0;
+	}
+
+	// make sure data is stored in NumPy array
+	data = PyArray_FROM_OTF(data, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!data) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		PyObject* result;
+		if(i > -1 && j > -1)
+			result = PyArray_FromMatrixXd(
+				self->patchMCBM->logLikelihood(i, j, PyArray_ToMatrixXd(data)));
+		else
+			result = PyArray_FromMatrixXd(
+				self->patchMCBM->logLikelihood(PyArray_ToMatrixXd(data)));
+		Py_DECREF(data);
+		return result;
+	} catch(Exception exception) {
+		Py_DECREF(data);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}
