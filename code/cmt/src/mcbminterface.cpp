@@ -1000,23 +1000,53 @@ PyObject* PatchMCBM_cols(PatchMCBMObject* self, void*) {
 
 
 
-PyObject* PatchMCBM_input_mask(PatchMCBMObject* self, void*) {
-	PyObject* array = PyArray_FromMatrixXb(self->patchMCBM->inputMask());
+PyObject* PatchMCBM_input_mask(PatchMCBMObject* self, PyObject* args) {
+	int i = -1;
+	int j = -1;
+
+	if(!PyArg_ParseTuple(args, "|ii", &i, &j))
+		return 0;
+
+	if(i >= 0 && j < 0) {
+		PyErr_SetString(PyExc_TypeError, "Index should consist of a row and a column.");
+		return 0;
+	}
+
+	PyObject* array;
+
+	if(i < 0 || j < 0)
+		array = PyArray_FromMatrixXb(self->patchMCBM->inputMask());
+	else
+		array = PyArray_FromMatrixXb(self->patchMCBM->inputMask(i, j));
 
 	// make array immutable
 	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
-
 	return array;
 }
 
 
 
-PyObject* PatchMCBM_output_mask(PatchMCBMObject* self, void*) {
-	PyObject* array = PyArray_FromMatrixXb(self->patchMCBM->outputMask());
+PyObject* PatchMCBM_output_mask(PatchMCBMObject* self, PyObject* args) {
+	int i = -1;
+	int j = -1;
+
+	if(!PyArg_ParseTuple(args, "|ii", &i, &j))
+		return 0;
+
+	if(i >= 0 && j < 0) {
+		PyErr_SetString(PyExc_TypeError, "Index should consist of a row and a column.");
+		return 0;
+	}
+
+	PyObject* array;
+
+	if(i < 0 || j < 0)
+		array = PyArray_FromMatrixXb(self->patchMCBM->outputMask());
+	else
+		array = PyArray_FromMatrixXb(self->patchMCBM->outputMask(i, j));
 
 	// make array immutable
 	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
-
 	return array;
 }
 

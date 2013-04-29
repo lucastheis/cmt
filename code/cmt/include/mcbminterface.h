@@ -83,8 +83,9 @@ int PatchMCBM_init(PatchMCBMObject*, PyObject*, PyObject*);
 
 PyObject* PatchMCBM_rows(PatchMCBMObject*, void*);
 PyObject* PatchMCBM_cols(PatchMCBMObject*, void*);
-PyObject* PatchMCBM_input_mask(PatchMCBMObject*, void*);
-PyObject* PatchMCBM_output_mask(PatchMCBMObject*, void*);
+
+PyObject* PatchMCBM_input_mask(PatchMCBMObject*, PyObject*);
+PyObject* PatchMCBM_output_mask(PatchMCBMObject*, PyObject*);
 
 PyObject* PatchMCBM_subscript(PatchMCBMObject*, PyObject*);
 int PatchMCBM_ass_subscript(PatchMCBMObject*, PyObject*, PyObject*);

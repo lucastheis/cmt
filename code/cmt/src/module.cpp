@@ -360,8 +360,6 @@ static PyMappingMethods PatchMCBM_as_mapping = {
 static PyGetSetDef PatchMCBM_getset[] = {
 	{"rows", (getter)PatchMCBM_rows, 0, "Number of rows of the modeled patches."},
 	{"cols", (getter)PatchMCBM_cols, 0, "Number of columns of the modeled patches."},
-	{"input_mask", (getter)PatchMCBM_input_mask, 0, "A Boolean mask defining the input to each conditional distribution."},
-	{"output_mask", (getter)PatchMCBM_output_mask, 0, "A Boolean mask defining the output relative to the input."},
 	{"preconditioners", 
 		(getter)PatchMCBM_preconditioners,
 		(setter)PatchMCBM_set_preconditioners,
@@ -374,6 +372,8 @@ static PyMethodDef PatchMCBM_methods[] = {
 	{"train", (PyCFunction)PatchMCBM_train, METH_KEYWORDS, PatchMCBM_train_doc},
 	{"loglikelihood", (PyCFunction)PatchMCBM_loglikelihood, METH_KEYWORDS, 0},
 	{"preconditioner", (PyCFunction)PatchMCBM_preconditioner, METH_VARARGS, 0},
+	{"input_mask", (PyCFunction)PatchMCBM_input_mask, METH_VARARGS, 0},
+	{"output_mask", (PyCFunction)PatchMCBM_output_mask, METH_VARARGS, 0},
 	{"__reduce__", (PyCFunction)PatchMCBM_reduce, METH_NOARGS, PatchMCBM_reduce_doc},
 	{"__setstate__", (PyCFunction)PatchMCBM_setstate, METH_VARARGS, PatchMCBM_setstate_doc},
 	{0}

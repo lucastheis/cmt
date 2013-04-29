@@ -44,6 +44,8 @@ class PatchModel : public Distribution {
 		int maxPCs() const;
 		ArrayXXb inputMask() const;
 		ArrayXXb outputMask() const;
+		ArrayXXb inputMask(int i, int j) const;
+		ArrayXXb outputMask(int i, int j) const;
 
 		CD& operator()(int i, int j);
 		const CD& operator()(int i, int j) const;
@@ -208,6 +210,29 @@ ArrayXXb PatchModel<CD, PC>::inputMask() const {
 template <class CD, class PC>
 ArrayXXb PatchModel<CD, PC>::outputMask() const {
 	return mOutputMask;
+}
+
+
+
+template <class CD, class PC>
+ArrayXXb PatchModel<CD, PC>::inputMask(int i, int j) const {
+	ArrayXXb inputMask = ArrayXXb::Zero(mRows, mCols);
+
+	int k = i * mRows + j;
+
+	for(Tuples::const_iterator it = mInputIndices[k].begin(); it != mInputIndices[k].end(); ++it)
+		inputMask(it->first, it->second) = true;
+
+	return inputMask;
+}
+
+
+
+template <class CD, class PC>
+ArrayXXb PatchModel<CD, PC>::outputMask(int i, int j) const {
+	ArrayXXb outputMask = ArrayXXb::Zero(mRows, mCols);
+	outputMask(i, j) = true;
+	return outputMask;
 }
 
 

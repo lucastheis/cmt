@@ -14,7 +14,7 @@ CMT::AffineTransform::AffineTransform(const VectorXd& meanIn, const MatrixXd& pr
 		MatrixXd::Zero(dimOut, preIn.rows()))
 {
 	mGradTransform = MatrixXd::Zero(dimOut, meanIn.size());
-	mLogJacobian = 1.;
+	mLogJacobian = 0.;
 }
 
 
@@ -34,7 +34,7 @@ CMT::AffineTransform::AffineTransform(
 		MatrixXd::Zero(dimOut, preIn.rows()))
 {
 	mGradTransform = MatrixXd::Zero(dimOut, meanIn.size());
-	mLogJacobian = 1.;
+	mLogJacobian = 0.;
 }
 
 
