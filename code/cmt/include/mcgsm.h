@@ -42,6 +42,8 @@ class MCGSM : public ConditionalDistribution {
 				virtual Parameters& operator=(const Parameters& params);
 		};
 
+		using ConditionalDistribution::logLikelihood;
+
 		MCGSM(
 			int dimIn,
 			int dimOut = 1,
@@ -119,11 +121,8 @@ class MCGSM : public ConditionalDistribution {
 			const MatrixXd& input,
 			const MatrixXd& output) const;
 
-
 		virtual ArrayXXd prior(const MatrixXd& input) const;
 		virtual ArrayXXd posterior(const MatrixXd& input, const MatrixXd& output) const;
-
-		using ConditionalDistribution::logLikelihood;
 
 		virtual Array<double, 1, Dynamic> logLikelihood(
 			const MatrixXd& input,

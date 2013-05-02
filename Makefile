@@ -50,6 +50,7 @@ SOURCES = \
 	$(SRCDIR)/pyutils.cpp \
 	$(SRCDIR)/tools.cpp \
 	$(SRCDIR)/toolsinterface.cpp \
+	$(SRCDIR)/trainable.cpp \
 	$(SRCDIR)/utils.cpp \
 	$(SRCDIR)/whiteningpreconditioner.cpp \
 	$(SRCDIR)/whiteningtransform.cpp

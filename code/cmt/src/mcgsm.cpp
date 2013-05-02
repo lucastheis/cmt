@@ -386,6 +386,8 @@ bool MCGSM::train(
 		throw Exception("Data has wrong dimensionality.");
 	if(input.cols() != output.cols())
 		throw Exception("The number of inputs and outputs should be the same.");
+	if(input.cols() < 1)
+		return true;
 
 	// copy parameters for L-BFGS
 	lbfgsfloatval_t* x = parameters(params);

@@ -8,13 +8,12 @@ using Eigen::ArrayXXd;
 #include <map>
 using std::pair;
 
-#include "conditionaldistribution.h"
 #include "exception.h"
-#include "lbfgs.h"
+#include "trainable.h"
 
-class MCBM : public ConditionalDistribution {
+class MCBM : public Trainable {
 	public:
-		struct Parameters : public ConditionalDistribution::Parameters {
+		struct Parameters : public Trainable::Parameters {
 			public:
 				enum Regularizer { L1, L2 };
 
@@ -35,6 +34,9 @@ class MCBM : public ConditionalDistribution {
 				virtual Parameters& operator=(const Parameters& params);
 		};
 
+		using Trainable::logLikelihood;
+		using Trainable::train;
+
 		MCBM(
 			int dimIn, 
 			int numComponents = 8,
@@ -48,7 +50,6 @@ class MCBM : public ConditionalDistribution {
 
 		inline int numComponents() const;
 		inline int numFeatures() const;
-		inline int numParameters(const Parameters& params = Parameters()) const;
 
 		inline VectorXd priors() const;
 		inline void setPriors(const VectorXd& priors);
@@ -70,46 +71,19 @@ class MCBM : public ConditionalDistribution {
 
 		virtual MatrixXd sample(const MatrixXd& input) const;
 
-		using ConditionalDistribution::logLikelihood;
-
 		virtual Array<double, 1, Dynamic> logLikelihood(
 			const MatrixXd& input,
 			const MatrixXd& output) const;
 
-		virtual void initialize(const MatrixXd& input, const MatrixXd& output);
-		virtual void initialize(const pair<ArrayXXd, ArrayXXd>& data);
-
-		virtual bool train(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			const Parameters& params = Parameters());
-		virtual bool train(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			const MatrixXd& inputVal,
-			const MatrixXd& outputVal,
-			const Parameters& params = Parameters());
-		virtual bool train(
-			const pair<ArrayXXd, ArrayXXd>& data,
-			const Parameters& params = Parameters());
-		virtual bool train(
-			const pair<ArrayXXd, ArrayXXd>& data,
-			const pair<ArrayXXd, ArrayXXd>& dataVal,
-			const Parameters& params = Parameters());
-
-		lbfgsfloatval_t* parameters(const Parameters& params) const;
-		void setParameters(const lbfgsfloatval_t* x, const Parameters& params);
-		double computeGradient(
+		virtual int numParameters(const Parameters& params = Parameters()) const;
+		virtual lbfgsfloatval_t* parameters(const Trainable::Parameters& params) const;
+		virtual void setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters& params);
+		virtual double computeGradient(
 			const MatrixXd& input,
 			const MatrixXd& output,
 			const lbfgsfloatval_t* x,
 			lbfgsfloatval_t* g,
-			const Parameters& params) const;
-		virtual double checkGradient(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			double epsilon = 1e-5,
-			const Parameters& params = Parameters()) const;
+			const Trainable::Parameters& params) const;
 
 		virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
 			const MatrixXd& input,
@@ -132,52 +106,7 @@ class MCBM : public ConditionalDistribution {
 			const MatrixXd& output,
 			const MatrixXd* inputVal = 0,
 			const MatrixXd* outputVal = 0,
-			const Parameters& params = Parameters());
-
-		struct InstanceLBFGS {
-			const MCBM* mcbm;
-			const MCBM::Parameters* params;
-
-			const MatrixXd* input;
-			const MatrixXd* output;
-
-			// used for validation error based early stopping
-			const MatrixXd* inputVal;
-			const MatrixXd* outputVal;
-			double logLoss;
-			int counter;
-			lbfgsfloatval_t* parameters;
-
-			InstanceLBFGS(
-				const MCBM* mcbm,
-				const MCBM::Parameters* params,
-				const MatrixXd* input,
-				const MatrixXd* output);
-			InstanceLBFGS(
-				const MCBM* mcbm,
-				const MCBM::Parameters* params,
-				const MatrixXd* input,
-				const MatrixXd* output,
-				const MatrixXd* inputVal,
-				const MatrixXd* outputVal);
-			~InstanceLBFGS();
-		};
-
-		static int callbackLBFGS(
-			void*,
-			const lbfgsfloatval_t*,
-			const lbfgsfloatval_t*,
-			const lbfgsfloatval_t,
-			const lbfgsfloatval_t,
-			const lbfgsfloatval_t,
-			const lbfgsfloatval_t,
-			int, int, int);
-
-		static lbfgsfloatval_t evaluateLBFGS(
-			void*,
-			const lbfgsfloatval_t* x,
-			lbfgsfloatval_t* g,
-			int, double);
+			const Trainable::Parameters& params = Trainable::Parameters());
 };
 
 
@@ -202,25 +131,6 @@ inline int MCBM::numComponents() const {
 
 inline int MCBM::numFeatures() const {
 	return mNumFeatures;
-}
-
-
-
-inline int MCBM::numParameters(const Parameters& params) const {
-	int numParams = 0;
-	if(params.trainPriors)
-		numParams += mPriors.size();
-	if(params.trainWeights)
-		numParams += mWeights.size();
-	if(params.trainFeatures)
-		numParams += mFeatures.size();
-	if(params.trainPredictors)
-		numParams += mPredictors.size();
-	if(params.trainInputBias)
-		numParams += mInputBias.size();
-	if(params.trainOutputBias)
-		numParams += mOutputBias.size();
-	return numParams;
 }
 
 
