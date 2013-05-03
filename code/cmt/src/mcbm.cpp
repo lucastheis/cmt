@@ -195,7 +195,9 @@ Array<double, 1, Dynamic> MCBM::logLikelihood(
 
 
 
-int MCBM::numParameters(const Parameters& params) const {
+int MCBM::numParameters(const Trainable::Parameters& params_) const {
+	const Parameters& params = dynamic_cast<const Parameters&>(params_);
+
 	int numParams = 0;
 	if(params.trainPriors)
 		numParams += mPriors.size();

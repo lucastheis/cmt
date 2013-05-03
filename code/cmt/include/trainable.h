@@ -67,28 +67,24 @@ class Trainable : public ConditionalDistribution {
 			const pair<ArrayXXd, ArrayXXd>& dataVal,
 			const Parameters& params = Parameters());
 
-		virtual int numParameters(const Parameters& params) const = 0;
-		virtual lbfgsfloatval_t* parameters(const Parameters& params) const = 0;
-		virtual void setParameters(const lbfgsfloatval_t* x, const Parameters& params) = 0;
-
-		virtual double computeGradient(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			const lbfgsfloatval_t* x,
-			lbfgsfloatval_t* g,
-			const Parameters& params) const = 0;
 		virtual double checkGradient(
 			const MatrixXd& input,
 			const MatrixXd& output,
 			double epsilon = 1e-5,
 			const Parameters& params = Parameters());
+		virtual double checkPerformance(
+			const MatrixXd& input,
+			const MatrixXd& output,
+			int repetitions = 2,
+			const Parameters& params = Parameters());
+
 
 	protected:
 		typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
 		typedef Map<Matrix<lbfgsfloatval_t, Dynamic, 1> > VectorLBFGS;
 
 		struct InstanceLBFGS {
-			Trainable* model;
+			Trainable* cd;
 			const Parameters* params;
 
 			const MatrixXd* input;
@@ -102,12 +98,12 @@ class Trainable : public ConditionalDistribution {
 			lbfgsfloatval_t* parameters;
 
 			InstanceLBFGS(
-				Trainable* model,
+				Trainable* cd,
 				const Trainable::Parameters* params,
 				const MatrixXd* input,
 				const MatrixXd* output);
 			InstanceLBFGS(
-				Trainable* model,
+				Trainable* cd,
 				const Trainable::Parameters* params,
 				const MatrixXd* input,
 				const MatrixXd* output,
@@ -115,13 +111,6 @@ class Trainable : public ConditionalDistribution {
 				const MatrixXd* outputVal);
 			~InstanceLBFGS();
 		};
-
-		virtual bool train(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			const MatrixXd* inputVal = 0,
-			const MatrixXd* outputVal = 0,
-			const Parameters& params = Parameters());
 
 		static int callbackLBFGS(
 			void*,
@@ -138,6 +127,24 @@ class Trainable : public ConditionalDistribution {
 			const lbfgsfloatval_t* x,
 			lbfgsfloatval_t* g,
 			int, double);
+
+		virtual bool train(
+			const MatrixXd& input,
+			const MatrixXd& output,
+			const MatrixXd* inputVal = 0,
+			const MatrixXd* outputVal = 0,
+			const Parameters& params = Parameters());
+
+		virtual int numParameters(const Parameters& params) const = 0;
+		virtual lbfgsfloatval_t* parameters(const Parameters& params) const = 0;
+		virtual void setParameters(const lbfgsfloatval_t* x, const Parameters& params) = 0;
+
+		virtual double computeGradient(
+			const MatrixXd& input,
+			const MatrixXd& output,
+			const lbfgsfloatval_t* x,
+			lbfgsfloatval_t* g,
+			const Parameters& params) const = 0;
 };
 
 #endif

@@ -1,5 +1,6 @@
 #include "exception.h"
 #include "callbackinterface.h"
+#include "conditionaldistributioninterface.h"
 
 #include <iostream>
 
@@ -45,11 +46,11 @@ CallbackInterface* CallbackInterface::copy() {
 
 
 
-bool CallbackInterface::operator()(int iter, const ConditionalDistribution& cd) {
+bool CallbackInterface::operator()(int iter, const Trainable& cd) {
 	CDObject* cdObj = reinterpret_cast<CDObject*>(CD_new(mType, 0, 0));
 
 	// TODO: fix this hack
-	cdObj->cd = const_cast<ConditionalDistribution*>(&cd);
+	cdObj->cd = const_cast<Trainable*>(&cd);
 	cdObj->owner = false;
 
 	// call Python object

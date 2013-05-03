@@ -75,15 +75,15 @@ class MCBM : public Trainable {
 			const MatrixXd& input,
 			const MatrixXd& output) const;
 
-		virtual int numParameters(const Parameters& params = Parameters()) const;
-		virtual lbfgsfloatval_t* parameters(const Trainable::Parameters& params) const;
-		virtual void setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters& params);
+		virtual int numParameters(const Trainable::Parameters& params = Parameters()) const;
+		virtual lbfgsfloatval_t* parameters(const Trainable::Parameters& params = Parameters()) const;
+		virtual void setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters& params = Parameters());
 		virtual double computeGradient(
 			const MatrixXd& input,
 			const MatrixXd& output,
 			const lbfgsfloatval_t* x,
 			lbfgsfloatval_t* g,
-			const Trainable::Parameters& params) const;
+			const Trainable::Parameters& params = Parameters()) const;
 
 		virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
 			const MatrixXd& input,

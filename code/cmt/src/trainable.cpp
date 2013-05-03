@@ -1,3 +1,5 @@
+#include <sys/time.h>
+#include <cstdlib>
 #include "trainable.h"
 #include "exception.h"
 
@@ -74,11 +76,11 @@ Trainable::Parameters& Trainable::Parameters::operator=(
 
 
 Trainable::InstanceLBFGS::InstanceLBFGS(
-	Trainable* model,
+	Trainable* cd,
 	const Trainable::Parameters* params,
 	const MatrixXd* input,
 	const MatrixXd* output) :
-	model(model),
+	cd(cd),
 	params(params),
 	input(input),
 	output(output),
@@ -93,13 +95,13 @@ Trainable::InstanceLBFGS::InstanceLBFGS(
 
 
 Trainable::InstanceLBFGS::InstanceLBFGS(
-	Trainable* model,
+	Trainable* cd,
 	const Trainable::Parameters* params,
 	const MatrixXd* input,
 	const MatrixXd* output,
 	const MatrixXd* inputVal,
 	const MatrixXd* outputVal) :
-	model(model),
+	cd(cd),
 	params(params),
 	input(input),
 	output(output),
@@ -107,7 +109,7 @@ Trainable::InstanceLBFGS::InstanceLBFGS(
 	outputVal(outputVal),
 	logLoss(numeric_limits<double>::max()),
 	counter(0),
-	parameters(model->parameters(*params))
+	parameters(cd->parameters(*params))
 {
 }
 
@@ -142,9 +144,9 @@ int Trainable::callbackLBFGS(
 	const Trainable::Parameters& params = *inst->params;
 
 	if(inst->inputVal && inst->outputVal && iteration % params.valIter == 0) {
-		inst->model->setParameters(x, params);
+		inst->cd->setParameters(x, params);
 
-		double logLoss = inst->model->evaluate(*inst->inputVal, *inst->outputVal);
+		double logLoss = inst->cd->evaluate(*inst->inputVal, *inst->outputVal);
 
 		if(params.verbosity > 0) {
 			cout << setw(6) << iteration;
@@ -154,7 +156,7 @@ int Trainable::callbackLBFGS(
 
 		if(logLoss < inst->logLoss) {
 			// store current parameters for later
-			for(int i = 0, N = inst->model->numParameters(params); i < N; ++i)
+			for(int i = 0, N = inst->cd->numParameters(params); i < N; ++i)
 				inst->parameters[i] = x[i];
 
 			inst->counter = 0;
@@ -172,9 +174,9 @@ int Trainable::callbackLBFGS(
 	}
 
 	if(params.callback && iteration % params.cbIter == 0) {
-		inst->model->setParameters(x, params);
+		inst->cd->setParameters(x, params);
 
-		if(!(*params.callback)(iteration, *inst->model))
+		if(!(*params.callback)(iteration, *inst->cd))
 			return 1;
 	}
 
@@ -191,12 +193,12 @@ lbfgsfloatval_t Trainable::evaluateLBFGS(
 {
 	// unpack user data
 	const InstanceLBFGS& inst = *static_cast<InstanceLBFGS*>(instance);
-	const Trainable& model = *inst.model;
+	const Trainable& cd = *inst.cd;
 	const Trainable::Parameters& params = *inst.params;
 	const MatrixXd& input = *inst.input;
 	const MatrixXd& output = *inst.output;
 
-	return model.computeGradient(input, output, x, g, params);
+	return cd.computeGradient(input, output, x, g, params);
 }
 
 
@@ -384,4 +386,44 @@ double Trainable::checkGradient(
 		err += (g[i] - n[i]) * (g[i] - n[i]);
 
 	return sqrt(err);
+}
+
+
+
+double Trainable::checkPerformance(
+	const MatrixXd& input,
+	const MatrixXd& output,
+	int repetitions,
+	const Parameters& params)
+{
+	if(input.rows() != dimIn() || output.rows() != dimOut())
+		throw Exception("Data has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("The number of inputs and outputs should be the same.");
+
+	// request memory for LBFGS and copy parameters
+	lbfgsfloatval_t* x = parameters(params);
+
+	// optimization hyperparameters
+	lbfgs_parameter_t paramsLBFGS;
+	lbfgs_parameter_init(&paramsLBFGS);
+	paramsLBFGS.max_iterations = params.maxIter;
+	paramsLBFGS.m = params.numGrad;
+
+	// wrap additional arguments
+	InstanceLBFGS instance(this, &params, &input, &output);
+
+	// measure time it takes to evaluate gradient
+	lbfgsfloatval_t* g = lbfgs_malloc(numParameters(params));
+	timeval from, to;
+
+	gettimeofday(&from, 0);
+	for(int i = 0; i < repetitions; ++i)
+		evaluateLBFGS(&instance, x, g, 0, 0.);
+	gettimeofday(&to, 0);
+
+	// free memory used by LBFGS
+	lbfgs_free(x);
+
+	return (to.tv_sec + to.tv_usec / 1E6 - from.tv_sec - from.tv_usec / 1E6) / repetitions;
 }

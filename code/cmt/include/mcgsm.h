@@ -15,13 +15,13 @@ using std::make_pair;
 using Eigen::MatrixXd;
 using Eigen::ArrayXXd;
 
-#include "conditionaldistribution.h"
+#include "trainable.h"
 #include "exception.h"
 #include "lbfgs.h"
 
-class MCGSM : public ConditionalDistribution {
+class MCGSM : public Trainable {
 	public:
-		struct Parameters : public ConditionalDistribution::Parameters {
+		struct Parameters : public Trainable::Parameters {
 			public:
 				enum Regularizer { L1, L2 };
 
@@ -42,7 +42,9 @@ class MCGSM : public ConditionalDistribution {
 				virtual Parameters& operator=(const Parameters& params);
 		};
 
-		using ConditionalDistribution::logLikelihood;
+		using Trainable::logLikelihood;
+		using Trainable::initialize;
+		using Trainable::train;
 
 		MCGSM(
 			int dimIn,
@@ -59,7 +61,6 @@ class MCGSM : public ConditionalDistribution {
 		inline int numComponents() const;
 		inline int numScales() const;
 		inline int numFeatures() const;
-		inline int numParameters(const Parameters& params = Parameters()) const;
 
 		inline ArrayXXd priors() const;
 		inline void setPriors(const ArrayXXd& priors);
@@ -80,36 +81,6 @@ class MCGSM : public ConditionalDistribution {
 		inline void setPredictors(const vector<MatrixXd>& predictors);
 
 		virtual void initialize(const MatrixXd& input, const MatrixXd& output);
-		virtual void initialize(const pair<ArrayXXd, ArrayXXd>& data);
-
-		virtual bool train(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			const Parameters& params = Parameters());
-		virtual bool train(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			const MatrixXd& inputVal,
-			const MatrixXd& outputVal,
-			const Parameters& params = Parameters());
-		virtual bool train(
-			const pair<ArrayXXd, ArrayXXd>& data,
-			const Parameters& params = Parameters());
-		virtual bool train(
-			const pair<ArrayXXd, ArrayXXd>& data,
-			const pair<ArrayXXd, ArrayXXd>& dataVal,
-			const Parameters& params = Parameters());
-
-		virtual double checkGradient(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			double epsilon = 1e-5,
-			const Parameters& params = Parameters()) const;
-		virtual double checkPerformance(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			int repetitions = 2,
-			const Parameters& params = Parameters()) const;
 
 		virtual MatrixXd sample(const MatrixXd& input) const;
 		virtual MatrixXd sample(
@@ -132,14 +103,15 @@ class MCGSM : public ConditionalDistribution {
 			const MatrixXd& input,
 			const MatrixXd& output) const;
 
-		lbfgsfloatval_t* parameters(const Parameters& params) const;
-		void setParameters(const lbfgsfloatval_t* x, const Parameters& params);
+		virtual int numParameters(const Trainable::Parameters& params = Parameters()) const;
+		virtual lbfgsfloatval_t* parameters(const Trainable::Parameters& params = Parameters()) const;
+		virtual void setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters& params = Parameters());
 		virtual double computeGradient(
 			const MatrixXd& input,
 			const MatrixXd& output,
 			const lbfgsfloatval_t* x,
 			lbfgsfloatval_t* g,
-			const Parameters& params) const;
+			const Trainable::Parameters& params = Parameters()) const;
 
 	protected:
 		// hyperparameters
@@ -156,58 +128,6 @@ class MCGSM : public ConditionalDistribution {
 		MatrixXd mFeatures;
 		vector<MatrixXd> mCholeskyFactors;
 		vector<MatrixXd> mPredictors;
-
-		virtual bool train(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			const MatrixXd* inputVal = 0,
-			const MatrixXd* outputVal = 0,
-			const Parameters& params = Parameters());
-
-		struct InstanceLBFGS {
-			const MCGSM* mcgsm;
-			const MCGSM::Parameters* params;
-
-			const MatrixXd* input;
-			const MatrixXd* output;
-
-			// used for validation error based early stopping
-			const MatrixXd* inputVal;
-			const MatrixXd* outputVal;
-			double logLoss;
-			int counter;
-			lbfgsfloatval_t* parameters;
-
-			InstanceLBFGS(
-				const MCGSM* mcgsm,
-				const MCGSM::Parameters* params,
-				const MatrixXd* input,
-				const MatrixXd* output);
-			InstanceLBFGS(
-				const MCGSM* mcgsm,
-				const MCGSM::Parameters* params,
-				const MatrixXd* input,
-				const MatrixXd* output,
-				const MatrixXd* inputVal,
-				const MatrixXd* outputVal);
-			~InstanceLBFGS();
-		};
-
-		static int callbackLBFGS(
-			void*,
-			const lbfgsfloatval_t*,
-			const lbfgsfloatval_t*,
-			const lbfgsfloatval_t,
-			const lbfgsfloatval_t,
-			const lbfgsfloatval_t,
-			const lbfgsfloatval_t,
-			int, int, int);
-
-		static lbfgsfloatval_t evaluateLBFGS(
-			void*,
-			const lbfgsfloatval_t* x,
-			lbfgsfloatval_t* g,
-			int, double);
 };
 
 
@@ -238,25 +158,6 @@ inline int MCGSM::numScales() const {
 
 inline int MCGSM::numFeatures() const {
 	return mNumFeatures;
-}
-
-
-
-inline int MCGSM::numParameters(const Parameters& params) const {
-	int numParams = 0;
-	if(params.trainPriors)
-		numParams += mPriors.size();
-	if(params.trainScales)
-		numParams += mScales.size();
-	if(params.trainWeights)
-		numParams += mWeights.size();
-	if(params.trainFeatures)
-		numParams += mFeatures.size();
-	if(params.trainCholeskyFactors)
-		numParams += mNumComponents * mDimOut * (mDimOut + 1) / 2 - mNumComponents;
-	if(params.trainPredictors)
-		numParams += mNumComponents * mPredictors[0].size();
-	return numParams;
 }
 
 
