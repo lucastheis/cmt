@@ -78,7 +78,6 @@ class Trainable : public ConditionalDistribution {
 			int repetitions = 2,
 			const Parameters& params = Parameters());
 
-
 	protected:
 		typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
 		typedef Map<Matrix<lbfgsfloatval_t, Dynamic, 1> > VectorLBFGS;

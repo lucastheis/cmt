@@ -38,6 +38,7 @@ SOURCES = \
 	$(SRCDIR)/conditionaldistributioninterface.cpp \
 	$(SRCDIR)/distribution.cpp \
 	$(SRCDIR)/distributioninterface.cpp \
+	$(SRCDIR)/glm.cpp \
 	$(SRCDIR)/mcgsm.cpp \
 	$(SRCDIR)/mcgsminterface.cpp \
 	$(SRCDIR)/mcbm.cpp \
