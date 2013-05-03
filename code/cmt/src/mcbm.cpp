@@ -284,7 +284,7 @@ void MCBM::setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters& 
 
 
 
-double MCBM::computeGradient(
+double MCBM::parameterGradient(
 	const MatrixXd& inputCompl,
 	const MatrixXd& outputCompl,
 	const lbfgsfloatval_t* x,

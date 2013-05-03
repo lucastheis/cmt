@@ -527,7 +527,7 @@ void MCGSM::setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters&
 
 
 
-double MCGSM::computeGradient(
+double MCGSM::parameterGradient(
 	const MatrixXd& inputCompl,
 	const MatrixXd& outputCompl,
 	const lbfgsfloatval_t* x,

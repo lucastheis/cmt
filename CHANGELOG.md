@@ -1,5 +1,9 @@
 # CMT
 
+## 0.3.0
+
+- Implemented *early stopping* based on validation error.
+
 ## 0.2.0
 
 - Implemented mixture of conditional Boltzmann machines (MCBM).

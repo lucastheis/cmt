@@ -73,7 +73,7 @@ PyObject* MCBM_train(MCBMObject*, PyObject*, PyObject*);
 
 PyObject* MCBM_parameters(MCBMObject*, PyObject*, PyObject*);
 PyObject* MCBM_set_parameters(MCBMObject*, PyObject*, PyObject*);
-PyObject* MCBM_compute_gradient(MCBMObject*, PyObject*, PyObject*);
+PyObject* MCBM_parameter_gradient(MCBMObject*, PyObject*, PyObject*);
 PyObject* MCBM_check_gradient(MCBMObject*, PyObject*, PyObject*);
 
 PyObject* MCBM_reduce(MCBMObject*, PyObject*);

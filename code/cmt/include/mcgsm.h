@@ -106,7 +106,7 @@ class MCGSM : public Trainable {
 		virtual int numParameters(const Trainable::Parameters& params = Parameters()) const;
 		virtual lbfgsfloatval_t* parameters(const Trainable::Parameters& params = Parameters()) const;
 		virtual void setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters& params = Parameters());
-		virtual double computeGradient(
+		virtual double parameterGradient(
 			const MatrixXd& input,
 			const MatrixXd& output,
 			const lbfgsfloatval_t* x,

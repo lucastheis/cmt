@@ -139,7 +139,7 @@ class Trainable : public ConditionalDistribution {
 		virtual lbfgsfloatval_t* parameters(const Parameters& params) const = 0;
 		virtual void setParameters(const lbfgsfloatval_t* x, const Parameters& params) = 0;
 
-		virtual double computeGradient(
+		virtual double parameterGradient(
 			const MatrixXd& input,
 			const MatrixXd& output,
 			const lbfgsfloatval_t* x,

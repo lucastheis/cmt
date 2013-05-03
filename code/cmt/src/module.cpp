@@ -201,8 +201,8 @@ static PyMethodDef MCGSM_methods[] = {
 		(PyCFunction)MCGSM_set_parameters,
 		METH_VARARGS|METH_KEYWORDS,
 		MCGSM_set_parameters_doc},
-	{"_compute_gradient",
-		(PyCFunction)MCGSM_compute_gradient,
+	{"_parameter_gradient",
+		(PyCFunction)MCGSM_parameter_gradient,
 		METH_VARARGS|METH_KEYWORDS, 0},
 	{"_compute_data_gradient",
 		(PyCFunction)MCGSM_compute_data_gradient,
@@ -284,7 +284,7 @@ static PyGetSetDef MCBM_getset[] = {
 	{"output_bias",
 		(getter)MCBM_output_bias,
 		(setter)MCBM_set_output_bias,
-		"Output biases, $\\v_c$."},
+		"Output biases, $v_c$."},
 	{0}
 };
 
@@ -298,8 +298,8 @@ static PyMethodDef MCBM_methods[] = {
 		(PyCFunction)MCBM_set_parameters,
 		METH_VARARGS|METH_KEYWORDS,
 		MCBM_set_parameters_doc},
-	{"_compute_gradient",
-		(PyCFunction)MCBM_compute_gradient,
+	{"_parameter_gradient",
+		(PyCFunction)MCBM_parameter_gradient,
 		METH_VARARGS|METH_KEYWORDS, 0},
 	{"_check_gradient",
 		(PyCFunction)MCBM_check_gradient,
@@ -794,6 +794,8 @@ PyMODINIT_FUNC initcmt() {
 	// initialize types
 	if(PyType_Ready(&CD_type) < 0)
 		return;
+	if(PyType_Ready(&Distribution_type) < 0)
+		return;
 	if(PyType_Ready(&MCGSM_type) < 0)
 		return;
 	if(PyType_Ready(&MCBM_type) < 0)
@@ -820,6 +822,7 @@ PyMODINIT_FUNC initcmt() {
 
 	// add types to module
 	Py_INCREF(&CD_type);
+	Py_INCREF(&Distribution_type);
 	Py_INCREF(&MCGSM_type);
 	Py_INCREF(&MCBM_type);
 	Py_INCREF(&PatchMCBM_type);
@@ -831,6 +834,7 @@ PyMODINIT_FUNC initcmt() {
 	Py_INCREF(&PCAPreconditioner_type);
 	Py_INCREF(&PCATransform_type);
 	PyModule_AddObject(module, "ConditionalDistribution", reinterpret_cast<PyObject*>(&CD_type));
+	PyModule_AddObject(module, "Distribution", reinterpret_cast<PyObject*>(&Distribution_type));
 	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));
 	PyModule_AddObject(module, "MCBM", reinterpret_cast<PyObject*>(&MCBM_type));
 	PyModule_AddObject(module, "PatchMCBM", reinterpret_cast<PyObject*>(&PatchMCBM_type));

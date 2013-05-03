@@ -198,7 +198,7 @@ lbfgsfloatval_t Trainable::evaluateLBFGS(
 	const MatrixXd& input = *inst.input;
 	const MatrixXd& output = *inst.output;
 
-	return cd.computeGradient(input, output, x, g, params);
+	return cd.parameterGradient(input, output, x, g, params);
 }
 
 

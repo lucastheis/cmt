@@ -1011,7 +1011,7 @@ PyObject* MCGSM_set_parameters(MCGSMObject* self, PyObject* args, PyObject* kwds
 
 
 
-PyObject* MCGSM_compute_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+PyObject* MCGSM_parameter_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"input", "output", "x", "parameters", 0};
 
 	PyObject* input;
@@ -1048,7 +1048,7 @@ PyObject* MCGSM_compute_gradient(MCGSMObject* self, PyObject* args, PyObject* kw
 
 		if(x) {
 			#if LBFGS_FLOAT == 64
-			self->mcgsm->computeGradient(
+			self->mcgsm->parameterGradient(
 				PyArray_ToMatrixXd(input),
 				PyArray_ToMatrixXd(output),
 				reinterpret_cast<lbfgsfloatval_t*>(PyArray_DATA(x)),
@@ -1062,7 +1062,7 @@ PyObject* MCGSM_compute_gradient(MCGSMObject* self, PyObject* args, PyObject* kw
 			for(int i = 0; i < PyArray_SIZE(x); ++i)
 				xLBFGS[i] = static_cast<lbfgsfloatval_t>(xData[i]);
 
-			self->mcgsm->computeGradient(
+			self->mcgsm->parameterGradient(
 				PyArray_ToMatrixXd(input),
 				PyArray_ToMatrixXd(output),
 				xLBFGS,
@@ -1080,7 +1080,7 @@ PyObject* MCGSM_compute_gradient(MCGSMObject* self, PyObject* args, PyObject* kw
 		} else {
 			lbfgsfloatval_t* x = self->mcgsm->parameters(params);
 
-			self->mcgsm->computeGradient(
+			self->mcgsm->parameterGradient(
 				PyArray_ToMatrixXd(input),
 				PyArray_ToMatrixXd(output),
 				x,
