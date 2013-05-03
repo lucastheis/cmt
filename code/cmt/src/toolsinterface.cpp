@@ -4,12 +4,20 @@
 #include "conditionaldistributioninterface.h"
 #include "exception.h"
 #include "utils.h"
+
+#include "conditionaldistribution.h"
+using CMT::ConditionalDistribution;
+
 #include "tools.h"
+using CMT::generateDataFromImage;
+using CMT::generateDataFromVideo;
+using CMT::sampleImage;
+using CMT::sampleVideo;
+using CMT::fillInImage;
+using CMT::fillInImageMAP;
 
 #include <set>
 using std::set;
-
-#include <iostream>
 
 const char* random_select_doc =
 	"random_select(k, n)\n"

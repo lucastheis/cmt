@@ -140,7 +140,7 @@ class Tests(unittest.TestCase):
 				self.assertLess(err, 1e-6)
 
 		self.assertFalse(any(isnan(
-			mcbm._compute_gradient(
+			mcbm._parameter_gradient(
 				randint(2, size=[mcbm.dim_in, 1000]),
 				randint(2, size=[mcbm.dim_out, 1000]),
 				mcbm._parameters()))))

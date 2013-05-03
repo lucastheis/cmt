@@ -1,15 +1,20 @@
 #include "mcbm.h"
 #include "utils.h"
 
-#include <vector>
+#include <map>
 using std::make_pair;
+using std::pair;
 
 #include <cmath>
 using std::min;
 using std::exp;
 using std::log;
 
-MCBM::Parameters::Parameters() :
+#include "Eigen/Core"
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
+
+CMT::MCBM::Parameters::Parameters() :
 	Trainable::Parameters::Parameters()
 {
 	trainPriors = true;
@@ -26,7 +31,7 @@ MCBM::Parameters::Parameters() :
 
 
 
-MCBM::Parameters::Parameters(const Parameters& params) :
+CMT::MCBM::Parameters::Parameters(const Parameters& params) :
 	Trainable::Parameters::Parameters(params),
 	trainPriors(params.trainPriors),
 	trainWeights(params.trainWeights),
@@ -45,12 +50,12 @@ MCBM::Parameters::Parameters(const Parameters& params) :
 
 
 
-MCBM::Parameters::~Parameters() {
+CMT::MCBM::Parameters::~Parameters() {
 }
 
 
 
-MCBM::Parameters& MCBM::Parameters::operator=(const Parameters& params) {
+CMT::MCBM::Parameters& CMT::MCBM::Parameters::operator=(const Parameters& params) {
 	Trainable::Parameters::operator=(params);
 
 	trainPriors = params.trainPriors;
@@ -69,7 +74,7 @@ MCBM::Parameters& MCBM::Parameters::operator=(const Parameters& params) {
 
 
 
-MCBM::MCBM(int dimIn, int numComponents, int numFeatures) : 
+CMT::MCBM::MCBM(int dimIn, int numComponents, int numFeatures) : 
 	mDimIn(dimIn),
 	mNumComponents(numComponents),
 	mNumFeatures(numFeatures < 0 ? dimIn : numFeatures)
@@ -89,7 +94,7 @@ MCBM::MCBM(int dimIn, int numComponents, int numFeatures) :
 
 
 
-MCBM::MCBM(int dimIn, const MCBM& mcbm) : 
+CMT::MCBM::MCBM(int dimIn, const MCBM& mcbm) : 
 	mDimIn(dimIn),
 	mNumComponents(mcbm.numComponents()),
 	mNumFeatures(mcbm.numFeatures())
@@ -105,12 +110,12 @@ MCBM::MCBM(int dimIn, const MCBM& mcbm) :
 
 
 
-MCBM::~MCBM() {
+CMT::MCBM::~MCBM() {
 }
 
 
 
-MatrixXd MCBM::sample(const MatrixXd& input) const {
+MatrixXd CMT::MCBM::sample(const MatrixXd& input) const {
 	if(mDimIn) {
 		// some intermediate computations
 		ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
@@ -149,7 +154,7 @@ MatrixXd MCBM::sample(const MatrixXd& input) const {
 
 
 
-Array<double, 1, Dynamic> MCBM::logLikelihood(
+Array<double, 1, Dynamic> CMT::MCBM::logLikelihood(
 	const MatrixXd& input,
 	const MatrixXd& output) const 
 {
@@ -195,7 +200,7 @@ Array<double, 1, Dynamic> MCBM::logLikelihood(
 
 
 
-int MCBM::numParameters(const Trainable::Parameters& params_) const {
+int CMT::MCBM::numParameters(const Trainable::Parameters& params_) const {
 	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 
 	int numParams = 0;
@@ -216,7 +221,7 @@ int MCBM::numParameters(const Trainable::Parameters& params_) const {
 
 
 
-lbfgsfloatval_t* MCBM::parameters(const Trainable::Parameters& params_) const {
+lbfgsfloatval_t* CMT::MCBM::parameters(const Trainable::Parameters& params_) const {
 	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 
 	lbfgsfloatval_t* x = lbfgs_malloc(numParameters(params));
@@ -246,7 +251,7 @@ lbfgsfloatval_t* MCBM::parameters(const Trainable::Parameters& params_) const {
 
 
 
-void MCBM::setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters& params_) {
+void CMT::MCBM::setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters& params_) {
 	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 
 	int offset = 0;
@@ -284,7 +289,7 @@ void MCBM::setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters& 
 
 
 
-double MCBM::parameterGradient(
+double CMT::MCBM::parameterGradient(
 	const MatrixXd& inputCompl,
 	const MatrixXd& outputCompl,
 	const lbfgsfloatval_t* x,
@@ -486,7 +491,7 @@ double MCBM::parameterGradient(
 
 
 
-pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > MCBM::computeDataGradient(
+pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::MCBM::computeDataGradient(
 			const MatrixXd& input,
 			const MatrixXd& output) const
 {
@@ -501,7 +506,7 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > MCBM::computeDataGrad
 
 
 
-bool MCBM::train(
+bool CMT::MCBM::train(
 	const MatrixXd& input,
 	const MatrixXd& output,
 	const MatrixXd* inputVal,

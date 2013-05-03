@@ -41,6 +41,17 @@ CMT::GLM::~GLM() {
 
 
 
+Array<double, 1, Dynamic> CMT::GLM::logLikelihood(
+	const MatrixXd& input,
+	const MatrixXd& output) const
+{
+	return mDistribution->logLikelihood(
+		output,
+		(*mNonlinearity)(mWeights.transpose() * input));
+}
+
+
+
 int CMT::GLM::numParameters(const Parameters& params) const {
 	return mWeights.size();
 }

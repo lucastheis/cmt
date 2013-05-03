@@ -13,13 +13,13 @@
 
 struct MCBMObject {
 	PyObject_HEAD
-	MCBM* mcbm;
+	CMT::MCBM* mcbm;
 	bool owner;
 };
 
 struct PatchMCBMObject {
 	PyObject_HEAD
-	PatchModel<MCBM, CMT::PCATransform>* patchMCBM;
+	CMT::PatchModel<CMT::MCBM, CMT::PCATransform>* patchMCBM;
 	bool owner;
 };
 

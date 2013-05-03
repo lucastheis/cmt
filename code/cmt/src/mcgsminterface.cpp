@@ -1,11 +1,14 @@
-#include "mcgsminterface.h"
-#include "Eigen/Core"
 #include "exception.h"
 #include "callbackinterface.h"
 
-#include <iostream>
+#include "Eigen/Core"
+using Eigen::Map;
 
-using namespace Eigen;
+#include <map>
+using std::pair;
+
+#include "mcgsminterface.h"
+using CMT::MCGSM;
 
 MCGSM::Parameters PyObject_ToMCGSMParameters(PyObject* parameters) {
 	MCGSM::Parameters params;

@@ -4,7 +4,7 @@
 #include <Python.h>
 #include "trainable.h"
 
-class CallbackInterface : public Trainable::Callback {
+class CallbackInterface : public CMT::Trainable::Callback {
 	public:
 		CallbackInterface(PyTypeObject* type, PyObject* callback);
 		CallbackInterface(const CallbackInterface& callbackInterface);
@@ -13,7 +13,7 @@ class CallbackInterface : public Trainable::Callback {
 		virtual CallbackInterface* copy();
 
 		virtual CallbackInterface& operator=(const CallbackInterface& callbackInterface);
-		virtual bool operator()(int iter, const Trainable&);
+		virtual bool operator()(int iter, const CMT::Trainable&);
 
 	private:
 		PyTypeObject* mType;

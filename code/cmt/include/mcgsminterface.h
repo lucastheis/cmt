@@ -11,7 +11,7 @@
 
 struct MCGSMObject {
 	PyObject_HEAD
-	MCGSM* mcgsm;
+	CMT::MCGSM* mcgsm;
 	bool owner;
 };
 

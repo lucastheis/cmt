@@ -1,174 +1,172 @@
-#ifndef MCGSM_H
-#define MCGSM_H
-
-#include <cmath>
-using std::sqrt;
+#ifndef CMT_MCGSM_H
+#define CMT_MCGSM_H
 
 #include <vector>
-using std::vector;
-using std::pair;
-
-#include <utility>
-using std::make_pair;
-
 #include "Eigen/Core"
-using Eigen::MatrixXd;
-using Eigen::ArrayXXd;
-
 #include "trainable.h"
 #include "exception.h"
 #include "lbfgs.h"
 
-class MCGSM : public Trainable {
-	public:
-		struct Parameters : public Trainable::Parameters {
-			public:
-				enum Regularizer { L1, L2 };
+namespace CMT {
+	using std::vector;
+	using std::pair;
 
-				bool trainPriors;
-				bool trainScales;
-				bool trainWeights;
-				bool trainFeatures;
-				bool trainCholeskyFactors;
-				bool trainPredictors;
-				double regularizeFeatures;
-				double regularizePredictors;
-				double regularizeWeights;
-				Regularizer regularizer;
+	using Eigen::Dynamic;
+	using Eigen::Array;
+	using Eigen::ArrayXXd;
+	using Eigen::MatrixXd;
 
-				Parameters();
-				Parameters(const Parameters& params);
-				virtual ~Parameters();
-				virtual Parameters& operator=(const Parameters& params);
-		};
+	class MCGSM : public Trainable {
+		public:
+			struct Parameters : public Trainable::Parameters {
+				public:
+					enum Regularizer { L1, L2 };
 
-		using Trainable::logLikelihood;
-		using Trainable::initialize;
-		using Trainable::train;
+					bool trainPriors;
+					bool trainScales;
+					bool trainWeights;
+					bool trainFeatures;
+					bool trainCholeskyFactors;
+					bool trainPredictors;
+					double regularizeFeatures;
+					double regularizePredictors;
+					double regularizeWeights;
+					Regularizer regularizer;
 
-		MCGSM(
-			int dimIn,
-			int dimOut = 1,
-			int numComponents = 8,
-			int numScales = 6,
-			int numFeatures = -1);
-		MCGSM(int dimIn, const MCGSM& mcgsm);
-		MCGSM(int dimIn, int dimOut, const MCGSM& mcgsm);
-		virtual ~MCGSM();
+					Parameters();
+					Parameters(const Parameters& params);
+					virtual ~Parameters();
+					virtual Parameters& operator=(const Parameters& params);
+			};
 
-		inline int dimIn() const;
-		inline int dimOut() const;
-		inline int numComponents() const;
-		inline int numScales() const;
-		inline int numFeatures() const;
+			using Trainable::logLikelihood;
+			using Trainable::initialize;
+			using Trainable::train;
 
-		inline ArrayXXd priors() const;
-		inline void setPriors(const ArrayXXd& priors);
+			MCGSM(
+				int dimIn,
+				int dimOut = 1,
+				int numComponents = 8,
+				int numScales = 6,
+				int numFeatures = -1);
+			MCGSM(int dimIn, const MCGSM& mcgsm);
+			MCGSM(int dimIn, int dimOut, const MCGSM& mcgsm);
+			virtual ~MCGSM();
 
-		inline ArrayXXd scales() const;
-		inline void setScales(const ArrayXXd& scales);
+			inline int dimIn() const;
+			inline int dimOut() const;
+			inline int numComponents() const;
+			inline int numScales() const;
+			inline int numFeatures() const;
 
-		inline ArrayXXd weights() const;
-		inline void setWeights(const ArrayXXd& weights);
+			inline ArrayXXd priors() const;
+			inline void setPriors(const ArrayXXd& priors);
 
-		inline MatrixXd features() const;
-		inline void setFeatures(const MatrixXd& features);
+			inline ArrayXXd scales() const;
+			inline void setScales(const ArrayXXd& scales);
 
-		inline vector<MatrixXd> choleskyFactors() const;
-		inline void setCholeskyFactors(const vector<MatrixXd>& choleskyFactors);
+			inline ArrayXXd weights() const;
+			inline void setWeights(const ArrayXXd& weights);
 
-		inline vector<MatrixXd> predictors() const;
-		inline void setPredictors(const vector<MatrixXd>& predictors);
+			inline MatrixXd features() const;
+			inline void setFeatures(const MatrixXd& features);
 
-		virtual void initialize(const MatrixXd& input, const MatrixXd& output);
+			inline vector<MatrixXd> choleskyFactors() const;
+			inline void setCholeskyFactors(const vector<MatrixXd>& choleskyFactors);
 
-		virtual MatrixXd sample(const MatrixXd& input) const;
-		virtual MatrixXd sample(
-			const MatrixXd& input,
-			const Array<int, 1, Dynamic>& labels) const;
-		virtual MatrixXd reconstruct(const MatrixXd& input, const MatrixXd& output) const;
-		virtual Array<int, 1, Dynamic> samplePrior(const MatrixXd& input) const;
-		virtual Array<int, 1, Dynamic> samplePosterior(
-			const MatrixXd& input,
-			const MatrixXd& output) const;
+			inline vector<MatrixXd> predictors() const;
+			inline void setPredictors(const vector<MatrixXd>& predictors);
 
-		virtual ArrayXXd prior(const MatrixXd& input) const;
-		virtual ArrayXXd posterior(const MatrixXd& input, const MatrixXd& output) const;
+			virtual void initialize(const MatrixXd& input, const MatrixXd& output);
 
-		virtual Array<double, 1, Dynamic> logLikelihood(
-			const MatrixXd& input,
-			const MatrixXd& output) const;
+			virtual MatrixXd sample(const MatrixXd& input) const;
+			virtual MatrixXd sample(
+				const MatrixXd& input,
+				const Array<int, 1, Dynamic>& labels) const;
+			virtual MatrixXd reconstruct(const MatrixXd& input, const MatrixXd& output) const;
+			virtual Array<int, 1, Dynamic> samplePrior(const MatrixXd& input) const;
+			virtual Array<int, 1, Dynamic> samplePosterior(
+				const MatrixXd& input,
+				const MatrixXd& output) const;
 
-		virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
-			const MatrixXd& input,
-			const MatrixXd& output) const;
+			virtual ArrayXXd prior(const MatrixXd& input) const;
+			virtual ArrayXXd posterior(const MatrixXd& input, const MatrixXd& output) const;
 
-		virtual int numParameters(const Trainable::Parameters& params = Parameters()) const;
-		virtual lbfgsfloatval_t* parameters(const Trainable::Parameters& params = Parameters()) const;
-		virtual void setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters& params = Parameters());
-		virtual double parameterGradient(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			const lbfgsfloatval_t* x,
-			lbfgsfloatval_t* g,
-			const Trainable::Parameters& params = Parameters()) const;
+			virtual Array<double, 1, Dynamic> logLikelihood(
+				const MatrixXd& input,
+				const MatrixXd& output) const;
 
-	protected:
-		// hyperparameters
-		int mDimIn;
-		int mDimOut;
-		int mNumComponents;
-		int mNumScales;
-		int mNumFeatures;
+			virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
+				const MatrixXd& input,
+				const MatrixXd& output) const;
 
-		// parameters
-		ArrayXXd mPriors;
-		ArrayXXd mScales;
-		ArrayXXd mWeights;
-		MatrixXd mFeatures;
-		vector<MatrixXd> mCholeskyFactors;
-		vector<MatrixXd> mPredictors;
-};
+			virtual int numParameters(const Trainable::Parameters& params = Parameters()) const;
+			virtual lbfgsfloatval_t* parameters(const Trainable::Parameters& params = Parameters()) const;
+			virtual void setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters& params = Parameters());
+			virtual double parameterGradient(
+				const MatrixXd& input,
+				const MatrixXd& output,
+				const lbfgsfloatval_t* x,
+				lbfgsfloatval_t* g,
+				const Trainable::Parameters& params = Parameters()) const;
+
+		protected:
+			// hyperparameters
+			int mDimIn;
+			int mDimOut;
+			int mNumComponents;
+			int mNumScales;
+			int mNumFeatures;
+
+			// parameters
+			ArrayXXd mPriors;
+			ArrayXXd mScales;
+			ArrayXXd mWeights;
+			MatrixXd mFeatures;
+			vector<MatrixXd> mCholeskyFactors;
+			vector<MatrixXd> mPredictors;
+	};
+}
 
 
 
-inline int MCGSM::dimIn() const {
+inline int CMT::MCGSM::dimIn() const {
 	return mDimIn;
 }
 
 
 
-inline int MCGSM::dimOut() const {
+inline int CMT::MCGSM::dimOut() const {
 	return mDimOut;
 }
 
 
 
-inline int MCGSM::numComponents() const {
+inline int CMT::MCGSM::numComponents() const {
 	return mNumComponents;
 }
 
 
 
-inline int MCGSM::numScales() const {
+inline int CMT::MCGSM::numScales() const {
 	return mNumScales;
 }
 
 
 
-inline int MCGSM::numFeatures() const {
+inline int CMT::MCGSM::numFeatures() const {
 	return mNumFeatures;
 }
 
 
 
-inline ArrayXXd MCGSM::scales() const {
+inline Eigen::ArrayXXd CMT::MCGSM::scales() const {
 	return mScales;
 }
 
 
 
-inline void MCGSM::setScales(const ArrayXXd& scales) {
+inline void CMT::MCGSM::setScales(const ArrayXXd& scales) {
 	if(scales.rows() != mNumComponents || scales.cols() != mNumScales)
 		throw Exception("Wrong number of scales.");
 	mScales = scales;
@@ -176,13 +174,13 @@ inline void MCGSM::setScales(const ArrayXXd& scales) {
 
 
 
-inline ArrayXXd MCGSM::weights() const {
+inline Eigen::ArrayXXd CMT::MCGSM::weights() const {
 	return mWeights;
 }
 
 
 
-inline void MCGSM::setWeights(const ArrayXXd& weights) {
+inline void CMT::MCGSM::setWeights(const ArrayXXd& weights) {
 	if(weights.rows() != mNumComponents || weights.cols() != mNumFeatures)
 		throw Exception("Wrong number of weights.");
 	mWeights = weights;
@@ -190,13 +188,13 @@ inline void MCGSM::setWeights(const ArrayXXd& weights) {
 
 
 
-inline ArrayXXd MCGSM::priors() const {
+inline Eigen::ArrayXXd CMT::MCGSM::priors() const {
 	return mPriors;
 }
 
 
 
-inline void MCGSM::setPriors(const ArrayXXd& priors) {
+inline void CMT::MCGSM::setPriors(const ArrayXXd& priors) {
 	if(priors.rows() != mNumComponents || priors.cols() != mNumScales)
 		throw Exception("Wrong number of prior weights.");
 	mPriors = priors;
@@ -204,13 +202,13 @@ inline void MCGSM::setPriors(const ArrayXXd& priors) {
 
 
 
-inline MatrixXd MCGSM::features() const {
+inline Eigen::MatrixXd CMT::MCGSM::features() const {
 	return mFeatures;
 }
 
 
 
-inline void MCGSM::setFeatures(const MatrixXd& features) {
+inline void CMT::MCGSM::setFeatures(const MatrixXd& features) {
 	if(features.rows() != mDimIn)
 		throw Exception("Features have wrong dimensionality.");
 	if(features.cols() != mNumFeatures)
@@ -220,13 +218,13 @@ inline void MCGSM::setFeatures(const MatrixXd& features) {
 
 
 
-inline vector<MatrixXd> MCGSM::choleskyFactors() const {
+inline std::vector<Eigen::MatrixXd> CMT::MCGSM::choleskyFactors() const {
 	return mCholeskyFactors;
 }
 
 
 
-inline void MCGSM::setCholeskyFactors(const vector<MatrixXd>& choleskyFactors) {
+inline void CMT::MCGSM::setCholeskyFactors(const vector<MatrixXd>& choleskyFactors) {
 	if(choleskyFactors.size() != mNumComponents)
 		throw Exception("Wrong number of Cholesky factors.");
 
@@ -249,13 +247,13 @@ inline void MCGSM::setCholeskyFactors(const vector<MatrixXd>& choleskyFactors) {
 
 
 
-inline vector<MatrixXd> MCGSM::predictors() const {
+inline std::vector<Eigen::MatrixXd> CMT::MCGSM::predictors() const {
 	return mPredictors;
 }
 
 
 
-inline void MCGSM::setPredictors(const vector<MatrixXd>& predictors) {
+inline void CMT::MCGSM::setPredictors(const vector<MatrixXd>& predictors) {
 	if(predictors.size() != mNumComponents)
 		throw Exception("Wrong number of predictors.");
 

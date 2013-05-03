@@ -2,7 +2,8 @@
 #include "callbackinterface.h"
 #include "conditionaldistributioninterface.h"
 
-#include <iostream>
+#include "trainable.h"
+using CMT::Trainable;
 
 CallbackInterface::CallbackInterface(PyTypeObject* type, PyObject* callback) : 
 	mType(type),

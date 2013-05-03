@@ -14,12 +14,12 @@ using std::endl;
 using std::setw;
 using std::setprecision;
 
-Trainable::Callback::~Callback() {
+CMT::Trainable::Callback::~Callback() {
 }
 
 
 
-Trainable::Parameters::Parameters() {
+CMT::Trainable::Parameters::Parameters() {
 	verbosity = 0;
 	maxIter = 1000;
 	threshold = 1e-5;
@@ -33,14 +33,14 @@ Trainable::Parameters::Parameters() {
 
 
 
-Trainable::Parameters::~Parameters() {
+CMT::Trainable::Parameters::~Parameters() {
 	if(callback)
 		delete callback;
 }
 
 
 
-Trainable::Parameters::Parameters(const Parameters& params) :
+CMT::Trainable::Parameters::Parameters(const Parameters& params) :
 	verbosity(params.verbosity),
 	maxIter(params.maxIter),
 	threshold(params.threshold),
@@ -57,7 +57,7 @@ Trainable::Parameters::Parameters(const Parameters& params) :
 
 
 
-Trainable::Parameters& Trainable::Parameters::operator=(
+CMT::Trainable::Parameters& CMT::Trainable::Parameters::operator=(
 	const Parameters& params)
 {
 	verbosity = params.verbosity;
@@ -75,9 +75,9 @@ Trainable::Parameters& Trainable::Parameters::operator=(
 
 
 
-Trainable::InstanceLBFGS::InstanceLBFGS(
-	Trainable* cd,
-	const Trainable::Parameters* params,
+CMT::Trainable::InstanceLBFGS::InstanceLBFGS(
+	CMT::Trainable* cd,
+	const CMT::Trainable::Parameters* params,
 	const MatrixXd* input,
 	const MatrixXd* output) :
 	cd(cd),
@@ -94,9 +94,9 @@ Trainable::InstanceLBFGS::InstanceLBFGS(
 
 
 
-Trainable::InstanceLBFGS::InstanceLBFGS(
-	Trainable* cd,
-	const Trainable::Parameters* params,
+CMT::Trainable::InstanceLBFGS::InstanceLBFGS(
+	CMT::Trainable* cd,
+	const CMT::Trainable::Parameters* params,
 	const MatrixXd* input,
 	const MatrixXd* output,
 	const MatrixXd* inputVal,
@@ -115,19 +115,19 @@ Trainable::InstanceLBFGS::InstanceLBFGS(
 
 
 
-Trainable::InstanceLBFGS::~InstanceLBFGS() {
+CMT::Trainable::InstanceLBFGS::~InstanceLBFGS() {
 	if(parameters)
 		lbfgs_free(parameters);
 }
 
 
 
-Trainable::~Trainable() {
+CMT::Trainable::~Trainable() {
 }
 
 
 
-int Trainable::callbackLBFGS(
+int CMT::Trainable::callbackLBFGS(
 	void* instance,
 	const lbfgsfloatval_t* x,
 	const lbfgsfloatval_t* g,
@@ -141,7 +141,7 @@ int Trainable::callbackLBFGS(
 	// unpack user data
 	InstanceLBFGS* inst = static_cast<InstanceLBFGS*>(instance);
 
-	const Trainable::Parameters& params = *inst->params;
+	const CMT::Trainable::Parameters& params = *inst->params;
 
 	if(inst->inputVal && inst->outputVal && iteration % params.valIter == 0) {
 		inst->cd->setParameters(x, params);
@@ -185,7 +185,7 @@ int Trainable::callbackLBFGS(
 
 
 
-lbfgsfloatval_t Trainable::evaluateLBFGS(
+lbfgsfloatval_t CMT::Trainable::evaluateLBFGS(
 	void* instance,
 	const lbfgsfloatval_t* x,
 	lbfgsfloatval_t* g,
@@ -193,8 +193,8 @@ lbfgsfloatval_t Trainable::evaluateLBFGS(
 {
 	// unpack user data
 	const InstanceLBFGS& inst = *static_cast<InstanceLBFGS*>(instance);
-	const Trainable& cd = *inst.cd;
-	const Trainable::Parameters& params = *inst.params;
+	const CMT::Trainable& cd = *inst.cd;
+	const CMT::Trainable::Parameters& params = *inst.params;
 	const MatrixXd& input = *inst.input;
 	const MatrixXd& output = *inst.output;
 
@@ -203,18 +203,18 @@ lbfgsfloatval_t Trainable::evaluateLBFGS(
 
 
 
-void Trainable::initialize(const MatrixXd& input, const MatrixXd& output) {
+void CMT::Trainable::initialize(const MatrixXd& input, const MatrixXd& output) {
 }
 
 
 
-void Trainable::initialize(const pair<ArrayXXd, ArrayXXd>& data) {
+void CMT::Trainable::initialize(const pair<ArrayXXd, ArrayXXd>& data) {
 	initialize(data.first, data.second);
 }
 
 
 
-bool Trainable::train(
+bool CMT::Trainable::train(
 	const MatrixXd& input,
 	const MatrixXd& output,
 	const Parameters& params)
@@ -224,7 +224,7 @@ bool Trainable::train(
 
 
 
-bool Trainable::train(
+bool CMT::Trainable::train(
 	const MatrixXd& input,
 	const MatrixXd& output,
 	const MatrixXd& inputVal,
@@ -236,7 +236,7 @@ bool Trainable::train(
 
 
 
-bool Trainable::train(
+bool CMT::Trainable::train(
 	const pair<ArrayXXd, ArrayXXd>& data,
 	const Parameters& params)
 {
@@ -245,7 +245,7 @@ bool Trainable::train(
 
 
 
-bool Trainable::train(
+bool CMT::Trainable::train(
 	const pair<ArrayXXd, ArrayXXd>& data,
 	const pair<ArrayXXd, ArrayXXd>& dataVal,
 	const Parameters& params)
@@ -260,7 +260,7 @@ bool Trainable::train(
 
 
 
-bool Trainable::train(
+bool CMT::Trainable::train(
 	const MatrixXd& input,
 	const MatrixXd& output,
 	const MatrixXd* inputVal,
@@ -338,7 +338,7 @@ bool Trainable::train(
 
 
 
-double Trainable::checkGradient(
+double CMT::Trainable::checkGradient(
 	const MatrixXd& input,
 	const MatrixXd& output,
 	double epsilon,
@@ -390,7 +390,7 @@ double Trainable::checkGradient(
 
 
 
-double Trainable::checkPerformance(
+double CMT::Trainable::checkPerformance(
 	const MatrixXd& input,
 	const MatrixXd& output,
 	int repetitions,

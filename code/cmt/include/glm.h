@@ -2,14 +2,14 @@
 #define CMT_GLM_H
 
 #include "Eigen/Core"
-using Eigen::Array;
-using Eigen::Dynamic;
-using Eigen::VectorXd;
-
 #include "trainable.h"
 #include "distribution.h"
 
 namespace CMT {
+	using Eigen::Array;
+	using Eigen::Dynamic;
+	using Eigen::VectorXd;
+
 	/**
 	 * A generic class for generalized linear models.
 	 */
@@ -79,8 +79,11 @@ namespace CMT {
 			UnivariateDistribution* mDistribution;
 
 			virtual int numParameters(const Parameters& params = Parameters()) const = 0;
-			virtual lbfgsfloatval_t* parameters(const Parameters& params = Parameters()) const = 0;
-			virtual void setParameters(const lbfgsfloatval_t* x, const Parameters& params = Parameters()) = 0;
+			virtual lbfgsfloatval_t* parameters(
+				const Parameters& params = Parameters()) const = 0;
+			virtual void setParameters(
+				const lbfgsfloatval_t* x,
+				const Parameters& params = Parameters()) = 0;
 
 			virtual double parameterGradient(
 				const MatrixXd& input,
@@ -93,8 +96,10 @@ namespace CMT {
 	class LogisticFunction : public GLM::Nonlinearity {
 		virtual LogisticFunction* copy();
 
-		virtual Array<double, 1, Dynamic> operator()(const Array<double, 1, Dynamic>& data) const;
-		virtual Array<double, 1, Dynamic> derivative(const Array<double, 1, Dynamic>& data) const;
+		virtual Array<double, 1, Dynamic> operator()(
+			const Array<double, 1, Dynamic>& data) const;
+		virtual Array<double, 1, Dynamic> derivative(
+			const Array<double, 1, Dynamic>& data) const;
 	};
 
 	class Bernoulli : public GLM::UnivariateDistribution {

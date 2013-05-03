@@ -1,5 +1,5 @@
-#ifndef CONDITIONALDISTRIBUTIONINTERFACE_H
-#define CONDITIONALDISTRIBUTIONINTERFACE_H
+#ifndef CMT_CONDITIONALDISTRIBUTIONINTERFACE_H
+#define CMT_CONDITIONALDISTRIBUTIONINTERFACE_H
 
 #define PY_ARRAY_UNIQUE_SYMBOL CMT_ARRAY_API
 #define NO_IMPORT_ARRAY
@@ -11,7 +11,7 @@
 
 struct CDObject {
 	PyObject_HEAD
-	ConditionalDistribution* cd;
+	CMT::ConditionalDistribution* cd;
 	bool owner; 
 };
 

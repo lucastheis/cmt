@@ -1,10 +1,16 @@
 #include "mcgsm.h"
 #include "utils.h"
-#include <utility>
+
+#include <map>
+using std::pair;
+using std::make_pair;
 
 #include "Eigen/Core"
+using Eigen::Dynamic;
 using Eigen::Matrix;
+using Eigen::MatrixXd;
 using Eigen::Array;
+using Eigen::ArrayXXd;
 using Eigen::ArrayXd;
 using Eigen::Map;
 
@@ -14,7 +20,7 @@ using std::min;
 #include "Eigen/Eigenvalues"
 using Eigen::SelfAdjointEigenSolver;
 
-MCGSM::Parameters::Parameters() :
+CMT::MCGSM::Parameters::Parameters() :
 	Trainable::Parameters::Parameters()
 {
 	trainPriors = true;
@@ -30,7 +36,7 @@ MCGSM::Parameters::Parameters() :
 
 
 
-MCGSM::Parameters::Parameters(const Parameters& params) :
+CMT::MCGSM::Parameters::Parameters(const Parameters& params) :
 	Trainable::Parameters::Parameters(params),
 	trainPriors(params.trainPriors),
 	trainScales(params.trainScales),
@@ -46,12 +52,12 @@ MCGSM::Parameters::Parameters(const Parameters& params) :
 
 
 
-MCGSM::Parameters::~Parameters() {
+CMT::MCGSM::Parameters::~Parameters() {
 }
 
 
 
-MCGSM::Parameters& MCGSM::Parameters::operator=(const Parameters& params) {
+CMT::MCGSM::Parameters& CMT::MCGSM::Parameters::operator=(const Parameters& params) {
 	Trainable::Parameters::operator=(params);
 
 	trainPriors = params.trainPriors;
@@ -69,7 +75,7 @@ MCGSM::Parameters& MCGSM::Parameters::operator=(const Parameters& params) {
 
 
 
-MCGSM::MCGSM(
+CMT::MCGSM::MCGSM(
 	int dimIn,
 	int dimOut,
 	int numComponents,
@@ -103,7 +109,7 @@ MCGSM::MCGSM(
 
 
 
-MCGSM::MCGSM(int dimIn, int dimOut, const MCGSM& mcgsm) :
+CMT::MCGSM::MCGSM(int dimIn, int dimOut, const MCGSM& mcgsm) :
 	mDimIn(dimIn),
 	mDimOut(dimOut),
 	mNumComponents(mcgsm.numComponents()),
@@ -128,7 +134,7 @@ MCGSM::MCGSM(int dimIn, int dimOut, const MCGSM& mcgsm) :
 
 
 
-MCGSM::MCGSM(int dimIn, const MCGSM& mcgsm) :
+CMT::MCGSM::MCGSM(int dimIn, const MCGSM& mcgsm) :
 	mDimIn(dimIn),
 	mDimOut(mcgsm.dimOut()),
 	mNumComponents(mcgsm.numComponents()),
@@ -149,12 +155,12 @@ MCGSM::MCGSM(int dimIn, const MCGSM& mcgsm) :
 
 
 
-MCGSM::~MCGSM() {
+CMT::MCGSM::~MCGSM() {
 }
 
 
 
-void MCGSM::initialize(const MatrixXd& input, const MatrixXd& output) {
+void CMT::MCGSM::initialize(const MatrixXd& input, const MatrixXd& output) {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
 	if(input.cols() != output.cols())
@@ -184,7 +190,7 @@ void MCGSM::initialize(const MatrixXd& input, const MatrixXd& output) {
 
 
 
-MatrixXd MCGSM::sample(const MatrixXd& input) const {
+MatrixXd CMT::MCGSM::sample(const MatrixXd& input) const {
 	// initialize samples with Gaussian noise
 	MatrixXd output = sampleNormal(mDimOut, input.cols());
 
@@ -224,7 +230,7 @@ MatrixXd MCGSM::sample(const MatrixXd& input) const {
 
 
 
-MatrixXd MCGSM::sample(const MatrixXd& input, const Array<int, 1, Dynamic>& labels) const {
+MatrixXd CMT::MCGSM::sample(const MatrixXd& input, const Array<int, 1, Dynamic>& labels) const {
 	if(input.rows() != mDimIn)
 		throw Exception("Data has wrong dimensionality.");
 	if(input.cols() != labels.cols())
@@ -266,14 +272,14 @@ MatrixXd MCGSM::sample(const MatrixXd& input, const Array<int, 1, Dynamic>& labe
 
 
 
-MatrixXd MCGSM::reconstruct(const MatrixXd& input, const MatrixXd& output) const {
+MatrixXd CMT::MCGSM::reconstruct(const MatrixXd& input, const MatrixXd& output) const {
 	// reconstruct output from labels
 	return sample(input, samplePosterior(input, output));
 }
 
 
 
-Array<int, 1, Dynamic> MCGSM::samplePrior(const MatrixXd& input) const {
+Array<int, 1, Dynamic> CMT::MCGSM::samplePrior(const MatrixXd& input) const {
 	if(input.rows() != mDimIn)
 		throw Exception("Data has wrong dimensionality.");
 
@@ -298,7 +304,7 @@ Array<int, 1, Dynamic> MCGSM::samplePrior(const MatrixXd& input) const {
 
 
 
-Array<int, 1, Dynamic> MCGSM::samplePosterior(const MatrixXd& input, const MatrixXd& output) const {
+Array<int, 1, Dynamic> CMT::MCGSM::samplePosterior(const MatrixXd& input, const MatrixXd& output) const {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
 	if(input.cols() != output.cols())
@@ -325,7 +331,7 @@ Array<int, 1, Dynamic> MCGSM::samplePosterior(const MatrixXd& input, const Matri
 
 
 
-ArrayXXd MCGSM::prior(const MatrixXd& input) const {
+ArrayXXd CMT::MCGSM::prior(const MatrixXd& input) const {
 	if(input.rows() != mDimIn)
 		throw Exception("Data has wrong dimensionality.");
 
@@ -351,7 +357,7 @@ ArrayXXd MCGSM::prior(const MatrixXd& input) const {
 
 
 
-ArrayXXd MCGSM::posterior(const MatrixXd& input, const MatrixXd& output) const {
+ArrayXXd CMT::MCGSM::posterior(const MatrixXd& input, const MatrixXd& output) const {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
 	if(input.cols() != output.cols())
@@ -386,7 +392,7 @@ ArrayXXd MCGSM::posterior(const MatrixXd& input, const MatrixXd& output) const {
 
 
 
-Array<double, 1, Dynamic> MCGSM::logLikelihood(const MatrixXd& input, const MatrixXd& output) const {
+Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(const MatrixXd& input, const MatrixXd& output) const {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
 	if(input.cols() != output.cols())
@@ -429,7 +435,7 @@ Array<double, 1, Dynamic> MCGSM::logLikelihood(const MatrixXd& input, const Matr
 
 
 
-int MCGSM::numParameters(const Trainable::Parameters& params_) const {
+int CMT::MCGSM::numParameters(const Trainable::Parameters& params_) const {
 	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 
 	int numParams = 0;
@@ -451,7 +457,7 @@ int MCGSM::numParameters(const Trainable::Parameters& params_) const {
 
 
 
-lbfgsfloatval_t* MCGSM::parameters(const Trainable::Parameters& params_) const {
+lbfgsfloatval_t* CMT::MCGSM::parameters(const Trainable::Parameters& params_) const {
 	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 
 	lbfgsfloatval_t* x = lbfgs_malloc(numParameters(params));
@@ -484,7 +490,7 @@ lbfgsfloatval_t* MCGSM::parameters(const Trainable::Parameters& params_) const {
 
 
 
-void MCGSM::setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters& params_) {
+void CMT::MCGSM::setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters& params_) {
 	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 
 	int offset = 0;
@@ -527,7 +533,7 @@ void MCGSM::setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters&
 
 
 
-double MCGSM::parameterGradient(
+double CMT::MCGSM::parameterGradient(
 	const MatrixXd& inputCompl,
 	const MatrixXd& outputCompl,
 	const lbfgsfloatval_t* x,
@@ -832,7 +838,7 @@ double MCGSM::parameterGradient(
 
 
 
-pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > MCGSM::computeDataGradient(
+pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::MCGSM::computeDataGradient(
 	const MatrixXd& input,
 	const MatrixXd& output) const 
 {

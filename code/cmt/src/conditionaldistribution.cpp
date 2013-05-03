@@ -1,14 +1,18 @@
+#include "Eigen/Core"
+using Eigen::Dynamic;
+using Eigen::Array;
+
 #include "conditionaldistribution.h"
 
 #include <cmath>
 using std::log;
 
-ConditionalDistribution::~ConditionalDistribution() {
+CMT::ConditionalDistribution::~ConditionalDistribution() {
 }
 
 
 
-Array<double, 1, Dynamic> ConditionalDistribution::logLikelihood(
+Array<double, 1, Dynamic> CMT::ConditionalDistribution::logLikelihood(
 	const pair<ArrayXXd, ArrayXXd>& data) const
 {
 	return logLikelihood(data.first, data.second);
@@ -16,7 +20,7 @@ Array<double, 1, Dynamic> ConditionalDistribution::logLikelihood(
 
 
 
-double ConditionalDistribution::evaluate(
+double CMT::ConditionalDistribution::evaluate(
 	const MatrixXd& input,
 	const MatrixXd& output) const
 {
@@ -25,7 +29,7 @@ double ConditionalDistribution::evaluate(
 
 
 
-double ConditionalDistribution::evaluate(
+double CMT::ConditionalDistribution::evaluate(
 	const pair<ArrayXXd, ArrayXXd>& data) const
 {
 	return -logLikelihood(data.first, data.second).mean() / log(2.) / dimOut();

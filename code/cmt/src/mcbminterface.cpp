@@ -1,13 +1,14 @@
 #include "conditionaldistributioninterface.h"
-#include "mcbminterface.h"
-#include "Eigen/Core"
 #include "exception.h"
 #include "callbackinterface.h"
 #include "preconditionerinterface.h"
 
-#include <iostream>
+#include "Eigen/Core"
+using Eigen::Map;
 
-using namespace Eigen;
+#include "mcbminterface.h"
+using CMT::MCBM;
+using CMT::PatchModel;
 
 MCBM::Parameters PyObject_ToMCBMParameters(PyObject* parameters) {
 	MCBM::Parameters params;
