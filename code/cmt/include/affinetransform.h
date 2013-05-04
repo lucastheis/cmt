@@ -1,5 +1,5 @@
-#ifndef AFFINETRANSFORM_H
-#define AFFINETRANSFORM_H
+#ifndef CMT_AFFINETRANSFORM_H
+#define CMT_AFFINETRANSFORM_H
 
 #include "affinepreconditioner.h"
 
