@@ -1,5 +1,5 @@
-#ifndef PRECONDITIONER_H
-#define PRECONDITIONER_H
+#ifndef CMT_PRECONDITIONER_H
+#define CMT_PRECONDITIONER_H
 
 #include <map>
 using std::pair;

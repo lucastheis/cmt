@@ -137,7 +137,9 @@ namespace CMT {
 
 			virtual int numParameters(const Parameters& params) const = 0;
 			virtual lbfgsfloatval_t* parameters(const Parameters& params) const = 0;
-			virtual void setParameters(const lbfgsfloatval_t* x, const Parameters& params) = 0;
+			virtual void setParameters(
+				const lbfgsfloatval_t* x,
+				const Parameters& params) = 0;
 
 			virtual double parameterGradient(
 				const MatrixXd& input,

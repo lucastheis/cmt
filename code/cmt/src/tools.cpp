@@ -31,6 +31,7 @@ using CMT::extractFromImage;
 #include "Eigen/Core"
 using Eigen::Block;
 using Eigen::ArrayXd;
+using Eigen::VectorXd;
 
 #include <iostream>
 #include <iomanip>

@@ -11,6 +11,9 @@ using std::exp;
 using std::log;
 
 #include "Eigen/Core"
+using Eigen::Dynamic;
+using Eigen::Array;
+using Eigen::ArrayXXd;
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 

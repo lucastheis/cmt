@@ -3,7 +3,9 @@
 #include "preconditionerinterface.h"
 #include "conditionaldistributioninterface.h"
 #include "exception.h"
+
 #include "utils.h"
+using CMT::randomSelect;
 
 #include "conditionaldistribution.h"
 using CMT::ConditionalDistribution;
