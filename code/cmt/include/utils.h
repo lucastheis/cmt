@@ -44,7 +44,6 @@ namespace CMT {
 
 	template <class ArrayType>
 	ArrayType concatenate(const vector<ArrayType>& data, int axis=1);
-
 }
 
 template <class ArrayType>
