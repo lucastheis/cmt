@@ -6,12 +6,13 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include "conditionaldistributioninterface.h"
-#include "mcgsminterface.h"
-#include "mcbminterface.h"
-#include "preconditionerinterface.h"
-#include "toolsinterface.h"
 #include "distribution.h"
 #include "distributioninterface.h"
+#include "glminterface.h"
+#include "mcbminterface.h"
+#include "mcgsminterface.h"
+#include "preconditionerinterface.h"
+#include "toolsinterface.h"
 #include "Eigen/Core"
 
 static const char* cmt_doc =
@@ -255,8 +256,6 @@ PyTypeObject MCGSM_type = {
 };
 
 static PyGetSetDef MCBM_getset[] = {
-	{"dim_in", (getter)MCBM_dim_in, 0, "Dimensionality of inputs."},
-	{"dim_out", (getter)MCBM_dim_out, 0, "Dimensionality of outputs."},
 	{"num_components", (getter)MCBM_num_components, 0, "Numer of predictors."},
 	{"num_features",
 		(getter)MCBM_num_features, 0,
@@ -419,6 +418,174 @@ PyTypeObject PatchMCBM_type = {
 	(initproc)PatchMCBM_init,          /*tp_init*/
 	0,                                 /*tp_alloc*/
 	Distribution_new,                  /*tp_new*/
+};
+
+PyTypeObject Nonlinearity_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                  /*ob_size*/
+	"cmt.Nonlinearity",                 /*tp_name*/
+	sizeof(NonlinearityObject),         /*tp_basicsize*/
+	0,                                  /*tp_itemsize*/
+	(destructor)Nonlinearity_dealloc,   /*tp_dealloc*/
+	0,                                  /*tp_print*/
+	0,                                  /*tp_getattr*/
+	0,                                  /*tp_setattr*/
+	0,                                  /*tp_compare*/
+	0,                                  /*tp_repr*/
+	0,                                  /*tp_as_number*/
+	0,                                  /*tp_as_sequence*/
+	0,                                  /*tp_as_mapping*/
+	0,                                  /*tp_hash */
+	0,                                  /*tp_call*/
+	0,                                  /*tp_str*/
+	0,                                  /*tp_getattro*/
+	0,                                  /*tp_setattro*/
+	0,                                  /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                 /*tp_flags*/
+	Nonlinearity_doc,                   /*tp_doc*/
+	0,                                  /*tp_traverse*/
+	0,                                  /*tp_clear*/
+	0,                                  /*tp_richcompare*/
+	0,                                  /*tp_weaklistoffset*/
+	0,                                  /*tp_iter*/
+	0,                                  /*tp_iternext*/
+	0,                                  /*tp_methods*/
+	0,                                  /*tp_members*/
+	0,                                  /*tp_getset*/
+	0,                                  /*tp_base*/
+	0,                                  /*tp_dict*/
+	0,                                  /*tp_descr_get*/
+	0,                                  /*tp_descr_set*/
+	0,                                  /*tp_dictoffset*/
+	(initproc)Nonlinearity_init,        /*tp_init*/
+	0,                                  /*tp_alloc*/
+	Nonlinearity_new,                   /*tp_new*/
+};
+
+PyTypeObject LogisticFunction_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                  /*ob_size*/
+	"cmt.LogisticFunction",             /*tp_name*/
+	sizeof(LogisticFunctionObject),     /*tp_basicsize*/
+	0,                                  /*tp_itemsize*/
+	(destructor)Nonlinearity_dealloc,   /*tp_dealloc*/
+	0,                                  /*tp_print*/
+	0,                                  /*tp_getattr*/
+	0,                                  /*tp_setattr*/
+	0,                                  /*tp_compare*/
+	0,                                  /*tp_repr*/
+	0,                                  /*tp_as_number*/
+	0,                                  /*tp_as_sequence*/
+	0,                                  /*tp_as_mapping*/
+	0,                                  /*tp_hash */
+	0,                                  /*tp_call*/
+	0,                                  /*tp_str*/
+	0,                                  /*tp_getattro*/
+	0,                                  /*tp_setattro*/
+	0,                                  /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                 /*tp_flags*/
+	LogisticFunction_doc,               /*tp_doc*/
+	0,                                  /*tp_traverse*/
+	0,                                  /*tp_clear*/
+	0,                                  /*tp_richcompare*/
+	0,                                  /*tp_weaklistoffset*/
+	0,                                  /*tp_iter*/
+	0,                                  /*tp_iternext*/
+	0,                                  /*tp_methods*/
+	0,                                  /*tp_members*/
+	0,                                  /*tp_getset*/
+	0,                                  /*tp_base*/
+	0,                                  /*tp_dict*/
+	0,                                  /*tp_descr_get*/
+	0,                                  /*tp_descr_set*/
+	0,                                  /*tp_dictoffset*/
+	(initproc)LogisticFunction_init,    /*tp_init*/
+	0,                                  /*tp_alloc*/
+	Nonlinearity_new,                   /*tp_new*/
+};
+
+PyTypeObject UnivariateDistribution_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                      /*ob_size*/
+	"cmt.UnivariateDistribution",           /*tp_name*/
+	sizeof(UnivariateDistributionObject),   /*tp_basicsize*/
+	0,                                      /*tp_itemsize*/
+	(destructor)Distribution_dealloc,       /*tp_dealloc*/
+	0,                                      /*tp_print*/
+	0,                                      /*tp_getattr*/
+	0,                                      /*tp_setattr*/
+	0,                                      /*tp_compare*/
+	0,                                      /*tp_repr*/
+	0,                                      /*tp_as_number*/
+	0,                                      /*tp_as_sequence*/
+	0,                                      /*tp_as_mapping*/
+	0,                                      /*tp_hash */
+	0,                                      /*tp_call*/
+	0,                                      /*tp_str*/
+	0,                                      /*tp_getattro*/
+	0,                                      /*tp_setattro*/
+	0,                                      /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                     /*tp_flags*/
+	UnivariateDistribution_doc,             /*tp_doc*/
+	0,                                      /*tp_traverse*/
+	0,                                      /*tp_clear*/
+	0,                                      /*tp_richcompare*/
+	0,                                      /*tp_weaklistoffset*/
+	0,                                      /*tp_iter*/
+	0,                                      /*tp_iternext*/
+	0,                                      /*tp_methods*/
+	0,                                      /*tp_members*/
+	0,                                      /*tp_getset*/
+	&Distribution_type,                     /*tp_base*/
+	0,                                      /*tp_dict*/
+	0,                                      /*tp_descr_get*/
+	0,                                      /*tp_descr_set*/
+	0,                                      /*tp_dictoffset*/
+	(initproc)UnivariateDistribution_init,  /*tp_init*/
+	0,                                      /*tp_alloc*/
+	Distribution_new,                       /*tp_new*/
+};
+
+PyTypeObject Bernoulli_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                  /*ob_size*/
+	"cmt.Bernoulli",                    /*tp_name*/
+	sizeof(BernoulliObject),            /*tp_basicsize*/
+	0,                                  /*tp_itemsize*/
+	(destructor)Distribution_dealloc,   /*tp_dealloc*/
+	0,                                  /*tp_print*/
+	0,                                  /*tp_getattr*/
+	0,                                  /*tp_setattr*/
+	0,                                  /*tp_compare*/
+	0,                                  /*tp_repr*/
+	0,                                  /*tp_as_number*/
+	0,                                  /*tp_as_sequence*/
+	0,                                  /*tp_as_mapping*/
+	0,                                  /*tp_hash */
+	0,                                  /*tp_call*/
+	0,                                  /*tp_str*/
+	0,                                  /*tp_getattro*/
+	0,                                  /*tp_setattro*/
+	0,                                  /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                 /*tp_flags*/
+	Bernoulli_doc,                      /*tp_doc*/
+	0,                                  /*tp_traverse*/
+	0,                                  /*tp_clear*/
+	0,                                  /*tp_richcompare*/
+	0,                                  /*tp_weaklistoffset*/
+	0,                                  /*tp_iter*/
+	0,                                  /*tp_iternext*/
+	0,                                  /*tp_methods*/
+	0,                                  /*tp_members*/
+	0,                                  /*tp_getset*/
+	&UnivariateDistribution_type,       /*tp_base*/
+	0,                                  /*tp_dict*/
+	0,                                  /*tp_descr_get*/
+	0,                                  /*tp_descr_set*/
+	0,                                  /*tp_dictoffset*/
+	(initproc)Bernoulli_init,           /*tp_init*/
+	0,                                  /*tp_alloc*/
+	Distribution_new,                   /*tp_new*/
 };
 
 static PyGetSetDef Preconditioner_getset[] = {
@@ -792,57 +959,74 @@ PyMODINIT_FUNC initcmt() {
 	PyObject* module = Py_InitModule3("cmt", cmt_methods, cmt_doc);
 
 	// initialize types
-	if(PyType_Ready(&CD_type) < 0)
-		return;
-	if(PyType_Ready(&Distribution_type) < 0)
-		return;
-	if(PyType_Ready(&MCGSM_type) < 0)
-		return;
-	if(PyType_Ready(&MCBM_type) < 0)
-		return;
-	if(PyType_Ready(&PatchMCBM_type) < 0)
-		return;
-	if(PyType_Ready(&Preconditioner_type) < 0)
-		return;
 	if(PyType_Ready(&AffinePreconditioner_type) < 0)
 		return;
 	if(PyType_Ready(&AffineTransform_type) < 0)
 		return;
-	if(PyType_Ready(&WhiteningPreconditioner_type) < 0)
+	if(PyType_Ready(&Bernoulli_type) < 0)
 		return;
-	if(PyType_Ready(&WhiteningTransform_type) < 0)
+	if(PyType_Ready(&CD_type) < 0)
+		return;
+	if(PyType_Ready(&Distribution_type) < 0)
+		return;
+	if(PyType_Ready(&LogisticFunction_type) < 0)
+		return;
+	if(PyType_Ready(&MCBM_type) < 0)
+		return;
+	if(PyType_Ready(&MCGSM_type) < 0)
+		return;
+	if(PyType_Ready(&Nonlinearity_type) < 0)
+		return;
+	if(PyType_Ready(&PatchMCBM_type) < 0)
 		return;
 	if(PyType_Ready(&PCAPreconditioner_type) < 0)
 		return;
 	if(PyType_Ready(&PCATransform_type) < 0)
+		return;
+	if(PyType_Ready(&Preconditioner_type) < 0)
+		return;
+	if(PyType_Ready(&UnivariateDistribution_type) < 0)
+		return;
+	if(PyType_Ready(&WhiteningPreconditioner_type) < 0)
+		return;
+	if(PyType_Ready(&WhiteningTransform_type) < 0)
 		return;
 
 	// initialize Eigen
 	Eigen::initParallel();
 
 	// add types to module
-	Py_INCREF(&CD_type);
-	Py_INCREF(&Distribution_type);
-	Py_INCREF(&MCGSM_type);
-	Py_INCREF(&MCBM_type);
-	Py_INCREF(&PatchMCBM_type);
-	Py_INCREF(&Preconditioner_type);
 	Py_INCREF(&AffinePreconditioner_type);
 	Py_INCREF(&AffineTransform_type);
-	Py_INCREF(&WhiteningPreconditioner_type);
-	Py_INCREF(&WhiteningTransform_type);
+	Py_INCREF(&Bernoulli_type);
+	Py_INCREF(&CD_type);
+	Py_INCREF(&Distribution_type);
+	Py_INCREF(&LogisticFunction_type);
+	Py_INCREF(&MCBM_type);
+	Py_INCREF(&MCGSM_type);
+	Py_INCREF(&Nonlinearity_type);
 	Py_INCREF(&PCAPreconditioner_type);
 	Py_INCREF(&PCATransform_type);
-	PyModule_AddObject(module, "ConditionalDistribution", reinterpret_cast<PyObject*>(&CD_type));
-	PyModule_AddObject(module, "Distribution", reinterpret_cast<PyObject*>(&Distribution_type));
-	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));
-	PyModule_AddObject(module, "MCBM", reinterpret_cast<PyObject*>(&MCBM_type));
-	PyModule_AddObject(module, "PatchMCBM", reinterpret_cast<PyObject*>(&PatchMCBM_type));
-	PyModule_AddObject(module, "Preconditioner", reinterpret_cast<PyObject*>(&Preconditioner_type));
+	Py_INCREF(&PatchMCBM_type);
+	Py_INCREF(&Preconditioner_type);
+	Py_INCREF(&UnivariateDistribution_type);
+	Py_INCREF(&WhiteningPreconditioner_type);
+	Py_INCREF(&WhiteningTransform_type);
+
 	PyModule_AddObject(module, "AffinePreconditioner", reinterpret_cast<PyObject*>(&AffinePreconditioner_type));
 	PyModule_AddObject(module, "AffineTransform", reinterpret_cast<PyObject*>(&AffineTransform_type));
-	PyModule_AddObject(module, "WhiteningPreconditioner", reinterpret_cast<PyObject*>(&WhiteningPreconditioner_type));
-	PyModule_AddObject(module, "WhiteningTransform", reinterpret_cast<PyObject*>(&WhiteningTransform_type));
+	PyModule_AddObject(module, "Bernoulli", reinterpret_cast<PyObject*>(&Bernoulli_type));
+	PyModule_AddObject(module, "ConditionalDistribution", reinterpret_cast<PyObject*>(&CD_type));
+	PyModule_AddObject(module, "Distribution", reinterpret_cast<PyObject*>(&Distribution_type));
+	PyModule_AddObject(module, "LogisticFunction", reinterpret_cast<PyObject*>(&LogisticFunction_type));
+	PyModule_AddObject(module, "MCBM", reinterpret_cast<PyObject*>(&MCBM_type));
+	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));
+	PyModule_AddObject(module, "Nonlinearity", reinterpret_cast<PyObject*>(&Nonlinearity_type));
 	PyModule_AddObject(module, "PCAPreconditioner", reinterpret_cast<PyObject*>(&PCAPreconditioner_type));
 	PyModule_AddObject(module, "PCATransform", reinterpret_cast<PyObject*>(&PCATransform_type));
+	PyModule_AddObject(module, "PatchMCBM", reinterpret_cast<PyObject*>(&PatchMCBM_type));
+	PyModule_AddObject(module, "Preconditioner", reinterpret_cast<PyObject*>(&Preconditioner_type));
+	PyModule_AddObject(module, "UnivariateDistribution", reinterpret_cast<PyObject*>(&UnivariateDistribution_type));
+	PyModule_AddObject(module, "WhiteningPreconditioner", reinterpret_cast<PyObject*>(&WhiteningPreconditioner_type));
+	PyModule_AddObject(module, "WhiteningTransform", reinterpret_cast<PyObject*>(&WhiteningTransform_type));
 }

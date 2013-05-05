@@ -7,7 +7,9 @@
 #include <Python.h>
 #include <arrayobject.h>
 #include "pyutils.h"
+
 #include "distribution.h"
+using CMT::Distribution;
 
 struct DistributionObject {
 	PyObject_HEAD

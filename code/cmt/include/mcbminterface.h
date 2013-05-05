@@ -7,19 +7,25 @@
 #include <Python.h>
 #include <arrayobject.h>
 #include "pyutils.h"
+
 #include "mcbm.h"
+using CMT::MCBM;
+
 #include "patchmodel.h"
+using CMT::PatchModel;
+
 #include "pcatransform.h"
+using CMT::PCATransform;
 
 struct MCBMObject {
 	PyObject_HEAD
-	CMT::MCBM* mcbm;
+	MCBM* mcbm;
 	bool owner;
 };
 
 struct PatchMCBMObject {
 	PyObject_HEAD
-	CMT::PatchModel<CMT::MCBM, CMT::PCATransform>* patchMCBM;
+	PatchModel<MCBM, PCATransform>* patchMCBM;
 	bool owner;
 };
 
@@ -28,9 +34,6 @@ extern PyTypeObject PatchMCBM_type;
 extern PyTypeObject PCATransform_type;
 
 extern const char* MCBM_doc;
-extern const char* MCBM_sample_doc;
-extern const char* MCBM_loglikelihood_doc;
-extern const char* MCBM_evaluate_doc;
 extern const char* MCBM_train_doc;
 extern const char* MCBM_parameters_doc;
 extern const char* MCBM_set_parameters_doc;
@@ -44,9 +47,6 @@ extern const char* PatchMCBM_reduce_doc;
 extern const char* PatchMCBM_setstate_doc;
 
 int MCBM_init(MCBMObject*, PyObject*, PyObject*);
-
-PyObject* MCBM_dim_in(MCBMObject*, void*);
-PyObject* MCBM_dim_out(MCBMObject*, void*);
 
 PyObject* MCBM_num_components(MCBMObject*, void*);
 PyObject* MCBM_num_features(MCBMObject*, void*);

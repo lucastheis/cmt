@@ -41,6 +41,9 @@ namespace CMT {
 						const Array<double, 1, Dynamic>& data,
 						const Array<double, 1, Dynamic>& means) const = 0;
 
+					virtual MatrixXd sample(
+						const Array<double, 1, Dynamic>& means) const = 0;
+
 					/**
 					 * Derivative of the *negative* log-likelihood with respect to the mean.
 					 *
@@ -65,10 +68,20 @@ namespace CMT {
 
 			inline int dimIn() const;
 			inline int dimOut() const;
+
 			inline const Nonlinearity& nonlinearity() const;
 			inline const UnivariateDistribution& distribution() const;
 
+			inline VectorXd weights() const;
+			inline void setWeights(const VectorXd& weights);
+
 			virtual Array<double, 1, Dynamic> logLikelihood(
+				const MatrixXd& input,
+				const MatrixXd& output) const;
+
+			virtual MatrixXd sample(const MatrixXd& input) const;
+
+			virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
 				const MatrixXd& input,
 				const MatrixXd& output) const;
 
@@ -78,12 +91,12 @@ namespace CMT {
 			Nonlinearity* mNonlinearity;
 			UnivariateDistribution* mDistribution;
 
-			virtual int numParameters(const Parameters& params = Parameters()) const = 0;
+			virtual int numParameters(const Parameters& params = Parameters()) const;
 			virtual lbfgsfloatval_t* parameters(
-				const Parameters& params = Parameters()) const = 0;
+				const Parameters& params = Parameters()) const;
 			virtual void setParameters(
 				const lbfgsfloatval_t* x,
-				const Parameters& params = Parameters()) = 0;
+				const Parameters& params = Parameters());
 
 			virtual double parameterGradient(
 				const MatrixXd& input,
@@ -109,6 +122,8 @@ namespace CMT {
 			virtual Bernoulli* copy();
 
 			virtual MatrixXd sample(int numSamples) const;
+			virtual MatrixXd sample(
+				const Array<double, 1, Dynamic>& means) const;
 
 			virtual Array<double, 1, Dynamic> logLikelihood(
 				const MatrixXd& data) const;
@@ -153,6 +168,18 @@ inline const CMT::GLM::Nonlinearity& CMT::GLM::nonlinearity() const {
 
 inline const CMT::GLM::UnivariateDistribution& CMT::GLM::distribution() const {
 	return *mDistribution;
+}
+
+
+
+inline Eigen::VectorXd CMT::GLM::weights() const {
+	return mWeights;
+}
+
+
+
+inline void CMT::GLM::setWeights(const VectorXd& weights) {
+	mWeights = weights;
 }
 
 #endif

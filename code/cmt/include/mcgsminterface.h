@@ -7,11 +7,13 @@
 #include <Python.h>
 #include <arrayobject.h>
 #include "pyutils.h"
+
 #include "mcgsm.h"
+using CMT::MCGSM;
 
 struct MCGSMObject {
 	PyObject_HEAD
-	CMT::MCGSM* mcgsm;
+	MCGSM* mcgsm;
 	bool owner;
 };
 

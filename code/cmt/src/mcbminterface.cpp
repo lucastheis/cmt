@@ -248,18 +248,6 @@ int MCBM_init(MCBMObject* self, PyObject* args, PyObject* kwds) {
 
 
 
-PyObject* MCBM_dim_in(MCBMObject* self, void*) {
-	return PyInt_FromLong(self->mcbm->dimIn());
-}
-
-
-
-PyObject* MCBM_dim_out(MCBMObject* self, void*) {
-	return PyInt_FromLong(self->mcbm->dimOut());
-}
-
-
-
 PyObject* MCBM_num_components(MCBMObject* self, void*) {
 	return PyInt_FromLong(self->mcbm->numComponents());
 }

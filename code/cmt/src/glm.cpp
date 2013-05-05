@@ -1,8 +1,18 @@
+#include "exception.h"
+#include "glm.h"
+
 #include <cmath>
 using std::log;
 
-#include "exception.h"
-#include "glm.h"
+#include <map>
+using std::pair;
+using std::make_pair;
+
+#include "Eigen/Core"
+using Eigen::Dynamic;
+using Eigen::Array;
+using Eigen::ArrayXXd;
+using Eigen::MatrixXd;
 
 CMT::GLM::GLM(
 	int dimIn,
@@ -99,6 +109,19 @@ double CMT::GLM::parameterGradient(
 
 
 
+pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::GLM::computeDataGradient(
+	const MatrixXd& input,
+	const MatrixXd& output) const
+{
+	return make_pair(
+		make_pair(
+			ArrayXXd::Zero(input.rows(), input.cols()), 
+			ArrayXXd::Zero(output.rows(), output.cols())), 
+		logLikelihood(input, output));
+}
+
+
+
 CMT::LogisticFunction* CMT::LogisticFunction::copy() {
 	return new LogisticFunction(*this);
 }
@@ -133,6 +156,12 @@ CMT::Bernoulli::Bernoulli(double prob) : mProb(prob) {
 
 MatrixXd CMT::Bernoulli::sample(int numSamples) const {
 	return (Array<double, 1, Dynamic>::Random(numSamples).abs() > mProb).cast<double>();
+}
+
+
+
+MatrixXd CMT::Bernoulli::sample(const Array<double, 1, Dynamic>& means) const {
+	return (Array<double, 1, Dynamic>::Random(means.size()).abs() > means).cast<double>();
 }
 
 
@@ -178,4 +207,10 @@ Array<double, 1, Dynamic> CMT::Bernoulli::gradient(
 		grad[i] = data[i] > 0.5 ? -1. / means[i] : 1. / (means[i] - 1.);
 
 	return grad;
+}
+
+
+
+MatrixXd CMT::GLM::sample(const MatrixXd& input) const {
+	return mDistribution->sample((*mNonlinearity)(mWeights * input));
 }

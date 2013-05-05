@@ -3,11 +3,11 @@
 
 using std::log;
 
-Distribution::~Distribution() {
+CMT::Distribution::~Distribution() {
 }
 
 
 
-double Distribution::evaluate(const MatrixXd& data) const {
+double CMT::Distribution::evaluate(const MatrixXd& data) const {
 	return -logLikelihood(data).mean() / log(2.) / dim();
 }
