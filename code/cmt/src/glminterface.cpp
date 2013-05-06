@@ -1,6 +1,10 @@
 #include "exception.h"
 #include "distributioninterface.h"
+#include "trainableinterface.h"
+#include "callbackinterface.h"
 #include "glminterface.h"
+
+#include <iostream>
 
 PyObject* Nonlinearity_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	PyObject* self = type->tp_alloc(type, 0);
@@ -36,6 +40,35 @@ void Nonlinearity_dealloc(NonlinearityObject* self) {
 
 	// delete NonlinearityObject
 	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
+}
+
+
+
+PyObject* Nonlinearity_call(NonlinearityObject* self, PyObject* args, PyObject*) {
+	PyObject* x = 0;
+
+	if(!PyArg_ParseTuple(args, "O", &x))
+		return 0;
+
+	x = PyArray_FROM_OTF(x, NPY_DOUBLE, NPY_IN_ARRAY);
+
+	if(!x) {
+		PyErr_SetString(PyExc_TypeError, "Data should be of type `ndarray`.");
+		return 0;
+	}
+
+	try {
+		MatrixXd output = (*self->nonlinearity)(PyArray_ToMatrixXd(x));
+		Py_DECREF(x);
+		return PyArray_FromMatrixXd(output);
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		Py_DECREF(x);
+		return 0;
+	}
+
+	Py_DECREF(x);
+	return 0;
 }
 
 
@@ -142,32 +175,32 @@ int GLM_init(GLMObject* self, PyObject* args, PyObject* kwds) {
 		return -1;
 
 	if(PyType_Check(nonlinearity)) {
-		if(PyType_IsSubtype(reinterpret_cast<PyTypeObject*>(nonlinearity), &Nonlinearity_type)) {
+		if(!PyType_IsSubtype(reinterpret_cast<PyTypeObject*>(nonlinearity), &Nonlinearity_type)) {
 			PyErr_SetString(PyExc_TypeError, "Nonlinearity should be a subtype of `Nonlinearity`.");
-			return 0;
+			return -1;
 		}
 
 		// create instance of type
-		nonlinearity = Nonlinearity_new(reinterpret_cast<PyTypeObject*>(nonlinearity), 0, 0);
+		nonlinearity = PyObject_CallObject(nonlinearity, 0);
 	} else if(!PyType_IsSubtype(Py_TYPE(nonlinearity), &Nonlinearity_type)) {
 		PyErr_SetString(PyExc_TypeError, "Nonlinearity should be of type `Nonlinearity`.");
-		return 0;
+		return -1;
 	}
 
 	if(PyType_Check(distribution)) {
-		if(PyType_IsSubtype(reinterpret_cast<PyTypeObject*>(distribution), &UnivariateDistribution_type)) {
+		if(!PyType_IsSubtype(reinterpret_cast<PyTypeObject*>(distribution), &UnivariateDistribution_type)) {
 			PyErr_SetString(PyExc_TypeError, "Distribution should be a subtype of `UnivariateDistribution`.");
-			return 0;
+			return -1;
 		}
 
 		// create instance of type
-		distribution = Distribution_new(reinterpret_cast<PyTypeObject*>(distribution), 0, 0);
+		distribution = PyObject_CallObject(distribution, 0);
 	} else if(!PyType_IsSubtype(Py_TYPE(distribution), &UnivariateDistribution_type)) {
 		PyErr_SetString(PyExc_TypeError, "Distribution should be of type `UnivariateDistribution`.");
-		return 0;
+		return -1;
 	}
 
-	// create actual MCBM instance
+	// create actual GLM instance
 	try {
 		Py_INCREF(nonlinearity);
 		Py_INCREF(distribution);
@@ -232,4 +265,125 @@ int GLM_set_weights(GLMObject* self, PyObject* value, void*) {
 	Py_DECREF(value);
 
 	return 0;
+}
+
+
+
+PyObject* GLM_nonlinearity(GLMObject* self, void*) {
+	Py_INCREF(self->nonlinearity);
+	return reinterpret_cast<PyObject*>(self->nonlinearity);
+}
+
+
+
+int GLM_set_nonlinearity(GLMObject* self, PyObject* nonlinearity, void*) {
+	// read arguments
+	if(PyType_Check(nonlinearity)) {
+		if(!PyType_IsSubtype(reinterpret_cast<PyTypeObject*>(nonlinearity), &Nonlinearity_type)) {
+			PyErr_SetString(PyExc_TypeError, "Nonlinearity should be a subtype of `Nonlinearity`.");
+			return -1;
+		}
+
+		// create instance of type
+		nonlinearity = PyObject_CallObject(nonlinearity, 0);
+	} else if(!PyType_IsSubtype(Py_TYPE(nonlinearity), &Nonlinearity_type)) {
+		PyErr_SetString(PyExc_TypeError, "Nonlinearity should be of type `Nonlinearity`.");
+		return -1;
+	}
+
+	try {
+		Py_INCREF(nonlinearity);
+		Py_DECREF(self->nonlinearity);
+		self->nonlinearity = reinterpret_cast<NonlinearityObject*>(nonlinearity);
+		self->glm->setNonlinearity(reinterpret_cast<NonlinearityObject*>(nonlinearity)->nonlinearity);
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+
+	return 0;
+}
+
+
+
+PyObject* GLM_distribution(GLMObject* self, void*) {
+	Py_INCREF(self->distribution);
+	return reinterpret_cast<PyObject*>(self->distribution);
+}
+
+
+
+int GLM_set_distribution(GLMObject* self, PyObject* distribution, void*) {
+	// read arguments
+	if(PyType_Check(distribution)) {
+		if(!PyType_IsSubtype(reinterpret_cast<PyTypeObject*>(distribution), &UnivariateDistribution_type)) {
+			PyErr_SetString(PyExc_TypeError, "Distribution should be a subtype of `UnivariateDistribution`.");
+			return -1;
+		}
+
+		// create instance of type
+		distribution = PyObject_CallObject(distribution, 0);
+	} else if(!PyType_IsSubtype(Py_TYPE(distribution), &UnivariateDistribution_type)) {
+		PyErr_SetString(PyExc_TypeError, "Distribution should be of type `UnivariateDistribution`.");
+		return -1;
+	}
+
+	try {
+		Py_INCREF(distribution);
+		Py_DECREF(self->distribution);
+		self->distribution = reinterpret_cast<UnivariateDistributionObject*>(distribution);
+		self->glm->setDistribution(reinterpret_cast<UnivariateDistributionObject*>(distribution)->distribution);
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+
+	return 0;
+}
+
+
+
+Trainable::Parameters* PyObject_ToGLMParameters(PyObject* parameters) {
+	Trainable::Parameters* params = PyObject_ToParameters(parameters);
+
+	if(parameters && parameters != Py_None) {
+		PyObject* callback = PyDict_GetItemString(parameters, "callback");
+		if(callback)
+			if(PyCallable_Check(callback))
+				params->callback = new CallbackInterface(&GLM_type, callback);
+			else if(callback != Py_None)
+				throw Exception("callback should be a function or callable object.");
+	}
+
+	return params;
+}
+
+
+
+PyObject* GLM_parameter_gradient(GLMObject* self, PyObject* args, PyObject* kwds) {
+	return Trainable_parameter_gradient(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToGLMParameters);
+}
+
+
+
+PyObject* GLM_check_gradient(GLMObject* self, PyObject* args, PyObject* kwds) {
+	return Trainable_check_gradient(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToGLMParameters);
+}
+
+
+
+PyObject* GLM_train(GLMObject* self, PyObject* args, PyObject* kwds) {
+	return Trainable_train(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToGLMParameters);
 }

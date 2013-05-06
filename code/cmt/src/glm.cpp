@@ -14,6 +14,8 @@ using Eigen::Array;
 using Eigen::ArrayXXd;
 using Eigen::MatrixXd;
 
+#include <iostream>
+
 CMT::GLM::GLM(
 	int dimIn,
 	Nonlinearity* nonlinearity,
@@ -22,31 +24,19 @@ CMT::GLM::GLM(
 	mNonlinearity(nonlinearity),
 	mDistribution(distribution)
 {
+	if(mDimIn <= 0)
+		throw Exception("Input dimensionality should be positive.");
+	if(!mNonlinearity)
+		throw Exception("No nonlinearity specified.");
+	if(!mDistribution)
+		throw Exception("No distribution specified.");
+
 	mWeights = VectorXd::Random(dimIn) / 100.;
 }
 
 
 
-CMT::GLM::GLM(const GLM& glm) :
-	mDimIn(glm.mDimIn),
-	mNonlinearity(glm.mNonlinearity->copy()),
-	mDistribution(glm.mDistribution->copy())
-{
-}
-
-
-
-CMT::GLM& CMT::GLM::operator=(const GLM& glm) {
-	mDimIn = glm.mDimIn;
-	mNonlinearity = glm.mNonlinearity->copy();
-	mDistribution = glm.mDistribution->copy();
-}
-
-
-
 CMT::GLM::~GLM() {
-	delete mNonlinearity;
-	delete mDistribution;
 }
 
 
@@ -99,12 +89,13 @@ double CMT::GLM::parameterGradient(
 	Array<double, 1, Dynamic> responses = weights.transpose() * input;
 	Array<double, 1, Dynamic> means = (*mNonlinearity)(responses);
 
-	weightsGrad = (
-		mDistribution->gradient(output, means) *
-		mNonlinearity->derivative(responses) *
-		output.array()).colwise().mean() / log(2.);
+	if(g) {
+		Array<double, 1, Dynamic> tmp1 = mDistribution->gradient(output, means);
+		Array<double, 1, Dynamic> tmp2 = mNonlinearity->derivative(responses);
+		weightsGrad = (input.array().rowwise() * (tmp1 * tmp2)).rowwise().mean() / log(2.);
+	}
 
-	return mDistribution->logLikelihood(output, means).mean() / log(2.);
+	return -mDistribution->logLikelihood(output, means).mean() / log(2.);
 }
 
 
@@ -122,27 +113,15 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::GLM::computeData
 
 
 
-CMT::LogisticFunction* CMT::LogisticFunction::copy() {
-	return new LogisticFunction(*this);
-}
-
-
-
-Array<double, 1, Dynamic> CMT::LogisticFunction::operator()(const Array<double, 1, Dynamic>& data) const {
+ArrayXXd CMT::LogisticFunction::operator()(const ArrayXXd& data) const {
 	return 1. / (1. + (-data).exp());
 }
 
 
 
-Array<double, 1, Dynamic> CMT::LogisticFunction::derivative(const Array<double, 1, Dynamic>& data) const {
-	Array<double, 1, Dynamic> tmp = operator()(data);
+ArrayXXd CMT::LogisticFunction::derivative(const ArrayXXd& data) const {
+	ArrayXXd tmp = operator()(data);
 	return tmp * (1. - tmp);
-}
-
-
-
-CMT::Bernoulli* CMT::Bernoulli::copy() {
-	return new Bernoulli(*this);
 }
 
 
@@ -155,13 +134,13 @@ CMT::Bernoulli::Bernoulli(double prob) : mProb(prob) {
 
 
 MatrixXd CMT::Bernoulli::sample(int numSamples) const {
-	return (Array<double, 1, Dynamic>::Random(numSamples).abs() > mProb).cast<double>();
+	return (Array<double, 1, Dynamic>::Random(numSamples).abs() < mProb).cast<double>();
 }
 
 
 
 MatrixXd CMT::Bernoulli::sample(const Array<double, 1, Dynamic>& means) const {
-	return (Array<double, 1, Dynamic>::Random(means.size()).abs() > means).cast<double>();
+	return (Array<double, 1, Dynamic>::Random(means.size()).abs() < means).cast<double>();
 }
 
 
@@ -184,8 +163,8 @@ Array<double, 1, Dynamic> CMT::Bernoulli::logLikelihood(const MatrixXd& data) co
 
 
 Array<double, 1, Dynamic> CMT::Bernoulli::logLikelihood(
-		const Array<double, 1, Dynamic>& data,
-		const Array<double, 1, Dynamic>& means) const
+	const Array<double, 1, Dynamic>& data,
+	const Array<double, 1, Dynamic>& means) const
 {
 	Array<double, 1, Dynamic> logLik = Array<double, 1, Dynamic>(data.size());
 
@@ -198,13 +177,13 @@ Array<double, 1, Dynamic> CMT::Bernoulli::logLikelihood(
 
 
 Array<double, 1, Dynamic> CMT::Bernoulli::gradient(
-		const Array<double, 1, Dynamic>& data,
-		const Array<double, 1, Dynamic>& means) const
+	const Array<double, 1, Dynamic>& data,
+	const Array<double, 1, Dynamic>& means) const
 {
 	Array<double, 1, Dynamic> grad = Array<double, 1, Dynamic>(data.size());
 
 	for(int i = 0; i < data.size(); ++i)
-		grad[i] = data[i] > 0.5 ? -1. / means[i] : 1. / (means[i] - 1.);
+		grad[i] = data[i] > 0.5 ? -1. / means[i] : 1. / (1. - means[i]);
 
 	return grad;
 }

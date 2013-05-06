@@ -44,6 +44,7 @@ struct GLMObject {
 
 extern PyTypeObject Nonlinearity_type;
 extern PyTypeObject UnivariateDistribution_type;
+extern PyTypeObject GLM_type;
 
 extern const char* Nonlinearity_doc;
 extern const char* LogisticFunction_doc;
@@ -56,6 +57,8 @@ extern const char* GLM_doc;
 PyObject* Nonlinearity_new(PyTypeObject* type, PyObject* args, PyObject* kwds);
 int Nonlinearity_init(NonlinearityObject*, PyObject*, PyObject*);
 void Nonlinearity_dealloc(NonlinearityObject*);
+PyObject* Nonlinearity_call(NonlinearityObject*, PyObject*, PyObject*);
+
 int LogisticFunction_init(LogisticFunctionObject*, PyObject*, PyObject*);
 
 int UnivariateDistribution_init(UnivariateDistributionObject*, PyObject*, PyObject*);
@@ -66,6 +69,17 @@ void GLM_dealloc(GLMObject*);
 
 PyObject* GLM_weights(GLMObject*, void*);
 int GLM_set_weights(GLMObject*, PyObject*, void*);
+
+PyObject* GLM_nonlinearity(GLMObject*, void*);
+int GLM_set_nonlinearity(GLMObject*, PyObject*, void*);
+
+PyObject* GLM_distribution(GLMObject*, void*);
+int GLM_set_distribution(GLMObject*, PyObject*, void*);
+
+PyObject* GLM_train(GLMObject*, PyObject*, PyObject*);
+
+PyObject* GLM_parameter_gradient(GLMObject*, PyObject*, PyObject*);
+PyObject* GLM_check_gradient(GLMObject*, PyObject*, PyObject*);
 
 //PyObject* GLM_reduce(GLMObject*, PyObject*);
 //PyObject* GLM_setstate(GLMObject*, PyObject*);

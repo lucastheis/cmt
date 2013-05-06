@@ -17,19 +17,13 @@ namespace CMT {
 		public:
 			class Nonlinearity {
 				public:
-					virtual Nonlinearity* copy() = 0;
-
-					virtual Array<double, 1, Dynamic> operator()(
-						const Array<double, 1, Dynamic>& data) const = 0;
-					virtual Array<double, 1, Dynamic> derivative(
-						const Array<double, 1, Dynamic>& data) const = 0;
+					virtual ArrayXXd operator()(const ArrayXXd& data) const = 0;
+					virtual ArrayXXd derivative(const ArrayXXd& data) const = 0;
 			};
 
 			class UnivariateDistribution : public Distribution {
 				public:
 					inline int dim() const;
-
-					virtual UnivariateDistribution* copy() = 0;
 
 					/**
 					 * Log-likelihood for different parameter settings.
@@ -41,6 +35,12 @@ namespace CMT {
 						const Array<double, 1, Dynamic>& data,
 						const Array<double, 1, Dynamic>& means) const = 0;
 
+					/**
+					 * Generate sample using different parameter settings.
+					 *
+					 * @param data data points for which to evaluate gradient
+					 * @param means parameters for which to evaluate gradient
+					 */
 					virtual MatrixXd sample(
 						const Array<double, 1, Dynamic>& means) const = 0;
 
@@ -61,16 +61,16 @@ namespace CMT {
 				int dimIn,
 				Nonlinearity* nonlinearity,
 				UnivariateDistribution* distribution);
-			GLM(const GLM& glm);
 			virtual ~GLM();
-
-			GLM& operator=(const GLM& glm);
 
 			inline int dimIn() const;
 			inline int dimOut() const;
 
 			inline const Nonlinearity& nonlinearity() const;
+			inline void setNonlinearity(Nonlinearity* nonlinearity);
+
 			inline const UnivariateDistribution& distribution() const;
+			inline void setDistribution(UnivariateDistribution* distribution);
 
 			inline VectorXd weights() const;
 			inline void setWeights(const VectorXd& weights);
@@ -85,12 +85,6 @@ namespace CMT {
 				const MatrixXd& input,
 				const MatrixXd& output) const;
 
-		protected:
-			int mDimIn;
-			VectorXd mWeights;
-			Nonlinearity* mNonlinearity;
-			UnivariateDistribution* mDistribution;
-
 			virtual int numParameters(const Parameters& params = Parameters()) const;
 			virtual lbfgsfloatval_t* parameters(
 				const Parameters& params = Parameters()) const;
@@ -104,26 +98,26 @@ namespace CMT {
 				const lbfgsfloatval_t* x,
 				lbfgsfloatval_t* g,
 				const Parameters& params) const;
+
+		protected:
+			int mDimIn;
+			VectorXd mWeights;
+			Nonlinearity* mNonlinearity;
+			UnivariateDistribution* mDistribution;
 	};
 
 	class LogisticFunction : public GLM::Nonlinearity {
-		virtual LogisticFunction* copy();
-
-		virtual Array<double, 1, Dynamic> operator()(
-			const Array<double, 1, Dynamic>& data) const;
-		virtual Array<double, 1, Dynamic> derivative(
-			const Array<double, 1, Dynamic>& data) const;
+		virtual ArrayXXd operator()(const ArrayXXd& data) const;
+		virtual ArrayXXd derivative(const ArrayXXd& data) const;
 	};
 
 	class Bernoulli : public GLM::UnivariateDistribution {
 		public:
 			Bernoulli(double prob = 0.5);
 
-			virtual Bernoulli* copy();
-
 			virtual MatrixXd sample(int numSamples) const;
 			virtual MatrixXd sample(
-				const Array<double, 1, Dynamic>& means) const;
+				const Array<double, 1, Dynamic>& data) const;
 
 			virtual Array<double, 1, Dynamic> logLikelihood(
 				const MatrixXd& data) const;
@@ -166,8 +160,20 @@ inline const CMT::GLM::Nonlinearity& CMT::GLM::nonlinearity() const {
 
 
 
+inline void CMT::GLM::setNonlinearity(Nonlinearity* nonlinearity) {
+	mNonlinearity = nonlinearity;
+}
+
+
+
 inline const CMT::GLM::UnivariateDistribution& CMT::GLM::distribution() const {
 	return *mDistribution;
+}
+
+
+
+inline void CMT::GLM::setDistribution(UnivariateDistribution* distribution) {
+	mDistribution = distribution;
 }
 
 

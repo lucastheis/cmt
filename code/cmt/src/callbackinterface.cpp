@@ -61,6 +61,7 @@ bool CallbackInterface::operator()(int iter, const Trainable& cd) {
 
 	// if cont is false, training will be aborted
 	bool cont = true;
+
 	if(result) {
 		if(PyBool_Check(result))
 			cont = (result == Py_True);
