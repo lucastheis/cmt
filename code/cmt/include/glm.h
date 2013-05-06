@@ -115,6 +115,9 @@ namespace CMT {
 		public:
 			Bernoulli(double prob = 0.5);
 
+			inline double probability() const;
+			inline void setProbability(double prob);
+
 			virtual MatrixXd sample(int numSamples) const;
 			virtual MatrixXd sample(
 				const Array<double, 1, Dynamic>& data) const;
@@ -132,6 +135,18 @@ namespace CMT {
 		protected:
 			double mProb;
 	};
+}
+
+
+
+inline double CMT::Bernoulli::probability() const {
+	return mProb;
+}
+
+
+
+inline void CMT::Bernoulli::setProbability(double prob) {
+	mProb = prob;
 }
 
 

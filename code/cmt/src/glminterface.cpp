@@ -92,6 +92,26 @@ int LogisticFunction_init(LogisticFunctionObject* self, PyObject*, PyObject*) {
 
 
 
+const char* LogisticFunction_reduce_doc =
+	"__reduce__(self)\n"
+	"\n"
+	"Method used by Pickle.";
+
+PyObject* LogisticFunction_reduce(LogisticFunctionObject* self, PyObject*) {
+	// constructor arguments
+	PyObject* args = Py_BuildValue("()");
+	PyObject* state = Py_BuildValue("()");
+
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
+
+	Py_DECREF(args);
+	Py_DECREF(state);
+
+	return result;
+}
+
+
+
 const char* UnivariateDistribution_doc =
 	"Abstract base class for univariate distributions usable by L{GLM}.";
 
@@ -131,6 +151,26 @@ int Bernoulli_init(BernoulliObject* self, PyObject* args, PyObject* kwds) {
 	}
 
 	return -1;
+}
+
+
+
+const char* Bernoulli_reduce_doc =
+	"__reduce__(self)\n"
+	"\n"
+	"Method used by Pickle.";
+
+PyObject* Bernoulli_reduce(BernoulliObject* self, PyObject*) {
+	// constructor arguments
+	PyObject* args = Py_BuildValue("(d)", self->distribution->probability());
+	PyObject* state = Py_BuildValue("()");
+
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
+
+	Py_DECREF(args);
+	Py_DECREF(state);
+
+	return result;
 }
 
 
@@ -386,4 +426,57 @@ PyObject* GLM_train(GLMObject* self, PyObject* args, PyObject* kwds) {
 		args, 
 		kwds,
 		&PyObject_ToGLMParameters);
+}
+
+
+
+const char* GLM_reduce_doc =
+	"__reduce__(self)\n"
+	"\n"
+	"Method used by Pickle.";
+
+PyObject* GLM_reduce(GLMObject* self, PyObject*) {
+	// constructor arguments
+	PyObject* args = Py_BuildValue("(iOO)", 
+		self->glm->dimIn(),
+		self->nonlinearity,
+		self->distribution);
+
+	// parameters
+	PyObject* weights = GLM_weights(self, 0);
+
+	PyObject* state = Py_BuildValue("(O)", weights);
+
+	Py_DECREF(weights);
+
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
+
+	Py_DECREF(args);
+	Py_DECREF(state);
+
+	return result;
+}
+
+
+
+const char* GLM_setstate_doc =
+	"__setstate__(self)\n"
+	"\n"
+	"Method used by Pickle.";
+
+PyObject* GLM_setstate(GLMObject* self, PyObject* state) {
+	PyObject* weights;
+
+	if(!PyArg_ParseTuple(state, "(O)", &weights))
+		return 0;
+
+	try {
+		GLM_set_weights(self, weights, 0);
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
 }

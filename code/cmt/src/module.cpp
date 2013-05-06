@@ -439,22 +439,14 @@ static PyGetSetDef GLM_getset[] = {
 
 static PyMethodDef GLM_methods[] = {
 	{"train", (PyCFunction)GLM_train, METH_VARARGS|METH_KEYWORDS, 0},
-//	{"_parameters",
-//		(PyCFunction)Trainable_parameters,
-//		METH_VARARGS|METH_KEYWORDS,
-//		Trainable_parameters_doc},
-//	{"_set_parameters",
-//		(PyCFunction)Trainable_set_parameters,
-//		METH_VARARGS|METH_KEYWORDS,
-//		Trainable_set_parameters_doc},
 	{"_parameter_gradient",
 		(PyCFunction)GLM_parameter_gradient,
 		METH_VARARGS|METH_KEYWORDS, 0},
 	{"_check_gradient",
 		(PyCFunction)GLM_check_gradient,
 		METH_VARARGS|METH_KEYWORDS, 0},
-//	{"__reduce__", (PyCFunction)GLM_reduce, METH_NOARGS, GLM_reduce_doc},
-//	{"__setstate__", (PyCFunction)GLM_setstate, METH_VARARGS, GLM_setstate_doc},
+	{"__reduce__", (PyCFunction)GLM_reduce, METH_NOARGS, GLM_reduce_doc},
+	{"__setstate__", (PyCFunction)GLM_setstate, METH_VARARGS, GLM_setstate_doc},
 	{0}
 };
 
@@ -542,6 +534,11 @@ PyTypeObject Nonlinearity_type = {
 	Nonlinearity_new,                 /*tp_new*/
 };
 
+static PyMethodDef LogisticFunction_methods[] = {
+	{"__reduce__", (PyCFunction)LogisticFunction_reduce, METH_NOARGS, LogisticFunction_reduce_doc},
+	{0}
+};
+
 PyTypeObject LogisticFunction_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
@@ -571,7 +568,7 @@ PyTypeObject LogisticFunction_type = {
 	0,                                /*tp_weaklistoffset*/
 	0,                                /*tp_iter*/
 	0,                                /*tp_iternext*/
-	0,                                /*tp_methods*/
+	LogisticFunction_methods,         /*tp_methods*/
 	0,                                /*tp_members*/
 	0,                                /*tp_getset*/
 	&Nonlinearity_type,               /*tp_base*/
@@ -626,6 +623,11 @@ PyTypeObject UnivariateDistribution_type = {
 	Distribution_new,                      /*tp_new*/
 };
 
+static PyMethodDef Bernoulli_methods[] = {
+	{"__reduce__", (PyCFunction)Bernoulli_reduce, METH_NOARGS, Bernoulli_reduce_doc},
+	{0}
+};
+
 PyTypeObject Bernoulli_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
@@ -655,7 +657,7 @@ PyTypeObject Bernoulli_type = {
 	0,                                /*tp_weaklistoffset*/
 	0,                                /*tp_iter*/
 	0,                                /*tp_iternext*/
-	0,                                /*tp_methods*/
+	Bernoulli_methods,                /*tp_methods*/
 	0,                                /*tp_members*/
 	0,                                /*tp_getset*/
 	&UnivariateDistribution_type,     /*tp_base*/
