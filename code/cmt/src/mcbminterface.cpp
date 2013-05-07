@@ -992,7 +992,7 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 
 	// create the actual model
 	try {
-		self->patchMCBM = new PatchModel<MCBM, CMT::PCATransform>(
+		self->patchMCBM = new PatchModel<MCBM, PCATransform>(
 			rows,
 			cols,
 			PyArray_ToMatrixXb(xmask),
@@ -1035,7 +1035,7 @@ PyObject* PatchMCBM_subscript(PatchMCBMObject* self, PyObject* key) {
 
 int PatchMCBM_ass_subscript(PatchMCBMObject* self, PyObject* key, PyObject* value) {
 	if(!PyType_IsSubtype(Py_TYPE(value), &MCBM_type)) {
-		PyErr_SetString(PyExc_TypeError, "Conditional distribution should be an MCBM.");
+		PyErr_SetString(PyExc_TypeError, "Conditional distribution should be a subtype of `MCBM`.");
 		return -1;
 	}
 

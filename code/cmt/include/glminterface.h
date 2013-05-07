@@ -4,6 +4,7 @@
 #include <Python.h>
 #include <arrayobject.h>
 #include "pyutils.h"
+#include "trainableinterface.h"
 
 #include "glm.h"
 using CMT::GLM;
@@ -90,5 +91,7 @@ PyObject* GLM_check_gradient(GLMObject*, PyObject*, PyObject*);
 
 PyObject* GLM_reduce(GLMObject*, PyObject*);
 PyObject* GLM_setstate(GLMObject*, PyObject*);
+
+Trainable::Parameters* PyObject_ToGLMParameters(PyObject* parameters);
 
 #endif

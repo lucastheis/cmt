@@ -55,21 +55,24 @@ namespace CMT {
 						const Array<double, 1, Dynamic>& means) const = 0;
 			};
 
-			using ConditionalDistribution::logLikelihood;
+			using Trainable::logLikelihood;
+			using Trainable::train;
 
 			GLM(
 				int dimIn,
 				Nonlinearity* nonlinearity,
 				UnivariateDistribution* distribution);
+			GLM(int dimIn);
+			GLM(int dimIn, const GLM&);
 			virtual ~GLM();
 
 			inline int dimIn() const;
 			inline int dimOut() const;
 
-			inline const Nonlinearity& nonlinearity() const;
+			inline Nonlinearity* nonlinearity() const;
 			inline void setNonlinearity(Nonlinearity* nonlinearity);
 
-			inline const UnivariateDistribution& distribution() const;
+			inline UnivariateDistribution* distribution() const;
 			inline void setDistribution(UnivariateDistribution* distribution);
 
 			inline VectorXd weights() const;
@@ -104,6 +107,13 @@ namespace CMT {
 			VectorXd mWeights;
 			Nonlinearity* mNonlinearity;
 			UnivariateDistribution* mDistribution;
+
+			virtual bool train(
+				const MatrixXd& input,
+				const MatrixXd& output,
+				const MatrixXd* inputVal = 0,
+				const MatrixXd* outputVal = 0,
+				const Trainable::Parameters& params = Trainable::Parameters());
 	};
 
 	class LogisticFunction : public GLM::Nonlinearity {
@@ -169,8 +179,8 @@ inline int CMT::GLM::dimOut() const {
 
 
 
-inline const CMT::GLM::Nonlinearity& CMT::GLM::nonlinearity() const {
-	return *mNonlinearity;
+inline CMT::GLM::Nonlinearity* CMT::GLM::nonlinearity() const {
+	return mNonlinearity;
 }
 
 
@@ -181,8 +191,8 @@ inline void CMT::GLM::setNonlinearity(Nonlinearity* nonlinearity) {
 
 
 
-inline const CMT::GLM::UnivariateDistribution& CMT::GLM::distribution() const {
-	return *mDistribution;
+inline CMT::GLM::UnivariateDistribution* CMT::GLM::distribution() const {
+	return mDistribution;
 }
 
 

@@ -67,6 +67,7 @@ modules = [
 			'code/cmt/src/conditionaldistributioninterface.cpp',
 			'code/cmt/src/distribution.cpp',
 			'code/cmt/src/distributioninterface.cpp',
+			'code/cmt/src/fvbninterface.cpp',
 			'code/cmt/src/mcgsm.cpp',
 			'code/cmt/src/mcgsminterface.cpp',
 			'code/cmt/src/mcbm.cpp',

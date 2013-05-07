@@ -134,10 +134,6 @@ CMT::PatchModel<CD, PC>::PatchModel(
 	if(outputIndices.size() > 1)
 		throw Exception("Only one-dimensional outputs are currently supported.");
 
-	if(model)
-		if(inputIndices.size() != model->dimIn() || outputIndices.size() != model->dimOut())
-			throw Exception("Model and masks are incompatible.");
-
 	int rowOffset = outputIndices[0].first;
 	int colOffset = outputIndices[0].second;
 

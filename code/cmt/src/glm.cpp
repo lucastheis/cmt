@@ -1,5 +1,9 @@
 #include "exception.h"
+
 #include "glm.h"
+using CMT::GLM;
+using CMT::LogisticFunction;
+using CMT::Bernoulli;
 
 #include <cmath>
 using std::log;
@@ -14,6 +18,9 @@ using Eigen::Array;
 using Eigen::ArrayXXd;
 using Eigen::MatrixXd;
 
+GLM::Nonlinearity* defaultNonlinearity = new LogisticFunction;
+GLM::UnivariateDistribution* defaultDistribution = new Bernoulli;
+
 #include <iostream>
 
 CMT::GLM::GLM(
@@ -24,12 +31,38 @@ CMT::GLM::GLM(
 	mNonlinearity(nonlinearity),
 	mDistribution(distribution)
 {
-	if(mDimIn <= 0)
-		throw Exception("Input dimensionality should be positive.");
+	if(mDimIn < 0)
+		throw Exception("Input dimensionality should be non-negative.");
 	if(!mNonlinearity)
 		throw Exception("No nonlinearity specified.");
 	if(!mDistribution)
 		throw Exception("No distribution specified.");
+
+	mWeights = VectorXd::Random(dimIn) / 100.;
+}
+
+
+
+CMT::GLM::GLM(int dimIn) : mDimIn(dimIn) {
+	if(mDimIn < 0)
+		throw Exception("Input dimensionality should be non-negative.");
+
+	mNonlinearity = defaultNonlinearity;
+	mDistribution = defaultDistribution;
+
+	mWeights = VectorXd::Random(dimIn) / 100.;
+}
+
+
+
+
+CMT::GLM::GLM(int dimIn, const GLM& glm) : 
+	mDimIn(dimIn),
+	mNonlinearity(glm.mNonlinearity),
+	mDistribution(glm.mDistribution)
+{
+	if(mDimIn < 0)
+		throw Exception("Input dimensionality should be non-negative.");
 
 	mWeights = VectorXd::Random(dimIn) / 100.;
 }
@@ -45,9 +78,27 @@ Array<double, 1, Dynamic> CMT::GLM::logLikelihood(
 	const MatrixXd& input,
 	const MatrixXd& output) const
 {
+	if(input.rows() != mDimIn)
+		throw Exception("Input has wrong dimensionality.");
+
+	if(!mDimIn)
+		mDistribution->logLikelihood(output, ArrayXXd::Zero(1, input.cols()));
+
 	return mDistribution->logLikelihood(
 		output,
 		(*mNonlinearity)(mWeights.transpose() * input));
+}
+
+
+
+MatrixXd CMT::GLM::sample(const MatrixXd& input) const {
+	if(input.rows() != mDimIn)
+		throw Exception("Input has wrong dimensionality.");
+
+	if(!mDimIn)
+		return mDistribution->sample(ArrayXXd::Zero(1, input.cols()));
+
+	return mDistribution->sample((*mNonlinearity)(mWeights * input));
 }
 
 
@@ -109,6 +160,21 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::GLM::computeData
 			ArrayXXd::Zero(input.rows(), input.cols()), 
 			ArrayXXd::Zero(output.rows(), output.cols())), 
 		logLikelihood(input, output));
+}
+
+
+
+bool CMT::GLM::train(
+	const MatrixXd& input,
+	const MatrixXd& output,
+	const MatrixXd* inputVal,
+	const MatrixXd* outputVal,
+	const Trainable::Parameters& params)
+{
+	if(!mDimIn)
+		return true;
+	else
+		return Trainable::train(input, output, inputVal, outputVal, params);
 }
 
 
@@ -186,10 +252,4 @@ Array<double, 1, Dynamic> CMT::Bernoulli::gradient(
 		grad[i] = data[i] > 0.5 ? -1. / means[i] : 1. / (1. - means[i]);
 
 	return grad;
-}
-
-
-
-MatrixXd CMT::GLM::sample(const MatrixXd& input) const {
-	return mDistribution->sample((*mNonlinearity)(mWeights * input));
 }

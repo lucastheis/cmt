@@ -24,8 +24,6 @@ class Tests(unittest.TestCase):
 		input = randint(2, size=[dim_in, num_samples])
 		output = mcbm.sample(input)
 		loglik = mcbm.loglikelihood(input, output)
-		#post = mcbm.posterior(input, output)
-		#samples = mcbm.sample_posterior(input, output)
 
 		# check hyperparameters
 		self.assertEqual(mcbm.dim_in, dim_in)

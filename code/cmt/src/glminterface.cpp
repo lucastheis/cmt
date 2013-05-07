@@ -6,8 +6,6 @@
 #include "exception.h"
 using CMT::Exception;
 
-#include <iostream>
-
 PyObject* Nonlinearity_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	PyObject* self = type->tp_alloc(type, 0);
 
@@ -216,10 +214,15 @@ int GLM_init(GLMObject* self, PyObject* args, PyObject* kwds) {
 
 		// create instance of type
 		nonlinearity = PyObject_CallObject(nonlinearity, 0);
+
+		if(!nonlinearity)
+			return -1;
 	} else if(!PyType_IsSubtype(Py_TYPE(nonlinearity), &Nonlinearity_type)) {
 		PyErr_SetString(PyExc_TypeError, "Nonlinearity should be of type `Nonlinearity`.");
 		return -1;
 	}
+
+	Py_INCREF(nonlinearity);
 
 	if(PyType_Check(distribution)) {
 		if(!PyType_IsSubtype(reinterpret_cast<PyTypeObject*>(distribution), &UnivariateDistribution_type)) {
@@ -229,18 +232,21 @@ int GLM_init(GLMObject* self, PyObject* args, PyObject* kwds) {
 
 		// create instance of type
 		distribution = PyObject_CallObject(distribution, 0);
+
+		if(!distribution)
+			return -1;
 	} else if(!PyType_IsSubtype(Py_TYPE(distribution), &UnivariateDistribution_type)) {
 		PyErr_SetString(PyExc_TypeError, "Distribution should be of type `UnivariateDistribution`.");
 		return -1;
 	}
 
+	Py_INCREF(distribution);
+
 	// create actual GLM instance
 	try {
-		Py_INCREF(nonlinearity);
-		Py_INCREF(distribution);
-
 		self->nonlinearity = reinterpret_cast<NonlinearityObject*>(nonlinearity);
 		self->distribution = reinterpret_cast<UnivariateDistributionObject*>(distribution);
+
 		self->glm = new GLM(
 			dim_in,
 			self->nonlinearity->nonlinearity,

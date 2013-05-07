@@ -8,6 +8,7 @@
 #include "conditionaldistributioninterface.h"
 #include "distribution.h"
 #include "distributioninterface.h"
+#include "fvbninterface.h"
 #include "glminterface.h"
 #include "mcbminterface.h"
 #include "mcgsminterface.h"
@@ -541,6 +542,71 @@ PyTypeObject GLM_type = {
 	(initproc)GLM_init,      /*tp_init*/
 	0,                       /*tp_alloc*/
 	CD_new,                  /*tp_new*/
+};
+
+static PyMappingMethods FVBN_as_mapping = {
+	0,                                      /*mp_length*/
+	(binaryfunc)FVBN_subscript,        /*mp_subscript*/
+	(objobjargproc)FVBN_ass_subscript, /*mp_ass_subscript*/
+};
+
+static PyGetSetDef FVBN_getset[] = {
+	{"preconditioners", 
+		(getter)FVBN_preconditioners,
+		(setter)FVBN_set_preconditioners,
+		"A dictionary containing all preconditioners."},
+	{0}
+};
+
+static PyMethodDef FVBN_methods[] = {
+	{"initialize", (PyCFunction)FVBN_initialize, METH_KEYWORDS, FVBN_initialize_doc},
+	{"train", (PyCFunction)FVBN_train, METH_KEYWORDS, FVBN_train_doc},
+	{"preconditioner", (PyCFunction)FVBN_preconditioner, METH_VARARGS, 0},
+	{"__reduce__", (PyCFunction)FVBN_reduce, METH_NOARGS, FVBN_reduce_doc},
+	{"__setstate__", (PyCFunction)FVBN_setstate, METH_VARARGS, FVBN_setstate_doc},
+	{0}
+};
+
+PyTypeObject FVBN_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                /*ob_size*/
+	"cmt.FVBN",                       /*tp_name*/
+	sizeof(FVBNObject),               /*tp_basicsize*/
+	0,                                /*tp_itemsize*/
+	(destructor)Distribution_dealloc, /*tp_dealloc*/
+	0,                                /*tp_print*/
+	0,                                /*tp_getattr*/
+	0,                                /*tp_setattr*/
+	0,                                /*tp_compare*/
+	0,                                /*tp_repr*/
+	0,                                /*tp_as_number*/
+	0,                                /*tp_as_sequence*/
+	&FVBN_as_mapping,                 /*tp_as_mapping*/
+	0,                                /*tp_hash */
+	0,                                /*tp_call*/
+	0,                                /*tp_str*/
+	0,                                /*tp_getattro*/
+	0,                                /*tp_setattro*/
+	0,                                /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
+	FVBN_doc,                         /*tp_doc*/
+	0,                                /*tp_traverse*/
+	0,                                /*tp_clear*/
+	0,                                /*tp_richcompare*/
+	0,                                /*tp_weaklistoffset*/
+	0,                                /*tp_iter*/
+	0,                                /*tp_iternext*/
+	FVBN_methods,                     /*tp_methods*/
+	0,                                /*tp_members*/
+	FVBN_getset,                      /*tp_getset*/
+	&PatchModel_type,                 /*tp_base*/
+	0,                                /*tp_dict*/
+	0,                                /*tp_descr_get*/
+	0,                                /*tp_descr_set*/
+	0,                                /*tp_dictoffset*/
+	(initproc)FVBN_init,              /*tp_init*/
+	0,                                /*tp_alloc*/
+	Distribution_new,                 /*tp_new*/
 };
 
 PyTypeObject Nonlinearity_type = {
@@ -1102,6 +1168,8 @@ PyMODINIT_FUNC initcmt() {
 		return;
 	if(PyType_Ready(&Distribution_type) < 0)
 		return;
+	if(PyType_Ready(&FVBN_type) < 0)
+		return;
 	if(PyType_Ready(&GLM_type) < 0)
 		return;
 	if(PyType_Ready(&LogisticFunction_type) < 0)
@@ -1138,6 +1206,7 @@ PyMODINIT_FUNC initcmt() {
 	Py_INCREF(&Bernoulli_type);
 	Py_INCREF(&CD_type);
 	Py_INCREF(&Distribution_type);
+	Py_INCREF(&FVBN_type);
 	Py_INCREF(&GLM_type);
 	Py_INCREF(&LogisticFunction_type);
 	Py_INCREF(&MCBM_type);
@@ -1157,6 +1226,7 @@ PyMODINIT_FUNC initcmt() {
 	PyModule_AddObject(module, "Bernoulli", reinterpret_cast<PyObject*>(&Bernoulli_type));
 	PyModule_AddObject(module, "ConditionalDistribution", reinterpret_cast<PyObject*>(&CD_type));
 	PyModule_AddObject(module, "Distribution", reinterpret_cast<PyObject*>(&Distribution_type));
+	PyModule_AddObject(module, "FVBN", reinterpret_cast<PyObject*>(&FVBN_type));
 	PyModule_AddObject(module, "GLM", reinterpret_cast<PyObject*>(&GLM_type));
 	PyModule_AddObject(module, "LogisticFunction", reinterpret_cast<PyObject*>(&LogisticFunction_type));
 	PyModule_AddObject(module, "MCBM", reinterpret_cast<PyObject*>(&MCBM_type));
