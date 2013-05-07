@@ -3,6 +3,8 @@ import unittest
 
 sys.path.append('./code')
 
+from pickle import dump, load
+from tempfile import mkstemp
 from numpy import *
 from numpy import max
 from numpy.random import randn, rand
@@ -78,6 +80,46 @@ class Tests(unittest.TestCase):
 		glm.train(x, y, parameters={'verbosity': 0})
 
 		self.assertLess(max(abs(glm.weights - w)), 0.1)
+
+
+
+	def test_glm_pickle(self):
+		f0 = LogisticFunction()
+
+		tmp_file = mkstemp()[1]
+
+		with open(tmp_file, 'w') as handle:
+			dump({'f': f0}, handle)
+
+		with open(tmp_file) as handle:
+			f1 = load(handle)['f']
+
+		x = randn(100)
+		self.assertLess(max(abs(f0(x) - f1(x))), 1e-6)
+
+		p0 = Bernoulli(.3)
+
+		with open(tmp_file, 'w') as handle:
+			dump({'p': p0}, handle)
+
+		with open(tmp_file) as handle:
+			p1 = load(handle)['p']
+
+		x = p0.sample(100)
+		self.assertLess(max(abs(p0.loglikelihood(x) - p1.loglikelihood(x))), 1e-6)
+
+		model0 = GLM(5, LogisticFunction, Bernoulli)
+
+		# store model
+		with open(tmp_file, 'w') as handle:
+			dump({'model': model0}, handle)
+
+		# load model
+		with open(tmp_file) as handle:
+			model1 = load(handle)['model']
+
+		# make sure parameters haven't changed
+		self.assertLess(max(abs(model0.weights - model1.weights)), 1e-20)
 
 
 

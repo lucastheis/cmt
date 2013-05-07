@@ -452,44 +452,44 @@ static PyMethodDef GLM_methods[] = {
 
 PyTypeObject GLM_type = {
 	PyObject_HEAD_INIT(0)
-	0,                      /*ob_size*/
-	"cmt.GLM",              /*tp_name*/
-	sizeof(GLMObject),      /*tp_basicsize*/
-	0,                      /*tp_itemsize*/
-	(destructor)CD_dealloc, /*tp_dealloc*/
-	0,                      /*tp_print*/
-	0,                      /*tp_getattr*/
-	0,                      /*tp_setattr*/
-	0,                      /*tp_compare*/
-	0,                      /*tp_repr*/
-	0,                      /*tp_as_number*/
-	0,                      /*tp_as_sequence*/
-	0,                      /*tp_as_mapping*/
-	0,                      /*tp_hash */
-	0,                      /*tp_call*/
-	0,                      /*tp_str*/
-	0,                      /*tp_getattro*/
-	0,                      /*tp_setattro*/
-	0,                      /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,     /*tp_flags*/
-	GLM_doc,                /*tp_doc*/
-	0,                      /*tp_traverse*/
-	0,                      /*tp_clear*/
-	0,                      /*tp_richcompare*/
-	0,                      /*tp_weaklistoffset*/
-	0,                      /*tp_iter*/
-	0,                      /*tp_iternext*/
-	GLM_methods,            /*tp_methods*/
-	0,                      /*tp_members*/
-	GLM_getset,             /*tp_getset*/
-	&CD_type,               /*tp_base*/
-	0,                      /*tp_dict*/
-	0,                      /*tp_descr_get*/
-	0,                      /*tp_descr_set*/
-	0,                      /*tp_dictoffset*/
-	(initproc)GLM_init,     /*tp_init*/
-	0,                      /*tp_alloc*/
-	CD_new,                 /*tp_new*/
+	0,                       /*ob_size*/
+	"cmt.GLM",               /*tp_name*/
+	sizeof(GLMObject),       /*tp_basicsize*/
+	0,                       /*tp_itemsize*/
+	(destructor)GLM_dealloc, /*tp_dealloc*/
+	0,                       /*tp_print*/
+	0,                       /*tp_getattr*/
+	0,                       /*tp_setattr*/
+	0,                       /*tp_compare*/
+	0,                       /*tp_repr*/
+	0,                       /*tp_as_number*/
+	0,                       /*tp_as_sequence*/
+	0,                       /*tp_as_mapping*/
+	0,                       /*tp_hash */
+	0,                       /*tp_call*/
+	0,                       /*tp_str*/
+	0,                       /*tp_getattro*/
+	0,                       /*tp_setattro*/
+	0,                       /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,      /*tp_flags*/
+	GLM_doc,                 /*tp_doc*/
+	0,                       /*tp_traverse*/
+	0,                       /*tp_clear*/
+	0,                       /*tp_richcompare*/
+	0,                       /*tp_weaklistoffset*/
+	0,                       /*tp_iter*/
+	0,                       /*tp_iternext*/
+	GLM_methods,             /*tp_methods*/
+	0,                       /*tp_members*/
+	GLM_getset,              /*tp_getset*/
+	&CD_type,                /*tp_base*/
+	0,                       /*tp_dict*/
+	0,                       /*tp_descr_get*/
+	0,                       /*tp_descr_set*/
+	0,                       /*tp_dictoffset*/
+	(initproc)GLM_init,      /*tp_init*/
+	0,                       /*tp_alloc*/
+	CD_new,                  /*tp_new*/
 };
 
 PyTypeObject Nonlinearity_type = {

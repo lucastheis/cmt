@@ -51,10 +51,6 @@ class Tests(unittest.TestCase):
 		self.assertEqual(output.shape[1], num_samples)
 		self.assertEqual(loglik.shape[0], 1)
 		self.assertEqual(loglik.shape[1], num_samples)
-		#self.assertEqual(post.shape[0], num_components)
-		#self.assertEqual(post.shape[1], num_samples)
-		#self.assertEqual(samples.shape[0], 1)
-		#self.assertEqual(samples.shape[1], num_samples)
 
 
 

@@ -98,14 +98,10 @@ const char* LogisticFunction_reduce_doc =
 	"Method used by Pickle.";
 
 PyObject* LogisticFunction_reduce(LogisticFunctionObject* self, PyObject*) {
-	// constructor arguments
 	PyObject* args = Py_BuildValue("()");
-	PyObject* state = Py_BuildValue("()");
-
-	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
+	PyObject* result = Py_BuildValue("(OO)", Py_TYPE(self), args);
 
 	Py_DECREF(args);
-	Py_DECREF(state);
 
 	return result;
 }
@@ -161,14 +157,10 @@ const char* Bernoulli_reduce_doc =
 	"Method used by Pickle.";
 
 PyObject* Bernoulli_reduce(BernoulliObject* self, PyObject*) {
-	// constructor arguments
 	PyObject* args = Py_BuildValue("(d)", self->distribution->probability());
-	PyObject* state = Py_BuildValue("()");
-
-	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
+	PyObject* result = Py_BuildValue("(OO)", Py_TYPE(self), args);
 
 	Py_DECREF(args);
-	Py_DECREF(state);
 
 	return result;
 }
@@ -441,16 +433,11 @@ PyObject* GLM_reduce(GLMObject* self, PyObject*) {
 		self->glm->dimIn(),
 		self->nonlinearity,
 		self->distribution);
-
-	// parameters
 	PyObject* weights = GLM_weights(self, 0);
-
 	PyObject* state = Py_BuildValue("(O)", weights);
-
-	Py_DECREF(weights);
-
 	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
 
+	Py_DECREF(weights);
 	Py_DECREF(args);
 	Py_DECREF(state);
 
