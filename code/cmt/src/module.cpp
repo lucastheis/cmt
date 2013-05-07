@@ -11,6 +11,7 @@
 #include "glminterface.h"
 #include "mcbminterface.h"
 #include "mcgsminterface.h"
+#include "patchmodelinterface.h"
 #include "preconditionerinterface.h"
 #include "toolsinterface.h"
 #include "trainableinterface.h"
@@ -351,6 +352,61 @@ PyTypeObject MCBM_type = {
 	CD_new,                 /*tp_new*/
 };
 
+static PyGetSetDef PatchModel_getset[] = {
+	{"rows", (getter)PatchModel_rows, 0, "Number of rows of the modeled patches."},
+	{"cols", (getter)PatchModel_cols, 0, "Number of columns of the modeled patches."},
+	{0}
+};
+
+static PyMethodDef PatchModel_methods[] = {
+	{"loglikelihood", (PyCFunction)PatchModel_loglikelihood, METH_KEYWORDS, 0},
+	{"input_mask", (PyCFunction)PatchModel_input_mask, METH_VARARGS, 0},
+	{"output_mask", (PyCFunction)PatchModel_output_mask, METH_VARARGS, 0},
+	{0}
+};
+
+PyTypeObject PatchModel_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                /*ob_size*/
+	"cmt.PatchModel",                 /*tp_name*/
+	sizeof(PatchModelObject),         /*tp_basicsize*/
+	0,                                /*tp_itemsize*/
+	(destructor)Distribution_dealloc, /*tp_dealloc*/
+	0,                                /*tp_print*/
+	0,                                /*tp_getattr*/
+	0,                                /*tp_setattr*/
+	0,                                /*tp_compare*/
+	0,                                /*tp_repr*/
+	0,                                /*tp_as_number*/
+	0,                                /*tp_as_sequence*/
+	0,                                /*tp_as_mapping*/
+	0,                                /*tp_hash */
+	0,                                /*tp_call*/
+	0,                                /*tp_str*/
+	0,                                /*tp_getattro*/
+	0,                                /*tp_setattro*/
+	0,                                /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
+	PatchModel_doc,                   /*tp_doc*/
+	0,                                /*tp_traverse*/
+	0,                                /*tp_clear*/
+	0,                                /*tp_richcompare*/
+	0,                                /*tp_weaklistoffset*/
+	0,                                /*tp_iter*/
+	0,                                /*tp_iternext*/
+	PatchModel_methods,               /*tp_methods*/
+	0,                                /*tp_members*/
+	PatchModel_getset,                /*tp_getset*/
+	&Distribution_type,               /*tp_base*/
+	0,                                /*tp_dict*/
+	0,                                /*tp_descr_get*/
+	0,                                /*tp_descr_set*/
+	0,                                /*tp_dictoffset*/
+	(initproc)Distribution_init,      /*tp_init*/
+	0,                                /*tp_alloc*/
+	Distribution_new,                 /*tp_new*/
+};
+
 static PyMappingMethods PatchMCBM_as_mapping = {
 	0,                                      /*mp_length*/
 	(binaryfunc)PatchMCBM_subscript,        /*mp_subscript*/
@@ -358,8 +414,6 @@ static PyMappingMethods PatchMCBM_as_mapping = {
 };
 
 static PyGetSetDef PatchMCBM_getset[] = {
-	{"rows", (getter)PatchMCBM_rows, 0, "Number of rows of the modeled patches."},
-	{"cols", (getter)PatchMCBM_cols, 0, "Number of columns of the modeled patches."},
 	{"preconditioners", 
 		(getter)PatchMCBM_preconditioners,
 		(setter)PatchMCBM_set_preconditioners,
@@ -370,10 +424,7 @@ static PyGetSetDef PatchMCBM_getset[] = {
 static PyMethodDef PatchMCBM_methods[] = {
 	{"initialize", (PyCFunction)PatchMCBM_initialize, METH_KEYWORDS, PatchMCBM_initialize_doc},
 	{"train", (PyCFunction)PatchMCBM_train, METH_KEYWORDS, PatchMCBM_train_doc},
-	{"loglikelihood", (PyCFunction)PatchMCBM_loglikelihood, METH_KEYWORDS, 0},
 	{"preconditioner", (PyCFunction)PatchMCBM_preconditioner, METH_VARARGS, 0},
-	{"input_mask", (PyCFunction)PatchMCBM_input_mask, METH_VARARGS, 0},
-	{"output_mask", (PyCFunction)PatchMCBM_output_mask, METH_VARARGS, 0},
 	{"__reduce__", (PyCFunction)PatchMCBM_reduce, METH_NOARGS, PatchMCBM_reduce_doc},
 	{"__setstate__", (PyCFunction)PatchMCBM_setstate, METH_VARARGS, PatchMCBM_setstate_doc},
 	{0}
@@ -411,7 +462,7 @@ PyTypeObject PatchMCBM_type = {
 	PatchMCBM_methods,                /*tp_methods*/
 	0,                                /*tp_members*/
 	PatchMCBM_getset,                 /*tp_getset*/
-	&Distribution_type,               /*tp_base*/
+	&PatchModel_type,                 /*tp_base*/
 	0,                                /*tp_dict*/
 	0,                                /*tp_descr_get*/
 	0,                                /*tp_descr_set*/
@@ -1063,6 +1114,8 @@ PyMODINIT_FUNC initcmt() {
 		return;
 	if(PyType_Ready(&PatchMCBM_type) < 0)
 		return;
+	if(PyType_Ready(&PatchModel_type) < 0)
+		return;
 	if(PyType_Ready(&PCAPreconditioner_type) < 0)
 		return;
 	if(PyType_Ready(&PCATransform_type) < 0)
@@ -1093,6 +1146,7 @@ PyMODINIT_FUNC initcmt() {
 	Py_INCREF(&PCAPreconditioner_type);
 	Py_INCREF(&PCATransform_type);
 	Py_INCREF(&PatchMCBM_type);
+	Py_INCREF(&PatchModel_type);
 	Py_INCREF(&Preconditioner_type);
 	Py_INCREF(&UnivariateDistribution_type);
 	Py_INCREF(&WhiteningPreconditioner_type);
@@ -1111,6 +1165,7 @@ PyMODINIT_FUNC initcmt() {
 	PyModule_AddObject(module, "PCAPreconditioner", reinterpret_cast<PyObject*>(&PCAPreconditioner_type));
 	PyModule_AddObject(module, "PCATransform", reinterpret_cast<PyObject*>(&PCATransform_type));
 	PyModule_AddObject(module, "PatchMCBM", reinterpret_cast<PyObject*>(&PatchMCBM_type));
+	PyModule_AddObject(module, "PatchModel", reinterpret_cast<PyObject*>(&PatchModel_type));
 	PyModule_AddObject(module, "Preconditioner", reinterpret_cast<PyObject*>(&Preconditioner_type));
 	PyModule_AddObject(module, "UnivariateDistribution", reinterpret_cast<PyObject*>(&UnivariateDistribution_type));
 	PyModule_AddObject(module, "WhiteningPreconditioner", reinterpret_cast<PyObject*>(&WhiteningPreconditioner_type));

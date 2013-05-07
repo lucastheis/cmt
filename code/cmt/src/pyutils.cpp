@@ -1,9 +1,13 @@
-#include "pyutils.h"
-#include "exception.h"
-
 #include <inttypes.h>
+#include "pyutils.h"
 
-using namespace Eigen;
+#include "exception.h"
+using CMT::Exception;
+
+#include "Eigen/Core"
+using Eigen::Map;
+using Eigen::ColMajor;
+using Eigen::RowMajor;
 
 PyObject* PyArray_FromMatrixXd(const MatrixXd& mat) {
 	// matrix dimensionality

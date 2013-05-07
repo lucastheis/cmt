@@ -30,7 +30,10 @@ using CMT::extractFromImage;
 
 #include "Eigen/Core"
 using Eigen::Block;
+using Eigen::Dynamic;
+using Eigen::Array;
 using Eigen::ArrayXd;
+using Eigen::ArrayXXd;
 using Eigen::VectorXd;
 
 #include <iostream>

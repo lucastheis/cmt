@@ -1,10 +1,13 @@
 #include "conditionaldistributioninterface.h"
-#include "exception.h"
 #include "callbackinterface.h"
+#include "patchmodelinterface.h"
 #include "preconditionerinterface.h"
 
 #include "Eigen/Core"
 using Eigen::Map;
+
+#include "exception.h"
+using CMT::Exception;
 
 #include "mcbminterface.h"
 using CMT::MCBM;
@@ -1006,70 +1009,6 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 
 
 
-PyObject* PatchMCBM_rows(PatchMCBMObject* self, void*) {
-	return PyInt_FromLong(self->patchMCBM->rows());
-}
-
-
-
-PyObject* PatchMCBM_cols(PatchMCBMObject* self, void*) {
-	return PyInt_FromLong(self->patchMCBM->cols());
-}
-
-
-
-PyObject* PatchMCBM_input_mask(PatchMCBMObject* self, PyObject* args) {
-	int i = -1;
-	int j = -1;
-
-	if(args && !PyArg_ParseTuple(args, "|ii", &i, &j))
-		return 0;
-
-	if(i >= 0 && j < 0) {
-		PyErr_SetString(PyExc_TypeError, "Index should consist of a row and a column.");
-		return 0;
-	}
-
-	PyObject* array;
-
-	if(i < 0 || j < 0)
-		array = PyArray_FromMatrixXb(self->patchMCBM->inputMask());
-	else
-		array = PyArray_FromMatrixXb(self->patchMCBM->inputMask(i, j));
-
-	// make array immutable
-	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
-	return array;
-}
-
-
-
-PyObject* PatchMCBM_output_mask(PatchMCBMObject* self, PyObject* args) {
-	int i = -1;
-	int j = -1;
-
-	if(args && !PyArg_ParseTuple(args, "|ii", &i, &j))
-		return 0;
-
-	if(i >= 0 && j < 0) {
-		PyErr_SetString(PyExc_TypeError, "Index should consist of a row and a column.");
-		return 0;
-	}
-
-	PyObject* array;
-
-	if(i < 0 || j < 0)
-		array = PyArray_FromMatrixXb(self->patchMCBM->outputMask());
-	else
-		array = PyArray_FromMatrixXb(self->patchMCBM->outputMask(i, j));
-
-	// make array immutable
-	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
-	return array;
-}
-
-
-
 PyObject* PatchMCBM_subscript(PatchMCBMObject* self, PyObject* key) {
 	if(!PyTuple_Check(key)) {
 		PyErr_SetString(PyExc_TypeError, "Index must be a tuple.");
@@ -1382,54 +1321,6 @@ PyObject* PatchMCBM_train(PatchMCBMObject* self, PyObject* args, PyObject* kwds)
 
 
 
-PyObject* PatchMCBM_loglikelihood(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"i", "j", "data", 0};
-
-	PyObject* data;
-	int i = -1;
-	int j = -1;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiO", const_cast<char**>(kwlist),
-		&i, &j, &data)) 
-	{
-		PyErr_Clear();
-
-		const char* kwlist[] = {"data", 0};
-
-		if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &data))
-			return 0;
-	}
-
-	// make sure data is stored in NumPy array
-	data = PyArray_FROM_OTF(data, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!data) {
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
-		return 0;
-	}
-
-	try {
-		PyObject* result;
-		if(i > -1 && j > -1)
-			result = PyArray_FromMatrixXd(
-				self->patchMCBM->logLikelihood(i, j, PyArray_ToMatrixXd(data)));
-		else
-			result = PyArray_FromMatrixXd(
-				self->patchMCBM->logLikelihood(PyArray_ToMatrixXd(data)));
-		Py_DECREF(data);
-		return result;
-	} catch(Exception exception) {
-		Py_DECREF(data);
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	return 0;
-}
-
-
-
 const char* PatchMCBM_reduce_doc =
 	"__reduce__(self)\n"
 	"\n"
@@ -1440,8 +1331,8 @@ PyObject* PatchMCBM_reduce(PatchMCBMObject* self, PyObject*) {
 	int cols = self->patchMCBM->cols();
 	int maxPCs = self->patchMCBM->maxPCs();
 
-	PyObject* inputMask = PatchMCBM_input_mask(self, 0);
-	PyObject* outputMask = PatchMCBM_output_mask(self, 0);
+	PyObject* inputMask = PatchModel_input_mask(reinterpret_cast<PatchModelObject*>(self), 0);
+	PyObject* outputMask = PatchModel_output_mask(reinterpret_cast<PatchModelObject*>(self), 0);
 
 	// constructor arguments
 	PyObject* args = Py_BuildValue("(iiOOOi)",

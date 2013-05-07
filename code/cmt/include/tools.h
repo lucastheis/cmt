@@ -6,16 +6,20 @@
 #include "preconditioner.h"
 #include "Eigen/Core"
 
+namespace Eigen {
+	typedef Array<bool, Dynamic, Dynamic> ArrayXXb;
+}
+
 namespace CMT {
 	using std::vector;
 	using std::pair;
 
+	using Eigen::ArrayXXb;
 	using Eigen::VectorXd;
 	using Eigen::ArrayXXd;
 	using Eigen::Array;
 	using Eigen::Dynamic;
 
-	typedef Array<bool, Dynamic, Dynamic> ArrayXXb;
 	typedef pair<int, int> Tuple;
 	typedef vector<Tuple> Tuples;
 

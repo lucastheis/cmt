@@ -12,8 +12,6 @@
 #include "pcapreconditioner.h"
 #include "tools.h"
 
-typedef Array<bool, Dynamic, Dynamic> ArrayXXb;
-
 namespace CMT {
 	using std::vector;
 
@@ -28,8 +26,26 @@ namespace CMT {
 	using Eigen::Array;
 	using Eigen::Dynamic;
 
+	class PatchModelBase : public Distribution {
+		public:
+			using Distribution::logLikelihood;
+
+			virtual ~PatchModelBase();
+
+			virtual int rows() const = 0;
+			virtual int cols() const = 0;
+			virtual int maxPCs() const = 0;
+			virtual ArrayXXb inputMask() const = 0;
+			virtual ArrayXXb outputMask() const = 0;
+			virtual ArrayXXb inputMask(int i, int j) const = 0;
+			virtual ArrayXXb outputMask(int i, int j) const = 0;
+
+			virtual Array<double, 1, Dynamic> logLikelihood(
+				int i, int j, const MatrixXd& data) const = 0;
+	};
+
 	template <class CD, class PC = CMT::PCAPreconditioner>
-	class PatchModel : public Distribution {
+	class PatchModel : public PatchModelBase {
 		public:
 			typedef typename CD::Parameters Parameters;
 
@@ -206,21 +222,21 @@ int CMT::PatchModel<CD, PC>::maxPCs() const {
 
 
 template <class CD, class PC>
-ArrayXXb CMT::PatchModel<CD, PC>::inputMask() const {
+Eigen::ArrayXXb CMT::PatchModel<CD, PC>::inputMask() const {
 	return mInputMask;
 }
 
 
 
 template <class CD, class PC>
-ArrayXXb CMT::PatchModel<CD, PC>::outputMask() const {
+Eigen::ArrayXXb CMT::PatchModel<CD, PC>::outputMask() const {
 	return mOutputMask;
 }
 
 
 
 template <class CD, class PC>
-ArrayXXb CMT::PatchModel<CD, PC>::inputMask(int i, int j) const {
+Eigen::ArrayXXb CMT::PatchModel<CD, PC>::inputMask(int i, int j) const {
 	ArrayXXb inputMask = ArrayXXb::Zero(mRows, mCols);
 
 	int k = i * mRows + j;
@@ -234,7 +250,7 @@ ArrayXXb CMT::PatchModel<CD, PC>::inputMask(int i, int j) const {
 
 
 template <class CD, class PC>
-ArrayXXb CMT::PatchModel<CD, PC>::outputMask(int i, int j) const {
+Eigen::ArrayXXb CMT::PatchModel<CD, PC>::outputMask(int i, int j) const {
 	ArrayXXb outputMask = ArrayXXb::Zero(mRows, mCols);
 	outputMask(i, j) = true;
 	return outputMask;

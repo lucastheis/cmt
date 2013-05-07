@@ -1,12 +1,12 @@
-#include "exception.h"
 #include "trainableinterface.h"
+
+#include "exception.h"
+using CMT::Exception;
 
 #include "Eigen/Core"
 using Eigen::Dynamic;
 using Eigen::Matrix;
 using Eigen::Map;
-
-#include <iostream>
 
 Trainable::Parameters* PyObject_ToParameters(PyObject* parameters) {
 	Trainable::Parameters* params = new Trainable::Parameters;

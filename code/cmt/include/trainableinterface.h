@@ -7,6 +7,7 @@
 #include <Python.h>
 #include <arrayobject.h>
 #include "pyutils.h"
+#include "callbackinterface.h"
 
 #include "trainable.h"
 using CMT::Trainable;
@@ -21,6 +22,9 @@ extern const char* Trainable_parameters_doc;
 extern const char* Trainable_set_parameters_doc;
 
 Trainable::Parameters* PyObject_ToParameters(PyObject* parameters);
+
+template <PyTypeObject* type>
+Trainable::Parameters* PyObject_ToParameters2(PyObject* parameters);
 
 PyObject* Trainable_train(
 	TrainableObject* self,

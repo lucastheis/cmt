@@ -1,6 +1,8 @@
-#include "exception.h"
 #include "callbackinterface.h"
 #include "conditionaldistributioninterface.h"
+
+#include "exception.h"
+using CMT::Exception;
 
 #include "trainable.h"
 using CMT::Trainable;

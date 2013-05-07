@@ -1,24 +1,25 @@
-#ifndef EXCEPTION_H
-#define EXCEPTION_H
+#ifndef CMT_EXCEPTION_H
+#define CMT_EXCEPTION_H
 
-class Exception {
-	public:
-		inline Exception(const char* message = "");
+namespace CMT {
+	class Exception {
+		public:
+			inline Exception(const char* message = "");
 
-		inline const char* message();
+			inline const char* message();
 
-	protected:
-		const char* mMessage;
-};
+		protected:
+			const char* mMessage;
+	};
+}
 
 
-
-inline Exception::Exception(const char* message) : mMessage(message) {
+inline CMT::Exception::Exception(const char* message) : mMessage(message) {
 }
 
 
 
-inline const char* Exception::message() {
+inline const char* CMT::Exception::message() {
 	return mMessage;
 }
 

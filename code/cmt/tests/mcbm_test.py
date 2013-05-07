@@ -178,6 +178,9 @@ class Tests(unittest.TestCase):
 
 		model = PatchMCBM(8, 8, xmask, ymask, MCBM(sum(xmask), 1))
 
+		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
+		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)
+
 		for i in range(8):
 			for j in range(8):
 				self.assertEqual(model[i, j].dim_in, (i + 1) * (j + 1) - 1)

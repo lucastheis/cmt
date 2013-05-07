@@ -1,4 +1,3 @@
-#include "exception.h"
 #include "callbackinterface.h"
 
 #include "Eigen/Core"
@@ -6,6 +5,9 @@ using Eigen::Map;
 
 #include <map>
 using std::pair;
+
+#include "exception.h"
+using CMT::Exception;
 
 #include "mcgsminterface.h"
 using CMT::MCGSM;

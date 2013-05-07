@@ -5,7 +5,7 @@ ifeq ($(OS), Darwin)
 CXX = \
 	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CC')[0]);")
 CFLAGS = $(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);") \
-	-Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses -fopenmp
+	-Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses# -fopenmp
 else
 CXX = \
 	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CXX')[0]);")
@@ -45,6 +45,8 @@ SOURCES = \
 	$(SRCDIR)/mcbm.cpp \
 	$(SRCDIR)/mcbminterface.cpp \
 	$(SRCDIR)/module.cpp \
+	$(SRCDIR)/patchmodel.cpp \
+	$(SRCDIR)/patchmodelinterface.cpp \
 	$(SRCDIR)/pcapreconditioner.cpp \
 	$(SRCDIR)/pcatransform.cpp \
 	$(SRCDIR)/preconditioner.cpp \
