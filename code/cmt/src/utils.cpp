@@ -1,31 +1,45 @@
-#include "Eigen/Cholesky"
-#include "Eigen/SVD"
 #include "utils.h"
-#include <algorithm>
 #include <iostream>
 #include <cstdlib>
+
+#include "Eigen/Core"
+using Eigen::Dynamic;
+using Eigen::Array;
+using Eigen::ArrayXXd;
+using Eigen::MatrixXd;
+using Eigen::VectorXi;
+
+#include "Eigen/SVD"
+using Eigen::JacobiSVD;
+using Eigen::ComputeThinU;
+using Eigen::ComputeThinV;
+
+#include <set>
+using std::set;
+using std::pair;
+
+#include <algorithm>
+using std::greater;
+using std::sort;
 
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
 #include <random>
 #endif
 
-using namespace Eigen;
-using namespace std;
-
-MatrixXd signum(const MatrixXd& matrix) {
+MatrixXd CMT::signum(const MatrixXd& matrix) {
 	return (matrix.array() > 0.).cast<double>() - (matrix.array() < 0.).cast<double>();
 }
 
 
 
-Array<double, 1, Dynamic> logSumExp(const ArrayXXd& array) {
+Array<double, 1, Dynamic> CMT::logSumExp(const ArrayXXd& array) {
 	Array<double, 1, Dynamic> arrayMax = array.colwise().maxCoeff() - 1.;
 	return arrayMax + (array.rowwise() - arrayMax).exp().colwise().sum().log();
 }
 
 
 
-Array<double, 1, Dynamic> logMeanExp(const ArrayXXd& array) {
+Array<double, 1, Dynamic> CMT::logMeanExp(const ArrayXXd& array) {
 	Array<double, 1, Dynamic> arrayMax = array.colwise().maxCoeff() - 1.;
 	return arrayMax + (array.rowwise() - arrayMax).exp().colwise().mean().log();
 }
@@ -33,7 +47,7 @@ Array<double, 1, Dynamic> logMeanExp(const ArrayXXd& array) {
 
 
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
-ArrayXXd sampleNormal(int m, int n) {
+ArrayXXd CMT::sampleNormal(int m, int n) {
 	mt19937 gen(rand());
 	normal_distribution<double> normal;
 	ArrayXXd samples(m, n);
@@ -44,7 +58,7 @@ ArrayXXd sampleNormal(int m, int n) {
 	return samples;
 }
 #else
-ArrayXXd sampleNormal(int m, int n) {
+ArrayXXd CMT::sampleNormal(int m, int n) {
 	ArrayXXd U = ArrayXXd::Random(m, n);
 	ArrayXXd V = ArrayXXd::Random(m, n);
 	ArrayXXd S = U.square() + V.square();
@@ -63,7 +77,7 @@ ArrayXXd sampleNormal(int m, int n) {
 
 
 
-ArrayXXd sampleGamma(int m, int n, int k) {
+ArrayXXd CMT::sampleGamma(int m, int n, int k) {
 	ArrayXXd samples = ArrayXXd::Zero(m, n);
 
 	for(int i = 0; i < k; ++i)
@@ -74,7 +88,7 @@ ArrayXXd sampleGamma(int m, int n, int k) {
 
 
 
-set<int> randomSelect(int k, int n) {
+set<int> CMT::randomSelect(int k, int n) {
 	if(k > n)
 		throw Exception("k must be smaller than n.");
 	if(k < 1 || n < 1)
@@ -103,7 +117,7 @@ set<int> randomSelect(int k, int n) {
 
 
 
-VectorXi argSort(const VectorXd& data) {
+VectorXi CMT::argSort(const VectorXd& data) {
 	// create pairs of values and indices
 	vector<pair<double, int> > pairs(data.size());
 	for(int i = 0; i < data.size(); ++i) {
@@ -124,14 +138,14 @@ VectorXi argSort(const VectorXd& data) {
 
 
 
-MatrixXd covariance(const MatrixXd& data) {
+MatrixXd CMT::covariance(const MatrixXd& data) {
 	MatrixXd data_centered = data.colwise() - data.rowwise().mean().eval();
 	return data_centered * data_centered.transpose() / data.cols();
 }
 
 
 
-MatrixXd covariance(const MatrixXd& input, const MatrixXd& output) {
+MatrixXd CMT::covariance(const MatrixXd& input, const MatrixXd& output) {
 	if(input.cols() != output.cols())
 		throw Exception("Number of inputs and outputs must be the same.");
 
@@ -142,7 +156,7 @@ MatrixXd covariance(const MatrixXd& input, const MatrixXd& output) {
 
 
 
-MatrixXd corrCoef(const MatrixXd& data) {
+MatrixXd CMT::corrCoef(const MatrixXd& data) {
 	MatrixXd C = covariance(data);
 	VectorXd c = C.diagonal();
 	return C.array() / (c * c.transpose()).array().sqrt();
@@ -150,13 +164,13 @@ MatrixXd corrCoef(const MatrixXd& data) {
 
 
 
-MatrixXd normalize(const MatrixXd& matrix) {
+MatrixXd CMT::normalize(const MatrixXd& matrix) {
 	return matrix.array().rowwise() / matrix.colwise().norm().eval().array();
 }
 
 
 
-MatrixXd pInverse(const MatrixXd& matrix) {
+MatrixXd CMT::pInverse(const MatrixXd& matrix) {
 	JacobiSVD<MatrixXd> svd(matrix, ComputeThinU | ComputeThinV);
 
 	VectorXd svInv = svd.singularValues();
@@ -170,13 +184,13 @@ MatrixXd pInverse(const MatrixXd& matrix) {
 
 
 
-double logDetPD(const MatrixXd& matrix) {
+double CMT::logDetPD(const MatrixXd& matrix) {
 	return 2. * matrix.llt().matrixLLT().diagonal().array().log().sum();
 }
 
 
 
-MatrixXd deleteRows(const MatrixXd& matrix, vector<int> indices) {
+MatrixXd CMT::deleteRows(const MatrixXd& matrix, vector<int> indices) {
 	MatrixXd result = ArrayXXd::Zero(matrix.rows() - indices.size(), matrix.cols());
 
 	sort(indices.begin(), indices.end());
@@ -196,7 +210,7 @@ MatrixXd deleteRows(const MatrixXd& matrix, vector<int> indices) {
 
 
 
-MatrixXd deleteCols(const MatrixXd& matrix, vector<int> indices) {
+MatrixXd CMT::deleteCols(const MatrixXd& matrix, vector<int> indices) {
 	MatrixXd result = ArrayXXd::Zero(matrix.rows(), matrix.cols() - indices.size());
 
 	sort(indices.begin(), indices.end());

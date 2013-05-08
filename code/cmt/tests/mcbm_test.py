@@ -24,8 +24,6 @@ class Tests(unittest.TestCase):
 		input = randint(2, size=[dim_in, num_samples])
 		output = mcbm.sample(input)
 		loglik = mcbm.loglikelihood(input, output)
-		#post = mcbm.posterior(input, output)
-		#samples = mcbm.sample_posterior(input, output)
 
 		# check hyperparameters
 		self.assertEqual(mcbm.dim_in, dim_in)
@@ -51,10 +49,6 @@ class Tests(unittest.TestCase):
 		self.assertEqual(output.shape[1], num_samples)
 		self.assertEqual(loglik.shape[0], 1)
 		self.assertEqual(loglik.shape[1], num_samples)
-		#self.assertEqual(post.shape[0], num_components)
-		#self.assertEqual(post.shape[1], num_samples)
-		#self.assertEqual(samples.shape[0], 1)
-		#self.assertEqual(samples.shape[1], num_samples)
 
 
 
@@ -139,6 +133,12 @@ class Tests(unittest.TestCase):
 					})
 				self.assertLess(err, 1e-6)
 
+		self.assertFalse(any(isnan(
+			mcbm._parameter_gradient(
+				randint(2, size=[mcbm.dim_in, 1000]),
+				randint(2, size=[mcbm.dim_out, 1000]),
+				mcbm._parameters()))))
+
 
 
 	def test_pickle(self):
@@ -175,6 +175,9 @@ class Tests(unittest.TestCase):
 		ymask[-1, -1] = True
 
 		model = PatchMCBM(8, 8, xmask, ymask, MCBM(sum(xmask), 1))
+
+		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
+		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)
 
 		for i in range(8):
 			for j in range(8):

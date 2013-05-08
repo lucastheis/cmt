@@ -11,7 +11,7 @@
 
 struct CDObject {
 	PyObject_HEAD
-	ConditionalDistribution* cd;
+	CMT::ConditionalDistribution* cd;
 	bool owner; 
 };
 

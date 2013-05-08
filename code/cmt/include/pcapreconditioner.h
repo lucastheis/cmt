@@ -1,5 +1,5 @@
-#ifndef PCAPRECONDITIONER_H
-#define PCAPRECONDITIONER_H
+#ifndef CMT_PCAPRECONDITIONER_H
+#define CMT_PCAPRECONDITIONER_H
 
 #include "affinepreconditioner.h"
 

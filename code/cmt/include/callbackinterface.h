@@ -2,10 +2,9 @@
 #define CALLBACKTRAIN_H
 
 #include <Python.h>
-#include "conditionaldistribution.h"
-#include "conditionaldistributioninterface.h"
+#include "trainable.h"
 
-class CallbackInterface : public ConditionalDistribution::Callback {
+class CallbackInterface : public CMT::Trainable::Callback {
 	public:
 		CallbackInterface(PyTypeObject* type, PyObject* callback);
 		CallbackInterface(const CallbackInterface& callbackInterface);
@@ -14,7 +13,7 @@ class CallbackInterface : public ConditionalDistribution::Callback {
 		virtual CallbackInterface* copy();
 
 		virtual CallbackInterface& operator=(const CallbackInterface& callbackInterface);
-		virtual bool operator()(int iter, const ConditionalDistribution&);
+		virtual bool operator()(int iter, const CMT::Trainable&);
 
 	private:
 		PyTypeObject* mType;

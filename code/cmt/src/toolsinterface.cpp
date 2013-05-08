@@ -2,14 +2,30 @@
 #include "mcgsminterface.h"
 #include "preconditionerinterface.h"
 #include "conditionaldistributioninterface.h"
+
 #include "exception.h"
+using CMT::Exception;
+
 #include "utils.h"
+using CMT::randomSelect;
+
+#include "conditionaldistribution.h"
+using CMT::ConditionalDistribution;
+
 #include "tools.h"
+using CMT::generateDataFromImage;
+using CMT::generateDataFromVideo;
+using CMT::sampleImage;
+using CMT::sampleVideo;
+using CMT::fillInImage;
+using CMT::fillInImageMAP;
+
+#include <utility>
+using std::pair;
+using std::make_pair;
 
 #include <set>
 using std::set;
-
-#include <iostream>
 
 const char* random_select_doc =
 	"random_select(k, n)\n"

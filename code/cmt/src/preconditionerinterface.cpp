@@ -1,7 +1,11 @@
-#include "exception.h"
 #include "preconditionerinterface.h"
 
-#include <iostream>
+#include <utility>
+using std::pair;
+using std::make_pair;
+
+#include "exception.h"
+using CMT::Exception;
 
 PyObject* Preconditioner_call(PreconditionerObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"input", "output", 0};

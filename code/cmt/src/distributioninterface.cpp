@@ -1,6 +1,8 @@
 #include "distributioninterface.h"
-#include "exception.h"
 #include "Eigen/Core"
+
+#include "exception.h"
+using CMT::Exception;
 
 PyObject* Distribution_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	PyObject* self = type->tp_alloc(type, 0);

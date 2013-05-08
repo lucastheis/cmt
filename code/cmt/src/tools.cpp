@@ -11,18 +11,35 @@ using std::exp;
 #include <set>
 using std::set;
 
-#include "lbfgs.h"
+#include <vector>
+using std::vector;
+using std::pair;
+using std::make_pair;
+
 #include "tools.h"
+using CMT::Tuple;
+using CMT::Tuples;
+using CMT::ConditionalDistribution;
+using CMT::ArrayXXb;
+using CMT::Preconditioner;
+using CMT::extractFromImage;
+
+#include "lbfgs.h"
 #include "utils.h"
 #include "exception.h"
 
+#include "Eigen/Core"
 using Eigen::Block;
+using Eigen::Dynamic;
+using Eigen::Array;
 using Eigen::ArrayXd;
+using Eigen::ArrayXXd;
+using Eigen::VectorXd;
 
 #include <iostream>
 #include <iomanip>
 
-Tuples maskToIndices(const ArrayXXb& mask) {
+Tuples CMT::maskToIndices(const ArrayXXb& mask) {
 	Tuples indices;
 
 	for(int i = 0; i < mask.rows(); ++i)
@@ -35,7 +52,7 @@ Tuples maskToIndices(const ArrayXXb& mask) {
 
 
 
-pair<Tuples, Tuples> masksToIndices(
+pair<Tuples, Tuples> CMT::masksToIndices(
 	const ArrayXXb& inputMask,
 	const ArrayXXb& outputMask)
 {
@@ -61,7 +78,7 @@ pair<Tuples, Tuples> masksToIndices(
 
 
 
-VectorXd extractFromImage(const ArrayXXd& img, const Tuples& indices) {
+VectorXd CMT::extractFromImage(const ArrayXXd& img, const Tuples& indices) {
 	VectorXd pixels(indices.size());
 
 	for(int i = 0; i < indices.size(); ++i)
@@ -72,7 +89,7 @@ VectorXd extractFromImage(const ArrayXXd& img, const Tuples& indices) {
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	const ArrayXXd& img,
 	const ArrayXXb& inputMask,
 	const ArrayXXb& outputMask)
@@ -103,7 +120,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	const ArrayXXd& img,
 	const ArrayXXb& inputMask,
 	const ArrayXXb& outputMask,
@@ -149,7 +166,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	const vector<ArrayXXd>& img,
 	const ArrayXXb& inputMask,
 	const ArrayXXb& outputMask)
@@ -191,7 +208,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	const vector<ArrayXXd>& img,
 	const ArrayXXb& inputMask,
 	const ArrayXXb& outputMask,
@@ -249,7 +266,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	const vector<ArrayXXd>& img,
 	const vector<ArrayXXb>& inputMask,
 	const vector<ArrayXXb>& outputMask)
@@ -313,7 +330,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	const vector<ArrayXXd>& img,
 	const vector<ArrayXXb>& inputMask,
 	const vector<ArrayXXb>& outputMask,
@@ -392,7 +409,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromVideo(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromVideo(
 	const vector<ArrayXXd>& video,
 	const vector<ArrayXXb>& inputMask,
 	const vector<ArrayXXb>& outputMask)
@@ -455,7 +472,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromVideo(
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromVideo(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromVideo(
 	const vector<ArrayXXd>& video,
 	const vector<ArrayXXb>& inputMask,
 	const vector<ArrayXXb>& outputMask,
@@ -534,7 +551,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromVideo(
 
 
 
-ArrayXXd sampleImage(
+ArrayXXd CMT::sampleImage(
 	ArrayXXd img,
 	const ConditionalDistribution& model,
 	const ArrayXXb& inputMask,
@@ -617,7 +634,7 @@ ArrayXXd sampleImage(
 
 
 
-vector<ArrayXXd> sampleImage(
+vector<ArrayXXd> CMT::sampleImage(
 	vector<ArrayXXd> img,
 	const ConditionalDistribution& model,
 	const ArrayXXb& inputMask,
@@ -717,7 +734,7 @@ vector<ArrayXXd> sampleImage(
 
 
 
-vector<ArrayXXd> sampleImage(
+vector<ArrayXXd> CMT::sampleImage(
 	vector<ArrayXXd> img,
 	const ConditionalDistribution& model,
 	const vector<ArrayXXb>& inputMask,
@@ -832,7 +849,7 @@ vector<ArrayXXd> sampleImage(
 
 
 
-vector<ArrayXXd> sampleVideo(
+vector<ArrayXXd> CMT::sampleVideo(
 	vector<ArrayXXd> video,
 	const ConditionalDistribution& model,
 	const vector<ArrayXXb>& inputMask,
@@ -993,7 +1010,7 @@ inline double computeEnergy(
 
 
 
-ArrayXXd fillInImage(
+ArrayXXd CMT::fillInImage(
 	ArrayXXd img,
 	const ConditionalDistribution& model,
 	const ArrayXXb& inputMask,
@@ -1165,7 +1182,7 @@ lbfgsfloatval_t fillInImageMAPGradient(
 
 
 
-ArrayXXd fillInImageMAP(
+ArrayXXd CMT::fillInImageMAP(
 	ArrayXXd img,
 	const ConditionalDistribution& model,
 	const ArrayXXb& inputMask,

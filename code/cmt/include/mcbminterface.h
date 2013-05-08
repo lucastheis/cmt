@@ -7,9 +7,15 @@
 #include <Python.h>
 #include <arrayobject.h>
 #include "pyutils.h"
+
 #include "mcbm.h"
+using CMT::MCBM;
+
 #include "patchmodel.h"
+using CMT::PatchModel;
+
 #include "pcatransform.h"
+using CMT::PCATransform;
 
 struct MCBMObject {
 	PyObject_HEAD
@@ -19,7 +25,7 @@ struct MCBMObject {
 
 struct PatchMCBMObject {
 	PyObject_HEAD
-	PatchModel<MCBM, CMT::PCATransform>* patchMCBM;
+	PatchModel<MCBM, PCATransform>* patchMCBM;
 	bool owner;
 };
 
@@ -28,9 +34,6 @@ extern PyTypeObject PatchMCBM_type;
 extern PyTypeObject PCATransform_type;
 
 extern const char* MCBM_doc;
-extern const char* MCBM_sample_doc;
-extern const char* MCBM_loglikelihood_doc;
-extern const char* MCBM_evaluate_doc;
 extern const char* MCBM_train_doc;
 extern const char* MCBM_parameters_doc;
 extern const char* MCBM_set_parameters_doc;
@@ -44,9 +47,6 @@ extern const char* PatchMCBM_reduce_doc;
 extern const char* PatchMCBM_setstate_doc;
 
 int MCBM_init(MCBMObject*, PyObject*, PyObject*);
-
-PyObject* MCBM_dim_in(MCBMObject*, void*);
-PyObject* MCBM_dim_out(MCBMObject*, void*);
 
 PyObject* MCBM_num_components(MCBMObject*, void*);
 PyObject* MCBM_num_features(MCBMObject*, void*);
@@ -73,19 +73,13 @@ PyObject* MCBM_train(MCBMObject*, PyObject*, PyObject*);
 
 PyObject* MCBM_parameters(MCBMObject*, PyObject*, PyObject*);
 PyObject* MCBM_set_parameters(MCBMObject*, PyObject*, PyObject*);
-PyObject* MCBM_compute_gradient(MCBMObject*, PyObject*, PyObject*);
+PyObject* MCBM_parameter_gradient(MCBMObject*, PyObject*, PyObject*);
 PyObject* MCBM_check_gradient(MCBMObject*, PyObject*, PyObject*);
 
 PyObject* MCBM_reduce(MCBMObject*, PyObject*);
 PyObject* MCBM_setstate(MCBMObject*, PyObject*);
 
 int PatchMCBM_init(PatchMCBMObject*, PyObject*, PyObject*);
-
-PyObject* PatchMCBM_rows(PatchMCBMObject*, void*);
-PyObject* PatchMCBM_cols(PatchMCBMObject*, void*);
-
-PyObject* PatchMCBM_input_mask(PatchMCBMObject*, PyObject*);
-PyObject* PatchMCBM_output_mask(PatchMCBMObject*, PyObject*);
 
 PyObject* PatchMCBM_subscript(PatchMCBMObject*, PyObject*);
 int PatchMCBM_ass_subscript(PatchMCBMObject*, PyObject*, PyObject*);
@@ -96,7 +90,6 @@ int PatchMCBM_set_preconditioners(PatchMCBMObject*, PyObject*, void*);
 
 PyObject* PatchMCBM_initialize(PatchMCBMObject*, PyObject*, PyObject*);
 PyObject* PatchMCBM_train(PatchMCBMObject*, PyObject*, PyObject*);
-PyObject* PatchMCBM_loglikelihood(PatchMCBMObject*, PyObject*, PyObject*);
 
 PyObject* PatchMCBM_reduce(PatchMCBMObject*, PyObject*);
 PyObject* PatchMCBM_setstate(PatchMCBMObject*, PyObject*);

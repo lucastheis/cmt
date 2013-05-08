@@ -1,237 +1,150 @@
+#ifndef CMT_MCBM_H
+#define CMT_MCBM_H
+
 #include "Eigen/Core"
-using Eigen::Dynamic;
-using Eigen::Array;
-using Eigen::VectorXd;
-using Eigen::MatrixXd;
-using Eigen::ArrayXXd;
-
-#include <map>
-using std::pair;
-
-#include "conditionaldistribution.h"
 #include "exception.h"
-#include "lbfgs.h"
+#include "trainable.h"
 
-class MCBM : public ConditionalDistribution {
-	public:
-		struct Parameters : public ConditionalDistribution::Parameters {
-			public:
-				enum Regularizer { L1, L2 };
+namespace CMT {
+	using Eigen::VectorXd;
+	using Eigen::MatrixXd;
 
-				bool trainPriors;
-				bool trainWeights;
-				bool trainFeatures;
-				bool trainPredictors;
-				bool trainInputBias;
-				bool trainOutputBias;
-				double regularizeFeatures;
-				double regularizePredictors;
-				double regularizeWeights;
-				Regularizer regularizer;
+	class MCBM : public Trainable {
+		public:
+			struct Parameters : public Trainable::Parameters {
+				public:
+					enum Regularizer { L1, L2 };
 
-				Parameters();
-				Parameters(const Parameters& params);
-				virtual ~Parameters();
-				virtual Parameters& operator=(const Parameters& params);
-		};
+					bool trainPriors;
+					bool trainWeights;
+					bool trainFeatures;
+					bool trainPredictors;
+					bool trainInputBias;
+					bool trainOutputBias;
+					double regularizeFeatures;
+					double regularizePredictors;
+					double regularizeWeights;
+					Regularizer regularizer;
 
-		MCBM(
-			int dimIn, 
-			int numComponents = 8,
-			int numFeatures = -1);
-		MCBM(int dimIn, const MCBM& mcbm);
+					Parameters();
+					Parameters(const Parameters& params);
+					virtual ~Parameters();
+					virtual Parameters& operator=(const Parameters& params);
+			};
 
-		virtual ~MCBM();
+			using Trainable::logLikelihood;
+			using Trainable::train;
 
-		inline int dimIn() const;
-		inline int dimOut() const;
+			MCBM(
+				int dimIn, 
+				int numComponents = 8,
+				int numFeatures = -1);
+			MCBM(int dimIn, const MCBM& mcbm);
 
-		inline int numComponents() const;
-		inline int numFeatures() const;
-		inline int numParameters(const Parameters& params = Parameters()) const;
+			virtual ~MCBM();
 
-		inline VectorXd priors() const;
-		inline void setPriors(const VectorXd& priors);
+			inline int dimIn() const;
+			inline int dimOut() const;
 
-		inline MatrixXd weights() const;
-		inline void setWeights(const MatrixXd& weights);
+			inline int numComponents() const;
+			inline int numFeatures() const;
 
-		inline MatrixXd features() const;
-		inline void setFeatures(const MatrixXd& features);
+			inline VectorXd priors() const;
+			inline void setPriors(const VectorXd& priors);
 
-		inline MatrixXd predictors() const;
-		inline void setPredictors(const MatrixXd& predictors);
+			inline MatrixXd weights() const;
+			inline void setWeights(const MatrixXd& weights);
 
-		inline MatrixXd inputBias() const;
-		inline void setInputBias(const MatrixXd& inputBias);
+			inline MatrixXd features() const;
+			inline void setFeatures(const MatrixXd& features);
 
-		inline VectorXd outputBias() const;
-		inline void setOutputBias(const VectorXd& outputBias);
+			inline MatrixXd predictors() const;
+			inline void setPredictors(const MatrixXd& predictors);
 
-		virtual MatrixXd sample(const MatrixXd& input) const;
+			inline MatrixXd inputBias() const;
+			inline void setInputBias(const MatrixXd& inputBias);
 
-		using ConditionalDistribution::logLikelihood;
+			inline VectorXd outputBias() const;
+			inline void setOutputBias(const VectorXd& outputBias);
 
-		virtual Array<double, 1, Dynamic> logLikelihood(
-			const MatrixXd& input,
-			const MatrixXd& output) const;
+			virtual MatrixXd sample(const MatrixXd& input) const;
 
-		virtual void initialize(const MatrixXd& input, const MatrixXd& output);
-		virtual void initialize(const pair<ArrayXXd, ArrayXXd>& data);
+			virtual Array<double, 1, Dynamic> logLikelihood(
+				const MatrixXd& input,
+				const MatrixXd& output) const;
 
-		virtual bool train(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			const Parameters& params = Parameters());
-		virtual bool train(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			const MatrixXd& inputVal,
-			const MatrixXd& outputVal,
-			const Parameters& params = Parameters());
-		virtual bool train(
-			const pair<ArrayXXd, ArrayXXd>& data,
-			const Parameters& params = Parameters());
-		virtual bool train(
-			const pair<ArrayXXd, ArrayXXd>& data,
-			const pair<ArrayXXd, ArrayXXd>& dataVal,
-			const Parameters& params = Parameters());
+			virtual int numParameters(
+				const Trainable::Parameters& params = Parameters()) const;
+			virtual lbfgsfloatval_t* parameters(
+				const Trainable::Parameters& params = Parameters()) const;
+			virtual void setParameters(
+				const lbfgsfloatval_t* x,
+				const Trainable::Parameters& params = Parameters());
+			virtual double parameterGradient(
+				const MatrixXd& input,
+				const MatrixXd& output,
+				const lbfgsfloatval_t* x,
+				lbfgsfloatval_t* g,
+				const Trainable::Parameters& params = Parameters()) const;
 
-		lbfgsfloatval_t* parameters(const Parameters& params) const;
-		void setParameters(const lbfgsfloatval_t* x, const Parameters& params);
-		double computeGradient(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			const lbfgsfloatval_t* x,
-			lbfgsfloatval_t* g,
-			const Parameters& params) const;
-		virtual double checkGradient(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			double epsilon = 1e-5,
-			const Parameters& params = Parameters()) const;
+			virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
+				const MatrixXd& input,
+				const MatrixXd& output) const;
 
-		virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
-			const MatrixXd& input,
-			const MatrixXd& output) const;
+		protected:
+			int mDimIn;
+			int mNumComponents;
+			int mNumFeatures;
 
-	protected:
-		int mDimIn;
-		int mNumComponents;
-		int mNumFeatures;
+			VectorXd mPriors;
+			MatrixXd mWeights;
+			MatrixXd mFeatures;
+			MatrixXd mPredictors;
+			MatrixXd mInputBias;
+			VectorXd mOutputBias;
 
-		VectorXd mPriors;
-		MatrixXd mWeights;
-		MatrixXd mFeatures;
-		MatrixXd mPredictors;
-		MatrixXd mInputBias;
-		VectorXd mOutputBias;
-
-		virtual bool train(
-			const MatrixXd& input,
-			const MatrixXd& output,
-			const MatrixXd* inputVal = 0,
-			const MatrixXd* outputVal = 0,
-			const Parameters& params = Parameters());
-
-		struct InstanceLBFGS {
-			const MCBM* mcbm;
-			const MCBM::Parameters* params;
-
-			const MatrixXd* input;
-			const MatrixXd* output;
-
-			// used for validation error based early stopping
-			const MatrixXd* inputVal;
-			const MatrixXd* outputVal;
-			double logLoss;
-			int counter;
-			lbfgsfloatval_t* parameters;
-
-			InstanceLBFGS(
-				const MCBM* mcbm,
-				const MCBM::Parameters* params,
-				const MatrixXd* input,
-				const MatrixXd* output);
-			InstanceLBFGS(
-				const MCBM* mcbm,
-				const MCBM::Parameters* params,
-				const MatrixXd* input,
-				const MatrixXd* output,
-				const MatrixXd* inputVal,
-				const MatrixXd* outputVal);
-			~InstanceLBFGS();
-		};
-
-		static int callbackLBFGS(
-			void*,
-			const lbfgsfloatval_t*,
-			const lbfgsfloatval_t*,
-			const lbfgsfloatval_t,
-			const lbfgsfloatval_t,
-			const lbfgsfloatval_t,
-			const lbfgsfloatval_t,
-			int, int, int);
-
-		static lbfgsfloatval_t evaluateLBFGS(
-			void*,
-			const lbfgsfloatval_t* x,
-			lbfgsfloatval_t* g,
-			int, double);
-};
+			virtual bool train(
+				const MatrixXd& input,
+				const MatrixXd& output,
+				const MatrixXd* inputVal = 0,
+				const MatrixXd* outputVal = 0,
+				const Trainable::Parameters& params = Trainable::Parameters());
+	};
+}
 
 
 
-inline int MCBM::dimIn() const {
+inline int CMT::MCBM::dimIn() const {
 	return mDimIn;
 }
 
 
 
-inline int MCBM::dimOut() const {
+inline int CMT::MCBM::dimOut() const {
 	return 1;
 }
 
 
 
-inline int MCBM::numComponents() const {
+inline int CMT::MCBM::numComponents() const {
 	return mNumComponents;
 }
 
 
 
-inline int MCBM::numFeatures() const {
+inline int CMT::MCBM::numFeatures() const {
 	return mNumFeatures;
 }
 
 
 
-inline int MCBM::numParameters(const Parameters& params) const {
-	int numParams = 0;
-	if(params.trainPriors)
-		numParams += mPriors.size();
-	if(params.trainWeights)
-		numParams += mWeights.size();
-	if(params.trainFeatures)
-		numParams += mFeatures.size();
-	if(params.trainPredictors)
-		numParams += mPredictors.size();
-	if(params.trainInputBias)
-		numParams += mInputBias.size();
-	if(params.trainOutputBias)
-		numParams += mOutputBias.size();
-	return numParams;
-}
-
-
-
-inline MatrixXd MCBM::weights() const {
+inline Eigen::MatrixXd CMT::MCBM::weights() const {
 	return mWeights;
 }
 
 
 
-inline void MCBM::setWeights(const MatrixXd& weights) {
+inline void CMT::MCBM::setWeights(const MatrixXd& weights) {
 	if(weights.rows() != mNumComponents || weights.cols() != mNumFeatures)
 		throw Exception("Wrong number of weights.");
 	mWeights = weights;
@@ -239,13 +152,13 @@ inline void MCBM::setWeights(const MatrixXd& weights) {
 
 
 
-inline VectorXd MCBM::priors() const {
+inline Eigen::VectorXd CMT::MCBM::priors() const {
 	return mPriors;
 }
 
 
 
-inline void MCBM::setPriors(const VectorXd& priors) {
+inline void CMT::MCBM::setPriors(const VectorXd& priors) {
 	if(priors.size() != mNumComponents)
 		throw Exception("Wrong number of prior weights.");
 	mPriors = priors;
@@ -253,13 +166,13 @@ inline void MCBM::setPriors(const VectorXd& priors) {
 
 
 
-inline MatrixXd MCBM::features() const {
+inline Eigen::MatrixXd CMT::MCBM::features() const {
 	return mFeatures;
 }
 
 
 
-inline void MCBM::setFeatures(const MatrixXd& features) {
+inline void CMT::MCBM::setFeatures(const MatrixXd& features) {
 	if(features.rows() != mDimIn)
 		throw Exception("Features have wrong dimensionality.");
 	if(features.cols() != mNumFeatures)
@@ -269,13 +182,13 @@ inline void MCBM::setFeatures(const MatrixXd& features) {
 
 
 
-inline MatrixXd MCBM::predictors() const {
+inline Eigen::MatrixXd CMT::MCBM::predictors() const {
 	return mPredictors;
 }
 
 
 
-inline void MCBM::setPredictors(const MatrixXd& predictors) {
+inline void CMT::MCBM::setPredictors(const MatrixXd& predictors) {
 	if(predictors.cols() != mDimIn)
 		throw Exception("Predictors have wrong dimensionality.");
 	if(predictors.rows() != mNumComponents)
@@ -285,13 +198,13 @@ inline void MCBM::setPredictors(const MatrixXd& predictors) {
 
 
 
-inline MatrixXd MCBM::inputBias() const {
+inline Eigen::MatrixXd CMT::MCBM::inputBias() const {
 	return mInputBias;
 }
 
 
 
-inline void MCBM::setInputBias(const MatrixXd& inputBias) {
+inline void CMT::MCBM::setInputBias(const MatrixXd& inputBias) {
 	if(inputBias.rows() != mDimIn)
 		throw Exception("Bias vectors have wrong dimensionality.");
 	if(inputBias.cols() != mNumComponents)
@@ -301,14 +214,16 @@ inline void MCBM::setInputBias(const MatrixXd& inputBias) {
 
 
 
-inline VectorXd MCBM::outputBias() const {
+inline Eigen::VectorXd CMT::MCBM::outputBias() const {
 	return mOutputBias;
 }
 
 
 
-inline void MCBM::setOutputBias(const VectorXd& outputBias) {
+inline void CMT::MCBM::setOutputBias(const VectorXd& outputBias) {
 	if(outputBias.size() != mNumComponents)
 		throw Exception("Wrong number of biases.");
 	mOutputBias = outputBias;
 }
+
+#endif

@@ -1,6 +1,11 @@
 #include "conditionaldistributioninterface.h"
-#include "exception.h"
 #include "Eigen/Core"
+
+#include "exception.h"
+using CMT::Exception;
+
+#include "conditionaldistribution.h"
+using CMT::ConditionalDistribution;
 
 PyObject* CD_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	PyObject* self = type->tp_alloc(type, 0);

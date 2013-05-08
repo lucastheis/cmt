@@ -1,11 +1,16 @@
-#include "mcgsminterface.h"
-#include "Eigen/Core"
-#include "exception.h"
 #include "callbackinterface.h"
 
-#include <iostream>
+#include "Eigen/Core"
+using Eigen::Map;
 
-using namespace Eigen;
+#include <map>
+using std::pair;
+
+#include "exception.h"
+using CMT::Exception;
+
+#include "mcgsminterface.h"
+using CMT::MCGSM;
 
 MCGSM::Parameters PyObject_ToMCGSMParameters(PyObject* parameters) {
 	MCGSM::Parameters params;
@@ -1011,7 +1016,7 @@ PyObject* MCGSM_set_parameters(MCGSMObject* self, PyObject* args, PyObject* kwds
 
 
 
-PyObject* MCGSM_compute_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+PyObject* MCGSM_parameter_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"input", "output", "x", "parameters", 0};
 
 	PyObject* input;
@@ -1046,20 +1051,49 @@ PyObject* MCGSM_compute_gradient(MCGSMObject* self, PyObject* args, PyObject* kw
 
 		MatrixXd gradient(self->mcgsm->numParameters(params), 1); // TODO: don't use MatrixXd
 
-		if(x)
-			self->mcgsm->computeGradient(
-				PyArray_ToMatrixXd(input), 
-				PyArray_ToMatrixXd(output), 
-				PyArray_ToMatrixXd(x).data(), // TODO: PyArray_ToMatrixXd unnecessary
+		if(x) {
+			#if LBFGS_FLOAT == 64
+			self->mcgsm->parameterGradient(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output),
+				reinterpret_cast<lbfgsfloatval_t*>(PyArray_DATA(x)),
 				gradient.data(),
 				params);
-		else
-			self->mcgsm->computeGradient(
-				PyArray_ToMatrixXd(input), 
-				PyArray_ToMatrixXd(output), 
-				self->mcgsm->parameters(params),
+			#elif LBFGS_FLOAT == 32
+			lbfgsfloatval_t* xLBFGS = lbfgs_malloc(PyArray_SIZE(x));
+			lbfgsfloatval_t* gLBFGS = lbfgs_malloc(PyArray_SIZE(x));
+			double* xData = reinterpret_cast<double*>(PyArray_DATA(x));
+
+			for(int i = 0; i < PyArray_SIZE(x); ++i)
+				xLBFGS[i] = static_cast<lbfgsfloatval_t>(xData[i]);
+
+			self->mcgsm->parameterGradient(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output),
+				xLBFGS,
+				gLBFGS,
+				params);
+
+			for(int i = 0; i < PyArray_SIZE(x); ++i)
+				gradient.data()[i] = static_cast<double>(gLBFGS[i]);
+
+			lbfgs_free(gLBFGS);
+			lbfgs_free(xLBFGS);
+			#else
+			#error "LibLBFGS is configured in a way I don't understand."
+			#endif
+		} else {
+			lbfgsfloatval_t* x = self->mcgsm->parameters(params);
+
+			self->mcgsm->parameterGradient(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output),
+				x,
 				gradient.data(),
 				params);
+
+			lbfgs_free(x);
+		}
 
 		Py_DECREF(input);
 		Py_DECREF(output);

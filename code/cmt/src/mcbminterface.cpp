@@ -1,13 +1,17 @@
 #include "conditionaldistributioninterface.h"
-#include "mcbminterface.h"
-#include "Eigen/Core"
-#include "exception.h"
 #include "callbackinterface.h"
+#include "patchmodelinterface.h"
 #include "preconditionerinterface.h"
 
-#include <iostream>
+#include "Eigen/Core"
+using Eigen::Map;
 
-using namespace Eigen;
+#include "exception.h"
+using CMT::Exception;
+
+#include "mcbminterface.h"
+using CMT::MCBM;
+using CMT::PatchModel;
 
 MCBM::Parameters PyObject_ToMCBMParameters(PyObject* parameters) {
 	MCBM::Parameters params;
@@ -240,18 +244,6 @@ int MCBM_init(MCBMObject* self, PyObject* args, PyObject* kwds) {
 	}
 
 	return 0;
-}
-
-
-
-PyObject* MCBM_dim_in(MCBMObject* self, void*) {
-	return PyInt_FromLong(self->mcbm->dimIn());
-}
-
-
-
-PyObject* MCBM_dim_out(MCBMObject* self, void*) {
-	return PyInt_FromLong(self->mcbm->dimOut());
 }
 
 
@@ -723,7 +715,7 @@ PyObject* MCBM_set_parameters(MCBMObject* self, PyObject* args, PyObject* kwds) 
 
 
 
-PyObject* MCBM_compute_gradient(MCBMObject* self, PyObject* args, PyObject* kwds) {
+PyObject* MCBM_parameter_gradient(MCBMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"input", "output", "x", "parameters", 0};
 
 	PyObject* input;
@@ -758,20 +750,49 @@ PyObject* MCBM_compute_gradient(MCBMObject* self, PyObject* args, PyObject* kwds
 
 		MatrixXd gradient(self->mcbm->numParameters(params), 1); // TODO: don't use MatrixXd
 
-		if(x)
-			self->mcbm->computeGradient(
-				PyArray_ToMatrixXd(input), 
-				PyArray_ToMatrixXd(output), 
-				PyArray_ToMatrixXd(x).data(), // TODO: PyArray_ToMatrixXd unnecessary
+		if(x) {
+			#if LBFGS_FLOAT == 64
+			self->mcbm->parameterGradient(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output),
+				reinterpret_cast<lbfgsfloatval_t*>(PyArray_DATA(x)),
 				gradient.data(),
 				params);
-		else
-			self->mcbm->computeGradient(
-				PyArray_ToMatrixXd(input), 
-				PyArray_ToMatrixXd(output), 
-				self->mcbm->parameters(params),
+			#elif LBFGS_FLOAT == 32
+			lbfgsfloatval_t* xLBFGS = lbfgs_malloc(PyArray_SIZE(x));
+			lbfgsfloatval_t* gLBFGS = lbfgs_malloc(PyArray_SIZE(x));
+			double* xData = reinterpret_cast<double*>(PyArray_DATA(x));
+
+			for(int i = 0; i < PyArray_SIZE(x); ++i)
+				xLBFGS[i] = static_cast<lbfgsfloatval_t>(xData[i]);
+
+			self->mcbm->parameterGradient(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output),
+				xLBFGS,
+				gLBFGS,
+				params);
+
+			for(int i = 0; i < PyArray_SIZE(x); ++i)
+				gradient.data()[i] = static_cast<double>(gLBFGS[i]);
+
+			lbfgs_free(gLBFGS);
+			lbfgs_free(xLBFGS);
+			#else
+			#error "LibLBFGS is configured in a way I don't understand."
+			#endif
+		} else {
+			lbfgsfloatval_t* x = self->mcbm->parameters(params);
+
+			self->mcbm->parameterGradient(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output),
+				x,
 				gradient.data(),
 				params);
+
+			lbfgs_free(x);
+		}
 
 		Py_DECREF(input);
 		Py_DECREF(output);
@@ -968,7 +989,7 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 
 	// create the actual model
 	try {
-		self->patchMCBM = new PatchModel<MCBM, CMT::PCATransform>(
+		self->patchMCBM = new PatchModel<MCBM, PCATransform>(
 			rows,
 			cols,
 			PyArray_ToMatrixXb(xmask),
@@ -981,70 +1002,6 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 	}
 
 	return 0;
-}
-
-
-
-PyObject* PatchMCBM_rows(PatchMCBMObject* self, void*) {
-	return PyInt_FromLong(self->patchMCBM->rows());
-}
-
-
-
-PyObject* PatchMCBM_cols(PatchMCBMObject* self, void*) {
-	return PyInt_FromLong(self->patchMCBM->cols());
-}
-
-
-
-PyObject* PatchMCBM_input_mask(PatchMCBMObject* self, PyObject* args) {
-	int i = -1;
-	int j = -1;
-
-	if(args && !PyArg_ParseTuple(args, "|ii", &i, &j))
-		return 0;
-
-	if(i >= 0 && j < 0) {
-		PyErr_SetString(PyExc_TypeError, "Index should consist of a row and a column.");
-		return 0;
-	}
-
-	PyObject* array;
-
-	if(i < 0 || j < 0)
-		array = PyArray_FromMatrixXb(self->patchMCBM->inputMask());
-	else
-		array = PyArray_FromMatrixXb(self->patchMCBM->inputMask(i, j));
-
-	// make array immutable
-	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
-	return array;
-}
-
-
-
-PyObject* PatchMCBM_output_mask(PatchMCBMObject* self, PyObject* args) {
-	int i = -1;
-	int j = -1;
-
-	if(args && !PyArg_ParseTuple(args, "|ii", &i, &j))
-		return 0;
-
-	if(i >= 0 && j < 0) {
-		PyErr_SetString(PyExc_TypeError, "Index should consist of a row and a column.");
-		return 0;
-	}
-
-	PyObject* array;
-
-	if(i < 0 || j < 0)
-		array = PyArray_FromMatrixXb(self->patchMCBM->outputMask());
-	else
-		array = PyArray_FromMatrixXb(self->patchMCBM->outputMask(i, j));
-
-	// make array immutable
-	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
-	return array;
 }
 
 
@@ -1075,7 +1032,7 @@ PyObject* PatchMCBM_subscript(PatchMCBMObject* self, PyObject* key) {
 
 int PatchMCBM_ass_subscript(PatchMCBMObject* self, PyObject* key, PyObject* value) {
 	if(!PyType_IsSubtype(Py_TYPE(value), &MCBM_type)) {
-		PyErr_SetString(PyExc_TypeError, "Conditional distribution should be an MCBM.");
+		PyErr_SetString(PyExc_TypeError, "Conditional distribution should be a subtype of `MCBM`.");
 		return -1;
 	}
 
@@ -1361,54 +1318,6 @@ PyObject* PatchMCBM_train(PatchMCBMObject* self, PyObject* args, PyObject* kwds)
 
 
 
-PyObject* PatchMCBM_loglikelihood(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"i", "j", "data", 0};
-
-	PyObject* data;
-	int i = -1;
-	int j = -1;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiO", const_cast<char**>(kwlist),
-		&i, &j, &data)) 
-	{
-		PyErr_Clear();
-
-		const char* kwlist[] = {"data", 0};
-
-		if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &data))
-			return 0;
-	}
-
-	// make sure data is stored in NumPy array
-	data = PyArray_FROM_OTF(data, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!data) {
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
-		return 0;
-	}
-
-	try {
-		PyObject* result;
-		if(i > -1 && j > -1)
-			result = PyArray_FromMatrixXd(
-				self->patchMCBM->logLikelihood(i, j, PyArray_ToMatrixXd(data)));
-		else
-			result = PyArray_FromMatrixXd(
-				self->patchMCBM->logLikelihood(PyArray_ToMatrixXd(data)));
-		Py_DECREF(data);
-		return result;
-	} catch(Exception exception) {
-		Py_DECREF(data);
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	return 0;
-}
-
-
-
 const char* PatchMCBM_reduce_doc =
 	"__reduce__(self)\n"
 	"\n"
@@ -1419,8 +1328,8 @@ PyObject* PatchMCBM_reduce(PatchMCBMObject* self, PyObject*) {
 	int cols = self->patchMCBM->cols();
 	int maxPCs = self->patchMCBM->maxPCs();
 
-	PyObject* inputMask = PatchMCBM_input_mask(self, 0);
-	PyObject* outputMask = PatchMCBM_output_mask(self, 0);
+	PyObject* inputMask = PatchModel_input_mask(reinterpret_cast<PatchModelObject*>(self), 0);
+	PyObject* outputMask = PatchModel_output_mask(reinterpret_cast<PatchModelObject*>(self), 0);
 
 	// constructor arguments
 	PyObject* args = Py_BuildValue("(iiOOOi)",

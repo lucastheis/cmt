@@ -1,20 +1,10 @@
+#ifndef CMT_PATCHMODEL_H
+#define CMT_PATCHMODEL_H
+
 #include <vector>
-using std::vector;
-
-#include "Eigen/Core"
-using Eigen::ArrayXXd;
-using Eigen::MatrixXd;
-using Eigen::Array;
-using Eigen::Dynamic;
-
 #include <iostream>
-using std::cout;
-using std::endl;
-
 #include <cmath>
-using std::min;
-using std::ceil;
-
+#include "Eigen/Core"
 #include "utils.h"
 #include "distribution.h"
 #include "exception.h"
@@ -22,77 +12,108 @@ using std::ceil;
 #include "pcapreconditioner.h"
 #include "tools.h"
 
-typedef Array<bool, Dynamic, Dynamic> ArrayXXb;
+namespace CMT {
+	using std::vector;
 
-template <class CD, class PC = CMT::PCAPreconditioner>
-class PatchModel : public Distribution {
-	public:
-		typedef typename CD::Parameters Parameters;
+	using std::cout;
+	using std::endl;
 
-		PatchModel(
-			int rows,
-			int cols,
-			const ArrayXXb& inputMask,
-			const ArrayXXb& outputMask,
-			const CD* model = 0,
-			int maxPCs = -1);
-		virtual ~PatchModel();
+	using std::min;
+	using std::ceil;
 
-		int dim() const;
-		int rows() const;
-		int cols() const;
-		int maxPCs() const;
-		ArrayXXb inputMask() const;
-		ArrayXXb outputMask() const;
-		ArrayXXb inputMask(int i, int j) const;
-		ArrayXXb outputMask(int i, int j) const;
+	using Eigen::ArrayXXd;
+	using Eigen::MatrixXd;
+	using Eigen::Array;
+	using Eigen::Dynamic;
 
-		CD& operator()(int i, int j);
-		const CD& operator()(int i, int j) const;
+	class PatchModelBase : public Distribution {
+		public:
+			using Distribution::logLikelihood;
 
-		PC& preconditioner(int i, int j);
-		const PC& preconditioner(int i, int j) const;
-		void setPreconditioner(int i, int j, const PC& preconditioner);
+			virtual ~PatchModelBase();
 
-		void initialize(const MatrixXd& data, const Parameters& params = Parameters());
+			virtual int rows() const = 0;
+			virtual int cols() const = 0;
+			virtual int maxPCs() const = 0;
+			virtual ArrayXXb inputMask() const = 0;
+			virtual ArrayXXb outputMask() const = 0;
+			virtual ArrayXXb inputMask(int i, int j) const = 0;
+			virtual ArrayXXb outputMask(int i, int j) const = 0;
 
-		bool train(const MatrixXd& data, const Parameters& params = Parameters());
-		bool train(
-			const MatrixXd& data,
-			const MatrixXd& dataVal,
-			const Parameters& params = Parameters());
-		bool train(
-			int i,
-			int j,
-			const MatrixXd& data,
-			const Parameters& params = Parameters());
-		bool train(
-			int i,
-			int j,
-			const MatrixXd& data,
-			const MatrixXd& dataVal,
-			const Parameters& params = Parameters());
+			virtual Array<double, 1, Dynamic> logLikelihood(
+				int i, int j, const MatrixXd& data) const = 0;
+	};
 
-		Array<double, 1, Dynamic> logLikelihood(const MatrixXd& data) const;
-		Array<double, 1, Dynamic> logLikelihood(int i, int j, const MatrixXd& data) const;
+	template <class CD, class PC = CMT::PCAPreconditioner>
+	class PatchModel : public PatchModelBase {
+		public:
+			typedef typename CD::Parameters Parameters;
 
-		MatrixXd sample(int num_samples) const;
+			PatchModel(
+				int rows,
+				int cols,
+				const ArrayXXb& inputMask,
+				const ArrayXXb& outputMask,
+				const CD* model = 0,
+				int maxPCs = -1);
+			virtual ~PatchModel();
 
-	protected:
-		int mRows;
-		int mCols;
-		int mMaxPCs;
-		ArrayXXb mInputMask;
-		ArrayXXb mOutputMask;
-		vector<Tuples> mInputIndices;
-		vector<CD> mConditionalDistributions;
-		vector<PC*> mPreconditioners;
-};
+			int dim() const;
+			int rows() const;
+			int cols() const;
+			int maxPCs() const;
+			ArrayXXb inputMask() const;
+			ArrayXXb outputMask() const;
+			ArrayXXb inputMask(int i, int j) const;
+			ArrayXXb outputMask(int i, int j) const;
+
+			CD& operator()(int i, int j);
+			const CD& operator()(int i, int j) const;
+
+			PC& preconditioner(int i, int j);
+			const PC& preconditioner(int i, int j) const;
+			void setPreconditioner(int i, int j, const PC& preconditioner);
+
+			void initialize(const MatrixXd& data, const Parameters& params = Parameters());
+
+			bool train(const MatrixXd& data, const Parameters& params = Parameters());
+			bool train(
+				const MatrixXd& data,
+				const MatrixXd& dataVal,
+				const Parameters& params = Parameters());
+			bool train(
+				int i,
+				int j,
+				const MatrixXd& data,
+				const Parameters& params = Parameters());
+			bool train(
+				int i,
+				int j,
+				const MatrixXd& data,
+				const MatrixXd& dataVal,
+				const Parameters& params = Parameters());
+
+			Array<double, 1, Dynamic> logLikelihood(const MatrixXd& data) const;
+			Array<double, 1, Dynamic> logLikelihood(int i, int j, const MatrixXd& data) const;
+
+			MatrixXd sample(int num_samples) const;
+
+		protected:
+			int mRows;
+			int mCols;
+			int mMaxPCs;
+			ArrayXXb mInputMask;
+			ArrayXXb mOutputMask;
+			vector<Tuples> mInputIndices;
+			vector<CD> mConditionalDistributions;
+			vector<PC*> mPreconditioners;
+	};
+}
 
 
 
 template <class CD, class PC>
-PatchModel<CD, PC>::PatchModel(
+CMT::PatchModel<CD, PC>::PatchModel(
 	int rows,
 	int cols,
 	const ArrayXXb& inputMask,
@@ -112,10 +133,6 @@ PatchModel<CD, PC>::PatchModel(
 
 	if(outputIndices.size() > 1)
 		throw Exception("Only one-dimensional outputs are currently supported.");
-
-	if(model)
-		if(inputIndices.size() != model->dimIn() || outputIndices.size() != model->dimOut())
-			throw Exception("Model and masks are incompatible.");
 
 	int rowOffset = outputIndices[0].first;
 	int colOffset = outputIndices[0].second;
@@ -164,7 +181,7 @@ PatchModel<CD, PC>::PatchModel(
 
 
 template <class CD, class PC>
-PatchModel<CD, PC>::~PatchModel() {
+CMT::PatchModel<CD, PC>::~PatchModel() {
 	for(int i = 0; i < mRows * mCols; ++i)
 		if(mPreconditioners[i])
 			delete mPreconditioners[i];
@@ -173,49 +190,49 @@ PatchModel<CD, PC>::~PatchModel() {
 
 
 template <class CD, class PC>
-int PatchModel<CD, PC>::dim() const {
+int CMT::PatchModel<CD, PC>::dim() const {
 	return mRows * mCols;
 }
 
 
 
 template <class CD, class PC>
-int PatchModel<CD, PC>::rows() const {
+int CMT::PatchModel<CD, PC>::rows() const {
 	return mRows;
 }
 
 
 
 template <class CD, class PC>
-int PatchModel<CD, PC>::cols() const {
+int CMT::PatchModel<CD, PC>::cols() const {
 	return mCols;
 }
 
 
 
 template <class CD, class PC>
-int PatchModel<CD, PC>::maxPCs() const {
+int CMT::PatchModel<CD, PC>::maxPCs() const {
 	return mMaxPCs;
 }
 
 
 
 template <class CD, class PC>
-ArrayXXb PatchModel<CD, PC>::inputMask() const {
+Eigen::ArrayXXb CMT::PatchModel<CD, PC>::inputMask() const {
 	return mInputMask;
 }
 
 
 
 template <class CD, class PC>
-ArrayXXb PatchModel<CD, PC>::outputMask() const {
+Eigen::ArrayXXb CMT::PatchModel<CD, PC>::outputMask() const {
 	return mOutputMask;
 }
 
 
 
 template <class CD, class PC>
-ArrayXXb PatchModel<CD, PC>::inputMask(int i, int j) const {
+Eigen::ArrayXXb CMT::PatchModel<CD, PC>::inputMask(int i, int j) const {
 	ArrayXXb inputMask = ArrayXXb::Zero(mRows, mCols);
 
 	int k = i * mRows + j;
@@ -229,7 +246,7 @@ ArrayXXb PatchModel<CD, PC>::inputMask(int i, int j) const {
 
 
 template <class CD, class PC>
-ArrayXXb PatchModel<CD, PC>::outputMask(int i, int j) const {
+Eigen::ArrayXXb CMT::PatchModel<CD, PC>::outputMask(int i, int j) const {
 	ArrayXXb outputMask = ArrayXXb::Zero(mRows, mCols);
 	outputMask(i, j) = true;
 	return outputMask;
@@ -238,7 +255,7 @@ ArrayXXb PatchModel<CD, PC>::outputMask(int i, int j) const {
 
 
 template <class CD, class PC>
-CD& PatchModel<CD, PC>::operator()(int i, int j) {
+CD& CMT::PatchModel<CD, PC>::operator()(int i, int j) {
 	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
 		throw Exception("Invalid indices.");
 	return mConditionalDistributions[i * mCols + j];
@@ -247,7 +264,7 @@ CD& PatchModel<CD, PC>::operator()(int i, int j) {
 
 
 template <class CD, class PC>
-const CD& PatchModel<CD, PC>::operator()(int i, int j) const {
+const CD& CMT::PatchModel<CD, PC>::operator()(int i, int j) const {
 	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
 		throw Exception("Invalid indices.");
 	return mConditionalDistributions[i * mCols + j];
@@ -256,7 +273,7 @@ const CD& PatchModel<CD, PC>::operator()(int i, int j) const {
 
 
 template <class CD, class PC>
-PC& PatchModel<CD, PC>::preconditioner(int i, int j) {
+PC& CMT::PatchModel<CD, PC>::preconditioner(int i, int j) {
 	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
 		throw Exception("Invalid indices.");
 	if(!mPreconditioners[i * mCols + j])
@@ -267,7 +284,7 @@ PC& PatchModel<CD, PC>::preconditioner(int i, int j) {
 
 
 template <class CD, class PC>
-const PC& PatchModel<CD, PC>::preconditioner(int i, int j) const {
+const PC& CMT::PatchModel<CD, PC>::preconditioner(int i, int j) const {
 	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
 		throw Exception("Invalid indices.");
 	if(!mPreconditioners[i * mCols + j])
@@ -278,7 +295,7 @@ const PC& PatchModel<CD, PC>::preconditioner(int i, int j) const {
 
 
 template <class CD, class PC>
-void PatchModel<CD, PC>::setPreconditioner(int i, int j, const PC& preconditioner) {
+void CMT::PatchModel<CD, PC>::setPreconditioner(int i, int j, const PC& preconditioner) {
 	if(mMaxPCs < 0)
 		return;
 
@@ -302,7 +319,7 @@ void PatchModel<CD, PC>::setPreconditioner(int i, int j, const PC& preconditione
 
 
 template <class CD, class PC>
-void PatchModel<CD, PC>::initialize(const MatrixXd& data, const Parameters& params) {
+void CMT::PatchModel<CD, PC>::initialize(const MatrixXd& data, const Parameters& params) {
 	for(int i = 0; i < mRows * mCols; ++i) {
 		MatrixXd output = data.row(i);
 		MatrixXd input(mInputIndices[i].size(), data.cols());
@@ -331,7 +348,7 @@ void PatchModel<CD, PC>::initialize(const MatrixXd& data, const Parameters& para
 
 
 template <class CD, class PC>
-bool PatchModel<CD, PC>::train(const MatrixXd& data, const Parameters& params) {
+bool CMT::PatchModel<CD, PC>::train(const MatrixXd& data, const Parameters& params) {
 	bool converged = true;
 
 	for(int i = 0; i < mRows * mCols; ++i) {
@@ -369,7 +386,7 @@ bool PatchModel<CD, PC>::train(const MatrixXd& data, const Parameters& params) {
 
 
 template <class CD, class PC>
-bool PatchModel<CD, PC>::train(
+bool CMT::PatchModel<CD, PC>::train(
 	const MatrixXd& data,
 	const MatrixXd& dataVal,
 	const Parameters& params)
@@ -417,7 +434,7 @@ bool PatchModel<CD, PC>::train(
 
 
 template <class CD, class PC>
-bool PatchModel<CD, PC>::train(int i, int j, const MatrixXd& data, const Parameters& params) {
+bool CMT::PatchModel<CD, PC>::train(int i, int j, const MatrixXd& data, const Parameters& params) {
 	int k = i * mCols + j;
 
 	MatrixXd output = data.row(k);
@@ -447,7 +464,7 @@ bool PatchModel<CD, PC>::train(int i, int j, const MatrixXd& data, const Paramet
 
 
 template <class CD, class PC>
-bool PatchModel<CD, PC>::train(
+bool CMT::PatchModel<CD, PC>::train(
 	int i,
 	int j,
 	const MatrixXd& data,
@@ -489,7 +506,7 @@ bool PatchModel<CD, PC>::train(
 
 
 template <class CD, class PC>
-Array<double, 1, Dynamic> PatchModel<CD, PC>::logLikelihood(
+Eigen::Array<double, 1, Eigen::Dynamic> CMT::PatchModel<CD, PC>::logLikelihood(
 	const MatrixXd& data) const
 {
 	Array<double, 1, Dynamic> logLik = Array<double, 1, Dynamic>::Zero(data.cols());
@@ -525,7 +542,7 @@ Array<double, 1, Dynamic> PatchModel<CD, PC>::logLikelihood(
 
 
 template <class CD, class PC>
-Array<double, 1, Dynamic> PatchModel<CD, PC>::logLikelihood(
+Eigen::Array<double, 1, Eigen::Dynamic> CMT::PatchModel<CD, PC>::logLikelihood(
 	int i, int j, const MatrixXd& data) const
 {
 	int k = i * mCols + j;
@@ -559,7 +576,7 @@ Array<double, 1, Dynamic> PatchModel<CD, PC>::logLikelihood(
 
 
 template<class CD, class PC>
-MatrixXd PatchModel<CD, PC>::sample(int num_samples) const {
+Eigen::MatrixXd CMT::PatchModel<CD, PC>::sample(int num_samples) const {
 	MatrixXd samples = MatrixXd::Zero(mRows * mCols, num_samples);
 
 	for(int i = 0; i < mRows * mCols; ++i) {
@@ -588,3 +605,5 @@ MatrixXd PatchModel<CD, PC>::sample(int num_samples) const {
 
 	return samples;
 }
+
+#endif

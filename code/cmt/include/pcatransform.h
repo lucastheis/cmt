@@ -1,5 +1,5 @@
-#ifndef PCATRANSFORM_H
-#define PCATRANSFORM_H
+#ifndef CMT_PCATRANSFORM_H
+#define CMT_PCATRANSFORM_H
 
 #include "affinetransform.h"
 

@@ -7,7 +7,9 @@
 #include <Python.h>
 #include <arrayobject.h>
 #include "pyutils.h"
+
 #include "mcgsm.h"
+using CMT::MCGSM;
 
 struct MCGSMObject {
 	PyObject_HEAD
@@ -62,7 +64,7 @@ PyObject* MCGSM_sample_posterior(MCGSMObject*, PyObject*, PyObject*);
 
 PyObject* MCGSM_parameters(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_set_parameters(MCGSMObject*, PyObject*, PyObject*);
-PyObject* MCGSM_compute_gradient(MCGSMObject*, PyObject*, PyObject*);
+PyObject* MCGSM_parameter_gradient(MCGSMObject*, PyObject*, PyObject*);
 
 PyObject* MCGSM_compute_data_gradient(MCGSMObject*, PyObject*, PyObject*);
 

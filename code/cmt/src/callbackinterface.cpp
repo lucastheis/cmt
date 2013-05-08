@@ -1,7 +1,11 @@
-#include "exception.h"
 #include "callbackinterface.h"
+#include "conditionaldistributioninterface.h"
 
-#include <iostream>
+#include "exception.h"
+using CMT::Exception;
+
+#include "trainable.h"
+using CMT::Trainable;
 
 CallbackInterface::CallbackInterface(PyTypeObject* type, PyObject* callback) : 
 	mType(type),
@@ -45,11 +49,11 @@ CallbackInterface* CallbackInterface::copy() {
 
 
 
-bool CallbackInterface::operator()(int iter, const ConditionalDistribution& cd) {
+bool CallbackInterface::operator()(int iter, const Trainable& cd) {
 	CDObject* cdObj = reinterpret_cast<CDObject*>(CD_new(mType, 0, 0));
 
 	// TODO: fix this hack
-	cdObj->cd = const_cast<ConditionalDistribution*>(&cd);
+	cdObj->cd = const_cast<Trainable*>(&cd);
 	cdObj->owner = false;
 
 	// call Python object
@@ -59,6 +63,7 @@ bool CallbackInterface::operator()(int iter, const ConditionalDistribution& cd) 
 
 	// if cont is false, training will be aborted
 	bool cont = true;
+
 	if(result) {
 		if(PyBool_Check(result))
 			cont = (result == Py_True);
