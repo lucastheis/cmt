@@ -39,6 +39,7 @@ CMT::GLM::GLM(
 		throw Exception("No distribution specified.");
 
 	mWeights = VectorXd::Random(dimIn) / 100.;
+	mBias = 0.;
 }
 
 
@@ -51,6 +52,7 @@ CMT::GLM::GLM(int dimIn) : mDimIn(dimIn) {
 	mDistribution = defaultDistribution;
 
 	mWeights = VectorXd::Random(dimIn) / 100.;
+	mBias = 0.;
 }
 
 
@@ -65,6 +67,7 @@ CMT::GLM::GLM(int dimIn, const GLM& glm) :
 		throw Exception("Input dimensionality should be non-negative.");
 
 	mWeights = VectorXd::Random(dimIn) / 100.;
+	mBias = 0.;
 }
 
 
@@ -82,11 +85,11 @@ Array<double, 1, Dynamic> CMT::GLM::logLikelihood(
 		throw Exception("Input has wrong dimensionality.");
 
 	if(!mDimIn)
-		mDistribution->logLikelihood(output, ArrayXXd::Zero(1, input.cols()));
+		mDistribution->logLikelihood(output, ArrayXXd::Zero(1, input.cols()) + mBias);
 
 	return mDistribution->logLikelihood(
 		output,
-		(*mNonlinearity)(mWeights.transpose() * input));
+		(*mNonlinearity)((mWeights.transpose() * input).array() + mBias));
 }
 
 
@@ -96,15 +99,15 @@ MatrixXd CMT::GLM::sample(const MatrixXd& input) const {
 		throw Exception("Input has wrong dimensionality.");
 
 	if(!mDimIn)
-		return mDistribution->sample(ArrayXXd::Zero(1, input.cols()));
+		return mDistribution->sample(Array<double, 1, Dynamic>::Constant(input.cols(), mBias));
 
-	return mDistribution->sample((*mNonlinearity)(mWeights * input));
+	return mDistribution->sample((*mNonlinearity)((mWeights * input).array() + mBias));
 }
 
 
 
 int CMT::GLM::numParameters(const Parameters& params) const {
-	return mWeights.size();
+	return mDimIn + 1;
 }
 
 
@@ -112,8 +115,10 @@ int CMT::GLM::numParameters(const Parameters& params) const {
 lbfgsfloatval_t* CMT::GLM::parameters(const Parameters& params) const {
 	lbfgsfloatval_t* x = lbfgs_malloc(mWeights.size());
 
-	for(int i = 0; i < mWeights.size(); ++i)
+	for(int i = 0; i < mDimIn; ++i)
 		x[i] = mWeights.data()[i];
+
+	x[mDimIn] = mBias;
 
 	return x;
 }
@@ -121,8 +126,9 @@ lbfgsfloatval_t* CMT::GLM::parameters(const Parameters& params) const {
 
 
 void CMT::GLM::setParameters(const lbfgsfloatval_t* x, const Parameters& params) {
-	for(int i = 0; i < mWeights.size(); ++i)
+	for(int i = 0; i < mDimIn; ++i)
 		mWeights.data()[i] = x[i];
+	mBias = x[mDimIn];
 }
 
 
@@ -134,16 +140,31 @@ double CMT::GLM::parameterGradient(
 	lbfgsfloatval_t* g,
 	const Parameters& params) const
 {
-	VectorLBFGS weights(const_cast<lbfgsfloatval_t*>(x), mWeights.size());
-	VectorLBFGS weightsGrad(g, mWeights.size());
+	VectorLBFGS weights(const_cast<lbfgsfloatval_t*>(x), mDimIn);
+	VectorLBFGS weightsGrad(g, mDimIn);
+	double bias = x[mDimIn];
 
-	Array<double, 1, Dynamic> responses = weights.transpose() * input;
+	// linear responses
+	Array<double, 1, Dynamic> responses;
+	if(mDimIn)
+		responses = (weights.transpose() * input).array() + bias;
+	else
+		responses = Array<double, 1, Dynamic>::Constant(output.cols(), bias);
+
+	// nonlinear responses
 	Array<double, 1, Dynamic> means = (*mNonlinearity)(responses);
 
 	if(g) {
 		Array<double, 1, Dynamic> tmp1 = mDistribution->gradient(output, means);
 		Array<double, 1, Dynamic> tmp2 = mNonlinearity->derivative(responses);
-		weightsGrad = (input.array().rowwise() * (tmp1 * tmp2)).rowwise().mean() / log(2.);
+		Array<double, 1, Dynamic> tmp3 = tmp1 * tmp2;
+
+		// weights gradient
+		if(mDimIn)
+			weightsGrad = (input.array().rowwise() * tmp3).rowwise().mean() / log(2.);
+
+		// bias gradient
+		g[mDimIn] = tmp3.mean() / log(2.);
 	}
 
 	return -mDistribution->logLikelihood(output, means).mean() / log(2.);
@@ -160,21 +181,6 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::GLM::computeData
 			ArrayXXd::Zero(input.rows(), input.cols()), 
 			ArrayXXd::Zero(output.rows(), output.cols())), 
 		logLikelihood(input, output));
-}
-
-
-
-bool CMT::GLM::train(
-	const MatrixXd& input,
-	const MatrixXd& output,
-	const MatrixXd* inputVal,
-	const MatrixXd* outputVal,
-	const Trainable::Parameters& params)
-{
-	if(!mDimIn)
-		return true;
-	else
-		return Trainable::train(input, output, inputVal, outputVal, params);
 }
 
 

@@ -78,6 +78,9 @@ void GLM_dealloc(GLMObject*);
 PyObject* GLM_weights(GLMObject*, void*);
 int GLM_set_weights(GLMObject*, PyObject*, void*);
 
+PyObject* GLM_bias(GLMObject*, void*);
+int GLM_set_bias(GLMObject*, PyObject*, void*);
+
 PyObject* GLM_nonlinearity(GLMObject*, void*);
 int GLM_set_nonlinearity(GLMObject*, PyObject*, void*);
 

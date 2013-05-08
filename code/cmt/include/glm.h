@@ -56,7 +56,6 @@ namespace CMT {
 			};
 
 			using Trainable::logLikelihood;
-			using Trainable::train;
 
 			GLM(
 				int dimIn,
@@ -77,6 +76,9 @@ namespace CMT {
 
 			inline VectorXd weights() const;
 			inline void setWeights(const VectorXd& weights);
+
+			inline double bias() const;
+			inline void setBias(double bias);
 
 			virtual Array<double, 1, Dynamic> logLikelihood(
 				const MatrixXd& input,
@@ -105,15 +107,9 @@ namespace CMT {
 		protected:
 			int mDimIn;
 			VectorXd mWeights;
+			double mBias;
 			Nonlinearity* mNonlinearity;
 			UnivariateDistribution* mDistribution;
-
-			virtual bool train(
-				const MatrixXd& input,
-				const MatrixXd& output,
-				const MatrixXd* inputVal = 0,
-				const MatrixXd* outputVal = 0,
-				const Trainable::Parameters& params = Trainable::Parameters());
 	};
 
 	class LogisticFunction : public GLM::Nonlinearity {
@@ -211,6 +207,18 @@ inline Eigen::VectorXd CMT::GLM::weights() const {
 
 inline void CMT::GLM::setWeights(const VectorXd& weights) {
 	mWeights = weights;
+}
+
+
+
+inline double CMT::GLM::bias() const {
+	return mBias;
+}
+
+
+
+inline void CMT::GLM::setBias(double bias) {
+	mBias = bias;
 }
 
 #endif

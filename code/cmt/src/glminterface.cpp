@@ -170,7 +170,7 @@ PyObject* Bernoulli_reduce(BernoulliObject* self, PyObject*) {
 const char* GLM_doc =
 	"An implementation of generalized linear models.\n"
 	"\n"
-	"$$p(y \\mid \\mathbf{x}) = q(y \\mid g(\\mathbf{x}^\\top \\mathbf{x})),$$\n"
+	"$$p(y \\mid \\mathbf{x}) = q(y \\mid g(\\mathbf{x}^\\top \\mathbf{x} + b)),$$\n"
 	"\n"
 	"where $q$ is typically from the exponential family and $g$ is some nonlinearity\n"
 	"(inverse link function) which has to be specified.\n"
@@ -181,9 +181,10 @@ const char* GLM_doc =
 	"\t>>> glm = GLM(inputs.shape[0], LogisticFunction, Bernoulli)\n"
 	"\t>>> glm.train(inputs, outputs)\n"
 	"\n"
-	"To access the linear filter, $\\mathbf{w}$, use\n"
+	"To access the linear filter $\\mathbf{w}$ or the bias $b$ use\n"
 	"\n"
 	"\t>>> glm.weights\n"
+	"\t>>> glm.bias\n"
 	"\n"
 	"@type  dim_in: integer\n"
 	"@param dim_in: dimensionality of input\n"
@@ -296,6 +297,35 @@ int GLM_set_weights(GLMObject* self, PyObject* value, void*) {
 
 	try {
 		self->glm->setWeights(PyArray_ToMatrixXd(value));
+	} catch(Exception exception) {
+		Py_DECREF(value);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+
+	Py_DECREF(value);
+
+	return 0;
+}
+
+
+
+PyObject* GLM_bias(GLMObject* self, void*) {
+	return PyFloat_FromDouble(self->glm->bias());
+}
+
+
+
+int GLM_set_bias(GLMObject* self, PyObject* value, void*) {
+	double bias = PyFloat_AsDouble(value);
+	
+	if(PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError, "Bias should be a `float`.");
+		return -1;
+	}
+
+	try {
+		self->glm->setBias(bias);
 	} catch(Exception exception) {
 		Py_DECREF(value);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
