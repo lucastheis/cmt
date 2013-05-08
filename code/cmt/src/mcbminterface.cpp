@@ -224,15 +224,12 @@ int MCBM_init(MCBMObject* self, PyObject* args, PyObject* kwds) {
 
 	int dim_in;
 	int num_components = 8;
-	int num_features = 0;
+	int num_features = -1;
 
 	// read arguments
 	if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|ii", const_cast<char**>(kwlist),
 		&dim_in, &num_components, &num_features))
 		return -1;
-
-	if(!num_features)
-		num_features = dim_in;
 
 	// create actual MCBM instance
 	try {

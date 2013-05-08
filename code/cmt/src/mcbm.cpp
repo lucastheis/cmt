@@ -211,7 +211,7 @@ MCBM::Parameters& MCBM::Parameters::operator=(const Parameters& params) {
 
 
 
-MCBM::MCBM(int dimIn, int numComponents, int numFeatures) : 
+MCBM::MCBM(int dimIn, int numComponents, int numFeatures) :
 	mDimIn(dimIn),
 	mNumComponents(numComponents),
 	mNumFeatures(numFeatures < 0 ? dimIn : numFeatures)
