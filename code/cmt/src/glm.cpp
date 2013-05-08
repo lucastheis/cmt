@@ -85,7 +85,8 @@ Array<double, 1, Dynamic> CMT::GLM::logLikelihood(
 		throw Exception("Input has wrong dimensionality.");
 
 	if(!mDimIn)
-		mDistribution->logLikelihood(output, ArrayXXd::Zero(1, input.cols()) + mBias);
+		return mDistribution->logLikelihood(
+			output, Array<double, 1, Dynamic>::Constant(output.cols(), mBias));
 
 	return mDistribution->logLikelihood(
 		output,
@@ -101,7 +102,7 @@ MatrixXd CMT::GLM::sample(const MatrixXd& input) const {
 	if(!mDimIn)
 		return mDistribution->sample(Array<double, 1, Dynamic>::Constant(input.cols(), mBias));
 
-	return mDistribution->sample((*mNonlinearity)((mWeights * input).array() + mBias));
+	return mDistribution->sample((*mNonlinearity)((mWeights.transpose() * input).array() + mBias));
 }
 
 
@@ -113,11 +114,10 @@ int CMT::GLM::numParameters(const Parameters& params) const {
 
 
 lbfgsfloatval_t* CMT::GLM::parameters(const Parameters& params) const {
-	lbfgsfloatval_t* x = lbfgs_malloc(mWeights.size());
+	lbfgsfloatval_t* x = lbfgs_malloc(mDimIn + 1);
 
 	for(int i = 0; i < mDimIn; ++i)
 		x[i] = mWeights.data()[i];
-
 	x[mDimIn] = mBias;
 
 	return x;
@@ -146,6 +146,7 @@ double CMT::GLM::parameterGradient(
 
 	// linear responses
 	Array<double, 1, Dynamic> responses;
+
 	if(mDimIn)
 		responses = (weights.transpose() * input).array() + bias;
 	else
@@ -181,6 +182,11 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::GLM::computeData
 			ArrayXXd::Zero(input.rows(), input.cols()), 
 			ArrayXXd::Zero(output.rows(), output.cols())), 
 		logLikelihood(input, output));
+}
+
+
+
+CMT::GLM::Nonlinearity::~Nonlinearity() {
 }
 
 

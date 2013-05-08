@@ -24,6 +24,8 @@ using std::sort;
 
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
 #include <random>
+using std::mt19937;
+using std::normal_distribution;
 #endif
 
 MatrixXd CMT::signum(const MatrixXd& matrix) {

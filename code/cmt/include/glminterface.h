@@ -1,6 +1,9 @@
 #ifndef GLMINTERFACE_H
 #define GLMINTERFACE_H
 
+#define PY_ARRAY_UNIQUE_SYMBOL CMT_ARRAY_API
+#define NO_IMPORT_ARRAY
+
 #include <Python.h>
 #include <arrayobject.h>
 #include "pyutils.h"

@@ -1,7 +1,7 @@
+#include "glminterface.h"
 #include "distributioninterface.h"
 #include "trainableinterface.h"
 #include "callbackinterface.h"
-#include "glminterface.h"
 
 #include "exception.h"
 using CMT::Exception;

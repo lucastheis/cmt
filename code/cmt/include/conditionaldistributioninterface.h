@@ -7,11 +7,13 @@
 #include <Python.h>
 #include <arrayobject.h>
 #include "pyutils.h"
+
 #include "conditionaldistribution.h"
+using CMT::ConditionalDistribution;
 
 struct CDObject {
 	PyObject_HEAD
-	CMT::ConditionalDistribution* cd;
+	ConditionalDistribution* cd;
 	bool owner; 
 };
 

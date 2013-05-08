@@ -1,5 +1,5 @@
-#include <inttypes.h>
 #include "pyutils.h"
+#include <inttypes.h>
 
 #include "exception.h"
 using CMT::Exception;

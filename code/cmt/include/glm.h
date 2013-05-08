@@ -17,6 +17,7 @@ namespace CMT {
 		public:
 			class Nonlinearity {
 				public:
+					virtual ~Nonlinearity();
 					virtual ArrayXXd operator()(const ArrayXXd& data) const = 0;
 					virtual ArrayXXd derivative(const ArrayXXd& data) const = 0;
 			};
