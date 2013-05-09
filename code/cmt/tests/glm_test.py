@@ -67,9 +67,10 @@ class Tests(unittest.TestCase):
 
 	def test_glm_train(self):
 		w = asarray([[-1., 0., 1., 2.]]).T
+		b = 1.
 
 		x = randn(4, 100000)
-		p = 1. / (1. + exp(-dot(w.T, x)))
+		p = 1. / (1. + exp(-dot(w.T, x) - b))
 		y = rand(*p.shape) < p
 
 		glm = GLM(4, LogisticFunction, Bernoulli)
@@ -80,6 +81,7 @@ class Tests(unittest.TestCase):
 		glm.train(x, y, parameters={'verbosity': 0})
 
 		self.assertLess(max(abs(glm.weights - w)), 0.1)
+		self.assertLess(max(abs(glm.bias - b)), 0.1)
 
 
 
