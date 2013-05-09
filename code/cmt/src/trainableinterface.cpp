@@ -376,6 +376,22 @@ PyObject* Trainable_parameter_gradient(
 	if(x)
 		x = PyArray_FROM_OTF(x, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
+	// for performance reasons, only perform these checks in the interface
+	if(PyArray_DIM(input, 0) != self->distribution->dimIn()) {
+		PyErr_SetString(PyExc_RuntimeError, "Input has wrong dimensionality.");
+		return 0;
+	}
+
+	if(PyArray_DIM(output, 0) != self->distribution->dimOut()) {
+		PyErr_SetString(PyExc_RuntimeError, "Output has wrong dimensionality.");
+		return 0;
+	}
+
+	if(PyArray_DIM(output, 1) != PyArray_DIM(input, 1)) {
+		PyErr_SetString(PyExc_RuntimeError, "Number of inputs and outputs should be the same.");
+		return 0;
+	}
+
 	try {
 		Trainable::Parameters* params = PyObject_ToParameters(parameters);
 

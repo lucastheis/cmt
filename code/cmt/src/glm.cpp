@@ -7,6 +7,7 @@ using CMT::Bernoulli;
 
 #include <cmath>
 using std::log;
+using std::min;
 
 #include <map>
 using std::pair;
@@ -134,41 +135,64 @@ void CMT::GLM::setParameters(const lbfgsfloatval_t* x, const Parameters& params)
 
 
 double CMT::GLM::parameterGradient(
-	const MatrixXd& input,
-	const MatrixXd& output,
+	const MatrixXd& inputCompl,
+	const MatrixXd& outputCompl,
 	const lbfgsfloatval_t* x,
 	lbfgsfloatval_t* g,
 	const Parameters& params) const
 {
-	VectorLBFGS weights(const_cast<lbfgsfloatval_t*>(x), mDimIn);
-	VectorLBFGS weightsGrad(g, mDimIn);
-	double bias = x[mDimIn];
-
-	// linear responses
-	Array<double, 1, Dynamic> responses;
-
-	if(mDimIn)
-		responses = (weights.transpose() * input).array() + bias;
-	else
-		responses = Array<double, 1, Dynamic>::Constant(output.cols(), bias);
-
-	// nonlinear responses
-	Array<double, 1, Dynamic> means = (*mNonlinearity)(responses);
-
-	if(g) {
-		Array<double, 1, Dynamic> tmp1 = mDistribution->gradient(output, means);
-		Array<double, 1, Dynamic> tmp2 = mNonlinearity->derivative(responses);
-		Array<double, 1, Dynamic> tmp3 = tmp1 * tmp2;
-
-		// weights gradient
-		if(mDimIn)
-			weightsGrad = (input.array().rowwise() * tmp3).rowwise().mean() / log(2.);
-
-		// bias gradient
-		g[mDimIn] = tmp3.mean() / log(2.);
+  	int numData = static_cast<int>(inputCompl.cols());
+ 	int batchSize = min(params.batchSize, numData);
+ 
+ 	VectorLBFGS weights(const_cast<lbfgsfloatval_t*>(x), mDimIn);
+ 	VectorLBFGS weightsGrad(g, mDimIn);
+ 	double bias = x[mDimIn];
+ 
+ 	if(g) {
+ 		weightsGrad.setZero();
+ 		g[mDimIn] = 0.;
 	}
-
-	return -mDistribution->logLikelihood(output, means).mean() / log(2.);
+ 	double logLik = 0.;
+ 
+ 	#pragma omp parallel for
+ 	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
+ 		const MatrixXd& input = inputCompl.middleCols(b, min(batchSize, numData - b));
+ 		const MatrixXd& output = outputCompl.middleCols(b, min(batchSize, numData - b));
+ 
+ 		// linear responses
+ 		Array<double, 1, Dynamic> responses;
+ 
+ 		if(mDimIn)
+ 			responses = (weights.transpose() * input).array() + bias;
+ 		else
+ 			responses = Array<double, 1, Dynamic>::Constant(output.cols(), bias);
+ 
+ 		// nonlinear responses
+ 		Array<double, 1, Dynamic> means = (*mNonlinearity)(responses);
+ 
+ 		if(g) {
+ 			Array<double, 1, Dynamic> tmp1 = mDistribution->gradient(output, means);
+ 			Array<double, 1, Dynamic> tmp2 = mNonlinearity->derivative(responses);
+ 			Array<double, 1, Dynamic> tmp3 = tmp1 * tmp2;
+ 
+ 			// weights gradient
+ 			if(mDimIn) {
+ 				VectorXd weightsGrad_ = (input.array().rowwise() * tmp3).rowwise().mean() / log(2.);
+ 
+ 				#pragma omp critical
+ 				weightsGrad += weightsGrad_;
+ 			}
+ 
+ 			// bias gradient
+ 			#pragma omp critical
+ 			g[mDimIn] += tmp3.mean() / log(2.);
+ 		}
+ 
+ 		#pragma omp critical
+ 		logLik -= mDistribution->logLikelihood(output, means).mean() / log(2.);
+ 	}
+ 	
+ 	return logLik;
 }
 
 
