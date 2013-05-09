@@ -22,8 +22,6 @@ using Eigen::MatrixXd;
 GLM::Nonlinearity* defaultNonlinearity = new LogisticFunction;
 GLM::UnivariateDistribution* defaultDistribution = new Bernoulli;
 
-#include <iostream>
-
 CMT::GLM::GLM(
 	int dimIn,
 	Nonlinearity* nonlinearity,
@@ -85,13 +83,14 @@ Array<double, 1, Dynamic> CMT::GLM::logLikelihood(
 	if(input.rows() != mDimIn)
 		throw Exception("Input has wrong dimensionality.");
 
-	if(!mDimIn)
-		return mDistribution->logLikelihood(
-			output, Array<double, 1, Dynamic>::Constant(output.cols(), mBias));
+	Array<double, 1, Dynamic> responses;
 
-	return mDistribution->logLikelihood(
-		output,
-		(*mNonlinearity)((mWeights.transpose() * input).array() + mBias));
+	if(mDimIn)
+		responses = (mWeights.transpose() * input).array() + mBias;
+	else
+		responses = Array<double, 1, Dynamic>::Constant(output.cols(), mBias);
+
+	return mDistribution->logLikelihood(output, (*mNonlinearity)(responses));
 }
 
 

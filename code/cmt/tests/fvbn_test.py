@@ -79,6 +79,8 @@ class Tests(unittest.TestCase):
 				if i > 0 or j > 0:
 					self.assertLess(max(abs(model0[i, j].weights - model1[i, j].weights)), 1e-8)
 
+		model1.loglikelihood(samples)
+
 
 
 if __name__ == '__main__':

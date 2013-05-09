@@ -166,6 +166,9 @@ int FVBN_ass_subscript(FVBNObject* self, PyObject* key, PyObject* value) {
 		return -1;
 	}
 
+	// TODO: fix this memory leak
+	Py_INCREF(value);
+
  	self->fvbn->operator()(i, j) = *reinterpret_cast<GLMObject*>(value)->glm;
 
 	return 0;

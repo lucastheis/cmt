@@ -35,8 +35,8 @@ int Nonlinearity_init(
 
 void Nonlinearity_dealloc(NonlinearityObject* self) {
 	// delete actual instance
-	if(self->owner)
-		delete self->nonlinearity;
+ 	if(self->owner)
+ 		delete self->nonlinearity;
 
 	// delete NonlinearityObject
 	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
@@ -472,7 +472,7 @@ PyObject* GLM_reduce(GLMObject* self, PyObject*) {
 		self->nonlinearity,
 		self->distribution);
 	PyObject* weights = GLM_weights(self, 0);
-	PyObject* state = Py_BuildValue("(O)", weights);
+	PyObject* state = Py_BuildValue("(Od)", weights, self->glm->bias());
 	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
 
 	Py_DECREF(weights);
@@ -491,12 +491,14 @@ const char* GLM_setstate_doc =
 
 PyObject* GLM_setstate(GLMObject* self, PyObject* state) {
 	PyObject* weights;
+	double bias;
 
-	if(!PyArg_ParseTuple(state, "(O)", &weights))
+	if(!PyArg_ParseTuple(state, "(Od)", &weights, &bias))
 		return 0;
 
 	try {
 		GLM_set_weights(self, weights, 0);
+		self->glm->setBias(bias);
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;

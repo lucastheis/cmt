@@ -123,6 +123,9 @@ class Tests(unittest.TestCase):
 		# make sure parameters haven't changed
 		self.assertLess(max(abs(model0.weights - model1.weights)), 1e-20)
 
+		x = randn(model0.dim_in, 100)
+		model1.evaluate(x, model1.sample(x))
+
 
 
 if __name__ == '__main__':
