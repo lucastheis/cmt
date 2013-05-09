@@ -176,7 +176,7 @@ double CMT::GLM::parameterGradient(
  
  			// weights gradient
  			if(mDimIn) {
- 				VectorXd weightsGrad_ = (input.array().rowwise() * tmp3).rowwise().mean() / log(2.);
+ 				VectorXd weightsGrad_ = (input.array().rowwise() * tmp3).rowwise().sum();
  
  				#pragma omp critical
  				weightsGrad += weightsGrad_;
@@ -184,14 +184,20 @@ double CMT::GLM::parameterGradient(
  
  			// bias gradient
  			#pragma omp critical
- 			g[mDimIn] += tmp3.mean() / log(2.);
+ 			g[mDimIn] += tmp3.sum();
  		}
  
  		#pragma omp critical
- 		logLik -= mDistribution->logLikelihood(output, means).mean() / log(2.);
+ 		logLik -= mDistribution->logLikelihood(output, means).sum();
  	}
+
+ 	double normConst = outputCompl.cols() * log(2.);
+
+ 	if(g)
+		for(int i = 0; i <= mDimIn; ++i)
+			g[i] /= normConst;
  	
- 	return logLik;
+ 	return logLik / normConst;
 }
 
 
