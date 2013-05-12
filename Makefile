@@ -4,12 +4,12 @@ OS = $(shell uname)
 ifeq ($(OS), Darwin)
 CXX = \
 	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CC')[0]);")
-CFLAGS = $(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);") \
+CXXFLAGS = $(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);") \
 	-Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses# -fopenmp
 else
 CXX = \
 	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CXX')[0]);")
-CFLAGS = $(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);") \
+CXXFLAGS = $(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);") \
 	-Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses -Wno-cpp -fPIC -fopenmp
 endif
 
@@ -28,6 +28,7 @@ PYTHONPATH = \
 	$(shell python -c "from distutils import sysconfig; print(sysconfig.get_python_lib());")
 
 # source and object files
+INCDIR = code/cmt/include
 SRCDIR = code/cmt/src
 OBJDIR = build
 SOURCES = \
@@ -60,7 +61,7 @@ SOURCES = \
 	$(SRCDIR)/utils.cpp \
 	$(SRCDIR)/whiteningpreconditioner.cpp \
 	$(SRCDIR)/whiteningtransform.cpp
-OBJECTS = $(patsubst %,$(OBJDIR)/%,$(SOURCES:.cpp=.o))
+OBJECTS = $(patsubst %.cpp,$(OBJDIR)/%.o,$(SOURCES))
 
 MODULE = $(OBJDIR)/cmt.so
 
@@ -70,16 +71,22 @@ MODULE = $(OBJDIR)/cmt.so
 all: $(MODULE)
 
 clean:
-	rm -f $(OBJECTS) $(MODULE)
+	rm -f $(OBJECTS) $(OBJECTS:.o=.d) $(MODULE)
 
 install: $(MODULE)
 	cp $(MODULE) $(PYTHONPATH)
 
-$(MODULE): $(OBJECTS) 
+$(MODULE): $(OBJECTS)
 	@echo $(LD) $(LDFLAGS) -o $@
 	@$(LD) $(OBJECTS) $(LDFLAGS) -o $@
 
-$(OBJDIR)/%.o: %.cpp
+$(OBJDIR)/%.o: %.cpp $(OBJDIR)/%.d
 	@mkdir -p $(@D)
-	@echo $(CXX) -o $@ -c $^
-	@$(CXX) $(INCLUDE) $(CFLAGS) -o $@ -c $^
+	@echo $(CXX) -o $@ -c $<
+	@$(CXX) $(INCLUDE) $(CXXFLAGS) -o $@ -c $<
+
+$(OBJDIR)/%.d: %.cpp
+	@echo $(CXX) -MM $< -MF $@
+	@$(CXX) $(INCLUDE) -MM -MT '$(@:.d=.o)' $< -MF $@
+
+-include $(OBJECTS:.o=.d)
