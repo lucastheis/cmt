@@ -78,8 +78,11 @@ class Tests(unittest.TestCase):
 			for j in range(model0.cols):
 				if i > 0 or j > 0:
 					self.assertLess(max(abs(model0[i, j].weights - model1[i, j].weights)), 1e-8)
+					self.assertLess(max(abs(model0[i, j].bias - model1[i, j].bias)), 1e-8)
 
-		model1.loglikelihood(samples)
+		self.assertAlmostEqual(
+			mean(model0.loglikelihood(samples)),
+			mean(model1.loglikelihood(samples)))
 
 
 
