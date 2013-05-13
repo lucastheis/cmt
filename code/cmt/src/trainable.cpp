@@ -87,6 +87,7 @@ CMT::Trainable::InstanceLBFGS::InstanceLBFGS(
 	inputVal(0),
 	outputVal(0),
 	logLoss(numeric_limits<double>::max()),
+	fx(numeric_limits<double>::max()),
 	counter(0),
 	parameters(0)
 {
@@ -108,6 +109,7 @@ CMT::Trainable::InstanceLBFGS::InstanceLBFGS(
 	inputVal(inputVal),
 	outputVal(outputVal),
 	logLoss(numeric_limits<double>::max()),
+	fx(numeric_limits<double>::max()),
 	counter(0),
 	parameters(cd->parameters(*params))
 {
@@ -173,12 +175,17 @@ int CMT::Trainable::callbackLBFGS(
 			cout << setw(6) << iteration << setw(11) << setprecision(5) << fx << endl;
 	}
 
+
 	if(params.callback && iteration % params.cbIter == 0) {
 		inst->cd->setParameters(x, params);
 
 		if(!(*params.callback)(iteration, *inst->cd))
 			return 1;
 	}
+
+	// check for convergence
+	if(inst->fx - fx < params.threshold)
+		return 1;
 
 	return 0;
 }
@@ -281,7 +288,7 @@ bool CMT::Trainable::train(
 	lbfgs_parameter_init(&hyperparams);
 	hyperparams.max_iterations = params.maxIter;
 	hyperparams.m = params.numGrad;
-	hyperparams.epsilon = params.threshold;
+	hyperparams.epsilon = 1e-7;
 	hyperparams.linesearch = LBFGS_LINESEARCH_MORETHUENTE;
 	hyperparams.max_linesearch = 100;
 	hyperparams.ftol = 1e-4;

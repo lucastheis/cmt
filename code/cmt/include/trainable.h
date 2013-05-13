@@ -109,6 +109,7 @@ namespace CMT {
 				double logLoss;
 				int counter;
 				lbfgsfloatval_t* parameters;
+				double fx;
 
 				InstanceLBFGS(
 					Trainable* cd,
