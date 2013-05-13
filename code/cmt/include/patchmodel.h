@@ -2,6 +2,7 @@
 #define CMT_PATCHMODEL_H
 
 #include <vector>
+#include <algorithm>
 #include <iostream>
 #include <cmath>
 #include "Eigen/Core"
@@ -14,6 +15,9 @@
 
 namespace CMT {
 	using std::vector;
+
+	using std::find;
+	using std::distance;
 
 	using std::cout;
 	using std::endl;
@@ -39,6 +43,7 @@ namespace CMT {
 			virtual ArrayXXb outputMask() const = 0;
 			virtual ArrayXXb inputMask(int i, int j) const = 0;
 			virtual ArrayXXb outputMask(int i, int j) const = 0;
+			virtual Tuples order() const = 0;
 
 			virtual Array<double, 1, Dynamic> logLikelihood(
 				int i, int j, const MatrixXd& data) const = 0;
@@ -52,8 +57,27 @@ namespace CMT {
 			PatchModel(
 				int rows,
 				int cols,
+				const CD* model = 0,
+				int maxPCs = -1);
+			PatchModel(
+				int rows,
+				int cols,
 				const ArrayXXb& inputMask,
 				const ArrayXXb& outputMask,
+				const CD* model = 0,
+				int maxPCs = -1);
+			PatchModel(
+				int rows,
+				int cols,
+				const Tuples& order,
+				const ArrayXXb& inputMask,
+				const ArrayXXb& outputMask,
+				const CD* model = 0,
+				int maxPCs = -1);
+			PatchModel(
+				int rows,
+				int cols,
+				const Tuples& order,
 				const CD* model = 0,
 				int maxPCs = -1);
 			virtual ~PatchModel();
@@ -66,6 +90,7 @@ namespace CMT {
 			ArrayXXb outputMask() const;
 			ArrayXXb inputMask(int i, int j) const;
 			ArrayXXb outputMask(int i, int j) const;
+			Tuples order() const;
 
 			CD& operator()(int i, int j);
 			const CD& operator()(int i, int j) const;
@@ -104,6 +129,7 @@ namespace CMT {
 			int mMaxPCs;
 			ArrayXXb mInputMask;
 			ArrayXXb mOutputMask;
+			Tuples mOutputIndices;
 			vector<Tuples> mInputIndices;
 			vector<CD> mConditionalDistributions;
 			vector<PC*> mPreconditioners;
@@ -112,6 +138,75 @@ namespace CMT {
 
 
 
+/**
+ * Constructs model which assumes image patches are generated pixel by pixel
+ * in row-major order.
+ *
+ * @param rows number of rows of the image patch
+ * @param cols number of columns of the image patch
+ * @param model template which will be used to initialize other models
+ * @param maxPCs used to reduce dimensionality of input to each model via PCA first
+ */
+template <class CD, class PC>
+CMT::PatchModel<CD, PC>::PatchModel(
+	int rows,
+	int cols,
+	const CD* model,
+	int maxPCs) :
+	mRows(rows),
+	mCols(cols),
+	mMaxPCs(maxPCs)
+{
+	mInputMask = ArrayXXb::Ones(2 * rows - 1, 2 * cols - 1);
+	mInputMask(rows - 1, cols - 1) = false;
+	mOutputMask = ArrayXXb::Zero(2 * rows - 1, 2 * cols - 1);
+	mOutputMask(rows - 1, cols - 1) = true;
+
+	// initialize conditional distributions
+	for(int i = 0; i < mRows; ++i)
+		for(int j = 0; j < mCols; ++j) {
+			// compute indices of input to model predicting pixel (i, j)
+			Tuples indices;
+
+			for(Tuples::iterator it = mOutputIndices.begin(); it != mOutputIndices.end(); ++it)
+				indices.push_back(*it);
+
+			mInputIndices.push_back(indices);
+			mOutputIndices.push_back(make_pair(i, j));
+
+			// dimensionality of input
+			int dimIn = mMaxPCs < 0 ?
+				indices.size() : min(static_cast<int>(indices.size()), mMaxPCs);
+
+			// create model for pixel (i, j)
+			if(model)
+				if(dimIn == model->dimIn())
+					// given model fits input
+					mConditionalDistributions.push_back(*model);
+				else
+					// given model doesn't fit input
+					mConditionalDistributions.push_back(CD(dimIn, *model));
+			else
+				// no model was given
+				mConditionalDistributions.push_back(CD(dimIn));
+
+			mPreconditioners.push_back(0);
+		}
+}
+
+
+
+/**
+ * Constructs model which assumes image patches are generated pixel by pixel
+ * in row-major order.
+ *
+ * @param rows number of rows of the image patch
+ * @param cols number of columns of the image patch
+ * @param inputMask mask used to constrain input to certain pixels
+ * @param outputMask mask indicating the output pixel
+ * @param model template which will be used to initialize other models
+ * @param maxPCs used to reduce dimensionality of input to each model via PCA first
+ */
 template <class CD, class PC>
 CMT::PatchModel<CD, PC>::PatchModel(
 	int rows,
@@ -137,11 +232,7 @@ CMT::PatchModel<CD, PC>::PatchModel(
 	int rowOffset = outputIndices[0].first;
 	int colOffset = outputIndices[0].second;
 
-	for(Tuples::iterator it = inputIndices.begin(); it != inputIndices.end(); ++it)
-		if(it->first > rowOffset || it->first == rowOffset && it->second > colOffset)
-			throw Exception("Invalid masks. Only top-left to bottom-right sampling is currently supported.");
-
-	// initialize conditional distributions with copy constructor
+	// initialize conditional distributions
 	for(int i = 0; i < rows; ++i)
 		for(int j = 0; j < cols; ++j) {
 			// compute indices of causal neighborhood at pixel (i, j)
@@ -152,14 +243,15 @@ CMT::PatchModel<CD, PC>::PatchModel(
 				int m = i + it->first - rowOffset;
 				int n = j + it->second - colOffset;
 
-				if(m >= 0 && m < mRows && n >= 0 && n < mCols)
+				if(m >= 0 && n >= 0 && m <= i && (n < j || m < i))
 					indices.push_back(make_pair(m, n));
 			}
 
 			mInputIndices.push_back(indices);
+			mOutputIndices.push_back(make_pair(i, j));
 
 			// dimensionality of input
-			int dimIn = mMaxPCs < 0 ? 
+			int dimIn = mMaxPCs < 0 ?
 				indices.size() : min(static_cast<int>(indices.size()), mMaxPCs);
 
 			// create model for pixel (i, j)
@@ -176,6 +268,151 @@ CMT::PatchModel<CD, PC>::PatchModel(
 
 			mPreconditioners.push_back(0);
 		}
+}
+
+
+
+/**
+ * Constructs model which generates pixels in a prespecified order.
+ *
+ * @param rows number of rows of the image patch
+ * @param cols number of columns of the image patch
+ * @param order list of pixel locations
+ * @param inputMask mask used to constrain input to certain pixels
+ * @param outputMask mask indicating the output pixel
+ * @param model template which will be used to initialize other models
+ * @param maxPCs used to reduce dimensionality of input to each model via PCA first
+ */
+template <class CD, class PC>
+CMT::PatchModel<CD, PC>::PatchModel(
+	int rows,
+	int cols,
+	const Tuples& order,
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask,
+	const CD* model,
+	int maxPCs) :
+	mRows(rows),
+	mCols(cols),
+	mMaxPCs(maxPCs),
+	mInputMask(inputMask),
+	mOutputMask(outputMask),
+	mOutputIndices(order)
+{
+	if(order.size() != mRows * mCols)
+		throw Exception("Invalid pixel order.");
+
+	// compute location of output index
+	Tuples outputIndices = maskToIndices(outputMask);
+
+	if(outputIndices.size() > 1)
+		throw Exception("Only one-dimensional outputs are currently supported.");
+
+	int rowOffset = outputIndices[0].first;
+	int colOffset = outputIndices[0].second;
+
+	// initialize conditional distributions
+	for(Tuples::iterator oit = mOutputIndices.begin(); oit != mOutputIndices.end(); ++oit) {
+		// location of pixel in patch
+		int i = oit->first;
+		int j = oit->second;
+
+		if(i < 0 || j < 0 || i >= mRows || j >= mCols)
+			throw Exception("Invalid pixel location in list of pixels.");
+
+		// compute indices of input to model predicting pixel (i, j)
+		Tuples indices;
+
+		for(Tuples::iterator iit = mOutputIndices.begin(); iit != oit; ++iit) {
+			// location of input pixel in mask
+			int m = iit->first - i + rowOffset;
+			int n = iit->second - j + colOffset;
+
+			// check if pixel is active in input mask
+			if(m >= 0 && n >= 0 && m < inputMask.rows() && n < inputMask.cols())
+				if(inputMask(m, n))
+					indices.push_back(*iit);
+		}
+
+		mInputIndices.push_back(indices);
+
+		// dimensionality of input
+		int dimIn = mMaxPCs < 0 ?
+			indices.size() : min(static_cast<int>(indices.size()), mMaxPCs);
+
+		// create model for pixel (i, j)
+		if(model)
+			if(dimIn == model->dimIn())
+				// given model fits input
+				mConditionalDistributions.push_back(*model);
+			else
+				// given model doesn't fit input
+				mConditionalDistributions.push_back(CD(dimIn, *model));
+		else
+			// no model was given
+			mConditionalDistributions.push_back(CD(dimIn));
+
+		mPreconditioners.push_back(0);
+	}
+}
+
+
+
+template <class CD, class PC>
+CMT::PatchModel<CD, PC>::PatchModel(
+	int rows,
+	int cols,
+	const Tuples& order,
+	const CD* model,
+	int maxPCs) :
+	mRows(rows),
+	mCols(cols),
+	mMaxPCs(maxPCs),
+	mOutputIndices(order)
+{
+	if(order.size() != mRows * mCols)
+		throw Exception("Invalid pixel order.");
+
+	mInputMask = ArrayXXb::Ones(2 * rows - 1, 2 * cols - 1);
+	mInputMask(rows - 1, cols - 1) = false;
+	mOutputMask = ArrayXXb::Zero(2 * rows - 1, 2 * cols - 1);
+	mOutputMask(rows - 1, cols - 1) = true;
+
+	// initialize conditional distributions
+	for(Tuples::iterator oit = mOutputIndices.begin(); oit != mOutputIndices.end(); ++oit) {
+		// location of pixel in patch
+		int i = oit->first;
+		int j = oit->second;
+
+		if(i < 0 || j < 0 || i >= mRows || j >= mCols)
+			throw Exception("Invalid pixel location in list of pixels.");
+
+		// compute indices of input to model predicting pixel (i, j)
+		Tuples indices;
+
+		for(Tuples::iterator iit = mOutputIndices.begin(); iit != oit; ++iit)
+			indices.push_back(*iit);
+
+		mInputIndices.push_back(indices);
+
+		// dimensionality of input
+		int dimIn = mMaxPCs < 0 ?
+			indices.size() : min(static_cast<int>(indices.size()), mMaxPCs);
+
+		// create model for pixel (i, j)
+		if(model)
+			if(dimIn == model->dimIn())
+				// given model fits input
+				mConditionalDistributions.push_back(*model);
+			else
+				// given model doesn't fit input
+				mConditionalDistributions.push_back(CD(dimIn, *model));
+		else
+			// no model was given
+			mConditionalDistributions.push_back(CD(dimIn));
+
+		mPreconditioners.push_back(0);
+	}
 }
 
 
@@ -235,7 +472,9 @@ template <class CD, class PC>
 Eigen::ArrayXXb CMT::PatchModel<CD, PC>::inputMask(int i, int j) const {
 	ArrayXXb inputMask = ArrayXXb::Zero(mRows, mCols);
 
-	int k = i * mRows + j;
+	// find index corresponding to pixel (i, j)
+	Tuples::const_iterator it = find(mOutputIndices.begin(), mOutputIndices.end(), make_pair(i, j));
+	int k = distance(mOutputIndices.begin(), it);
 
 	for(Tuples::const_iterator it = mInputIndices[k].begin(); it != mInputIndices[k].end(); ++it)
 		inputMask(it->first, it->second) = true;
@@ -250,6 +489,13 @@ Eigen::ArrayXXb CMT::PatchModel<CD, PC>::outputMask(int i, int j) const {
 	ArrayXXb outputMask = ArrayXXb::Zero(mRows, mCols);
 	outputMask(i, j) = true;
 	return outputMask;
+}
+
+
+
+template <class CD, class PC>
+CMT::Tuples CMT::PatchModel<CD, PC>::order() const {
+	return mOutputIndices;
 }
 
 
@@ -321,9 +567,14 @@ void CMT::PatchModel<CD, PC>::setPreconditioner(int i, int j, const PC& precondi
 template <class CD, class PC>
 void CMT::PatchModel<CD, PC>::initialize(const MatrixXd& data, const Parameters& params) {
 	for(int i = 0; i < mRows * mCols; ++i) {
-		MatrixXd output = data.row(i);
+		int m = mOutputIndices[i].first;
+		int n = mOutputIndices[i].second;
+
+		// assumes patch is stored in row-major order
+		MatrixXd output = data.row(m * mCols + n);
 		MatrixXd input(mInputIndices[i].size(), data.cols());
 
+		#pragma omp parallel for
 		for(int j = 0; j < mInputIndices[i].size(); ++j) {
 			// coordinates of j-th input to i-th model
 			int m = mInputIndices[i][j].first;
@@ -352,8 +603,12 @@ bool CMT::PatchModel<CD, PC>::train(const MatrixXd& data, const Parameters& para
 	bool converged = true;
 
 	for(int i = 0; i < mRows * mCols; ++i) {
+		// coordinates of i-th output pixels
+		int m = mOutputIndices[i].first;
+		int n = mOutputIndices[i].second;
+
 		// assumes patch is stored in row-major order
-		MatrixXd output = data.row(i);
+		MatrixXd output = data.row(m * mCols + n);
 		MatrixXd input(mInputIndices[i].size(), data.cols());
 
 		// extract inputs and outputs from patches
@@ -394,10 +649,14 @@ bool CMT::PatchModel<CD, PC>::train(
 	bool converged = true;
 
 	for(int i = 0; i < mRows * mCols; ++i) {
+		// coordinates of i-th output pixels
+		int m = mOutputIndices[i].first;
+		int n = mOutputIndices[i].second;
+
 		// assumes patch is stored in row-major order
-		MatrixXd output = data.row(i);
+		MatrixXd output = data.row(m * mCols + n);
 		MatrixXd input(mInputIndices[i].size(), data.cols());
-		MatrixXd outputVal = dataVal.row(i);
+		MatrixXd outputVal = dataVal.row(m * mCols + n);
 		MatrixXd inputVal(mInputIndices[i].size(), dataVal.cols());
 
 		// extract inputs and outputs from patches
@@ -435,9 +694,14 @@ bool CMT::PatchModel<CD, PC>::train(
 
 template <class CD, class PC>
 bool CMT::PatchModel<CD, PC>::train(int i, int j, const MatrixXd& data, const Parameters& params) {
-	int k = i * mCols + j;
+	// find index corresponding to pixel (i, j)
+	Tuples::iterator it = find(mOutputIndices.begin(), mOutputIndices.end(), make_pair(i, j));
+	int k = distance(mOutputIndices.begin(), it);
 
-	MatrixXd output = data.row(k);
+	if(it == mOutputIndices.end())
+		throw Exception("Invalid indices");
+
+	MatrixXd output = data.row(i * mCols + j);
 	MatrixXd input(mInputIndices[k].size(), data.cols());
 
 	// extract inputs and outputs from patches
@@ -471,11 +735,17 @@ bool CMT::PatchModel<CD, PC>::train(
 	const MatrixXd& dataVal,
 	const Parameters& params)
 {
-	int k = i * mCols + j;
+	// find index corresponding to pixel (i, j)
+	Tuples::iterator it = find(mOutputIndices.begin(), mOutputIndices.end(), make_pair(i, j));
+	int k = distance(mOutputIndices.begin(), it);
 
-	MatrixXd output = data.row(k);
+	if(it == mOutputIndices.end())
+		throw Exception("Invalid indices");
+
+	// assumes patch is stored in row-major order
+	MatrixXd output = data.row(i * mCols + j);
 	MatrixXd input(mInputIndices[k].size(), data.cols());
-	MatrixXd outputVal = dataVal.row(k);
+	MatrixXd outputVal = dataVal.row(i * mCols + j);
 	MatrixXd inputVal(mInputIndices[k].size(), dataVal.cols());
 
 	// extract inputs and outputs from patches
@@ -512,8 +782,11 @@ Eigen::Array<double, 1, Eigen::Dynamic> CMT::PatchModel<CD, PC>::logLikelihood(
 	Array<double, 1, Dynamic> logLik = Array<double, 1, Dynamic>::Zero(data.cols());
 
 	for(int i = 0; i < mRows * mCols; ++i) {
+		int m = mOutputIndices[i].first;
+		int n = mOutputIndices[i].second;
+
 		// assumes patch is stored in row-major order
-		MatrixXd output = data.row(i);
+		MatrixXd output = data.row(m * mCols + n);
 		MatrixXd input(mInputIndices[i].size(), data.cols());
 
 		for(int j = 0; j < mInputIndices[i].size(); ++j) {
@@ -545,12 +818,17 @@ template <class CD, class PC>
 Eigen::Array<double, 1, Eigen::Dynamic> CMT::PatchModel<CD, PC>::logLikelihood(
 	int i, int j, const MatrixXd& data) const
 {
-	int k = i * mCols + j;
+	// find index corresponding to pixel (i, j)
+	Tuples::const_iterator it = find(mOutputIndices.begin(), mOutputIndices.end(), make_pair(i, j));
+	int k = distance(mOutputIndices.begin(), it);
+
+	if(it == mOutputIndices.end())
+		throw Exception("Invalid indices");
 
 	Array<double, 1, Dynamic> logLik = Array<double, 1, Dynamic>::Zero(data.cols());
 
 	// assumes patch is stored in row-major order
-	MatrixXd output = data.row(k);
+	MatrixXd output = data.row(i * mCols + j);
 	MatrixXd input(mInputIndices[k].size(), data.cols());
 
 	for(int l = 0; l < mInputIndices[k].size(); ++l) {
@@ -592,14 +870,17 @@ Eigen::MatrixXd CMT::PatchModel<CD, PC>::sample(int num_samples) const {
 			input.row(j) = samples.row(m * mCols + n);
 		}
 
+		int m = mOutputIndices[i].first;
+		int n = mOutputIndices[i].second;
+
 		if(mMaxPCs < 0) {
-			samples.row(i) = mConditionalDistributions[i].sample(input);
+			samples.row(m * mCols + n) = mConditionalDistributions[i].sample(input);
 		} else {
 			if(!mPreconditioners[i])
 				throw Exception("Model has to be initialized first.");
 			MatrixXd inputPc = mPreconditioners[i]->operator()(input);
 			MatrixXd outputPc = mConditionalDistributions[i].sample(inputPc);
-			samples.row(i) = mPreconditioners[i]->inverse(inputPc, outputPc).second;
+			samples.row(m * mCols + n) = mPreconditioners[i]->inverse(inputPc, outputPc).second;
 		}
 	}
 

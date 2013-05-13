@@ -72,6 +72,14 @@ PyObject* PatchModel_output_mask(PatchModelObject* self, PyObject* args) {
 
 
 
+PyObject* PatchModel_order(PatchModelObject* self, void*) {
+	PyObject* list = PyList_FromTuples(self->distribution->order());
+	Py_INCREF(list);
+	return list;
+}
+
+
+
 PyObject* PatchModel_loglikelihood(PatchModelObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"i", "j", "data", 0};
 

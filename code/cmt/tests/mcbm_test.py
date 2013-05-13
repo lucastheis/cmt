@@ -174,7 +174,7 @@ class Tests(unittest.TestCase):
 		xmask[-1, -1] = False
 		ymask[-1, -1] = True
 
-		model = PatchMCBM(8, 8, xmask, ymask, MCBM(sum(xmask), 1))
+		model = PatchMCBM(8, 8, xmask, ymask, model=MCBM(sum(xmask), 1))
 
 		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
 		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)
@@ -184,6 +184,23 @@ class Tests(unittest.TestCase):
 				self.assertEqual(model[i, j].dim_in, (i + 1) * (j + 1) - 1)
 				self.assertTrue(isinstance(model[i, j], MCBM))
 
+		# random pixel ordering
+		rows, cols = 7, 5
+		order = [(i // cols, i % cols) for i in permutation(rows * cols)]
+
+		model = PatchMCBM(rows, cols, xmask, ymask, order, MCBM(sum(xmask), 1))
+
+		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
+		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)
+
+		# test constructors
+		model0 = PatchMCBM(rows, cols, max_pcs=3)
+		model1 = PatchMCBM(rows, cols, model0.input_mask(), model0.output_mask(), model0.order)
+
+		self.assertLess(max(abs(model0.input_mask() - model1.input_mask())), 1e-8)
+		self.assertLess(max(abs(model0.output_mask() - model1.output_mask())), 1e-8)
+		self.assertLess(max(abs(asarray(model0.order) - asarray(model1.order))), 1e-8)
+
 
 
 	def test_patchmcbm_train(self):
@@ -192,7 +209,7 @@ class Tests(unittest.TestCase):
 		xmask[-1, -1] = False
 		ymask[-1, -1] = True
 
-		model = PatchMCBM(2, 2, xmask, ymask, MCBM(sum(xmask), 1, 1))
+		model = PatchMCBM(2, 2, xmask, ymask, model=MCBM(sum(xmask), 1, 1))
 
 		# checkerboard
 		data = array([[0, 1], [1, 0]], dtype='bool').reshape(-1, 1)

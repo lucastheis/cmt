@@ -356,6 +356,7 @@ PyTypeObject MCBM_type = {
 static PyGetSetDef PatchModel_getset[] = {
 	{"rows", (getter)PatchModel_rows, 0, "Number of rows of the modeled patches."},
 	{"cols", (getter)PatchModel_cols, 0, "Number of columns of the modeled patches."},
+	{"order", (getter)PatchModel_order, 0, "Order in which pixels are sampled."},
 	{0}
 };
 
