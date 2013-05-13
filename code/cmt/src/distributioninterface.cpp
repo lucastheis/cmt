@@ -60,14 +60,11 @@ PyObject* Distribution_sample(DistributionObject* self, PyObject* args, PyObject
 
 	int num_samples;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "i", const_cast<char**>(kwlist),
-		&num_samples))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "i", const_cast<char**>(kwlist), &num_samples))
 		return 0;
 
 	try {
-		PyObject* result = PyArray_FromMatrixXd(self->dist->sample(
-			num_samples));
-		return result;
+		return PyArray_FromMatrixXd(self->dist->sample(num_samples));
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;

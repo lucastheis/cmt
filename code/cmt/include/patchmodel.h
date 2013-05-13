@@ -133,6 +133,8 @@ namespace CMT {
 			vector<Tuples> mInputIndices;
 			vector<CD> mConditionalDistributions;
 			vector<PC*> mPreconditioners;
+
+			int findIndex(int i, int j) const;
 	};
 }
 
@@ -472,9 +474,7 @@ template <class CD, class PC>
 Eigen::ArrayXXb CMT::PatchModel<CD, PC>::inputMask(int i, int j) const {
 	ArrayXXb inputMask = ArrayXXb::Zero(mRows, mCols);
 
-	// find index corresponding to pixel (i, j)
-	Tuples::const_iterator it = find(mOutputIndices.begin(), mOutputIndices.end(), make_pair(i, j));
-	int k = distance(mOutputIndices.begin(), it);
+	int k = findIndex(i, j);
 
 	for(Tuples::const_iterator it = mInputIndices[k].begin(); it != mInputIndices[k].end(); ++it)
 		inputMask(it->first, it->second) = true;
@@ -533,9 +533,13 @@ template <class CD, class PC>
 const PC& CMT::PatchModel<CD, PC>::preconditioner(int i, int j) const {
 	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
 		throw Exception("Invalid indices.");
-	if(!mPreconditioners[i * mCols + j])
-		throw Exception("The model at this pixel has no preconditioner.");
-	return *mPreconditioners[i * mCols + j];
+
+	int k = findIndex(i, j);
+
+	if(!mPreconditioners[k])
+		throw Exception("The model for this pixel has no preconditioner.");
+
+	return *mPreconditioners[k];
 }
 
 
@@ -548,15 +552,15 @@ void CMT::PatchModel<CD, PC>::setPreconditioner(int i, int j, const PC& precondi
 	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
 		throw Exception("Invalid indices.");
 
-	int index = i * mCols + j;
+	int k = findIndex(i, j);
 
-	if(preconditioner.dimIn() != mInputIndices[index].size() ||
-		preconditioner.dimInPre() != mConditionalDistributions[index].dimIn() ||
-		preconditioner.dimOutPre() != mConditionalDistributions[index].dimOut())
+	if(preconditioner.dimIn() != mInputIndices[k].size() ||
+		preconditioner.dimInPre() != mConditionalDistributions[k].dimIn() ||
+		preconditioner.dimOutPre() != mConditionalDistributions[k].dimOut())
 		throw Exception("Preconditioner is incompatible with model.");
 
-	PC* preconditionerOld = mPreconditioners[index];
-	mPreconditioners[index] = new PC(preconditioner);
+	PC* preconditionerOld = mPreconditioners[k];
+	mPreconditioners[k] = new PC(preconditioner);
 	
 	if(preconditionerOld)
 		delete preconditionerOld;
@@ -694,12 +698,7 @@ bool CMT::PatchModel<CD, PC>::train(
 
 template <class CD, class PC>
 bool CMT::PatchModel<CD, PC>::train(int i, int j, const MatrixXd& data, const Parameters& params) {
-	// find index corresponding to pixel (i, j)
-	Tuples::iterator it = find(mOutputIndices.begin(), mOutputIndices.end(), make_pair(i, j));
-	int k = distance(mOutputIndices.begin(), it);
-
-	if(it == mOutputIndices.end())
-		throw Exception("Invalid indices");
+	int k = findIndex(i, j);
 
 	MatrixXd output = data.row(i * mCols + j);
 	MatrixXd input(mInputIndices[k].size(), data.cols());
@@ -735,12 +734,7 @@ bool CMT::PatchModel<CD, PC>::train(
 	const MatrixXd& dataVal,
 	const Parameters& params)
 {
-	// find index corresponding to pixel (i, j)
-	Tuples::iterator it = find(mOutputIndices.begin(), mOutputIndices.end(), make_pair(i, j));
-	int k = distance(mOutputIndices.begin(), it);
-
-	if(it == mOutputIndices.end())
-		throw Exception("Invalid indices");
+	int k = findIndex(i, j);
 
 	// assumes patch is stored in row-major order
 	MatrixXd output = data.row(i * mCols + j);
@@ -818,12 +812,7 @@ template <class CD, class PC>
 Eigen::Array<double, 1, Eigen::Dynamic> CMT::PatchModel<CD, PC>::logLikelihood(
 	int i, int j, const MatrixXd& data) const
 {
-	// find index corresponding to pixel (i, j)
-	Tuples::const_iterator it = find(mOutputIndices.begin(), mOutputIndices.end(), make_pair(i, j));
-	int k = distance(mOutputIndices.begin(), it);
-
-	if(it == mOutputIndices.end())
-		throw Exception("Invalid indices");
+	int k = findIndex(i, j);
 
 	Array<double, 1, Dynamic> logLik = Array<double, 1, Dynamic>::Zero(data.cols());
 
@@ -885,6 +874,19 @@ Eigen::MatrixXd CMT::PatchModel<CD, PC>::sample(int num_samples) const {
 	}
 
 	return samples;
+}
+
+
+
+template<class CD, class PC>
+int CMT::PatchModel<CD, PC>::findIndex(int i, int j) const {
+	// find index corresponding to pixel (i, j)
+	Tuples::const_iterator it = find(mOutputIndices.begin(), mOutputIndices.end(), make_pair(i, j));
+
+	if(it == mOutputIndices.end())
+		throw Exception("Invalid indices");
+
+	return distance(mOutputIndices.begin(), it);
 }
 
 #endif

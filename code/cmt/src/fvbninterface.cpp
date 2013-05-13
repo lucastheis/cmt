@@ -26,6 +26,9 @@ const char* FVBN_doc =
 	"@type  ymask: C{ndarray}\n"
 	"@param ymask: a Boolean array describing the output pixels\n"
 	"\n"
+	"@type  order: C{list}\n"
+	"@param order: list of tuples indicating order of pixels\n"
+	"\n"
 	"@type  model: L{GLM}\n"
 	"@param model: model used as a template to initialize conditional distributions\n"
 	"\n"
@@ -33,66 +36,115 @@ const char* FVBN_doc =
 	"@param max_pcs: can be used to reduce dimensionality of inputs to conditional models";
 
 int FVBN_init(FVBNObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"rows", "cols", "xmask", "ymask", "model", "max_pcs", 0};
+	const char* kwlist[] = {"rows", "cols", "xmask", "ymask", "order", "model", "max_pcs", 0};
 
 	int rows;
 	int cols;
-	PyObject* xmask;
-	PyObject* ymask;
+	PyObject* xmask = 0;
+	PyObject* ymask = 0;
+	PyObject* order = 0;
 	PyObject* model = 0;
 	int max_pcs = -1;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiOO|Oi", const_cast<char**>(kwlist),
-		&rows, &cols, &xmask, &ymask, &model, &max_pcs))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "ii|OOOOi", const_cast<char**>(kwlist),
+		&rows, &cols, &xmask, &ymask, &order, &model, &max_pcs))
 		return -1;
+
+	if(order == Py_None)
+		order = 0;
+
+	if(order && !PyList_Check(order)) {
+		PyErr_SetString(PyExc_TypeError, "`order` should be of type `list`.");
+		return -1;
+	}
 
 	if(model == Py_None)
 		model = 0;
 
 	if(model && !PyType_IsSubtype(Py_TYPE(model), &GLM_type)) {
 		PyErr_SetString(PyExc_TypeError, "Model has to be of type `GLM`.");
-		return 0;
+		return -1;
 	}
 
-	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	if(xmask && ymask) {
+		xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
-	if(!xmask || !ymask) {
-		Py_XDECREF(xmask);
-		Py_XDECREF(ymask);
-		PyErr_SetString(PyExc_TypeError, "Masks have to be given as Boolean arrays.");
-		return 0;
+		if(!xmask || !ymask) {
+			Py_XDECREF(xmask);
+			Py_XDECREF(ymask);
+			PyErr_SetString(PyExc_TypeError, "Masks have to be given as Boolean arrays.");
+			return -1;
+		}
 	}
 
 	// create the actual model
 	try {
+		GLM* glm;
+
 		if(model) {
-			self->fvbn = new PatchModel<GLM, PCATransform>(
-				rows,
-				cols,
-				PyArray_ToMatrixXb(xmask),
-				PyArray_ToMatrixXb(ymask),
-				reinterpret_cast<GLMObject*>(model)->glm,
-				max_pcs);
+			glm = reinterpret_cast<GLMObject*>(model)->glm; 
+
+			// TODO: fix this memory leak
+			Py_INCREF(model);
+
 			self->nonlinearityType = Py_TYPE(reinterpret_cast<GLMObject*>(model)->nonlinearity);
 			self->distributionType = Py_TYPE(reinterpret_cast<GLMObject*>(model)->distribution);
 		} else {
-			GLM* glm = new GLM(1, fvbnNonlinearity, fvbnDistribution);
+			glm = new GLM(1, fvbnNonlinearity, fvbnDistribution);
 
-			self->fvbn = new PatchModel<GLM, PCATransform>(
-				rows,
-				cols,
-				PyArray_ToMatrixXb(xmask),
-				PyArray_ToMatrixXb(ymask),
-				glm,
-				max_pcs);
 			self->nonlinearityType = &LogisticFunction_type;
 			self->distributionType = &Bernoulli_type;
-
-			delete glm;
 		}
+
+		if(order) {
+			if(xmask && ymask) {
+				self->fvbn = new PatchModel<GLM, PCATransform>(
+					rows,
+					cols,
+					PyList_AsTuples(order),
+					PyArray_ToMatrixXb(xmask),
+					PyArray_ToMatrixXb(ymask),
+					glm,
+					max_pcs);
+
+				Py_DECREF(xmask);
+				Py_DECREF(ymask);
+			} else {
+				self->fvbn = new PatchModel<GLM, PCATransform>(
+					rows,
+					cols,
+					PyList_AsTuples(order),
+					glm,
+					max_pcs);
+			}
+		} else {
+			if(xmask && ymask) {
+				self->fvbn = new PatchModel<GLM, PCATransform>(
+					rows,
+					cols,
+					PyArray_ToMatrixXb(xmask),
+					PyArray_ToMatrixXb(ymask),
+					glm,
+					max_pcs);
+
+				Py_DECREF(xmask);
+				Py_DECREF(ymask);
+			} else {
+				self->fvbn = new PatchModel<GLM, PCATransform>(
+					rows,
+					cols,
+					glm,
+					max_pcs);
+			}
+		}
+
+		if(model)
+			delete glm;
 	} catch(Exception exception) {
+		Py_XDECREF(xmask);
+		Py_XDECREF(ymask);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return -1;
 	}
@@ -456,15 +508,17 @@ PyObject* FVBN_reduce(FVBNObject* self, PyObject*) {
 	int cols = self->fvbn->cols();
 	int maxPCs = self->fvbn->maxPCs();
 
+	PyObject* order = PatchModel_order(reinterpret_cast<PatchModelObject*>(self), 0);
 	PyObject* inputMask = PatchModel_input_mask(reinterpret_cast<PatchModelObject*>(self), 0);
 	PyObject* outputMask = PatchModel_output_mask(reinterpret_cast<PatchModelObject*>(self), 0);
 
 	// constructor arguments
-	PyObject* args = Py_BuildValue("(iiOOOi)",
+	PyObject* args = Py_BuildValue("(iiOOOOi)",
 		rows,
 		cols,
 		inputMask,
 		outputMask,
+		order,
 		Py_None,
 		maxPCs);
 	

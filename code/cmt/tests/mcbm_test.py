@@ -201,6 +201,15 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(model0.output_mask() - model1.output_mask())), 1e-8)
 		self.assertLess(max(abs(asarray(model0.order) - asarray(model1.order))), 1e-8)
 
+		# test computation of input masks
+		model = PatchMCBM(rows, cols, order, max_pcs=3)
+
+		i, j = model0.order[0]
+		input_mask = model.input_mask(i, j)
+		for i, j in model.order[1:]:
+			self.assertEqual(sum(model.input_mask(i, j) - input_mask), 1)
+			input_mask = model.input_mask(i, j)
+
 
 
 	def test_patchmcbm_train(self):

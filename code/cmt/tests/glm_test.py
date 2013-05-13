@@ -111,6 +111,8 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(p0.loglikelihood(x) - p1.loglikelihood(x))), 1e-6)
 
 		model0 = GLM(5, LogisticFunction, Bernoulli)
+		model0.weights = randn(*model0.weights.shape)
+		model0.bias = randn()
 
 		# store model
 		with open(tmp_file, 'w') as handle:
@@ -121,6 +123,7 @@ class Tests(unittest.TestCase):
 			model1 = load(handle)['model']
 
 		# make sure parameters haven't changed
+		self.assertLess(max(abs(model0.bias - model1.bias)), 1e-20)
 		self.assertLess(max(abs(model0.weights - model1.weights)), 1e-20)
 
 		x = randn(model0.dim_in, 100)

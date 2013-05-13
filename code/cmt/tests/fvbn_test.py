@@ -1,7 +1,8 @@
+import sys
 import unittest
 
 from numpy import *
-from numpy.random import randn
+from numpy.random import randn, permutation
 from numpy import max
 from cmt import FVBN, GLM, LogisticFunction, Bernoulli
 from pickle import dump, load
@@ -32,7 +33,7 @@ class Tests(unittest.TestCase):
 		xmask[-1, -1] = False
 		ymask[-1, -1] = True
 
-		model = FVBN(2, 2, xmask, ymask, GLM(sum(xmask), LogisticFunction, Bernoulli))
+		model = FVBN(2, 2, xmask, ymask, model=GLM(sum(xmask), LogisticFunction, Bernoulli))
 
 		# checkerboard
 		data = array([[0, 1], [1, 0]], dtype='bool').reshape(-1, 1)
@@ -56,7 +57,9 @@ class Tests(unittest.TestCase):
 		xmask[-1, -1] = False
 		ymask[-1, -1] = True
 
-		model0 = FVBN(2, 2, xmask, ymask)
+		order = [(i // 2, i % 2) for i in permutation(4)]
+
+		model0 = FVBN(2, 2, xmask, ymask, order, GLM(sum(xmask), LogisticFunction, Bernoulli))
 
 		samples = model0.sample(1000)
 
@@ -76,7 +79,7 @@ class Tests(unittest.TestCase):
 
 		for i in range(model0.rows):
 			for j in range(model0.cols):
-				if i > 0 or j > 0:
+				if model0[i, j].dim_in > 0:
 					self.assertLess(max(abs(model0[i, j].weights - model1[i, j].weights)), 1e-8)
 					self.assertLess(max(abs(model0[i, j].bias - model1[i, j].bias)), 1e-8)
 
