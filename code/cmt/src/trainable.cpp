@@ -87,9 +87,9 @@ CMT::Trainable::InstanceLBFGS::InstanceLBFGS(
 	inputVal(0),
 	outputVal(0),
 	logLoss(numeric_limits<double>::max()),
-	fx(numeric_limits<double>::max()),
 	counter(0),
-	parameters(0)
+	parameters(0),
+	fx(numeric_limits<double>::max())
 {
 }
 
@@ -109,9 +109,9 @@ CMT::Trainable::InstanceLBFGS::InstanceLBFGS(
 	inputVal(inputVal),
 	outputVal(outputVal),
 	logLoss(numeric_limits<double>::max()),
-	fx(numeric_limits<double>::max()),
 	counter(0),
-	parameters(cd->parameters(*params))
+	parameters(cd->parameters(*params)),
+	fx(numeric_limits<double>::max())
 {
 }
 
