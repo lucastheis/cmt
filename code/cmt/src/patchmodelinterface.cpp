@@ -72,10 +72,25 @@ PyObject* PatchModel_output_mask(PatchModelObject* self, PyObject* args) {
 
 
 
+PyObject* PatchModel_input_indices(PatchModelObject* self, PyObject* args) {
+	int i;
+	int j;
+
+	if(args && !PyArg_ParseTuple(args, "ii", &i, &j))
+		return 0;
+
+	if(i >= 0 && j < 0) {
+		PyErr_SetString(PyExc_TypeError, "Index should consist of a row and a column.");
+		return 0;
+	}
+
+	return PyList_FromTuples(self->distribution->inputIndices(i, j));
+}
+
+
+
 PyObject* PatchModel_order(PatchModelObject* self, void*) {
-	PyObject* list = PyList_FromTuples(self->distribution->order());
-	Py_INCREF(list);
-	return list;
+	return PyList_FromTuples(self->distribution->order());
 }
 
 

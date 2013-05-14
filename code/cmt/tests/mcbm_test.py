@@ -193,6 +193,10 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
 		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)
 
+		for i in range(rows):
+			for j in range(cols):
+				self.assertEqual(model.input_mask(i, j).sum(), model[i, j].dim_in)
+
 		# test constructors
 		model0 = PatchMCBM(rows, cols, max_pcs=3)
 		model1 = PatchMCBM(rows, cols, model0.input_mask(), model0.output_mask(), model0.order)
@@ -353,6 +357,23 @@ class Tests(unittest.TestCase):
 			model1 = load(handle)['model']
 
 		self.assertAlmostEqual(mean(model1.loglikelihood(samples)), logLik)
+
+		rows, cols = 7, 5
+		order = [(i // cols, i % cols) for i in permutation(rows * cols)]
+
+		model0 = PatchMCBM(rows, cols, xmask, ymask, order)
+
+		# store model
+		with open(tmp_file, 'w') as handle:
+			dump({'model': model0}, handle)
+
+		# load model
+		with open(tmp_file) as handle:
+			model1 = load(handle)['model']
+
+		for i in range(rows):
+			for j in range(cols):
+				self.assertEqual(model1.input_mask(i, j).sum(), model1[i, j].dim_in)
 
 
 

@@ -43,6 +43,7 @@ namespace CMT {
 			virtual ArrayXXb outputMask() const = 0;
 			virtual ArrayXXb inputMask(int i, int j) const = 0;
 			virtual ArrayXXb outputMask(int i, int j) const = 0;
+			virtual Tuples inputIndices(int i, int j) const = 0;
 			virtual Tuples order() const = 0;
 
 			virtual Array<double, 1, Dynamic> logLikelihood(
@@ -90,6 +91,7 @@ namespace CMT {
 			ArrayXXb outputMask() const;
 			ArrayXXb inputMask(int i, int j) const;
 			ArrayXXb outputMask(int i, int j) const;
+			Tuples inputIndices(int i, int j) const;
 			Tuples order() const;
 
 			CD& operator()(int i, int j);
@@ -494,6 +496,13 @@ Eigen::ArrayXXb CMT::PatchModel<CD, PC>::outputMask(int i, int j) const {
 
 
 template <class CD, class PC>
+CMT::Tuples CMT::PatchModel<CD, PC>::inputIndices(int i, int j) const {
+	return mInputIndices[findIndex(i, j)];
+}
+
+
+
+template <class CD, class PC>
 CMT::Tuples CMT::PatchModel<CD, PC>::order() const {
 	return mOutputIndices;
 }
@@ -504,7 +513,7 @@ template <class CD, class PC>
 CD& CMT::PatchModel<CD, PC>::operator()(int i, int j) {
 	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
 		throw Exception("Invalid indices.");
-	return mConditionalDistributions[i * mCols + j];
+	return mConditionalDistributions[findIndex(i, j)];
 }
 
 
@@ -513,7 +522,7 @@ template <class CD, class PC>
 const CD& CMT::PatchModel<CD, PC>::operator()(int i, int j) const {
 	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
 		throw Exception("Invalid indices.");
-	return mConditionalDistributions[i * mCols + j];
+	return mConditionalDistributions[findIndex(i, j)];
 }
 
 
@@ -522,9 +531,13 @@ template <class CD, class PC>
 PC& CMT::PatchModel<CD, PC>::preconditioner(int i, int j) {
 	if(i < 0 || j < 0 || j >= mCols || i >= mRows)
 		throw Exception("Invalid indices.");
-	if(!mPreconditioners[i * mCols + j])
+
+	int k = findIndex(i, j);
+
+	if(!mPreconditioners[k])
 		throw Exception("The model at this pixel has no preconditioner.");
-	return *mPreconditioners[i * mCols + j];
+
+	return *mPreconditioners[k];
 }
 
 

@@ -25,6 +25,7 @@ PyObject* PatchModel_cols(PatchModelObject*, void*);
 PyObject* PatchModel_input_mask(PatchModelObject*, PyObject*);
 PyObject* PatchModel_output_mask(PatchModelObject*, PyObject*);
 
+PyObject* PatchModel_input_indices(PatchModelObject*, PyObject*);
 PyObject* PatchModel_order(PatchModelObject*, void*);
 
 PyObject* PatchModel_subscript(PatchModelObject*, PyObject*);
