@@ -69,6 +69,15 @@ Trainable::Parameters* PyObject_ToParameters(PyObject* parameters) {
 				params->cbIter = static_cast<int>(PyFloat_AsDouble(cb_iter));
 			else
 				throw Exception("cb_iter should be of type `int`.");
+
+		PyObject* val_iter = PyDict_GetItemString(parameters, "val_iter");
+		if(val_iter)
+			if(PyInt_Check(val_iter))
+				params->valIter = PyInt_AsLong(val_iter);
+			else if(PyFloat_Check(val_iter))
+				params->valIter = static_cast<int>(PyFloat_AsDouble(val_iter));
+			else
+				throw Exception("val_iter should be of type `int`.");
 	}
 
 	return params;
