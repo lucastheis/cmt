@@ -993,6 +993,12 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 		return -1;
 	}
 
+	if(xmask == Py_None)
+		xmask = 0;
+
+	if(ymask == Py_None)
+		ymask = 0;
+
 	if(xmask && ymask) {
 		xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 		ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
