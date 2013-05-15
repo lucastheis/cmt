@@ -17,6 +17,8 @@ using CMT::MCBM;
 using CMT::PatchModel;
 using CMT::Tuples;
 
+#include <iostream>
+
 MCBM::Parameters PyObject_ToMCBMParameters(PyObject* parameters) {
 	MCBM::Parameters params;
 
@@ -981,7 +983,7 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 		order = 0;
 
 	if(order && !PyList_Check(order)) {
-		PyErr_SetString(PyExc_TypeError, "`order` should be of type `list`.");
+		PyErr_SetString(PyExc_TypeError, "Pixel order should be of type `list`.");
 		return -1;
 	}
 
@@ -989,7 +991,7 @@ int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
 		model = 0;
 
 	if(model && !PyType_IsSubtype(Py_TYPE(model), &MCBM_type)) {
-		PyErr_SetString(PyExc_TypeError, "Model has to be of type `MCBM`.");
+		PyErr_SetString(PyExc_TypeError, "Model should be a subtype of `MCBM`.");
 		return -1;
 	}
 

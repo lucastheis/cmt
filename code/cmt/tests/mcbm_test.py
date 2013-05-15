@@ -292,6 +292,28 @@ class Tests(unittest.TestCase):
 
 
 
+	def test_patchmcbm_input_indices(self):
+		xmask = ones([2, 3], dtype='bool')
+		ymask = zeros([2, 3], dtype='bool')
+		xmask[-1, 1:] = False
+		ymask[-1, 1] = True
+
+		model = PatchMCBM(5, 8, xmask, ymask)
+
+		for i in range(model.rows):
+			for j in range(model.cols):
+				self.assertEqual(len(model.input_indices(i, j)), model.input_mask(i, j).sum())
+
+		order = [(i // 8, i % 8) for i in permutation(40)]
+
+		model = PatchMCBM(5, 8, xmask, ymask, order)
+
+		for i in range(model.rows):
+			for j in range(model.cols):
+				self.assertEqual(len(model.input_indices(i, j)), model.input_mask(i, j).sum())
+
+
+
 	def test_patchmcbm_pickle(self):
 		xmask = ones([2, 2], dtype='bool')
 		ymask = zeros([2, 2], dtype='bool')

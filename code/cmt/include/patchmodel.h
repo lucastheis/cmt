@@ -247,7 +247,7 @@ CMT::PatchModel<CD, PC>::PatchModel(
 				int m = i + it->first - rowOffset;
 				int n = j + it->second - colOffset;
 
-				if(m >= 0 && n >= 0 && m <= i && (n < j || m < i))
+				if(m >= 0 && n >= 0 && m < mRows && n < mCols && m <= i && (n < j || m < i))
 					indices.push_back(make_pair(m, n));
 			}
 
@@ -333,7 +333,7 @@ CMT::PatchModel<CD, PC>::PatchModel(
 			int n = iit->second - j + colOffset;
 
 			// check if pixel is active in input mask
-			if(m >= 0 && n >= 0 && m < inputMask.rows() && n < inputMask.cols())
+			if(m >= 0 && n >= 0 && m < mRows && n < mCols && m < inputMask.rows() && n < inputMask.cols())
 				if(inputMask(m, n))
 					indices.push_back(*iit);
 		}
