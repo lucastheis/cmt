@@ -326,12 +326,12 @@ Tuples PyList_AsTuples(PyObject* list) {
 		if(!PyTuple_Check(tuple) || PyTuple_Size(tuple) != 2)
 			throw Exception("Indices should be stored in a list of 2-tuples.");
 
-		int i, j;
+		int m, n;
 
-		if(!PyArg_ParseTuple(tuple, "ii", &i, &j))
+		if(!PyArg_ParseTuple(tuple, "ii", &m, &n))
 			throw Exception("Indices should be integers.");
 
-		tuples.push_back(make_pair(i, j));
+		tuples.push_back(make_pair(m, n));
 	}
 
 	return tuples;
