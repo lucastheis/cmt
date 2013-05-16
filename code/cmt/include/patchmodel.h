@@ -789,7 +789,7 @@ Eigen::Array<double, 1, Eigen::Dynamic> CMT::PatchModel<CD, PC>::logLikelihood(
 	if(data.rows() != dim())
 		throw Exception("Data has wrong dimensionality.");
 
-	if(mMaxPCs < 0)
+	if(mMaxPCs > -1)
 		for(int i = 0; i < mRows * mCols; ++i)
 			if(!mPreconditioners[i])
 				throw Exception("Model has to be initialized first.");
