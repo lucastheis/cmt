@@ -344,7 +344,16 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(model0[1, 1].input_bias - model1[1, 1].input_bias)), 1e-20)
 		self.assertLess(max(abs(model0[1, 1].output_bias - model1[1, 1].output_bias)), 1e-20)
 
-		model0 = PatchMCBM(2, 2, xmask, ymask, max_pcs=3)
+		xmask = ones([10, 10], dtype='bool')
+		ymask = zeros([10, 10], dtype='bool')
+		xmask[5, 5] = False
+		ymask[5, 5] = True
+
+		model0 = PatchMCBM(4, 5, xmask, ymask, max_pcs=3,
+			order=[(i // 5, i % 5) for i in permutation(20)])
+
+		model0.initialize(randn(20, 100))
+		samples = model0.sample(1000)
 
 		tmp_file = mkstemp()[1]
 
@@ -359,12 +368,19 @@ class Tests(unittest.TestCase):
 		# make sure parameters haven't changed
 		self.assertEqual(model0.rows, model1.rows)
 		self.assertEqual(model0.cols, model1.cols)
-		self.assertLess(max(abs(model0[0, 0].priors - model1[0, 0].priors)), 1e-20)
-		self.assertLess(max(abs(model0[1, 0].weights - model1[1, 0].weights)), 1e-20)
-		self.assertLess(max(abs(model0[1, 0].features - model1[1, 0].features)), 1e-20)
-		self.assertLess(max(abs(model0[0, 1].predictors - model1[0, 1].predictors)), 1e-20)
-		self.assertLess(max(abs(model0[1, 1].input_bias - model1[1, 1].input_bias)), 1e-20)
-		self.assertLess(max(abs(model0[1, 1].output_bias - model1[1, 1].output_bias)), 1e-20)
+		self.assertLess(max(abs(asarray(model1.order) - asarray(model0.order))), 1e-20)
+		self.assertLess(max(abs(model0.input_mask() - model1.input_mask())), 1e-20)
+		self.assertLess(max(abs(model0.output_mask() - model1.output_mask())), 1e-20)
+
+		for i in range(model0.rows):
+			for j in range(model0.cols):
+				if model0[i, j].dim_in > 0:
+					self.assertLess(max(abs(model0[i, j].priors - model1[i, j].priors)), 1e-20)
+					self.assertLess(max(abs(model0[i, j].weights - model1[i, j].weights)), 1e-20)
+					self.assertLess(max(abs(model0[i, j].features - model1[i, j].features)), 1e-20)
+					self.assertLess(max(abs(model0[i, j].predictors - model1[i, j].predictors)), 1e-20)
+					self.assertLess(max(abs(model0[i, j].input_bias - model1[i, j].input_bias)), 1e-20)
+					self.assertLess(max(abs(model0[i, j].output_bias - model1[i, j].output_bias)), 1e-20)
 
 		model0.initialize(samples)
 

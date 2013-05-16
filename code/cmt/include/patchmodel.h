@@ -333,7 +333,7 @@ CMT::PatchModel<CD, PC>::PatchModel(
 			int n = iit->second - j + colOffset;
 
 			// check if pixel is active in input mask
-			if(m >= 0 && n >= 0 && m < mRows && n < mCols && m < inputMask.rows() && n < inputMask.cols())
+			if(m >= 0 && n >= 0 && m < inputMask.rows() && n < inputMask.cols())
 				if(inputMask(m, n))
 					indices.push_back(*iit);
 		}
@@ -786,8 +786,17 @@ template <class CD, class PC>
 Eigen::Array<double, 1, Eigen::Dynamic> CMT::PatchModel<CD, PC>::logLikelihood(
 	const MatrixXd& data) const
 {
+	if(data.rows() != dim())
+		throw Exception("Data has wrong dimensionality.");
+
+	if(mMaxPCs < 0)
+		for(int i = 0; i < mRows * mCols; ++i)
+			if(!mPreconditioners[i])
+				throw Exception("Model has to be initialized first.");
+
 	Array<double, 1, Dynamic> logLik = Array<double, 1, Dynamic>::Zero(data.cols());
 
+	#pragma omp parallel for
 	for(int i = 0; i < mRows * mCols; ++i) {
 		int m = mOutputIndices[i].first;
 		int n = mOutputIndices[i].second;
@@ -805,15 +814,17 @@ Eigen::Array<double, 1, Eigen::Dynamic> CMT::PatchModel<CD, PC>::logLikelihood(
 			input.row(j) = data.row(m * mCols + n);
 		}
 
-		if(mMaxPCs < 0) {
-			logLik += mConditionalDistributions[i].logLikelihood(input, output);
-		} else {
-			if(!mPreconditioners[i])
-				throw Exception("Model has to be initialized first.");
-			logLik += mConditionalDistributions[i].logLikelihood(
-				mPreconditioners[i]->operator()(input, output));
-			logLik += mPreconditioners[i]->logJacobian(input, output);
-		}
+		Array<double, 1, Dynamic> logLik_;
+
+		if(mMaxPCs < 0)
+			logLik_ = mConditionalDistributions[i].logLikelihood(input, output);
+		else
+			logLik_ = mConditionalDistributions[i].logLikelihood(
+				mPreconditioners[i]->operator()(input, output)) +
+				mPreconditioners[i]->logJacobian(input, output);
+
+		#pragma omp critical
+		logLik += logLik_;
 	}
 
 	return logLik;
@@ -825,6 +836,9 @@ template <class CD, class PC>
 Eigen::Array<double, 1, Eigen::Dynamic> CMT::PatchModel<CD, PC>::logLikelihood(
 	int i, int j, const MatrixXd& data) const
 {
+	if(data.rows() != dim())
+		throw Exception("Data has wrong dimensionality.");
+
 	int k = findIndex(i, j);
 
 	Array<double, 1, Dynamic> logLik = Array<double, 1, Dynamic>::Zero(data.cols());

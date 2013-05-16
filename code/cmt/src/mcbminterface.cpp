@@ -17,8 +17,6 @@ using CMT::MCBM;
 using CMT::PatchModel;
 using CMT::Tuples;
 
-#include <iostream>
-
 MCBM::Parameters PyObject_ToMCBMParameters(PyObject* parameters) {
 	MCBM::Parameters params;
 
@@ -1111,6 +1109,11 @@ int PatchMCBM_ass_subscript(PatchMCBMObject* self, PyObject* key, PyObject* valu
 		return -1;
 	}
 
+ 	if(self->patchMCBM->operator()(i, j).dimIn() != reinterpret_cast<MCBMObject*>(value)->mcbm->dimIn()) {
+		PyErr_SetString(PyExc_ValueError, "Given model has wrong input dimensionality.");
+		return -1;
+	}
+ 
  	self->patchMCBM->operator()(i, j) = *reinterpret_cast<MCBMObject*>(value)->mcbm;
 
 	return 0;
@@ -1463,6 +1466,9 @@ PyObject* PatchMCBM_setstate(PatchMCBMObject* self, PyObject* state) {
 			PyObject* index = Py_BuildValue("(ii)", i / cols, i % cols);
 			PatchMCBM_ass_subscript(self, index, PyTuple_GetItem(models, i));
 			Py_DECREF(index);
+
+			if(PyErr_Occurred())
+				return 0;
 		}
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
