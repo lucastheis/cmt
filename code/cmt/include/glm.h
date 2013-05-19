@@ -32,7 +32,7 @@ namespace CMT {
 					virtual UnivariateDistribution* copy() = 0;
 
 					/**
-					 * Log-likelihood for different parameter settings.
+					 * Log-likelihood for different settings of the mean parameter.
 					 *
 					 * @param data data points for which to evaluate log-likelihood
 					 * @param means parameters for which to evaluate log-likelihood
