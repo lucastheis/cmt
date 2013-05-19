@@ -2,6 +2,7 @@
 #define CMT_MCGSM_H
 
 #include <vector>
+#include <utility>
 #include "Eigen/Core"
 #include "trainable.h"
 #include "exception.h"

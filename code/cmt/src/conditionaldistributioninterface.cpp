@@ -1,6 +1,8 @@
 #include "conditionaldistributioninterface.h"
-#include "exception.h"
 #include "Eigen/Core"
+
+#include "exception.h"
+using CMT::Exception;
 
 #include "conditionaldistribution.h"
 using CMT::ConditionalDistribution;

@@ -24,8 +24,6 @@ class Tests(unittest.TestCase):
 		input = randint(2, size=[dim_in, num_samples])
 		output = mcbm.sample(input)
 		loglik = mcbm.loglikelihood(input, output)
-		#post = mcbm.posterior(input, output)
-		#samples = mcbm.sample_posterior(input, output)
 
 		# check hyperparameters
 		self.assertEqual(mcbm.dim_in, dim_in)
@@ -51,10 +49,6 @@ class Tests(unittest.TestCase):
 		self.assertEqual(output.shape[1], num_samples)
 		self.assertEqual(loglik.shape[0], 1)
 		self.assertEqual(loglik.shape[1], num_samples)
-		#self.assertEqual(post.shape[0], num_components)
-		#self.assertEqual(post.shape[1], num_samples)
-		#self.assertEqual(samples.shape[0], 1)
-		#self.assertEqual(samples.shape[1], num_samples)
 
 
 
@@ -180,12 +174,45 @@ class Tests(unittest.TestCase):
 		xmask[-1, -1] = False
 		ymask[-1, -1] = True
 
-		model = PatchMCBM(8, 8, xmask, ymask, MCBM(sum(xmask), 1))
+		model = PatchMCBM(8, 8, xmask, ymask, model=MCBM(sum(xmask), 1))
+
+		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
+		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)
 
 		for i in range(8):
 			for j in range(8):
 				self.assertEqual(model[i, j].dim_in, (i + 1) * (j + 1) - 1)
 				self.assertTrue(isinstance(model[i, j], MCBM))
+
+		# random pixel ordering
+		rows, cols = 7, 5
+		order = [(i // cols, i % cols) for i in permutation(rows * cols)]
+
+		model = PatchMCBM(rows, cols, xmask, ymask, order, MCBM(sum(xmask), 1))
+
+		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
+		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)
+
+		for i in range(rows):
+			for j in range(cols):
+				self.assertEqual(model.input_mask(i, j).sum(), model[i, j].dim_in)
+
+		# test constructors
+		model0 = PatchMCBM(rows, cols, max_pcs=3)
+		model1 = PatchMCBM(rows, cols, model0.input_mask(), model0.output_mask(), model0.order)
+
+		self.assertLess(max(abs(model0.input_mask() - model1.input_mask())), 1e-8)
+		self.assertLess(max(abs(model0.output_mask() - model1.output_mask())), 1e-8)
+		self.assertLess(max(abs(asarray(model0.order) - asarray(model1.order))), 1e-8)
+
+		# test computation of input masks
+		model = PatchMCBM(rows, cols, order, max_pcs=3)
+
+		i, j = model0.order[0]
+		input_mask = model.input_mask(i, j)
+		for i, j in model.order[1:]:
+			self.assertEqual(sum(model.input_mask(i, j) - input_mask), 1)
+			input_mask = model.input_mask(i, j)
 
 
 
@@ -195,7 +222,7 @@ class Tests(unittest.TestCase):
 		xmask[-1, -1] = False
 		ymask[-1, -1] = True
 
-		model = PatchMCBM(2, 2, xmask, ymask, MCBM(sum(xmask), 1, 1))
+		model = PatchMCBM(2, 2, xmask, ymask, model=MCBM(sum(xmask), 1, 1))
 
 		# checkerboard
 		data = array([[0, 1], [1, 0]], dtype='bool').reshape(-1, 1)
@@ -265,6 +292,28 @@ class Tests(unittest.TestCase):
 
 
 
+	def test_patchmcbm_input_indices(self):
+		xmask = ones([2, 3], dtype='bool')
+		ymask = zeros([2, 3], dtype='bool')
+		xmask[-1, 1:] = False
+		ymask[-1, 1] = True
+
+		model = PatchMCBM(5, 8, xmask, ymask)
+
+		for i in range(model.rows):
+			for j in range(model.cols):
+				self.assertEqual(len(model.input_indices(i, j)), model.input_mask(i, j).sum())
+
+		order = [(i // 8, i % 8) for i in permutation(40)]
+
+		model = PatchMCBM(5, 8, xmask, ymask, order)
+
+		for i in range(model.rows):
+			for j in range(model.cols):
+				self.assertEqual(len(model.input_indices(i, j)), model.input_mask(i, j).sum())
+
+
+
 	def test_patchmcbm_pickle(self):
 		xmask = ones([2, 2], dtype='bool')
 		ymask = zeros([2, 2], dtype='bool')
@@ -295,7 +344,16 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(model0[1, 1].input_bias - model1[1, 1].input_bias)), 1e-20)
 		self.assertLess(max(abs(model0[1, 1].output_bias - model1[1, 1].output_bias)), 1e-20)
 
-		model0 = PatchMCBM(2, 2, xmask, ymask, max_pcs=3)
+		xmask = ones([10, 10], dtype='bool')
+		ymask = zeros([10, 10], dtype='bool')
+		xmask[5, 5] = False
+		ymask[5, 5] = True
+
+		model0 = PatchMCBM(4, 5, xmask, ymask, max_pcs=3,
+			order=[(i // 5, i % 5) for i in permutation(20)])
+
+		model0.initialize(randn(20, 100))
+		samples = model0.sample(1000)
 
 		tmp_file = mkstemp()[1]
 
@@ -310,12 +368,19 @@ class Tests(unittest.TestCase):
 		# make sure parameters haven't changed
 		self.assertEqual(model0.rows, model1.rows)
 		self.assertEqual(model0.cols, model1.cols)
-		self.assertLess(max(abs(model0[0, 0].priors - model1[0, 0].priors)), 1e-20)
-		self.assertLess(max(abs(model0[1, 0].weights - model1[1, 0].weights)), 1e-20)
-		self.assertLess(max(abs(model0[1, 0].features - model1[1, 0].features)), 1e-20)
-		self.assertLess(max(abs(model0[0, 1].predictors - model1[0, 1].predictors)), 1e-20)
-		self.assertLess(max(abs(model0[1, 1].input_bias - model1[1, 1].input_bias)), 1e-20)
-		self.assertLess(max(abs(model0[1, 1].output_bias - model1[1, 1].output_bias)), 1e-20)
+		self.assertLess(max(abs(asarray(model1.order) - asarray(model0.order))), 1e-20)
+		self.assertLess(max(abs(model0.input_mask() - model1.input_mask())), 1e-20)
+		self.assertLess(max(abs(model0.output_mask() - model1.output_mask())), 1e-20)
+
+		for i in range(model0.rows):
+			for j in range(model0.cols):
+				if model0[i, j].dim_in > 0:
+					self.assertLess(max(abs(model0[i, j].priors - model1[i, j].priors)), 1e-20)
+					self.assertLess(max(abs(model0[i, j].weights - model1[i, j].weights)), 1e-20)
+					self.assertLess(max(abs(model0[i, j].features - model1[i, j].features)), 1e-20)
+					self.assertLess(max(abs(model0[i, j].predictors - model1[i, j].predictors)), 1e-20)
+					self.assertLess(max(abs(model0[i, j].input_bias - model1[i, j].input_bias)), 1e-20)
+					self.assertLess(max(abs(model0[i, j].output_bias - model1[i, j].output_bias)), 1e-20)
 
 		model0.initialize(samples)
 
@@ -330,6 +395,23 @@ class Tests(unittest.TestCase):
 			model1 = load(handle)['model']
 
 		self.assertAlmostEqual(mean(model1.loglikelihood(samples)), logLik)
+
+		rows, cols = 7, 5
+		order = [(i // cols, i % cols) for i in permutation(rows * cols)]
+
+		model0 = PatchMCBM(rows, cols, xmask, ymask, order)
+
+		# store model
+		with open(tmp_file, 'w') as handle:
+			dump({'model': model0}, handle)
+
+		# load model
+		with open(tmp_file) as handle:
+			model1 = load(handle)['model']
+
+		for i in range(rows):
+			for j in range(cols):
+				self.assertEqual(model1.input_mask(i, j).sum(), model1[i, j].dim_in)
 
 
 

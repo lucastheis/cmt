@@ -18,6 +18,9 @@ using Eigen::Array;
 using Eigen::ArrayXXd;
 using Eigen::Dynamic;
 
+#include "tools.h"
+using CMT::Tuples;
+
 typedef Matrix<bool, Dynamic, Dynamic> MatrixXb;
 typedef Array<bool, Dynamic, Dynamic> ArrayXXb;
 
@@ -30,5 +33,8 @@ MatrixXb PyArray_ToMatrixXb(PyObject* array);
 vector<ArrayXXd> PyArray_ToArraysXXd(PyObject* array);
 vector<ArrayXXb> PyArray_ToArraysXXb(PyObject* array);
 PyObject* PyArray_FromArraysXXd(const vector<ArrayXXd>& channels);
+
+Tuples PyList_AsTuples(PyObject* list);
+PyObject* PyList_FromTuples(const Tuples& tuples);
 
 #endif

@@ -79,6 +79,19 @@ namespace CMT {
 				int repetitions = 2,
 				const Parameters& params = Parameters());
 
+			virtual int numParameters(const Parameters& params) const = 0;
+			virtual lbfgsfloatval_t* parameters(const Parameters& params) const = 0;
+			virtual void setParameters(
+				const lbfgsfloatval_t* x,
+				const Parameters& params) = 0;
+
+			virtual double parameterGradient(
+				const MatrixXd& input,
+				const MatrixXd& output,
+				const lbfgsfloatval_t* x,
+				lbfgsfloatval_t* g,
+				const Parameters& params) const = 0;
+
 		protected:
 			typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
 			typedef Map<Matrix<lbfgsfloatval_t, Dynamic, 1> > VectorLBFGS;
@@ -96,6 +109,7 @@ namespace CMT {
 				double logLoss;
 				int counter;
 				lbfgsfloatval_t* parameters;
+				double fx;
 
 				InstanceLBFGS(
 					Trainable* cd,
@@ -134,19 +148,6 @@ namespace CMT {
 				const MatrixXd* inputVal = 0,
 				const MatrixXd* outputVal = 0,
 				const Parameters& params = Parameters());
-
-			virtual int numParameters(const Parameters& params) const = 0;
-			virtual lbfgsfloatval_t* parameters(const Parameters& params) const = 0;
-			virtual void setParameters(
-				const lbfgsfloatval_t* x,
-				const Parameters& params) = 0;
-
-			virtual double parameterGradient(
-				const MatrixXd& input,
-				const MatrixXd& output,
-				const lbfgsfloatval_t* x,
-				lbfgsfloatval_t* g,
-				const Parameters& params) const = 0;
 	};
 }
 

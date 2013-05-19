@@ -77,7 +77,7 @@ CMT::MCBM::Parameters& CMT::MCBM::Parameters::operator=(const Parameters& params
 
 
 
-CMT::MCBM::MCBM(int dimIn, int numComponents, int numFeatures) : 
+CMT::MCBM::MCBM(int dimIn, int numComponents, int numFeatures) :
 	mDimIn(dimIn),
 	mNumComponents(numComponents),
 	mNumFeatures(numFeatures < 0 ? dimIn : numFeatures)

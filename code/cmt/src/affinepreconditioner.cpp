@@ -3,6 +3,15 @@
 #include "affinepreconditioner.h"
 #include "Eigen/LU"
 
+#include "Eigen/Core"
+using Eigen::Dynamic;
+using Eigen::Array;
+using Eigen::ArrayXXd;
+
+#include <utility>
+using std::pair;
+using std::make_pair;
+
 CMT::AffinePreconditioner::AffinePreconditioner(
 	const VectorXd& meanIn,
 	const VectorXd& meanOut,

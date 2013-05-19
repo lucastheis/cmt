@@ -3,6 +3,13 @@
 #include "affinetransform.h"
 #include "Eigen/LU"
 
+#include "Eigen/Core"
+using Eigen::ArrayXXd;
+
+#include <utility>
+using std::pair;
+
+
 CMT::AffineTransform::AffineTransform(const VectorXd& meanIn, const MatrixXd& preIn, int dimOut) :
 	AffinePreconditioner(
 		meanIn,

@@ -1,14 +1,21 @@
 #include "conditionaldistributioninterface.h"
-#include "exception.h"
 #include "callbackinterface.h"
+#include "patchmodelinterface.h"
 #include "preconditionerinterface.h"
+
+#include <utility>
+using std::make_pair;
 
 #include "Eigen/Core"
 using Eigen::Map;
 
+#include "exception.h"
+using CMT::Exception;
+
 #include "mcbminterface.h"
 using CMT::MCBM;
 using CMT::PatchModel;
+using CMT::Tuples;
 
 MCBM::Parameters PyObject_ToMCBMParameters(PyObject* parameters) {
 	MCBM::Parameters params;
@@ -225,15 +232,12 @@ int MCBM_init(MCBMObject* self, PyObject* args, PyObject* kwds) {
 
 	int dim_in;
 	int num_components = 8;
-	int num_features = 0;
+	int num_features = -1;
 
 	// read arguments
 	if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|ii", const_cast<char**>(kwlist),
 		&dim_in, &num_components, &num_features))
 		return -1;
-
-	if(!num_features)
-		num_features = dim_in;
 
 	// create actual MCBM instance
 	try {
@@ -948,6 +952,9 @@ const char* PatchMCBM_doc =
 	"@type  ymask: C{ndarray}\n"
 	"@param ymask: a Boolean array describing the output pixels\n"
 	"\n"
+	"@type  order: C{list}\n"
+	"@param order: list of tuples indicating order of pixels\n"
+	"\n"
 	"@type  model: L{MCBM}\n"
 	"@param model: model used as a template to initialize all conditional distributions\n"
 	"\n"
@@ -955,117 +962,106 @@ const char* PatchMCBM_doc =
 	"@param max_pcs: can be used to reduce dimensionality of inputs to conditional models";
 
 int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"rows", "cols", "xmask", "ymask", "model", "max_pcs", 0};
+	const char* kwlist[] = {"rows", "cols", "xmask", "ymask", "order", "model", "max_pcs", 0};
 
 	int rows;
 	int cols;
-	PyObject* xmask;
-	PyObject* ymask;
+	PyObject* xmask = 0;
+	PyObject* ymask = 0;
+	PyObject* order = 0;
 	PyObject* model = 0;
 	int max_pcs = -1;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiOO|Oi", const_cast<char**>(kwlist),
-		&rows, &cols, &xmask, &ymask, &model, &max_pcs))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "ii|OOOOi", const_cast<char**>(kwlist),
+		&rows, &cols, &xmask, &ymask, &order, &model, &max_pcs))
 		return -1;
+
+	if(order == Py_None)
+		order = 0;
+
+	if(order && !PyList_Check(order)) {
+		PyErr_SetString(PyExc_TypeError, "Pixel order should be of type `list`.");
+		return -1;
+	}
 
 	if(model == Py_None)
 		model = 0;
 
 	if(model && !PyType_IsSubtype(Py_TYPE(model), &MCBM_type)) {
-		PyErr_SetString(PyExc_TypeError, "Model has to be of type `MCBM`.");
-		return 0;
+		PyErr_SetString(PyExc_TypeError, "Model should be a subtype of `MCBM`.");
+		return -1;
 	}
 
-	xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	if(xmask == Py_None)
+		xmask = 0;
 
-	if(!xmask || !ymask) {
-		Py_XDECREF(xmask);
-		Py_XDECREF(ymask);
-		PyErr_SetString(PyExc_TypeError, "Masks have to be given as Boolean arrays.");
-		return 0;
+	if(ymask == Py_None)
+		ymask = 0;
+
+	if(xmask && ymask) {
+		xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!xmask || !ymask) {
+			Py_XDECREF(xmask);
+			Py_XDECREF(ymask);
+			PyErr_SetString(PyExc_TypeError, "Masks have to be given as Boolean arrays.");
+			return -1;
+		}
 	}
 
 	// create the actual model
 	try {
-		self->patchMCBM = new PatchModel<MCBM, CMT::PCATransform>(
-			rows,
-			cols,
-			PyArray_ToMatrixXb(xmask),
-			PyArray_ToMatrixXb(ymask),
-			model ? reinterpret_cast<MCBMObject*>(model)->mcbm : 0,
-			max_pcs);
+		if(order) {
+			if(xmask && ymask) {
+				self->patchMCBM = new PatchModel<MCBM, PCATransform>(
+					rows,
+					cols,
+					PyList_AsTuples(order),
+					PyArray_ToMatrixXb(xmask),
+					PyArray_ToMatrixXb(ymask),
+					model ? reinterpret_cast<MCBMObject*>(model)->mcbm : 0,
+					max_pcs);
+
+				Py_DECREF(xmask);
+				Py_DECREF(ymask);
+			} else {
+				self->patchMCBM = new PatchModel<MCBM, PCATransform>(
+					rows,
+					cols,
+					PyList_AsTuples(order),
+					model ? reinterpret_cast<MCBMObject*>(model)->mcbm : 0,
+					max_pcs);
+			}
+		} else {
+			if(xmask && ymask) {
+				self->patchMCBM = new PatchModel<MCBM, PCATransform>(
+					rows,
+					cols,
+					PyArray_ToMatrixXb(xmask),
+					PyArray_ToMatrixXb(ymask),
+					model ? reinterpret_cast<MCBMObject*>(model)->mcbm : 0,
+					max_pcs);
+
+				Py_DECREF(xmask);
+				Py_DECREF(ymask);
+			} else {
+				self->patchMCBM = new PatchModel<MCBM, PCATransform>(
+					rows,
+					cols,
+					model ? reinterpret_cast<MCBMObject*>(model)->mcbm : 0,
+					max_pcs);
+			}
+		}
 	} catch(Exception exception) {
+		Py_XDECREF(xmask);
+		Py_XDECREF(ymask);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return -1;
 	}
 
 	return 0;
-}
-
-
-
-PyObject* PatchMCBM_rows(PatchMCBMObject* self, void*) {
-	return PyInt_FromLong(self->patchMCBM->rows());
-}
-
-
-
-PyObject* PatchMCBM_cols(PatchMCBMObject* self, void*) {
-	return PyInt_FromLong(self->patchMCBM->cols());
-}
-
-
-
-PyObject* PatchMCBM_input_mask(PatchMCBMObject* self, PyObject* args) {
-	int i = -1;
-	int j = -1;
-
-	if(args && !PyArg_ParseTuple(args, "|ii", &i, &j))
-		return 0;
-
-	if(i >= 0 && j < 0) {
-		PyErr_SetString(PyExc_TypeError, "Index should consist of a row and a column.");
-		return 0;
-	}
-
-	PyObject* array;
-
-	if(i < 0 || j < 0)
-		array = PyArray_FromMatrixXb(self->patchMCBM->inputMask());
-	else
-		array = PyArray_FromMatrixXb(self->patchMCBM->inputMask(i, j));
-
-	// make array immutable
-	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
-	return array;
-}
-
-
-
-PyObject* PatchMCBM_output_mask(PatchMCBMObject* self, PyObject* args) {
-	int i = -1;
-	int j = -1;
-
-	if(args && !PyArg_ParseTuple(args, "|ii", &i, &j))
-		return 0;
-
-	if(i >= 0 && j < 0) {
-		PyErr_SetString(PyExc_TypeError, "Index should consist of a row and a column.");
-		return 0;
-	}
-
-	PyObject* array;
-
-	if(i < 0 || j < 0)
-		array = PyArray_FromMatrixXb(self->patchMCBM->outputMask());
-	else
-		array = PyArray_FromMatrixXb(self->patchMCBM->outputMask(i, j));
-
-	// make array immutable
-	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
-	return array;
 }
 
 
@@ -1096,7 +1092,7 @@ PyObject* PatchMCBM_subscript(PatchMCBMObject* self, PyObject* key) {
 
 int PatchMCBM_ass_subscript(PatchMCBMObject* self, PyObject* key, PyObject* value) {
 	if(!PyType_IsSubtype(Py_TYPE(value), &MCBM_type)) {
-		PyErr_SetString(PyExc_TypeError, "Conditional distribution should be an MCBM.");
+		PyErr_SetString(PyExc_TypeError, "Conditional distribution should be a subtype of `MCBM`.");
 		return -1;
 	}
 
@@ -1113,6 +1109,11 @@ int PatchMCBM_ass_subscript(PatchMCBMObject* self, PyObject* key, PyObject* valu
 		return -1;
 	}
 
+ 	if(self->patchMCBM->operator()(i, j).dimIn() != reinterpret_cast<MCBMObject*>(value)->mcbm->dimIn()) {
+		PyErr_SetString(PyExc_ValueError, "Given model has wrong input dimensionality.");
+		return -1;
+	}
+ 
  	self->patchMCBM->operator()(i, j) = *reinterpret_cast<MCBMObject*>(value)->mcbm;
 
 	return 0;
@@ -1382,54 +1383,6 @@ PyObject* PatchMCBM_train(PatchMCBMObject* self, PyObject* args, PyObject* kwds)
 
 
 
-PyObject* PatchMCBM_loglikelihood(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"i", "j", "data", 0};
-
-	PyObject* data;
-	int i = -1;
-	int j = -1;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiO", const_cast<char**>(kwlist),
-		&i, &j, &data)) 
-	{
-		PyErr_Clear();
-
-		const char* kwlist[] = {"data", 0};
-
-		if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &data))
-			return 0;
-	}
-
-	// make sure data is stored in NumPy array
-	data = PyArray_FROM_OTF(data, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!data) {
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
-		return 0;
-	}
-
-	try {
-		PyObject* result;
-		if(i > -1 && j > -1)
-			result = PyArray_FromMatrixXd(
-				self->patchMCBM->logLikelihood(i, j, PyArray_ToMatrixXd(data)));
-		else
-			result = PyArray_FromMatrixXd(
-				self->patchMCBM->logLikelihood(PyArray_ToMatrixXd(data)));
-		Py_DECREF(data);
-		return result;
-	} catch(Exception exception) {
-		Py_DECREF(data);
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	return 0;
-}
-
-
-
 const char* PatchMCBM_reduce_doc =
 	"__reduce__(self)\n"
 	"\n"
@@ -1440,18 +1393,24 @@ PyObject* PatchMCBM_reduce(PatchMCBMObject* self, PyObject*) {
 	int cols = self->patchMCBM->cols();
 	int maxPCs = self->patchMCBM->maxPCs();
 
-	PyObject* inputMask = PatchMCBM_input_mask(self, 0);
-	PyObject* outputMask = PatchMCBM_output_mask(self, 0);
+	PyObject* order = PatchModel_order(
+		reinterpret_cast<PatchModelObject*>(self), 0);
+	PyObject* inputMask = PatchModel_input_mask(
+		reinterpret_cast<PatchModelObject*>(self), 0);
+	PyObject* outputMask = PatchModel_output_mask(
+		reinterpret_cast<PatchModelObject*>(self), 0);
 
 	// constructor arguments
-	PyObject* args = Py_BuildValue("(iiOOOi)",
+	PyObject* args = Py_BuildValue("(iiOOOOi)",
 		rows,
 		cols,
 		inputMask,
 		outputMask,
+		order,
 		Py_None,
 		maxPCs);
 	
+	Py_DECREF(order);
 	Py_DECREF(inputMask);
 	Py_DECREF(outputMask);
 
@@ -1507,6 +1466,9 @@ PyObject* PatchMCBM_setstate(PatchMCBMObject* self, PyObject* state) {
 			PyObject* index = Py_BuildValue("(ii)", i / cols, i % cols);
 			PatchMCBM_ass_subscript(self, index, PyTuple_GetItem(models, i));
 			Py_DECREF(index);
+
+			if(PyErr_Occurred())
+				return 0;
 		}
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());

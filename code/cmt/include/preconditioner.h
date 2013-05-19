@@ -1,16 +1,17 @@
 #ifndef CMT_PRECONDITIONER_H
 #define CMT_PRECONDITIONER_H
 
-#include <map>
-using std::pair;
-using std::make_pair;
-
+#include <utility>
 #include "Eigen/Core"
-using Eigen::ArrayXXd;
-using Eigen::Array;
-using Eigen::Dynamic;
 
 namespace CMT {
+	using std::pair;
+	using std::make_pair;
+
+	using Eigen::ArrayXXd;
+	using Eigen::Array;
+	using Eigen::Dynamic;
+
 	class Preconditioner {
 		public:
 			virtual ~Preconditioner();

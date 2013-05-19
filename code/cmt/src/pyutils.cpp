@@ -1,9 +1,16 @@
 #include "pyutils.h"
-#include "exception.h"
-
 #include <inttypes.h>
 
-using namespace Eigen;
+#include "exception.h"
+using CMT::Exception;
+
+#include "Eigen/Core"
+using Eigen::Map;
+using Eigen::ColMajor;
+using Eigen::RowMajor;
+
+#include <utility>
+using std::make_pair;
 
 PyObject* PyArray_FromMatrixXd(const MatrixXd& mat) {
 	// matrix dimensionality
@@ -302,4 +309,42 @@ PyObject* PyArray_FromArraysXXd(const vector<ArrayXXd>& channels) {
 	}
 
 	return array;
+}
+
+
+
+Tuples PyList_AsTuples(PyObject* list) {
+	if(!PyList_Check(list))
+		throw Exception("Indices should be given in a list.");
+
+	Tuples tuples;
+
+	// convert list of tuples
+	for(int i = 0; i < PyList_Size(list); ++i) {
+		PyObject* tuple = PyList_GetItem(list, i);
+
+		if(!PyTuple_Check(tuple) || PyTuple_Size(tuple) != 2)
+			throw Exception("Indices should be stored in a list of 2-tuples.");
+
+		int m, n;
+
+		if(!PyArg_ParseTuple(tuple, "ii", &m, &n))
+			throw Exception("Indices should be integers.");
+
+		tuples.push_back(make_pair(m, n));
+	}
+
+	return tuples;
+}
+
+
+
+PyObject* PyList_FromTuples(const Tuples& tuples) {
+	PyObject* list = PyList_New(tuples.size());
+
+	for(int i = 0; i < tuples.size(); ++i)
+		PyList_SetItem(list, i,
+			Py_BuildValue("(ii)", tuples[i].first, tuples[i].second));
+
+	return list;
 }

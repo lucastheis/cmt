@@ -1,4 +1,3 @@
-#include "exception.h"
 #include "callbackinterface.h"
 
 #include "Eigen/Core"
@@ -6,6 +5,9 @@ using Eigen::Map;
 
 #include <map>
 using std::pair;
+
+#include "exception.h"
+using CMT::Exception;
 
 #include "mcgsminterface.h"
 using CMT::MCGSM;
@@ -78,6 +80,15 @@ MCGSM::Parameters PyObject_ToMCGSMParameters(PyObject* parameters) {
 				params.cbIter = static_cast<int>(PyFloat_AsDouble(cb_iter));
 			else
 				throw Exception("cb_iter should be of type `int`.");
+
+		PyObject* val_iter = PyDict_GetItemString(parameters, "val_iter");
+		if(val_iter)
+			if(PyInt_Check(val_iter))
+				params.valIter = PyInt_AsLong(val_iter);
+			else if(PyFloat_Check(val_iter))
+				params.valIter = static_cast<int>(PyFloat_AsDouble(val_iter));
+			else
+				throw Exception("val_iter should be of type `int`.");
 
 		PyObject* train_priors = PyDict_GetItemString(parameters, "train_priors");
 		if(train_priors)

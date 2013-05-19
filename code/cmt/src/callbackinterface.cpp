@@ -1,6 +1,8 @@
-#include "exception.h"
 #include "callbackinterface.h"
 #include "conditionaldistributioninterface.h"
+
+#include "exception.h"
+using CMT::Exception;
 
 #include "trainable.h"
 using CMT::Trainable;
@@ -61,6 +63,7 @@ bool CallbackInterface::operator()(int iter, const Trainable& cd) {
 
 	// if cont is false, training will be aborted
 	bool cont = true;
+
 	if(result) {
 		if(PyBool_Check(result))
 			cont = (result == Py_True);

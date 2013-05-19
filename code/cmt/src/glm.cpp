@@ -1,8 +1,13 @@
 #include "exception.h"
+
 #include "glm.h"
+using CMT::GLM;
+using CMT::LogisticFunction;
+using CMT::Bernoulli;
 
 #include <cmath>
 using std::log;
+using std::min;
 
 #include <map>
 using std::pair;
@@ -14,6 +19,9 @@ using Eigen::Array;
 using Eigen::ArrayXXd;
 using Eigen::MatrixXd;
 
+GLM::Nonlinearity* defaultNonlinearity = new LogisticFunction;
+GLM::UnivariateDistribution* defaultDistribution = new Bernoulli;
+
 CMT::GLM::GLM(
 	int dimIn,
 	Nonlinearity* nonlinearity,
@@ -22,31 +30,48 @@ CMT::GLM::GLM(
 	mNonlinearity(nonlinearity),
 	mDistribution(distribution)
 {
+	if(mDimIn < 0)
+		throw Exception("Input dimensionality should be non-negative.");
+	if(!mNonlinearity)
+		throw Exception("No nonlinearity specified.");
+	if(!mDistribution)
+		throw Exception("No distribution specified.");
+
 	mWeights = VectorXd::Random(dimIn) / 100.;
+	mBias = 0.;
 }
 
 
 
-CMT::GLM::GLM(const GLM& glm) :
-	mDimIn(glm.mDimIn),
-	mNonlinearity(glm.mNonlinearity->copy()),
-	mDistribution(glm.mDistribution->copy())
+CMT::GLM::GLM(int dimIn) : mDimIn(dimIn) {
+	if(mDimIn < 0)
+		throw Exception("Input dimensionality should be non-negative.");
+
+	mNonlinearity = defaultNonlinearity;
+	mDistribution = defaultDistribution;
+
+	mWeights = VectorXd::Random(dimIn) / 100.;
+	mBias = 0.;
+}
+
+
+
+
+CMT::GLM::GLM(int dimIn, const GLM& glm) : 
+	mDimIn(dimIn),
+	mNonlinearity(glm.mNonlinearity),
+	mDistribution(glm.mDistribution)
 {
-}
+	if(mDimIn < 0)
+		throw Exception("Input dimensionality should be non-negative.");
 
-
-
-CMT::GLM& CMT::GLM::operator=(const GLM& glm) {
-	mDimIn = glm.mDimIn;
-	mNonlinearity = glm.mNonlinearity->copy();
-	mDistribution = glm.mDistribution->copy();
+	mWeights = VectorXd::Random(dimIn) / 100.;
+	mBias = 0.;
 }
 
 
 
 CMT::GLM::~GLM() {
-	delete mNonlinearity;
-	delete mDistribution;
 }
 
 
@@ -55,24 +80,45 @@ Array<double, 1, Dynamic> CMT::GLM::logLikelihood(
 	const MatrixXd& input,
 	const MatrixXd& output) const
 {
-	return mDistribution->logLikelihood(
-		output,
-		(*mNonlinearity)(mWeights.transpose() * input));
+	if(input.rows() != mDimIn)
+		throw Exception("Input has wrong dimensionality.");
+
+	Array<double, 1, Dynamic> responses;
+
+	if(mDimIn)
+		responses = (mWeights.transpose() * input).array() + mBias;
+	else
+		responses = Array<double, 1, Dynamic>::Constant(output.cols(), mBias);
+
+	return mDistribution->logLikelihood(output, (*mNonlinearity)(responses));
+}
+
+
+
+MatrixXd CMT::GLM::sample(const MatrixXd& input) const {
+	if(input.rows() != mDimIn)
+		throw Exception("Input has wrong dimensionality.");
+
+	if(!mDimIn)
+		return mDistribution->sample(Array<double, 1, Dynamic>::Constant(input.cols(), mBias));
+
+	return mDistribution->sample((*mNonlinearity)((mWeights.transpose() * input).array() + mBias));
 }
 
 
 
 int CMT::GLM::numParameters(const Parameters& params) const {
-	return mWeights.size();
+	return mDimIn + 1;
 }
 
 
 
 lbfgsfloatval_t* CMT::GLM::parameters(const Parameters& params) const {
-	lbfgsfloatval_t* x = lbfgs_malloc(mWeights.size());
+	lbfgsfloatval_t* x = lbfgs_malloc(mDimIn + 1);
 
-	for(int i = 0; i < mWeights.size(); ++i)
+	for(int i = 0; i < mDimIn; ++i)
 		x[i] = mWeights.data()[i];
+	x[mDimIn] = mBias;
 
 	return x;
 }
@@ -80,31 +126,78 @@ lbfgsfloatval_t* CMT::GLM::parameters(const Parameters& params) const {
 
 
 void CMT::GLM::setParameters(const lbfgsfloatval_t* x, const Parameters& params) {
-	for(int i = 0; i < mWeights.size(); ++i)
+	for(int i = 0; i < mDimIn; ++i)
 		mWeights.data()[i] = x[i];
+	mBias = x[mDimIn];
 }
 
 
 
 double CMT::GLM::parameterGradient(
-	const MatrixXd& input,
-	const MatrixXd& output,
+	const MatrixXd& inputCompl,
+	const MatrixXd& outputCompl,
 	const lbfgsfloatval_t* x,
 	lbfgsfloatval_t* g,
 	const Parameters& params) const
 {
-	VectorLBFGS weights(const_cast<lbfgsfloatval_t*>(x), mWeights.size());
-	VectorLBFGS weightsGrad(g, mWeights.size());
+  	int numData = static_cast<int>(inputCompl.cols());
+ 	int batchSize = min(params.batchSize, numData);
+ 
+ 	VectorLBFGS weights(const_cast<lbfgsfloatval_t*>(x), mDimIn);
+ 	VectorLBFGS weightsGrad(g, mDimIn);
+ 	double bias = x[mDimIn];
+ 
+ 	if(g) {
+ 		weightsGrad.setZero();
+ 		g[mDimIn] = 0.;
+	}
+ 	double logLik = 0.;
+ 
+ 	#pragma omp parallel for
+ 	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
+ 		const MatrixXd& input = inputCompl.middleCols(b, min(batchSize, numData - b));
+ 		const MatrixXd& output = outputCompl.middleCols(b, min(batchSize, numData - b));
+ 
+ 		// linear responses
+ 		Array<double, 1, Dynamic> responses;
+ 
+ 		if(mDimIn)
+ 			responses = (weights.transpose() * input).array() + bias;
+ 		else
+ 			responses = Array<double, 1, Dynamic>::Constant(output.cols(), bias);
+ 
+ 		// nonlinear responses
+ 		Array<double, 1, Dynamic> means = (*mNonlinearity)(responses);
+ 
+ 		if(g) {
+ 			Array<double, 1, Dynamic> tmp1 = mDistribution->gradient(output, means);
+ 			Array<double, 1, Dynamic> tmp2 = mNonlinearity->derivative(responses);
+ 			Array<double, 1, Dynamic> tmp3 = tmp1 * tmp2;
+ 
+ 			// weights gradient
+ 			if(mDimIn) {
+ 				VectorXd weightsGrad_ = (input.array().rowwise() * tmp3).rowwise().sum();
+ 
+ 				#pragma omp critical
+ 				weightsGrad += weightsGrad_;
+ 			}
+ 
+ 			// bias gradient
+ 			#pragma omp critical
+ 			g[mDimIn] += tmp3.sum();
+ 		}
+ 
+ 		#pragma omp critical
+ 		logLik -= mDistribution->logLikelihood(output, means).sum();
+ 	}
 
-	Array<double, 1, Dynamic> responses = weights.transpose() * input;
-	Array<double, 1, Dynamic> means = (*mNonlinearity)(responses);
+ 	double normConst = outputCompl.cols() * log(2.);
 
-	weightsGrad = (
-		mDistribution->gradient(output, means) *
-		mNonlinearity->derivative(responses) *
-		output.array()).colwise().mean() / log(2.);
-
-	return mDistribution->logLikelihood(output, means).mean() / log(2.);
+ 	if(g)
+		for(int i = 0; i <= mDimIn; ++i)
+			g[i] /= normConst;
+ 	
+ 	return logLik / normConst;
 }
 
 
@@ -122,27 +215,20 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::GLM::computeData
 
 
 
-CMT::LogisticFunction* CMT::LogisticFunction::copy() {
-	return new LogisticFunction(*this);
+CMT::GLM::Nonlinearity::~Nonlinearity() {
 }
 
 
 
-Array<double, 1, Dynamic> CMT::LogisticFunction::operator()(const Array<double, 1, Dynamic>& data) const {
+ArrayXXd CMT::LogisticFunction::operator()(const ArrayXXd& data) const {
 	return 1. / (1. + (-data).exp());
 }
 
 
 
-Array<double, 1, Dynamic> CMT::LogisticFunction::derivative(const Array<double, 1, Dynamic>& data) const {
-	Array<double, 1, Dynamic> tmp = operator()(data);
+ArrayXXd CMT::LogisticFunction::derivative(const ArrayXXd& data) const {
+	ArrayXXd tmp = operator()(data);
 	return tmp * (1. - tmp);
-}
-
-
-
-CMT::Bernoulli* CMT::Bernoulli::copy() {
-	return new Bernoulli(*this);
 }
 
 
@@ -155,13 +241,13 @@ CMT::Bernoulli::Bernoulli(double prob) : mProb(prob) {
 
 
 MatrixXd CMT::Bernoulli::sample(int numSamples) const {
-	return (Array<double, 1, Dynamic>::Random(numSamples).abs() > mProb).cast<double>();
+	return (Array<double, 1, Dynamic>::Random(numSamples).abs() < mProb).cast<double>();
 }
 
 
 
 MatrixXd CMT::Bernoulli::sample(const Array<double, 1, Dynamic>& means) const {
-	return (Array<double, 1, Dynamic>::Random(means.size()).abs() > means).cast<double>();
+	return (Array<double, 1, Dynamic>::Random(means.size()).abs() < means).cast<double>();
 }
 
 
@@ -184,8 +270,8 @@ Array<double, 1, Dynamic> CMT::Bernoulli::logLikelihood(const MatrixXd& data) co
 
 
 Array<double, 1, Dynamic> CMT::Bernoulli::logLikelihood(
-		const Array<double, 1, Dynamic>& data,
-		const Array<double, 1, Dynamic>& means) const
+	const Array<double, 1, Dynamic>& data,
+	const Array<double, 1, Dynamic>& means) const
 {
 	Array<double, 1, Dynamic> logLik = Array<double, 1, Dynamic>(data.size());
 
@@ -198,19 +284,13 @@ Array<double, 1, Dynamic> CMT::Bernoulli::logLikelihood(
 
 
 Array<double, 1, Dynamic> CMT::Bernoulli::gradient(
-		const Array<double, 1, Dynamic>& data,
-		const Array<double, 1, Dynamic>& means) const
+	const Array<double, 1, Dynamic>& data,
+	const Array<double, 1, Dynamic>& means) const
 {
 	Array<double, 1, Dynamic> grad = Array<double, 1, Dynamic>(data.size());
 
 	for(int i = 0; i < data.size(); ++i)
-		grad[i] = data[i] > 0.5 ? -1. / means[i] : 1. / (means[i] - 1.);
+		grad[i] = data[i] > 0.5 ? -1. / means[i] : 1. / (1. - means[i]);
 
 	return grad;
-}
-
-
-
-MatrixXd CMT::GLM::sample(const MatrixXd& input) const {
-	return mDistribution->sample((*mNonlinearity)(mWeights * input));
 }
