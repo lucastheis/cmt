@@ -140,7 +140,8 @@ MatrixXd CMT::MCBM::sample(const MatrixXd& input) const {
 		// normalize log-probability
 		logProb1 -= logSumExp(logProb01);
 
-		return (Array<double, 1, Dynamic>::Random(input.cols()).abs() < logProb1.exp()).cast<double>();
+		ArrayXXd uniRand = Array<double, 1, Dynamic>::Random(input.cols()).abs();
+		return (uniRand < logProb1.exp()).cast<double>();
 	} else {
 		// input is zero-dimensional
 		double logProb0 = logSumExp(mPriors)[0];
@@ -151,8 +152,79 @@ MatrixXd CMT::MCBM::sample(const MatrixXd& input) const {
 
 		logProb1 -= logSumExp(logProb01)[0];
 
-		return (Array<double, 1, Dynamic>::Random(input.cols()).abs() < Array<double, 1, Dynamic>::Zero(input.cols()) + exp(logProb1)).cast<double>();
+		return (
+			Array<double, 1, Dynamic>::Random(input.cols()).abs() <
+			Array<double, 1, Dynamic>::Zero(input.cols()) + exp(logProb1)).cast<double>();
 	}
+}
+
+
+
+Array<int, 1, Dynamic> CMT::MCBM::samplePrior(const MatrixXd& input) const {
+	ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
+	ArrayXXd biasEnergy = mInputBias.transpose() * input;
+
+	ArrayXXd predictorEnergy = mPredictors * input;
+
+	ArrayXXd tmp0 = (featureEnergy + biasEnergy).colwise() + mPriors.array();
+	ArrayXXd tmp1 = (tmp0 + predictorEnergy).colwise() + mOutputBias.array();
+
+	ArrayXXd logPrior = tmp0 + tmp1;
+	logPrior -= logSumExp(logPrior);
+
+	Array<int, 1, Dynamic> labels(input.cols());
+	ArrayXXd prior = logPrior.exp();
+
+	#pragma omp parallel for
+	for(int j = 0; j < input.cols(); ++j) {
+		int i = 0;
+		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double cdf;
+
+		// compute index
+		for(cdf = prior(0, j); cdf < urand; cdf += prior(i, j))
+			++i;
+
+		labels[j] = i;
+	}
+
+	return labels;
+}
+
+
+
+Array<int, 1, Dynamic> CMT::MCBM::samplePosterior(
+	const MatrixXd& input,
+	const MatrixXd& output) const
+{
+	ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
+	ArrayXXd biasEnergy = mInputBias.transpose() * input;
+
+	ArrayXXd predictorEnergy = mPredictors * input;
+
+	ArrayXXd tmp0 = (featureEnergy + biasEnergy).colwise() + mPriors.array();
+	ArrayXXd tmp1 = (tmp0 + predictorEnergy).colwise() + mOutputBias.array();
+
+	ArrayXXd logPosterior = (1. - output.array()) * tmp0 + output.array() * tmp1;
+	logPosterior -= logSumExp(logPosterior);
+
+	Array<int, 1, Dynamic> labels(input.cols());
+	ArrayXXd post = logPosterior.exp();
+
+	#pragma omp parallel for
+	for(int j = 0; j < input.cols(); ++j) {
+		int i = 0;
+		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double cdf;
+
+		// compute index
+		for(cdf = post(0, j); cdf < urand; cdf += post(i, j))
+			++i;
+
+		labels[j] = i;
+	}
+
+	return labels;
 }
 
 

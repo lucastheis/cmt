@@ -624,6 +624,57 @@ PyObject* MCBM_train(MCBMObject* self, PyObject* args, PyObject* kwds) {
 
 
 
+const char* MCBM_sample_posterior_doc =
+	"sample_posterior(self, input, output)\n"
+	"\n"
+	"Samples component labels $c$ from the posterior $p(c \\mid \\mathbf{x}, \\mathbf{y})$.\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: ndarray\n"
+	"@param output: inputs stored in columns\n"
+	"\n"
+	"@rtype: ndarray\n"
+	"@return: an integer array containing a sampled index for each input and output pair";
+
+PyObject* MCBM_sample_posterior(MCBMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", "output", 0};
+
+	PyObject* input;
+	PyObject* output;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		PyObject* result = PyArray_FromMatrixXi(
+			self->mcbm->samplePosterior(PyArray_ToMatrixXd(input), PyArray_ToMatrixXd(output)));
+		Py_DECREF(input);
+		Py_DECREF(output);
+		return result;
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
 const char* MCBM_parameters_doc =
 	"parameters(self, parameters=None)\n"
 	"\n"

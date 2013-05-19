@@ -68,6 +68,10 @@ namespace CMT {
 			inline void setOutputBias(const VectorXd& outputBias);
 
 			virtual MatrixXd sample(const MatrixXd& input) const;
+			virtual Array<int, 1, Dynamic> samplePrior(const MatrixXd& input) const;
+			virtual Array<int, 1, Dynamic> samplePosterior(
+				const MatrixXd& input,
+				const MatrixXd& output) const;
 
 			virtual Array<double, 1, Dynamic> logLikelihood(
 				const MatrixXd& input,

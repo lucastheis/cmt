@@ -35,6 +35,7 @@ extern PyTypeObject PCATransform_type;
 
 extern const char* MCBM_doc;
 extern const char* MCBM_train_doc;
+extern const char* MCBM_sample_posterior_doc;
 extern const char* MCBM_parameters_doc;
 extern const char* MCBM_set_parameters_doc;
 extern const char* MCBM_reduce_doc;
@@ -87,6 +88,8 @@ int PatchMCBM_ass_subscript(PatchMCBMObject*, PyObject*, PyObject*);
 PyObject* PatchMCBM_preconditioner(PatchMCBMObject*, PyObject*);
 PyObject* PatchMCBM_preconditioners(PatchMCBMObject*, void*);
 int PatchMCBM_set_preconditioners(PatchMCBMObject*, PyObject*, void*);
+
+PyObject* MCBM_sample_posterior(MCBMObject*, PyObject*, PyObject*);
 
 PyObject* PatchMCBM_initialize(PatchMCBMObject*, PyObject*, PyObject*);
 PyObject* PatchMCBM_train(PatchMCBMObject*, PyObject*, PyObject*);

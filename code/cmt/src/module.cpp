@@ -292,6 +292,10 @@ static PyGetSetDef MCBM_getset[] = {
 
 static PyMethodDef MCBM_methods[] = {
 	{"train", (PyCFunction)MCBM_train, METH_VARARGS|METH_KEYWORDS, MCBM_train_doc},
+	{"sample_posterior",
+		(PyCFunction)MCBM_sample_posterior,
+		METH_VARARGS|METH_KEYWORDS,
+		MCBM_sample_posterior_doc},
 	{"_parameters",
 		(PyCFunction)MCBM_parameters,
 		METH_VARARGS|METH_KEYWORDS,
