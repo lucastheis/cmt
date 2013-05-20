@@ -40,8 +40,19 @@ void CMT::WhiteningTransform::initialize(const ArrayXXd& input, int dimOut) {
 	SelfAdjointEigenSolver<MatrixXd> eigenSolver;
 
 	eigenSolver.compute(covXX);
-	mPreIn = eigenSolver.operatorInverseSqrt();
-	mPreInInv = eigenSolver.operatorSqrt();
+
+	Array<double, 1, Dynamic> eigenvalues = eigenSolver.eigenvalues();
+	MatrixXd eigenvectors = eigenSolver.eigenvectors();
+
+	// don't whiten directions with near-zero variance
+	for(int i = 0; i < eigenvalues.size(); ++i)
+		if(eigenvalues[i] < 1e-7)
+			eigenvalues[i] = 1.;
+
+	mPreIn = (eigenvectors.array().rowwise() * eigenvalues.sqrt().cwiseInverse()).matrix()
+		* eigenvectors.transpose();
+	mPreInInv = (eigenvectors.array().rowwise() * eigenvalues.sqrt()).matrix()
+		* eigenvectors.transpose();
 
 	mMeanOut = VectorXd::Zero(dimOut);
 	mPreOut = MatrixXd::Identity(dimOut, dimOut);
