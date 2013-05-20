@@ -163,6 +163,9 @@ MatrixXd CMT::MCBM::sample(const MatrixXd& input) const {
 
 
 Array<int, 1, Dynamic> CMT::MCBM::samplePrior(const MatrixXd& input) const {
+	if(input.rows() != dimIn())
+		throw Exception("Inputs have wrong dimensionality.");
+
 	ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
 	ArrayXXd biasEnergy = mInputBias.transpose() * input;
 
@@ -172,7 +175,7 @@ Array<int, 1, Dynamic> CMT::MCBM::samplePrior(const MatrixXd& input) const {
 	ArrayXXd tmp1 = (tmp0 + predictorEnergy).colwise() + mOutputBias.array();
 
 	ArrayXXd logPrior = tmp0 + tmp1;
-	logPrior -= logSumExp(logPrior);
+	logPrior.rowwise() -= logSumExp(logPrior);
 
 	ArrayXXd prior = logPrior.exp();
 
@@ -200,6 +203,13 @@ Array<int, 1, Dynamic> CMT::MCBM::samplePosterior(
 	const MatrixXd& input,
 	const MatrixXd& output) const
 {
+	if(output.cols() != input.cols())
+		throw Exception("Number of inputs and outputs must be the same.");
+	if(input.rows() != dimIn())
+		throw Exception("Inputs have wrong dimensionality.");
+	if(output.rows() != dimOut())
+		throw Exception("Outputs have wrong dimensionality.");
+
 	ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
 	ArrayXXd biasEnergy = mInputBias.transpose() * input;
 
@@ -208,8 +218,10 @@ Array<int, 1, Dynamic> CMT::MCBM::samplePosterior(
 	ArrayXXd tmp0 = (featureEnergy + biasEnergy).colwise() + mPriors.array();
 	ArrayXXd tmp1 = (tmp0 + predictorEnergy).colwise() + mOutputBias.array();
 
-	ArrayXXd logPosterior = (1. - output.array()) * tmp0 + output.array() * tmp1;
-	logPosterior -= logSumExp(logPosterior);
+	ArrayXXd logPosterior = 
+		tmp0.rowwise() * (1. - output.row(0).array()) +
+		tmp1.rowwise() * output.row(0).array();
+	logPosterior.rowwise() -= logSumExp(logPosterior);
 
 	ArrayXXd post = logPosterior.exp();
 

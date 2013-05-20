@@ -756,6 +756,7 @@ int WhiteningTransform_init(WhiteningTransformObject* self, PyObject* args, PyOb
 
 		PyObject* input;
 		PyObject* output = 0;
+		dimOut = 1;
 
 		if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|Oi", const_cast<char**>(kwlist),
 			&input, &output, &dimOut))
