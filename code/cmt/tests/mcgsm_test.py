@@ -5,7 +5,7 @@ sys.path.append('./code')
 
 from cmt import MCGSM
 from numpy import *
-from numpy import max
+from numpy import min, max
 from numpy.linalg import cholesky
 from numpy.random import *
 from scipy.stats import kstest, norm
@@ -61,6 +61,8 @@ class Tests(unittest.TestCase):
 		self.assertEqual(loglik.shape[1], num_samples)
 		self.assertEqual(post.shape[0], num_components)
 		self.assertEqual(post.shape[1], num_samples)
+		self.assertLess(max(samples), mcgsm.num_components)
+		self.assertGreaterEqual(min(samples), 0)
 		self.assertEqual(samples.shape[0], 1)
 		self.assertEqual(samples.shape[1], num_samples)
 

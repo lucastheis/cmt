@@ -17,6 +17,8 @@ using Eigen::ArrayXXd;
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
+#include <iostream>
+
 CMT::MCBM::Parameters::Parameters() :
 	Trainable::Parameters::Parameters()
 {
@@ -172,8 +174,9 @@ Array<int, 1, Dynamic> CMT::MCBM::samplePrior(const MatrixXd& input) const {
 	ArrayXXd logPrior = tmp0 + tmp1;
 	logPrior -= logSumExp(logPrior);
 
-	Array<int, 1, Dynamic> labels(input.cols());
 	ArrayXXd prior = logPrior.exp();
+
+	Array<int, 1, Dynamic> labels(input.cols());
 
 	#pragma omp parallel for
 	for(int j = 0; j < input.cols(); ++j) {
@@ -208,8 +211,9 @@ Array<int, 1, Dynamic> CMT::MCBM::samplePosterior(
 	ArrayXXd logPosterior = (1. - output.array()) * tmp0 + output.array() * tmp1;
 	logPosterior -= logSumExp(logPosterior);
 
-	Array<int, 1, Dynamic> labels(input.cols());
 	ArrayXXd post = logPosterior.exp();
+
+	Array<int, 1, Dynamic> labels(input.cols());
 
 	#pragma omp parallel for
 	for(int j = 0; j < input.cols(); ++j) {

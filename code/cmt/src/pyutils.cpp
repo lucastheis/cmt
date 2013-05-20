@@ -52,7 +52,8 @@ PyObject* PyArray_FromMatrixXi(const MatrixXi& mat) {
 	#endif
 
 	// copy data
-	const int64_t* data = mat.cast<int64_t>().eval().data();
+	Matrix<int64_t, Dynamic, Dynamic> tmp = mat.cast<int64_t>();
+	const int64_t* data = tmp.data();
 	int64_t* dataCopy = reinterpret_cast<int64_t*>(PyArray_DATA(array));
 
 	for(int i = 0; i < mat.size(); ++i)

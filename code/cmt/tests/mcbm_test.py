@@ -5,7 +5,7 @@ sys.path.append('./code')
 
 from cmt import MCBM, PatchMCBM
 from numpy import *
-from numpy import max
+from numpy import max, min
 from numpy.random import *
 from pickle import dump, load
 from tempfile import mkstemp
@@ -50,6 +50,8 @@ class Tests(unittest.TestCase):
 		self.assertEqual(output.shape[1], num_samples)
 		self.assertEqual(loglik.shape[0], 1)
 		self.assertEqual(loglik.shape[1], num_samples)
+		self.assertLess(max(samples), mcbm.num_components)
+		self.assertGreaterEqual(min(samples), 0)
 		self.assertEqual(samples.shape[0], 1)
 		self.assertEqual(samples.shape[1], num_samples)
 

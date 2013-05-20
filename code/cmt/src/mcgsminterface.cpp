@@ -908,13 +908,17 @@ PyObject* MCGSM_sample_posterior(MCGSMObject* self, PyObject* args, PyObject* kw
 	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 	if(!input || !output) {
+		Py_XDECREF(input);
+		Py_XDECREF(output);
 		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
 		return 0;
 	}
 
 	try {
 		PyObject* result = PyArray_FromMatrixXi(
-			self->mcgsm->samplePosterior(PyArray_ToMatrixXd(input), PyArray_ToMatrixXd(output)));
+			self->mcgsm->samplePosterior(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output)));
 		Py_DECREF(input);
 		Py_DECREF(output);
 		return result;
