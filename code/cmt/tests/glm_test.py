@@ -28,7 +28,6 @@ class Tests(unittest.TestCase):
 		f = LogisticFunction()
 		x = randn(1000)
 		y = f(x).ravel()
-		x = x
 
 		for i in range(x.size):
 			self.assertAlmostEqual(y[i], 1. / (1. + exp(-x[i])))
