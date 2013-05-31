@@ -15,7 +15,7 @@ class Tests(unittest.TestCase):
 		xmask[-1, -1] = False
 		ymask[-1, -1] = True
 
-		model = FVBN(8, 8, xmask, ymask)#, MCBM(sum(xmask), 1))
+		model = FVBN(8, 8, xmask, ymask)
 
 		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
 		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)

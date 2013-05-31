@@ -20,11 +20,11 @@ const char* FVBN_doc =
 	"@type  cols: integer\n"
 	"@param cols: number of columns of the image patch\n"
 	"\n"
-	"@type  xmask: C{ndarray}\n"
-	"@param xmask: a Boolean array describing the input pixels\n"
+	"@type  input_mask: C{ndarray}\n"
+	"@param input_mask: a Boolean array describing the input pixels\n"
 	"\n"
-	"@type  ymask: C{ndarray}\n"
-	"@param ymask: a Boolean array describing the output pixels\n"
+	"@type  output_mask: C{ndarray}\n"
+	"@param output_mask: a Boolean array describing the output pixels\n"
 	"\n"
 	"@type  order: C{list}\n"
 	"@param order: list of tuples indicating order of pixels\n"
@@ -36,19 +36,19 @@ const char* FVBN_doc =
 	"@param max_pcs: can be used to reduce dimensionality of inputs to conditional models";
 
 int FVBN_init(FVBNObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"rows", "cols", "xmask", "ymask", "order", "model", "max_pcs", 0};
+	const char* kwlist[] = {"rows", "cols", "input_mask", "output_mask", "order", "model", "max_pcs", 0};
 
 	int rows;
 	int cols;
-	PyObject* xmask = 0;
-	PyObject* ymask = 0;
+	PyObject* input_mask = 0;
+	PyObject* output_mask = 0;
 	PyObject* order = 0;
 	PyObject* model = 0;
 	int max_pcs = -1;
 
 	// read arguments
 	if(!PyArg_ParseTupleAndKeywords(args, kwds, "ii|OOOOi", const_cast<char**>(kwlist),
-		&rows, &cols, &xmask, &ymask, &order, &model, &max_pcs))
+		&rows, &cols, &input_mask, &output_mask, &order, &model, &max_pcs))
 		return -1;
 
 	if(order == Py_None)
@@ -67,19 +67,19 @@ int FVBN_init(FVBNObject* self, PyObject* args, PyObject* kwds) {
 		return -1;
 	}
 
-	if(xmask == Py_None)
-		xmask = 0;
+	if(input_mask == Py_None)
+		input_mask = 0;
 
-	if(ymask == Py_None)
-		ymask = 0;
+	if(output_mask == Py_None)
+		output_mask = 0;
 
-	if(xmask && ymask) {
-		xmask = PyArray_FROM_OTF(xmask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-		ymask = PyArray_FROM_OTF(ymask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	if(input_mask && output_mask) {
+		input_mask = PyArray_FROM_OTF(input_mask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		output_mask = PyArray_FROM_OTF(output_mask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
-		if(!xmask || !ymask) {
-			Py_XDECREF(xmask);
-			Py_XDECREF(ymask);
+		if(!input_mask || !output_mask) {
+			Py_XDECREF(input_mask);
+			Py_XDECREF(output_mask);
 			PyErr_SetString(PyExc_TypeError, "Masks have to be given as Boolean arrays.");
 			return -1;
 		}
@@ -105,18 +105,18 @@ int FVBN_init(FVBNObject* self, PyObject* args, PyObject* kwds) {
 		}
 
 		if(order) {
-			if(xmask && ymask) {
+			if(input_mask && output_mask) {
 				self->fvbn = new PatchModel<GLM, PCATransform>(
 					rows,
 					cols,
 					PyList_AsTuples(order),
-					PyArray_ToMatrixXb(xmask),
-					PyArray_ToMatrixXb(ymask),
+					PyArray_ToMatrixXb(input_mask),
+					PyArray_ToMatrixXb(output_mask),
 					glm,
 					max_pcs);
 
-				Py_DECREF(xmask);
-				Py_DECREF(ymask);
+				Py_DECREF(input_mask);
+				Py_DECREF(output_mask);
 			} else {
 				self->fvbn = new PatchModel<GLM, PCATransform>(
 					rows,
@@ -126,17 +126,17 @@ int FVBN_init(FVBNObject* self, PyObject* args, PyObject* kwds) {
 					max_pcs);
 			}
 		} else {
-			if(xmask && ymask) {
+			if(input_mask && output_mask) {
 				self->fvbn = new PatchModel<GLM, PCATransform>(
 					rows,
 					cols,
-					PyArray_ToMatrixXb(xmask),
-					PyArray_ToMatrixXb(ymask),
+					PyArray_ToMatrixXb(input_mask),
+					PyArray_ToMatrixXb(output_mask),
 					glm,
 					max_pcs);
 
-				Py_DECREF(xmask);
-				Py_DECREF(ymask);
+				Py_DECREF(input_mask);
+				Py_DECREF(output_mask);
 			} else {
 				self->fvbn = new PatchModel<GLM, PCATransform>(
 					rows,
@@ -149,8 +149,8 @@ int FVBN_init(FVBNObject* self, PyObject* args, PyObject* kwds) {
 		if(model)
 			delete glm;
 	} catch(Exception exception) {
-		Py_XDECREF(xmask);
-		Py_XDECREF(ymask);
+		Py_XDECREF(input_mask);
+		Py_XDECREF(output_mask);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return -1;
 	}
