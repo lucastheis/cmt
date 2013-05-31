@@ -81,14 +81,13 @@ void CMT::PCATransform::initialize(
 		double varExplainedSoFar = 0.;
 		numPCs = 0;
 
-		for(int i = mEigenvalues.size() - 1; i >= 0; --i, ++numPCs) {
+		for(int i = mEigenvalues.size() - 1; i >= 0; --i) {
+			numPCs += 1;
 			varExplainedSoFar += mEigenvalues[i] / totalVariance * 100.;
+
 			if(varExplainedSoFar > varExplained)
 				break;
 		}
-
-		if(numPCs < 1)
-			numPCs = 1;
 	} else if(numPCs > mEigenvalues.size()) {
 		numPCs = mEigenvalues.size();
 	}
