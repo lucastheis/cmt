@@ -24,8 +24,6 @@ extern const char* MCGSM_initialize_doc;
 extern const char* MCGSM_train_doc;
 extern const char* MCGSM_sample_posterior_doc;
 extern const char* MCGSM_posterior_doc;
-extern const char* MCGSM_parameters_doc;
-extern const char* MCGSM_set_parameters_doc;
 extern const char* MCGSM_reduce_doc;
 extern const char* MCGSM_setstate_doc;
 

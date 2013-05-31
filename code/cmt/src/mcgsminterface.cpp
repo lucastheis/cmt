@@ -1,4 +1,5 @@
 #include "callbackinterface.h"
+#include "trainableinterface.h"
 
 #include "Eigen/Core"
 using Eigen::Map;
@@ -12,150 +13,85 @@ using CMT::Exception;
 #include "mcgsminterface.h"
 using CMT::MCGSM;
 
-MCGSM::Parameters PyObject_ToMCGSMParameters(PyObject* parameters) {
-	MCGSM::Parameters params;
+Trainable::Parameters* PyObject_ToMCGSMParameters(PyObject* parameters) {
+	MCGSM::Parameters* params = dynamic_cast<MCGSM::Parameters*>(
+		PyObject_ToParameters(parameters, new MCGSM::Parameters));
 
 	// read parameters from dictionary
 	if(parameters && parameters != Py_None) {
-		if(!PyDict_Check(parameters))
-			throw Exception("Parameters should be stored in a dictionary.");
-
-		PyObject* verbosity = PyDict_GetItemString(parameters, "verbosity");
-		if(verbosity)
-			if(PyInt_Check(verbosity))
-				params.verbosity = PyInt_AsLong(verbosity);
-			else if(PyFloat_Check(verbosity))
-				params.verbosity = static_cast<int>(PyFloat_AsDouble(verbosity));
-			else
-				throw Exception("verbosity should be of type `int`.");
-
-		PyObject* max_iter = PyDict_GetItemString(parameters, "max_iter");
-		if(max_iter)
-			if(PyInt_Check(max_iter))
-				params.maxIter = PyInt_AsLong(max_iter);
-			else if(PyFloat_Check(max_iter))
-				params.maxIter = static_cast<int>(PyFloat_AsDouble(max_iter));
-			else
-				throw Exception("max_iter should be of type `int`.");
-		
-		PyObject* threshold = PyDict_GetItemString(parameters, "threshold");
-		if(threshold)
-			if(PyFloat_Check(threshold))
-				params.threshold = PyFloat_AsDouble(threshold);
-			else if(PyInt_Check(threshold))
-				params.threshold = static_cast<double>(PyFloat_AsDouble(threshold));
-			else
-				throw Exception("threshold should be of type `float`.");
-
-		PyObject* num_grad = PyDict_GetItemString(parameters, "num_grad");
-		if(num_grad)
-			if(PyInt_Check(num_grad))
-				params.numGrad = PyInt_AsLong(num_grad);
-			else if(PyFloat_Check(num_grad))
-				params.numGrad = static_cast<int>(PyFloat_AsDouble(num_grad));
-			else
-				throw Exception("num_grad should be of type `int`.");
-
-		PyObject* batch_size = PyDict_GetItemString(parameters, "batch_size");
-		if(batch_size)
-			if(PyInt_Check(batch_size))
-				params.batchSize = PyInt_AsLong(batch_size);
-			else if(PyFloat_Check(batch_size))
-				params.batchSize = static_cast<int>(PyFloat_AsDouble(batch_size));
-			else
-				throw Exception("batch_size should be of type `int`.");
-
 		PyObject* callback = PyDict_GetItemString(parameters, "callback");
 		if(callback)
 			if(PyCallable_Check(callback))
-				params.callback = new CallbackInterface(&MCGSM_type, callback);
+				params->callback = new CallbackInterface(&MCGSM_type, callback);
 			else if(callback != Py_None)
 				throw Exception("callback should be a function or callable object.");
-
-		PyObject* cb_iter = PyDict_GetItemString(parameters, "cb_iter");
-		if(cb_iter)
-			if(PyInt_Check(cb_iter))
-				params.cbIter = PyInt_AsLong(cb_iter);
-			else if(PyFloat_Check(cb_iter))
-				params.cbIter = static_cast<int>(PyFloat_AsDouble(cb_iter));
-			else
-				throw Exception("cb_iter should be of type `int`.");
-
-		PyObject* val_iter = PyDict_GetItemString(parameters, "val_iter");
-		if(val_iter)
-			if(PyInt_Check(val_iter))
-				params.valIter = PyInt_AsLong(val_iter);
-			else if(PyFloat_Check(val_iter))
-				params.valIter = static_cast<int>(PyFloat_AsDouble(val_iter));
-			else
-				throw Exception("val_iter should be of type `int`.");
 
 		PyObject* train_priors = PyDict_GetItemString(parameters, "train_priors");
 		if(train_priors)
 			if(PyBool_Check(train_priors))
-				params.trainPriors = (train_priors == Py_True);
+				params->trainPriors = (train_priors == Py_True);
 			else
 				throw Exception("train_priors should be of type `bool`.");
 
 		PyObject* train_scales = PyDict_GetItemString(parameters, "train_scales");
 		if(train_scales)
 			if(PyBool_Check(train_scales))
-				params.trainScales = (train_scales == Py_True);
+				params->trainScales = (train_scales == Py_True);
 			else
 				throw Exception("train_scales should be of type `bool`.");
 
 		PyObject* train_weights = PyDict_GetItemString(parameters, "train_weights");
 		if(train_weights)
 			if(PyBool_Check(train_weights))
-				params.trainWeights = (train_weights == Py_True);
+				params->trainWeights = (train_weights == Py_True);
 			else
 				throw Exception("train_weights should be of type `bool`.");
 
 		PyObject* train_features = PyDict_GetItemString(parameters, "train_features");
 		if(train_features)
 			if(PyBool_Check(train_features))
-				params.trainFeatures = (train_features == Py_True);
+				params->trainFeatures = (train_features == Py_True);
 			else
 				throw Exception("train_features should be of type `bool`.");
 
 		PyObject* train_cholesky_factors = PyDict_GetItemString(parameters, "train_cholesky_factors");
 		if(train_cholesky_factors)
 			if(PyBool_Check(train_cholesky_factors))
-				params.trainCholeskyFactors = (train_cholesky_factors == Py_True);
+				params->trainCholeskyFactors = (train_cholesky_factors == Py_True);
 			else
 				throw Exception("train_cholesky_factors should be of type `bool`.");
 
 		PyObject* train_predictors = PyDict_GetItemString(parameters, "train_predictors");
 		if(train_predictors)
 			if(PyBool_Check(train_predictors))
-				params.trainPredictors = (train_predictors == Py_True);
+				params->trainPredictors = (train_predictors == Py_True);
 			else
 				throw Exception("train_predictors should be of type `bool`.");
 
 		PyObject* regularize_features = PyDict_GetItemString(parameters, "regularize_features");
 		if(regularize_features)
 			if(PyFloat_Check(regularize_features))
-				params.regularizeFeatures = PyFloat_AsDouble(regularize_features);
+				params->regularizeFeatures = PyFloat_AsDouble(regularize_features);
 			else if(PyInt_Check(regularize_features))
-				params.regularizeFeatures = static_cast<double>(PyFloat_AsDouble(regularize_features));
+				params->regularizeFeatures = static_cast<double>(PyFloat_AsDouble(regularize_features));
 			else
 				throw Exception("regularize_features should be of type `float`.");
 
 		PyObject* regularize_weights = PyDict_GetItemString(parameters, "regularize_weights");
 		if(regularize_weights)
 			if(PyFloat_Check(regularize_weights))
-				params.regularizeWeights = PyFloat_AsDouble(regularize_weights);
+				params->regularizeWeights = PyFloat_AsDouble(regularize_weights);
 			else if(PyInt_Check(regularize_weights))
-				params.regularizeWeights = static_cast<double>(PyFloat_AsDouble(regularize_weights));
+				params->regularizeWeights = static_cast<double>(PyFloat_AsDouble(regularize_weights));
 			else
 				throw Exception("regularize_weights should be of type `float`.");
 
 		PyObject* regularize_predictors = PyDict_GetItemString(parameters, "regularize_predictors");
 		if(regularize_predictors)
 			if(PyFloat_Check(regularize_predictors))
-				params.regularizePredictors = PyFloat_AsDouble(regularize_predictors);
+				params->regularizePredictors = PyFloat_AsDouble(regularize_predictors);
 			else if(PyInt_Check(regularize_predictors))
-				params.regularizePredictors = static_cast<double>(PyFloat_AsDouble(regularize_predictors));
+				params->regularizePredictors = static_cast<double>(PyFloat_AsDouble(regularize_predictors));
 			else
 				throw Exception("regularize_predictors should be of type `float`.");
 
@@ -166,9 +102,9 @@ MCGSM::Parameters PyObject_ToMCGSMParameters(PyObject* parameters) {
 					throw Exception("Regularizer should be 'L1' or 'L2'.");
 
 				if(PyString_AsString(regularizer)[1] == '1')
-					params.regularizer = MCGSM::Parameters::L1;
+					params->regularizer = MCGSM::Parameters::L1;
 				else
-					params.regularizer = MCGSM::Parameters::L2;
+					params->regularizer = MCGSM::Parameters::L2;
 			} else {
 				throw Exception("regularizer should be of type `str`.");
 			}
@@ -214,19 +150,19 @@ const char* MCGSM_doc =
 	"\t- L. Theis, R. Hosseini, M. Bethge, I{Mixtures of Conditional Gaussian Scale "
 	"Mixtures Applied to Multiscale Image Representations}, PLoS ONE, 2012.\n"
 	"\n"
-	"@type  dim_in: integer\n"
+	"@type  dim_in: C{int}\n"
 	"@param dim_in: dimensionality of input\n"
 	"\n"
-	"@type  dim_out: integer\n"
+	"@type  dim_out: C{int}\n"
 	"@param dim_out: dimensionality of output\n"
 	"\n"
-	"@type  num_components: integer\n"
+	"@type  num_components: C{int}\n"
 	"@param num_components: number of components\n"
 	"\n"
-	"@type  num_scales: integer\n"
+	"@type  num_scales: C{int}\n"
 	"@param num_scales: number of scales per scale mixture component\n"
 	"\n"
-	"@type  num_features: integer\n"
+	"@type  num_features: C{int}\n"
 	"@param num_features: number of features used to approximate input covariance matrices";
 
 int MCGSM_init(MCGSMObject* self, PyObject* args, PyObject* kwds) {
@@ -530,10 +466,10 @@ const char* MCGSM_initialize_doc =
 	"\n"
 	"Tries to guess more sensible initial values for the model parameters from data.\n"
 	"\n"
-	"@type  input: ndarray\n"
+	"@type  input: C{ndarray}\n"
 	"@param input: inputs stored in columns\n"
 	"\n"
-	"@type  output: ndarray\n"
+	"@type  output: C{ndarray}\n"
 	"@param output: outputs stored in columns";
 
 PyObject* MCGSM_initialize(MCGSMObject* self, PyObject* args, PyObject* kwds) {
@@ -594,6 +530,8 @@ const char* MCGSM_train_doc =
 	"\t>>> \t'batch_size': 2000,\n"
 	"\t>>> \t'callback': None,\n"
 	"\t>>> \t'cb_iter': 25,\n"
+	"\t>>> \t'val_iter': 5,\n"
+	"\t>>> \t'val_look_ahead': 20,\n"
 	"\t>>> \t'train_priors': True,\n"
 	"\t>>> \t'train_scales': True,\n"
 	"\t>>> \t'train_weights': True,\n"
@@ -622,208 +560,50 @@ const char* MCGSM_train_doc =
 	"\t>>> def callback(i, mcgsm):\n"
 	"\t>>> \tprint i\n"
 	"\n"
-	"@type  input: ndarray\n"
+	"@type  input: C{ndarray}\n"
 	"@param input: inputs stored in columns\n"
 	"\n"
-	"@type  output: ndarray\n"
+	"@type  output: C{ndarray}\n"
 	"@param output: outputs stored in columns\n"
 	"\n"
-	"@type  input_val: ndarray\n"
+	"@type  input_val: C{ndarray}\n"
 	"@param input_val: inputs used for early stopping based on validation error\n"
 	"\n"
-	"@type  output_val: ndarray\n"
+	"@type  output_val: C{ndarray}\n"
 	"@param output_val: outputs used for early stopping based on validation error\n"
 	"\n"
-	"@type  parameters: dict\n"
+	"@type  parameters: C{dict}\n"
 	"@param parameters: a dictionary containing hyperparameters\n"
 	"\n"
-	"@rtype: bool\n"
+	"@rtype: C{bool}\n"
 	"@return: C{True} if training converged, otherwise C{False}";
 
 PyObject* MCGSM_train(MCGSMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", "input_val", "output_val", "parameters", 0};
-
-	PyObject* input;
-	PyObject* output;
-	PyObject* input_val = 0;
-	PyObject* output_val = 0;
-	PyObject* parameters = 0;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|OOO", const_cast<char**>(kwlist),
-		&input,
-		&output,
-		&input_val,
-		&output_val,
-		&parameters))
-		return 0;
-
-	// make sure data is stored in NumPy array
-	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!input || !output) {
-		Py_XDECREF(input);
-		Py_XDECREF(output);
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
-		return 0;
-	}
-
-	if(input_val == Py_None)
-		input_val = 0;
-	if(output_val == Py_None)
-		output_val = 0;
-
-	if(input_val || output_val) {
-		input_val = PyArray_FROM_OTF(input_val, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-		output_val = PyArray_FROM_OTF(output_val, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-		if(!input_val || !output_val) {
-			Py_DECREF(input);
-			Py_DECREF(output);
-			Py_XDECREF(input_val);
-			Py_XDECREF(output_val);
-			PyErr_SetString(PyExc_TypeError, "Validation data has to be stored in NumPy arrays.");
-			return 0;
-		}
-	}
-
-	try {
-		bool converged;
-
-		if(input_val && output_val) {
-			converged = self->mcgsm->train(
-				PyArray_ToMatrixXd(input),
-				PyArray_ToMatrixXd(output),
-				PyArray_ToMatrixXd(input_val),
-				PyArray_ToMatrixXd(output_val),
-				PyObject_ToMCGSMParameters(parameters));
-		} else {
-			converged = self->mcgsm->train(
-				PyArray_ToMatrixXd(input),
-				PyArray_ToMatrixXd(output),
-				PyObject_ToMCGSMParameters(parameters));
-		}
-
-		if(converged) {
-			Py_DECREF(input);
-			Py_DECREF(output);
-			Py_XDECREF(input_val);
-			Py_XDECREF(output_val);
-			Py_INCREF(Py_True);
-			return Py_True;
-		} else {
-			Py_DECREF(input);
-			Py_DECREF(output);
-			Py_XDECREF(input_val);
-			Py_XDECREF(output_val);
-			Py_INCREF(Py_False);
-			return Py_False;
-		}
-	} catch(Exception exception) {
-		Py_DECREF(input);
-		Py_DECREF(output);
-			Py_XDECREF(input_val);
-			Py_XDECREF(output_val);
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	return 0;
+	return Trainable_train(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToMCGSMParameters);
 }
 
 
 
 PyObject* MCGSM_check_performance(MCGSMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", "repetitions", "parameters", 0};
-
-	PyObject* input;
-	PyObject* output;
-	int repetitions = 2;
-	PyObject* parameters = 0;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|iO", const_cast<char**>(kwlist),
-		&input,
-		&output,
-		&repetitions,
-		&parameters))
-		return 0;
-
-	// make sure data is stored in NumPy array
-	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!input || !output) {
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
-		return 0;
-	}
-
-	try {
-		double err = self->mcgsm->checkPerformance(
-			PyArray_ToMatrixXd(input),
-			PyArray_ToMatrixXd(output),
-			repetitions, 
-			PyObject_ToMCGSMParameters(parameters));
-		Py_DECREF(input);
-		Py_DECREF(output);
-		return PyFloat_FromDouble(err);
-	} catch(Exception exception) {
-		Py_DECREF(input);
-		Py_DECREF(output);
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	return 0;
+	return Trainable_check_performance(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToMCGSMParameters);
 }
 
 
 
 PyObject* MCGSM_check_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", "epsilon", "parameters", 0};
-
-	PyObject* input;
-	PyObject* output;
-	double epsilon = 1e-5;
-	PyObject* parameters = 0;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|dO", const_cast<char**>(kwlist),
-		&input,
-		&output,
-		&epsilon,
-		&parameters))
-		return 0;
-
-	// make sure data is stored in NumPy array
-	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!input || !output) {
-		Py_XDECREF(input);
-		Py_XDECREF(output);
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
-		return 0;
-	}
-
-	try {
-		double err = self->mcgsm->checkGradient(
-			PyArray_ToMatrixXd(input),
-			PyArray_ToMatrixXd(output),
-			epsilon,
-			PyObject_ToMCGSMParameters(parameters));
-		Py_DECREF(input);
-		Py_DECREF(output);
-		return PyFloat_FromDouble(err);
-	} catch(Exception exception) {
-		Py_DECREF(input);
-		Py_DECREF(output);
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	return 0;
+	return Trainable_check_gradient(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToMCGSMParameters);
 }
 
 
@@ -833,13 +613,13 @@ const char* MCGSM_posterior_doc =
 	"\n"
 	"Computes the posterior distribution over component labels, $p(c \\mid \\mathbf{x}, \\mathbf{y})$\n"
 	"\n"
-	"@type  input: ndarray\n"
+	"@type  input: C{ndarray}\n"
 	"@param input: inputs stored in columns\n"
 	"\n"
-	"@type  output: ndarray\n"
+	"@type  output: C{ndarray}\n"
 	"@param output: outputs stored in columns\n"
 	"\n"
-	"@rtype: ndarray\n"
+	"@rtype: C{ndarray}\n"
 	"@return: a posterior distribution over labels for each given pair of input and output";
 
 PyObject* MCGSM_posterior(MCGSMObject* self, PyObject* args, PyObject* kwds) {
@@ -884,13 +664,13 @@ const char* MCGSM_sample_posterior_doc =
 	"\n"
 	"Samples component labels $c$ from the posterior $p(c \\mid \\mathbf{x}, \\mathbf{y})$.\n"
 	"\n"
-	"@type  input: ndarray\n"
+	"@type  input: C{ndarray}\n"
 	"@param input: inputs stored in columns\n"
 	"\n"
-	"@type  output: ndarray\n"
+	"@type  output: C{ndarray}\n"
 	"@param output: inputs stored in columns\n"
 	"\n"
-	"@rtype: ndarray\n"
+	"@rtype: C{ndarray}\n"
 	"@return: an integer array containing a sampled index for each input and output pair";
 
 PyObject* MCGSM_sample_posterior(MCGSMObject* self, PyObject* args, PyObject* kwds) {
@@ -934,192 +714,32 @@ PyObject* MCGSM_sample_posterior(MCGSMObject* self, PyObject* args, PyObject* kw
 
 
 
-const char* MCGSM_parameters_doc =
-	"parameters(self, parameters=None)\n"
-	"\n"
-	"Summarizes the parameters of the model in a long vector.\n"
-	"\n"
-	"If C{parameters} is given, only the parameters with C{train_* = True} will be contained "
-	"in the vector.\n"
-	"\n"
-	"@type  parameters: dict\n"
-	"@param parameters: a dictionary containing hyperparameters\n"
-	"\n"
-	"@rtype: ndarray\n"
-	"@return: model parameters vectorized and concatenated";
-
 PyObject* MCGSM_parameters(MCGSMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"parameters", 0};
-
-	PyObject* parameters = 0;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|O", const_cast<char**>(kwlist), &parameters))
-		return 0;
-
-	try {
-		MCGSM::Parameters params = PyObject_ToMCGSMParameters(parameters);
-
-		lbfgsfloatval_t* x = self->mcgsm->parameters(params);
-
-		PyObject* xObj = PyArray_FromMatrixXd(
-			Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> >(
-				x, self->mcgsm->numParameters(params), 1));
-
-		lbfgs_free(x);
-
-		return xObj;
-	} catch(Exception exception) {
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	return 0;
+	return Trainable_parameters(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToMCGSMParameters);
 }
 
 
 
-const char* MCGSM_set_parameters_doc =
-	"set_parameters(self, x, parameters=None)\n"
-	"\n"
-	"Loads all model parameters from a vector as produced by L{parameters()}.\n"
-	"\n"
-	"@type  x: ndarray\n"
-	"@param x: all model parameters concatenated to a vector\n"
-	"\n"
-	"@type  parameters: dict\n"
-	"@param parameters: a dictionary containing hyperparameters";
-
 PyObject* MCGSM_set_parameters(MCGSMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"x", "parameters", 0};
-
-	PyObject* x;
-	PyObject* parameters = 0;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", const_cast<char**>(kwlist),
-		&x,
-		&parameters))
-		return 0;
-
-	x = PyArray_FROM_OTF(x, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!x) {
-		PyErr_SetString(PyExc_TypeError, "Parameters have to be stored in NumPy arrays.");
-		return 0;
-	}
-
-	try {
-		self->mcgsm->setParameters(
-			PyArray_ToMatrixXd(x).data(), // TODO: PyArray_ToMatrixXd unnecessary
-			PyObject_ToMCGSMParameters(parameters));
-
-		Py_DECREF(x);
-		Py_INCREF(Py_None);
-
-		return Py_None;
-	} catch(Exception exception) {
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		Py_DECREF(x);
-		return 0;
-	}
-
-	return 0;
+	return Trainable_set_parameters(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToMCGSMParameters);
 }
 
 
 
 PyObject* MCGSM_parameter_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", "x", "parameters", 0};
-
-	PyObject* input;
-	PyObject* output;
-	PyObject* x = 0;
-	PyObject* parameters = 0;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO", const_cast<char**>(kwlist),
-		&input,
-		&output,
-		&x,
-		&parameters))
-		return 0;
-
-	// make sure data is stored in NumPy array
-	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!input || !output) {
-		Py_XDECREF(input);
-		Py_XDECREF(output);
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
-		return 0;
-	}
-
-	if(x)
-		x = PyArray_FROM_OTF(x, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	try {
-		MCGSM::Parameters params = PyObject_ToMCGSMParameters(parameters);
-
-		MatrixXd gradient(self->mcgsm->numParameters(params), 1); // TODO: don't use MatrixXd
-
-		if(x) {
-			#if LBFGS_FLOAT == 64
-			self->mcgsm->parameterGradient(
-				PyArray_ToMatrixXd(input),
-				PyArray_ToMatrixXd(output),
-				reinterpret_cast<lbfgsfloatval_t*>(PyArray_DATA(x)),
-				gradient.data(),
-				params);
-			#elif LBFGS_FLOAT == 32
-			lbfgsfloatval_t* xLBFGS = lbfgs_malloc(PyArray_SIZE(x));
-			lbfgsfloatval_t* gLBFGS = lbfgs_malloc(PyArray_SIZE(x));
-			double* xData = reinterpret_cast<double*>(PyArray_DATA(x));
-
-			for(int i = 0; i < PyArray_SIZE(x); ++i)
-				xLBFGS[i] = static_cast<lbfgsfloatval_t>(xData[i]);
-
-			self->mcgsm->parameterGradient(
-				PyArray_ToMatrixXd(input),
-				PyArray_ToMatrixXd(output),
-				xLBFGS,
-				gLBFGS,
-				params);
-
-			for(int i = 0; i < PyArray_SIZE(x); ++i)
-				gradient.data()[i] = static_cast<double>(gLBFGS[i]);
-
-			lbfgs_free(gLBFGS);
-			lbfgs_free(xLBFGS);
-			#else
-			#error "LibLBFGS is configured in a way I don't understand."
-			#endif
-		} else {
-			lbfgsfloatval_t* x = self->mcgsm->parameters(params);
-
-			self->mcgsm->parameterGradient(
-				PyArray_ToMatrixXd(input),
-				PyArray_ToMatrixXd(output),
-				x,
-				gradient.data(),
-				params);
-
-			lbfgs_free(x);
-		}
-
-		Py_DECREF(input);
-		Py_DECREF(output);
-		Py_XDECREF(x);
-
-		return PyArray_FromMatrixXd(gradient);
-	} catch(Exception exception) {
-		Py_DECREF(input);
-		Py_DECREF(output);
-		Py_XDECREF(x);
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
+	return Trainable_parameter_gradient(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToMCGSMParameters);
 }
 
 

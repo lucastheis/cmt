@@ -20,11 +20,14 @@ struct TrainableObject {
 
 extern const char* Trainable_parameters_doc;
 extern const char* Trainable_set_parameters_doc;
+extern const char* Trainable_parameter_gradient_doc;
+extern const char* Trainable_check_gradient_doc;
+extern const char* Trainable_check_performance_doc;
 
+Trainable::Parameters* PyObject_ToParameters(
+	PyObject* parameters,
+	Trainable::Parameters* params);
 Trainable::Parameters* PyObject_ToParameters(PyObject* parameters);
-
-template <PyTypeObject* type>
-Trainable::Parameters* PyObject_ToParameters2(PyObject* parameters);
 
 PyObject* Trainable_train(
 	TrainableObject* self,
@@ -51,6 +54,12 @@ PyObject* Trainable_check_gradient(
 	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*) = &PyObject_ToParameters);
 
 PyObject* Trainable_parameter_gradient(
+	TrainableObject* self,
+	PyObject* args,
+	PyObject* kwds,
+	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*) = &PyObject_ToParameters);
+
+PyObject* Trainable_check_performance(
 	TrainableObject* self,
 	PyObject* args,
 	PyObject* kwds,

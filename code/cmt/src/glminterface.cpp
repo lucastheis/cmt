@@ -127,8 +127,8 @@ const char* Bernoulli_doc =
 	"\n"
 	"$$p(y) = \\rho^y (1 - \\rho)^{1 - y}$$\n"
 	"\n"
-	"@type  probability: float\n"
-	"@param probability: probability of generating a 1, $\\rho$";
+	"@type  probability: C{float}\n"
+	"@param probability: probability of generating a one, $\\rho$";
 
 int Bernoulli_init(BernoulliObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"probability", 0};
@@ -170,7 +170,7 @@ PyObject* Bernoulli_reduce(BernoulliObject* self, PyObject*) {
 const char* GLM_doc =
 	"An implementation of generalized linear models.\n"
 	"\n"
-	"$$p(y \\mid \\mathbf{x}) = q(y \\mid g(\\mathbf{x}^\\top \\mathbf{x} + b)),$$\n"
+	"$$p(y \\mid \\mathbf{x}) = q(y \\mid g(\\mathbf{w}^\\top \\mathbf{x} + b)),$$\n"
 	"\n"
 	"where $q$ is typically from the exponential family and $g$ is some nonlinearity\n"
 	"(inverse link function) which has to be specified.\n"
@@ -186,7 +186,7 @@ const char* GLM_doc =
 	"\t>>> glm.weights\n"
 	"\t>>> glm.bias\n"
 	"\n"
-	"@type  dim_in: integer\n"
+	"@type  dim_in: C{int}\n"
 	"@param dim_in: dimensionality of input\n"
 	"\n"
 	"@type  nonlinearity: L{Nonlinearity}/C{type}\n"

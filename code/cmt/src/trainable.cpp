@@ -28,7 +28,7 @@ CMT::Trainable::Parameters::Parameters() {
 	callback = 0;
 	cbIter = 25;
 	valIter = 5;
-	valLookAhead = 0;
+	valLookAhead = 20;
 }
 
 
@@ -434,7 +434,7 @@ double CMT::Trainable::checkPerformance(
 	// wrap additional arguments
 	InstanceLBFGS instance(this, &params, &input, &output);
 
-	// measure time it takes to evaluate gradient
+	// measure time it takes to evaluate gradient in seconds
 	lbfgsfloatval_t* g = lbfgs_malloc(numParameters(params));
 	timeval from, to;
 

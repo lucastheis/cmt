@@ -9,8 +9,15 @@ using Eigen::Matrix;
 using Eigen::Map;
 
 Trainable::Parameters* PyObject_ToParameters(PyObject* parameters) {
-	Trainable::Parameters* params = new Trainable::Parameters;
+	return PyObject_ToParameters(parameters, new Trainable::Parameters);
+}
 
+
+
+Trainable::Parameters* PyObject_ToParameters(
+	PyObject* parameters,
+	Trainable::Parameters* params)
+{
 	// read parameters from dictionary
 	if(parameters && parameters != Py_None) {
 		if(!PyDict_Check(parameters))
@@ -78,6 +85,15 @@ Trainable::Parameters* PyObject_ToParameters(PyObject* parameters) {
 				params->valIter = static_cast<int>(PyFloat_AsDouble(val_iter));
 			else
 				throw Exception("val_iter should be of type `int`.");
+
+		PyObject* val_look_ahead = PyDict_GetItemString(parameters, "val_look_ahead");
+		if(val_look_ahead)
+			if(PyInt_Check(val_look_ahead))
+				params->valLookAhead = PyInt_AsLong(val_look_ahead);
+			else if(PyFloat_Check(val_look_ahead))
+				params->valLookAhead = static_cast<int>(PyFloat_AsDouble(val_look_ahead));
+			else
+				throw Exception("val_look_ahead should be of type `int`.");
 	}
 
 	return params;
@@ -193,10 +209,10 @@ const char* Trainable_parameters_doc =
 	"If C{parameters} is given, only the parameters with C{train_* = True} will be contained "
 	"in the vector.\n"
 	"\n"
-	"@type  parameters: dict\n"
+	"@type  parameters: C{dict}\n"
 	"@param parameters: a dictionary containing hyperparameters\n"
 	"\n"
-	"@rtype: ndarray\n"
+	"@rtype: C{ndarray}\n"
 	"@return: model parameters vectorized and concatenated";
 
 PyObject* Trainable_parameters(
@@ -236,14 +252,14 @@ PyObject* Trainable_parameters(
 
 
 const char* Trainable_set_parameters_doc =
-	"set_parameters(self, x, parameters=None)\n"
+	"_set_parameters(self, x, parameters=None)\n"
 	"\n"
 	"Loads all model parameters from a vector as produced by L{parameters()}.\n"
 	"\n"
-	"@type  x: ndarray\n"
+	"@type  x: C{ndarray}\n"
 	"@param x: all model parameters concatenated to a vector\n"
 	"\n"
-	"@type  parameters: dict\n"
+	"@type  parameters: C{dict}\n"
 	"@param parameters: a dictionary containing hyperparameters";
 
 PyObject* Trainable_set_parameters(
@@ -291,6 +307,30 @@ PyObject* Trainable_set_parameters(
 }
 
 
+
+const char* Trainable_check_gradient_doc =
+	"_check_gradient(self, input, output, epsilon=1e-5, parameters=None)\n"
+	"\n"
+	"Compare the gradient to a numerical gradient.\n"
+	"\n"
+	"Numerically estimate the gradient using finite differences and return the\n"
+	"norm of the difference between the numerical gradient and the gradient\n"
+	"used during training. This method is used for testing purposes.\n"
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: C{ndarray}\n"
+	"@param output: inputs stored in columns\n"
+	"\n"
+	"@type  epsilon: C{float}\n"
+	"@param epsilon: a small change added to the current parameters\n"
+	"\n"
+	"@type  parameters: C{dict}\n"
+	"@param parameters: a dictionary containing hyperparameters\n"
+	"\n"
+	"@rtype: C{float}\n"
+	"@return: difference between numerical and analytical gradient";
 
 PyObject* Trainable_check_gradient(
 	TrainableObject* self,
@@ -350,6 +390,29 @@ PyObject* Trainable_check_gradient(
 
 
 
+const char* Trainable_parameter_gradient_doc =
+	"_parameter_gradient(self, input, output, x=None, parameters=None)\n"
+	"\n"
+	"Computes the gradient of the parameters as returned by L{_parameters()}.\n"
+	"\n"
+	"If C{x} is not specified, the gradient will be evaluated for the current\n"
+	"parameters of the model.\n"
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: C{ndarray}\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@type  x: C{ndarray}\n"
+	"@param x: set of parameters for which to evaluate gradient\n"
+	"\n"
+	"@type  parameters: C{dict}\n"
+	"@param parameters: a dictionary containing hyperparameters\n"
+	"\n"
+	"@rtype: C{ndarray}\n"
+	"@return: gradient of model parameters";
+
 PyObject* Trainable_parameter_gradient(
 	TrainableObject* self,
 	PyObject* args,
@@ -381,6 +444,9 @@ PyObject* Trainable_parameter_gradient(
 		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
 		return 0;
 	}
+
+	if(x == Py_None)
+		x = 0;
 
 	if(x)
 		x = PyArray_FROM_OTF(x, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
@@ -464,4 +530,82 @@ PyObject* Trainable_parameter_gradient(
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}
+}
+
+
+
+const char* Trainable_check_performance_doc =
+	"_check_performance(self, input, output, repetitions=2, parameters=None)\n"
+	"\n"
+	"Measures the time it takes to evaluate the parameter gradient for the given data points.\n"
+	"\n"
+	"This function can be used to tune the C{batch_size} parameter.\n"
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: C{ndarray}\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@type  repetitions: C{int}\n"
+	"@param repetitions: number of times the gradient is evaluated before averaging\n"
+	"\n"
+	"@type  parameters: C{dict}\n"
+	"@param parameters: a dictionary containing hyperparameters\n"
+	"\n"
+	"@rtype: C{ndarray}\n"
+	"@return: estimated time for one gradient evaluation";
+
+PyObject* Trainable_check_performance(
+	TrainableObject* self,
+	PyObject* args,
+	PyObject* kwds,
+	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*))
+{
+	const char* kwlist[] = {"input", "output", "repetitions", "parameters", 0};
+
+	PyObject* input;
+	PyObject* output;
+	int repetitions = 2;
+	PyObject* parameters = 0;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|iO", const_cast<char**>(kwlist),
+		&input,
+		&output,
+		&repetitions,
+		&parameters))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		Trainable::Parameters* params = PyObject_ToParameters(parameters);
+
+		double err = self->distribution->checkPerformance(
+			PyArray_ToMatrixXd(input),
+			PyArray_ToMatrixXd(output),
+			repetitions, 
+			*params);
+
+		delete params;
+
+		Py_DECREF(input);
+		Py_DECREF(output);
+		return PyFloat_FromDouble(err);
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
 }

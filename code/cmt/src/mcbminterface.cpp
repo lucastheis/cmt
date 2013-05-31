@@ -1,5 +1,6 @@
 #include "conditionaldistributioninterface.h"
 #include "callbackinterface.h"
+#include "trainableinterface.h"
 #include "patchmodelinterface.h"
 #include "preconditionerinterface.h"
 
@@ -17,159 +18,85 @@ using CMT::MCBM;
 using CMT::PatchModel;
 using CMT::Tuples;
 
-MCBM::Parameters PyObject_ToMCBMParameters(PyObject* parameters) {
-	MCBM::Parameters params;
+Trainable::Parameters* PyObject_ToMCBMParameters(PyObject* parameters) {
+	MCBM::Parameters* params = dynamic_cast<MCBM::Parameters*>(
+		PyObject_ToParameters(parameters, new MCBM::Parameters));
 
 	// read parameters from dictionary
 	if(parameters && parameters != Py_None) {
-		if(!PyDict_Check(parameters))
-			throw Exception("Parameters should be stored in a dictionary.");
-
-		PyObject* verbosity = PyDict_GetItemString(parameters, "verbosity");
-		if(verbosity)
-			if(PyInt_Check(verbosity))
-				params.verbosity = PyInt_AsLong(verbosity);
-			else if(PyFloat_Check(verbosity))
-				params.verbosity = static_cast<int>(PyFloat_AsDouble(verbosity));
-			else
-				throw Exception("verbosity should be of type `int`.");
-
-		PyObject* max_iter = PyDict_GetItemString(parameters, "max_iter");
-		if(max_iter)
-			if(PyInt_Check(max_iter))
-				params.maxIter = PyInt_AsLong(max_iter);
-			else if(PyFloat_Check(max_iter))
-				params.maxIter = static_cast<int>(PyFloat_AsDouble(max_iter));
-			else
-				throw Exception("max_iter should be of type `int`.");
-		
-		PyObject* threshold = PyDict_GetItemString(parameters, "threshold");
-		if(threshold)
-			if(PyFloat_Check(threshold))
-				params.threshold = PyFloat_AsDouble(threshold);
-			else if(PyInt_Check(threshold))
-				params.threshold = static_cast<double>(PyFloat_AsDouble(threshold));
-			else
-				throw Exception("threshold should be of type `float`.");
-
-		PyObject* num_grad = PyDict_GetItemString(parameters, "num_grad");
-		if(num_grad)
-			if(PyInt_Check(num_grad))
-				params.numGrad = PyInt_AsLong(num_grad);
-			else if(PyFloat_Check(num_grad))
-				params.numGrad = static_cast<int>(PyFloat_AsDouble(num_grad));
-			else
-				throw Exception("num_grad should be of type `int`.");
-
-		PyObject* batch_size = PyDict_GetItemString(parameters, "batch_size");
-		if(batch_size)
-			if(PyInt_Check(batch_size))
-				params.batchSize = PyInt_AsLong(batch_size);
-			else if(PyFloat_Check(batch_size))
-				params.batchSize = static_cast<int>(PyFloat_AsDouble(batch_size));
-			else
-				throw Exception("batch_size should be of type `int`.");
-
 		PyObject* callback = PyDict_GetItemString(parameters, "callback");
 		if(callback)
 			if(PyCallable_Check(callback))
-				params.callback = new CallbackInterface(&MCBM_type, callback);
+				params->callback = new CallbackInterface(&MCBM_type, callback);
 			else if(callback != Py_None)
 				throw Exception("callback should be a function or callable object.");
-
-		PyObject* cb_iter = PyDict_GetItemString(parameters, "cb_iter");
-		if(cb_iter)
-			if(PyInt_Check(cb_iter))
-				params.cbIter = PyInt_AsLong(cb_iter);
-			else if(PyFloat_Check(cb_iter))
-				params.cbIter = static_cast<int>(PyFloat_AsDouble(cb_iter));
-			else
-				throw Exception("cb_iter should be of type `int`.");
-
-		PyObject* val_iter = PyDict_GetItemString(parameters, "val_iter");
-		if(val_iter)
-			if(PyInt_Check(val_iter))
-				params.valIter = PyInt_AsLong(val_iter);
-			else if(PyFloat_Check(val_iter))
-				params.valIter = static_cast<int>(PyFloat_AsDouble(val_iter));
-			else
-				throw Exception("val_iter should be of type `int`.");
-
-		PyObject* val_look_ahead = PyDict_GetItemString(parameters, "val_look_ahead");
-		if(val_look_ahead)
-			if(PyInt_Check(val_look_ahead))
-				params.valLookAhead = PyInt_AsLong(val_look_ahead);
-			else if(PyFloat_Check(val_look_ahead))
-				params.valLookAhead = static_cast<int>(PyFloat_AsDouble(val_look_ahead));
-			else
-				throw Exception("val_look_ahead should be of type `int`.");
 
 		PyObject* train_priors = PyDict_GetItemString(parameters, "train_priors");
 		if(train_priors)
 			if(PyBool_Check(train_priors))
-				params.trainPriors = (train_priors == Py_True);
+				params->trainPriors = (train_priors == Py_True);
 			else
 				throw Exception("train_priors should be of type `bool`.");
 
 		PyObject* train_weights = PyDict_GetItemString(parameters, "train_weights");
 		if(train_weights)
 			if(PyBool_Check(train_weights))
-				params.trainWeights = (train_weights == Py_True);
+				params->trainWeights = (train_weights == Py_True);
 			else
 				throw Exception("train_weights should be of type `bool`.");
 
 		PyObject* train_features = PyDict_GetItemString(parameters, "train_features");
 		if(train_features)
 			if(PyBool_Check(train_features))
-				params.trainFeatures = (train_features == Py_True);
+				params->trainFeatures = (train_features == Py_True);
 			else
 				throw Exception("train_features should be of type `bool`.");
 
 		PyObject* train_predictors = PyDict_GetItemString(parameters, "train_predictors");
 		if(train_predictors)
 			if(PyBool_Check(train_predictors))
-				params.trainPredictors = (train_predictors == Py_True);
+				params->trainPredictors = (train_predictors == Py_True);
 			else
 				throw Exception("train_predictors should be of type `bool`.");
 
 		PyObject* train_input_bias = PyDict_GetItemString(parameters, "train_input_bias");
 		if(train_input_bias)
 			if(PyBool_Check(train_input_bias))
-				params.trainInputBias = (train_input_bias == Py_True);
+				params->trainInputBias = (train_input_bias == Py_True);
 			else
 				throw Exception("train_input_bias should be of type `bool`.");
 
 		PyObject* train_output_bias = PyDict_GetItemString(parameters, "train_output_bias");
 		if(train_output_bias)
 			if(PyBool_Check(train_output_bias))
-				params.trainOutputBias = (train_output_bias == Py_True);
+				params->trainOutputBias = (train_output_bias == Py_True);
 			else
 				throw Exception("train_output_bias should be of type `bool`.");
 
 		PyObject* regularize_features = PyDict_GetItemString(parameters, "regularize_features");
 		if(regularize_features)
 			if(PyFloat_Check(regularize_features))
-				params.regularizeFeatures = PyFloat_AsDouble(regularize_features);
+				params->regularizeFeatures = PyFloat_AsDouble(regularize_features);
 			else if(PyInt_Check(regularize_features))
-				params.regularizeFeatures = static_cast<double>(PyFloat_AsDouble(regularize_features));
+				params->regularizeFeatures = static_cast<double>(PyFloat_AsDouble(regularize_features));
 			else
 				throw Exception("regularize_features should be of type `float`.");
 
 		PyObject* regularize_predictors = PyDict_GetItemString(parameters, "regularize_predictors");
 		if(regularize_predictors)
 			if(PyFloat_Check(regularize_predictors))
-				params.regularizePredictors = PyFloat_AsDouble(regularize_predictors);
+				params->regularizePredictors = PyFloat_AsDouble(regularize_predictors);
 			else if(PyInt_Check(regularize_predictors))
-				params.regularizePredictors = static_cast<double>(PyFloat_AsDouble(regularize_predictors));
+				params->regularizePredictors = static_cast<double>(PyFloat_AsDouble(regularize_predictors));
 			else
 				throw Exception("regularize_predictors should be of type `float`.");
 
 		PyObject* regularize_weights = PyDict_GetItemString(parameters, "regularize_weights");
 		if(regularize_weights)
 			if(PyFloat_Check(regularize_weights))
-				params.regularizeWeights = PyFloat_AsDouble(regularize_weights);
+				params->regularizeWeights = PyFloat_AsDouble(regularize_weights);
 			else if(PyInt_Check(regularize_weights))
-				params.regularizeWeights = static_cast<double>(PyFloat_AsDouble(regularize_weights));
+				params->regularizeWeights = static_cast<double>(PyFloat_AsDouble(regularize_weights));
 			else
 				throw Exception("regularize_weights should be of type `float`.");
 
@@ -180,9 +107,9 @@ MCBM::Parameters PyObject_ToMCBMParameters(PyObject* parameters) {
 					throw Exception("Regularizer should be 'L1' or 'L2'.");
 
 				if(PyString_AsString(regularizer)[1] == '1')
-					params.regularizer = MCBM::Parameters::L1;
+					params->regularizer = MCBM::Parameters::L1;
 				else
-					params.regularizer = MCBM::Parameters::L2;
+					params->regularizer = MCBM::Parameters::L2;
 			} else {
 				throw Exception("regularizer should be of type `str`.");
 			}
@@ -200,7 +127,7 @@ const char* MCBM_doc =
 	"\n"
 	"$$p(\\mathbf{y} \\mid \\mathbf{x}) \\propto \\sum_{c} \\exp\\left(\\eta_c + \\sum_i \\beta_{ci} \\left(\\mathbf{b}_i^\\top \\mathbf{x}\\right)^2 + \\mathbf{w}_c^\\top \\mathbf{x} + \\mathbf{y}_c^\\top \\mathbf{A}_c \\mathbf{x} + v_c y\\right),$$\n"
 	"\n"
-	"where $\\mathbf{x} \\in \\{0, 1\\}^N$ and $y \\in \\{0, 1\\}$.\n"
+	"where $y \\in \\{0, 1\\}$ and $\\mathbf{x} \\in \\mathbb{R}^N$ (although typically $\\mathbf{x} \\in \\{0, 1\\}^N$).\n"
 	"\n"
 	"To create an MCBM with $N$-dimensional inputs and, for example, 8 components and 100 features $\\mathbf{b}_i$, use\n"
 	"\n"
@@ -218,13 +145,13 @@ const char* MCBM_doc =
 	"which correspond to $\\eta_{c}$, $\\beta_{ci}$, $\\mathbf{b}_i$, $\\mathbf{A}_c$, $\\mathbf{w}_c$,"
 	"and $v_c$, respectively.\n"
 	"\n"
-	"@type  dim_in: integer\n"
+	"@type  dim_in: C{int}\n"
 	"@param dim_in: dimensionality of input\n"
 	"\n"
-	"@type  num_components: integer\n"
+	"@type  num_components: C{int}\n"
 	"@param num_components: number of components\n"
 	"\n"
-	"@type  num_features: integer\n"
+	"@type  num_features: C{int}\n"
 	"@param num_features: number of features used to approximate input covariance matrices";
 
 int MCBM_init(MCBMObject* self, PyObject* args, PyObject* kwds) {
@@ -483,7 +410,8 @@ const char* MCBM_train_doc =
 	"\t>>> \t'batch_size': 2000,\n"
 	"\t>>> \t'callback': None,\n"
 	"\t>>> \t'cb_iter': 25,\n"
-	"\t>>> \t'val_iter': 25,\n"
+	"\t>>> \t'val_iter': 5,\n"
+	"\t>>> \t'val_look_ahead': 20,\n"
 	"\t>>> \t'train_priors': True,\n"
 	"\t>>> \t'train_weights': True,\n"
 	"\t>>> \t'train_features': True,\n"
@@ -512,114 +440,30 @@ const char* MCBM_train_doc =
 	"\t>>> def callback(i, mcbm):\n"
 	"\t>>> \tprint i\n"
 	"\n"
-	"@type  input: ndarray\n"
+	"@type  input: C{ndarray}\n"
 	"@param input: inputs stored in columns\n"
 	"\n"
-	"@type  output: ndarray\n"
+	"@type  output: C{ndarray}\n"
 	"@param output: outputs stored in columns\n"
 	"\n"
-	"@type  input_val: ndarray\n"
+	"@type  input_val: C{ndarray}\n"
 	"@param input_val: inputs used for early stopping based on validation error\n"
 	"\n"
-	"@type  output_val: ndarray\n"
+	"@type  output_val: C{ndarray}\n"
 	"@param output_val: outputs used for early stopping based on validation error\n"
 	"\n"
-	"@type  parameters: dict\n"
+	"@type  parameters: C{dict}\n"
 	"@param parameters: a dictionary containing hyperparameters\n"
 	"\n"
-	"@rtype: bool\n"
+	"@rtype: C{bool}\n"
 	"@return: C{True} if training converged, otherwise C{False}";
 
 PyObject* MCBM_train(MCBMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", "input_val", "output_val", "parameters", 0};
-
-	PyObject* input;
-	PyObject* output;
-	PyObject* input_val = 0;
-	PyObject* output_val = 0;
-	PyObject* parameters = 0;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|OOO", const_cast<char**>(kwlist),
-		&input,
-		&output,
-		&input_val,
-		&output_val,
-		&parameters))
-		return 0;
-
-	// make sure data is stored in NumPy array
-	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!input || !output) {
-		Py_XDECREF(input);
-		Py_XDECREF(output);
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
-		return 0;
-	}
-
-	if(input_val == Py_None)
-		input_val = 0;
-	if(output_val == Py_None)
-		output_val = 0;
-
-	if(input_val || output_val) {
-		input_val = PyArray_FROM_OTF(input_val, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-		output_val = PyArray_FROM_OTF(output_val, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-		if(!input_val || !output_val) {
-			Py_DECREF(input);
-			Py_DECREF(output);
-			Py_XDECREF(input_val);
-			Py_XDECREF(output_val);
-			PyErr_SetString(PyExc_TypeError, "Validation data has to be stored in NumPy arrays.");
-			return 0;
-		}
-	}
-
-	try {
-		bool converged;
-
-		if(input_val && output_val) {
-			converged = self->mcbm->train(
-				PyArray_ToMatrixXd(input), 
-				PyArray_ToMatrixXd(output), 
-				PyArray_ToMatrixXd(input_val),
-				PyArray_ToMatrixXd(output_val),
-				PyObject_ToMCBMParameters(parameters));
-		} else {
-			converged = self->mcbm->train(
-				PyArray_ToMatrixXd(input), 
-				PyArray_ToMatrixXd(output), 
-				PyObject_ToMCBMParameters(parameters));
-		}
-
-		if(converged) {
-			Py_DECREF(input);
-			Py_DECREF(output);
-			Py_XDECREF(input_val);
-			Py_XDECREF(output_val);
-			Py_INCREF(Py_True);
-			return Py_True;
-		} else {
-			Py_DECREF(input);
-			Py_DECREF(output);
-			Py_XDECREF(input_val);
-			Py_XDECREF(output_val);
-			Py_INCREF(Py_False);
-			return Py_False;
-		}
-	} catch(Exception exception) {
-		Py_DECREF(input);
-		Py_DECREF(output);
-		Py_XDECREF(input_val);
-		Py_XDECREF(output_val);
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	return 0;
+	return Trainable_train(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToMCBMParameters);
 }
 
 
@@ -629,13 +473,13 @@ const char* MCBM_sample_posterior_doc =
 	"\n"
 	"Samples component labels $c$ from the posterior $p(c \\mid \\mathbf{x}, \\mathbf{y})$.\n"
 	"\n"
-	"@type  input: ndarray\n"
+	"@type  input: C{ndarray}\n"
 	"@param input: inputs stored in columns\n"
 	"\n"
-	"@type  output: ndarray\n"
+	"@type  output: C{ndarray}\n"
 	"@param output: inputs stored in columns\n"
 	"\n"
-	"@rtype: ndarray\n"
+	"@rtype: C{ndarray}\n"
 	"@return: an integer array containing a sampled index for each input and output pair";
 
 PyObject* MCBM_sample_posterior(MCBMObject* self, PyObject* args, PyObject* kwds) {
@@ -679,240 +523,52 @@ PyObject* MCBM_sample_posterior(MCBMObject* self, PyObject* args, PyObject* kwds
 
 
 
-const char* MCBM_parameters_doc =
-	"parameters(self, parameters=None)\n"
-	"\n"
-	"Summarizes the parameters of the model in a long vector.\n"
-	"\n"
-	"If C{parameters} is given, only the parameters with C{train_* = True} will be contained "
-	"in the vector.\n"
-	"\n"
-	"@type  parameters: dict\n"
-	"@param parameters: a dictionary containing hyperparameters\n"
-	"\n"
-	"@rtype: ndarray\n"
-	"@return: model parameters vectorized and concatenated";
-
 PyObject* MCBM_parameters(MCBMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"parameters", 0};
-
-	PyObject* parameters = 0;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|O", const_cast<char**>(kwlist), &parameters))
-		return 0;
-
-	try {
-		MCBM::Parameters params = PyObject_ToMCBMParameters(parameters);
-
-		lbfgsfloatval_t* x = self->mcbm->parameters(params);
-
-		PyObject* xObj = PyArray_FromMatrixXd(
-			Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> >(
-				x, self->mcbm->numParameters(params), 1));
-
-		lbfgs_free(x);
-
-		return xObj;
-	} catch(Exception exception) {
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	return 0;
+	return Trainable_parameters(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToMCBMParameters);
 }
 
 
 
-const char* MCBM_set_parameters_doc =
-	"set_parameters(self, x, parameters=None)\n"
-	"\n"
-	"Loads all model parameters from a vector as produced by L{parameters()}.\n"
-	"\n"
-	"@type  x: ndarray\n"
-	"@param x: all model parameters concatenated to a vector\n"
-	"\n"
-	"@type  parameters: dict\n"
-	"@param parameters: a dictionary containing hyperparameters";
-
 PyObject* MCBM_set_parameters(MCBMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"x", "parameters", 0};
-
-	PyObject* x;
-	PyObject* parameters = 0;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", const_cast<char**>(kwlist),
-		&x,
-		&parameters))
-		return 0;
-
-	x = PyArray_FROM_OTF(x, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!x) {
-		PyErr_SetString(PyExc_TypeError, "Parameters have to be stored in NumPy arrays.");
-		return 0;
-	}
-
-	try {
-		self->mcbm->setParameters(
-			PyArray_ToMatrixXd(x).data(), // TODO: PyArray_ToMatrixXd unnecessary
-			PyObject_ToMCBMParameters(parameters));
-
-		Py_DECREF(x);
-		Py_INCREF(Py_None);
-
-		return Py_None;
-	} catch(Exception exception) {
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		Py_DECREF(x);
-		return 0;
-	}
-
-	return 0;
+	return Trainable_set_parameters(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToMCBMParameters);
 }
 
 
 
 PyObject* MCBM_parameter_gradient(MCBMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", "x", "parameters", 0};
-
-	PyObject* input;
-	PyObject* output;
-	PyObject* x = 0;
-	PyObject* parameters = 0;
-
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO", const_cast<char**>(kwlist),
-		&input,
-		&output,
-		&x,
-		&parameters))
-		return 0;
-
-	// make sure data is stored in NumPy array
-	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!input || !output) {
-		Py_XDECREF(input);
-		Py_XDECREF(output);
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
-		return 0;
-	}
-
-	if(x)
-		x = PyArray_FROM_OTF(x, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	try {
-		MCBM::Parameters params = PyObject_ToMCBMParameters(parameters);
-
-		MatrixXd gradient(self->mcbm->numParameters(params), 1); // TODO: don't use MatrixXd
-
-		if(x) {
-			#if LBFGS_FLOAT == 64
-			self->mcbm->parameterGradient(
-				PyArray_ToMatrixXd(input),
-				PyArray_ToMatrixXd(output),
-				reinterpret_cast<lbfgsfloatval_t*>(PyArray_DATA(x)),
-				gradient.data(),
-				params);
-			#elif LBFGS_FLOAT == 32
-			lbfgsfloatval_t* xLBFGS = lbfgs_malloc(PyArray_SIZE(x));
-			lbfgsfloatval_t* gLBFGS = lbfgs_malloc(PyArray_SIZE(x));
-			double* xData = reinterpret_cast<double*>(PyArray_DATA(x));
-
-			for(int i = 0; i < PyArray_SIZE(x); ++i)
-				xLBFGS[i] = static_cast<lbfgsfloatval_t>(xData[i]);
-
-			self->mcbm->parameterGradient(
-				PyArray_ToMatrixXd(input),
-				PyArray_ToMatrixXd(output),
-				xLBFGS,
-				gLBFGS,
-				params);
-
-			for(int i = 0; i < PyArray_SIZE(x); ++i)
-				gradient.data()[i] = static_cast<double>(gLBFGS[i]);
-
-			lbfgs_free(gLBFGS);
-			lbfgs_free(xLBFGS);
-			#else
-			#error "LibLBFGS is configured in a way I don't understand."
-			#endif
-		} else {
-			lbfgsfloatval_t* x = self->mcbm->parameters(params);
-
-			self->mcbm->parameterGradient(
-				PyArray_ToMatrixXd(input),
-				PyArray_ToMatrixXd(output),
-				x,
-				gradient.data(),
-				params);
-
-			lbfgs_free(x);
-		}
-
-		Py_DECREF(input);
-		Py_DECREF(output);
-		Py_XDECREF(x);
-
-		return PyArray_FromMatrixXd(gradient);
-	} catch(Exception exception) {
-		Py_DECREF(input);
-		Py_DECREF(output);
-		Py_XDECREF(x);
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
+	return Trainable_parameter_gradient(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToMCBMParameters);
 }
 
 
 
 PyObject* MCBM_check_gradient(MCBMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", "epsilon", "parameters", 0};
+	return Trainable_check_gradient(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToMCBMParameters);
+}
 
-	PyObject* input;
-	PyObject* output;
-	double epsilon = 1e-5;
-	PyObject* parameters = 0;
 
-	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|dO", const_cast<char**>(kwlist),
-		&input,
-		&output,
-		&epsilon,
-		&parameters))
-		return 0;
 
-	// make sure data is stored in NumPy array
-	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-
-	if(!input || !output) {
-		Py_XDECREF(input);
-		Py_XDECREF(output);
-		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
-		return 0;
-	}
-
-	try {
-		double err = self->mcbm->checkGradient(
-			PyArray_ToMatrixXd(input),
-			PyArray_ToMatrixXd(output),
-			epsilon,
-			PyObject_ToMCBMParameters(parameters));
-		Py_DECREF(input);
-		Py_DECREF(output);
-		return PyFloat_FromDouble(err);
-	} catch(Exception exception) {
-		Py_DECREF(input);
-		Py_DECREF(output);
-		PyErr_SetString(PyExc_RuntimeError, exception.message());
-		return 0;
-	}
-
-	return 0;
+PyObject* MCBM_check_performance(MCBMObject* self, PyObject* args, PyObject* kwds) {
+	return Trainable_check_performance(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToMCBMParameters);
 }
 
 
@@ -995,10 +651,10 @@ PyObject* MCBM_setstate(MCBMObject* self, PyObject* state) {
 const char* PatchMCBM_doc =
 	"Model image patches by using an L{MCBM} for each conditional distribution.\n"
 	"\n"
-	"@type  rows: integer\n"
+	"@type  rows: C{int}\n"
 	"@param rows: number of rows of the image patch\n"
 	"\n"
-	"@type  cols: integer\n"
+	"@type  cols: C{int}\n"
 	"@param cols: number of columns of the image patch\n"
 	"\n"
 	"@type  input_mask: C{ndarray}\n"
@@ -1013,7 +669,7 @@ const char* PatchMCBM_doc =
 	"@type  model: L{MCBM}\n"
 	"@param model: model used as a template to initialize all conditional distributions\n"
 	"\n"
-	"@type  max_pcs: integer\n"
+	"@type  max_pcs: C{int}\n"
 	"@param max_pcs: can be used to reduce dimensionality of inputs to conditional models";
 
 int PatchMCBM_init(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
@@ -1278,7 +934,7 @@ const char* PatchMCBM_initialize_doc =
 	"It is assumed that the patches are stored in row-order ('C') in the columns of\n"
 	"L{data}.\n"
 	"\n"
-	"@type  data: ndarray\n"
+	"@type  data: C{ndarray}\n"
 	"@param data: image patches stored column-wise";
 
 PyObject* PatchMCBM_initialize(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
@@ -1301,9 +957,13 @@ PyObject* PatchMCBM_initialize(PatchMCBMObject* self, PyObject* args, PyObject* 
 	}
 
 	try {
-		self->patchMCBM->initialize(
-			PyArray_ToMatrixXd(data),
+		MCBM::Parameters* params = dynamic_cast<MCBM::Parameters*>(
 			PyObject_ToMCBMParameters(parameters));
+
+		self->patchMCBM->initialize(PyArray_ToMatrixXd(data), *params);
+
+		delete params;
+
 		Py_DECREF(data);
 		Py_INCREF(Py_None);
 		return Py_None;
@@ -1328,16 +988,16 @@ const char* PatchMCBM_train_doc =
 	"L{data}. If hyperparameters are given, they are passed on to each conditional\n"
 	"distribution.\n"
 	"\n"
-	"@type  data: ndarray\n"
+	"@type  data: C{ndarray}\n"
 	"@param data: image patches stored column-wise\n"
 	"\n"
-	"@type  data_val: ndarray\n"
+	"@type  data_val: C{ndarray}\n"
 	"@param data_val: image patches used for early stopping based on validation error\n"
 	"\n"
-	"@type  parameters: dict\n"
+	"@type  parameters: C{dict}\n"
 	"@param parameters: a dictionary containing hyperparameters\n"
 	"\n"
-	"@rtype: bool\n"
+	"@rtype: C{bool}\n"
 	"@return: C{True} if training of all models converged, otherwise C{False}";
 
 PyObject* PatchMCBM_train(PatchMCBMObject* self, PyObject* args, PyObject* kwds) {
@@ -1391,29 +1051,34 @@ PyObject* PatchMCBM_train(PatchMCBMObject* self, PyObject* args, PyObject* kwds)
 	try {
 		bool converged;
 
+		MCBM::Parameters* params = dynamic_cast<MCBM::Parameters*>(
+			PyObject_ToMCBMParameters(parameters));
+
 		if(data_val) {
 			if(i > -1 && j > -1)
 				converged = self->patchMCBM->train(
 					i, j,
 					PyArray_ToMatrixXd(data),
 					PyArray_ToMatrixXd(data_val),
-					PyObject_ToMCBMParameters(parameters));
+					*params);
 			else
 				converged = self->patchMCBM->train(
 					PyArray_ToMatrixXd(data),
 					PyArray_ToMatrixXd(data_val),
-					PyObject_ToMCBMParameters(parameters));
+					*params);
 		} else {
 			if(i > -1 && j > -1)
 				converged = self->patchMCBM->train(
 					i, j,
 					PyArray_ToMatrixXd(data),
-					PyObject_ToMCBMParameters(parameters));
+					*params);
 			else
 				converged = self->patchMCBM->train(
 					PyArray_ToMatrixXd(data),
-					PyObject_ToMCBMParameters(parameters));
+					*params);
 		}
+
+		delete params;
 
 		if(converged) {
 			Py_DECREF(data);

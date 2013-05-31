@@ -36,8 +36,6 @@ extern PyTypeObject PCATransform_type;
 extern const char* MCBM_doc;
 extern const char* MCBM_train_doc;
 extern const char* MCBM_sample_posterior_doc;
-extern const char* MCBM_parameters_doc;
-extern const char* MCBM_set_parameters_doc;
 extern const char* MCBM_reduce_doc;
 extern const char* MCBM_setstate_doc;
 
@@ -76,6 +74,7 @@ PyObject* MCBM_parameters(MCBMObject*, PyObject*, PyObject*);
 PyObject* MCBM_set_parameters(MCBMObject*, PyObject*, PyObject*);
 PyObject* MCBM_parameter_gradient(MCBMObject*, PyObject*, PyObject*);
 PyObject* MCBM_check_gradient(MCBMObject*, PyObject*, PyObject*);
+PyObject* MCBM_check_performance(MCBMObject* self, PyObject* args, PyObject* kwds);
 
 PyObject* MCBM_reduce(MCBMObject*, PyObject*);
 PyObject* MCBM_setstate(MCBMObject*, PyObject*);

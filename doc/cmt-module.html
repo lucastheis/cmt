@@ -113,8 +113,48 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="cmt.Bernoulli-class.html" class="summary-name">Bernoulli</a><br />
+      The Bernoulli distribution.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="cmt.ConditionalDistribution-class.html" class="summary-name">ConditionalDistribution</a><br />
       Abstract base class for conditional models.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.Distribution-class.html" class="summary-name">Distribution</a><br />
+      Abstract base class for distributions.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.FVBN-class.html" class="summary-name">FVBN</a><br />
+      Model image patches using a GLM for each conditional distribution.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.GLM-class.html" class="summary-name">GLM</a><br />
+      An implementation of generalized linear models.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.LogisticFunction-class.html" class="summary-name">LogisticFunction</a><br />
+      The sigmoidal logistic function.
     </td>
   </tr>
 <tr>
@@ -132,6 +172,15 @@
         <a href="cmt.MCGSM-class.html" class="summary-name">MCGSM</a><br />
       An implementation of a mixture of conditional Gaussian scale 
         mixtures.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.Nonlinearity-class.html" class="summary-name">Nonlinearity</a><br />
+      Abstract base class for nonlinear functions usable by <a 
+        href="cmt.GLM-class.html" class="link">GLM</a>.
     </td>
   </tr>
 <tr>
@@ -165,8 +214,25 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="cmt.PatchModel-class.html" class="summary-name">PatchModel</a><br />
+      Abstract base class for models of image patches.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="cmt.Preconditioner-class.html" class="summary-name">Preconditioner</a><br />
       Abstract base class for preconditioners of inputs and outputs.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.UnivariateDistribution-class.html" class="summary-name">UnivariateDistribution</a><br />
+      Abstract base class for univariate distributions usable by <a 
+        href="cmt.GLM-class.html" class="link">GLM</a>.
     </td>
   </tr>
 <tr>
@@ -211,8 +277,8 @@
         <tr>
           <td><span class="summary-sig"><a href="cmt-module.html#fill_in_image" class="summary-sig-name">fill_in_image</a>(<span class="summary-sig-arg">img</span>,
         <span class="summary-sig-arg">model</span>,
-        <span class="summary-sig-arg">xmask</span>,
-        <span class="summary-sig-arg">ymask</span>,
+        <span class="summary-sig-arg">input_mask</span>,
+        <span class="summary-sig-arg">output_mask</span>,
         <span class="summary-sig-arg">fmask</span>,
         <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">num_iter</span>=<span class="summary-sig-default">10</span>,
@@ -250,8 +316,8 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="cmt-module.html#generate_data_from_image" class="summary-sig-name">generate_data_from_image</a>(<span class="summary-sig-arg">img</span>,
-        <span class="summary-sig-arg">xmask</span>,
-        <span class="summary-sig-arg">ymask</span>,
+        <span class="summary-sig-arg">input_mask</span>,
+        <span class="summary-sig-arg">output_mask</span>,
         <span class="summary-sig-arg">num_samples</span>=<span class="summary-sig-default">0</span>)</span><br />
       Uniformly samples inputs and outputs for conditional models from 
       images.</td>
@@ -271,8 +337,8 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="cmt-module.html#generate_data_from_video" class="summary-sig-name">generate_data_from_video</a>(<span class="summary-sig-arg">video</span>,
-        <span class="summary-sig-arg">xmask</span>,
-        <span class="summary-sig-arg">ymask</span>,
+        <span class="summary-sig-arg">input_mask</span>,
+        <span class="summary-sig-arg">output_mask</span>,
         <span class="summary-sig-arg">num_samples</span>=<span class="summary-sig-default">0</span>)</span><br />
       Uniformly samples inputs and outputs for conditional models from 
       videos.</td>
@@ -311,8 +377,8 @@
         <tr>
           <td><span class="summary-sig"><a href="cmt-module.html#sample_image" class="summary-sig-name">sample_image</a>(<span class="summary-sig-arg">img</span>,
         <span class="summary-sig-arg">model</span>,
-        <span class="summary-sig-arg">xmask</span>,
-        <span class="summary-sig-arg">ymask</span>,
+        <span class="summary-sig-arg">input_mask</span>,
+        <span class="summary-sig-arg">output_mask</span>,
         <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>)</span><br />
       Generates an image using a conditional distribution.</td>
           <td align="right" valign="top">
@@ -332,8 +398,8 @@
         <tr>
           <td><span class="summary-sig"><a href="cmt-module.html#sample_video" class="summary-sig-name">sample_video</a>(<span class="summary-sig-arg">video</span>,
         <span class="summary-sig-arg">model</span>,
-        <span class="summary-sig-arg">xmask</span>,
-        <span class="summary-sig-arg">ymask</span>,
+        <span class="summary-sig-arg">input_mask</span>,
+        <span class="summary-sig-arg">output_mask</span>,
         <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>)</span><br />
       Generates a video using a conditional distribution.</td>
           <td align="right" valign="top">
@@ -398,8 +464,8 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">fill_in_image</span>(<span class="sig-arg">img</span>,
         <span class="sig-arg">model</span>,
-        <span class="sig-arg">xmask</span>,
-        <span class="sig-arg">ymask</span>,
+        <span class="sig-arg">input_mask</span>,
+        <span class="sig-arg">output_mask</span>,
         <span class="sig-arg">fmask</span>,
         <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">num_iter</span>=<span class="sig-default">10</span>,
@@ -418,8 +484,8 @@
         <li><strong class="pname"><code>model</code></strong> (<a href="cmt.ConditionalDistribution-class.html" 
           class="link">ConditionalDistribution</a>) - a conditional distribution such as an <a 
           href="cmt.MCGSM-class.html" class="link">MCGSM</a></li>
-        <li><strong class="pname"><code>xmask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
-        <li><strong class="pname"><code>ymask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
+        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
+        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
         <li><strong class="pname"><code>fmask</code></strong> (<code>ndarray</code>) - a Boolean array describing the missing pixels</li>
         <li><strong class="pname"><code>preconditioner</code></strong> (<a href="cmt.Preconditioner-class.html" 
           class="link">Preconditioner</a>) - transforms the input before feeding it into the model</li>
@@ -439,8 +505,8 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">generate_data_from_image</span>(<span class="sig-arg">img</span>,
-        <span class="sig-arg">xmask</span>,
-        <span class="sig-arg">ymask</span>,
+        <span class="sig-arg">input_mask</span>,
+        <span class="sig-arg">output_mask</span>,
         <span class="sig-arg">num_samples</span>=<span class="sig-default">0</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -456,8 +522,8 @@
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
         <li><strong class="pname"><code>img</code></strong> (<code>ndarray</code>) - an array representing a grayscale or color image</li>
-        <li><strong class="pname"><code>xmask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
-        <li><strong class="pname"><code>ymask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
+        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
+        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
         <li><strong class="pname"><code>num_samples</code></strong> (<code>int</code>) - the number of generated input/output pairs</li>
     </ul></dd>
     <dt>Returns: <code>tuple</code></dt>
@@ -473,8 +539,8 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">generate_data_from_video</span>(<span class="sig-arg">video</span>,
-        <span class="sig-arg">xmask</span>,
-        <span class="sig-arg">ymask</span>,
+        <span class="sig-arg">input_mask</span>,
+        <span class="sig-arg">output_mask</span>,
         <span class="sig-arg">num_samples</span>=<span class="sig-default">0</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -490,8 +556,8 @@
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
         <li><strong class="pname"><code>video</code></strong> (<code>ndarray</code>) - a three-dimensional array representing the video</li>
-        <li><strong class="pname"><code>xmask</code></strong> (<code>ndarray</code>) - a three-dimensioal Boolean array describing the input pixels</li>
-        <li><strong class="pname"><code>ymask</code></strong> (<code>ndarray</code>) - a three-dimensioal Boolean array describing the output pixels</li>
+        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a three-dimensioal Boolean array describing the input pixels</li>
+        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a three-dimensioal Boolean array describing the output pixels</li>
         <li><strong class="pname"><code>num_samples</code></strong> (<code>int</code>) - the number of generated input/output pairs</li>
     </ul></dd>
     <dt>Returns: <code>tuple</code></dt>
@@ -535,8 +601,8 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">sample_image</span>(<span class="sig-arg">img</span>,
         <span class="sig-arg">model</span>,
-        <span class="sig-arg">xmask</span>,
-        <span class="sig-arg">ymask</span>,
+        <span class="sig-arg">input_mask</span>,
+        <span class="sig-arg">output_mask</span>,
         <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -554,8 +620,8 @@
         <li><strong class="pname"><code>model</code></strong> (<a href="cmt.ConditionalDistribution-class.html" 
           class="link">ConditionalDistribution</a>) - a conditional distribution such as an <a 
           href="cmt.MCGSM-class.html" class="link">MCGSM</a></li>
-        <li><strong class="pname"><code>xmask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
-        <li><strong class="pname"><code>ymask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
+        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
+        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
         <li><strong class="pname"><code>preconditioner</code></strong> (<a href="cmt.Preconditioner-class.html" 
           class="link">Preconditioner</a>) - transforms the input before feeding it into the model</li>
     </ul></dd>
@@ -573,8 +639,8 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">sample_video</span>(<span class="sig-arg">video</span>,
         <span class="sig-arg">model</span>,
-        <span class="sig-arg">xmask</span>,
-        <span class="sig-arg">ymask</span>,
+        <span class="sig-arg">input_mask</span>,
+        <span class="sig-arg">output_mask</span>,
         <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -592,8 +658,8 @@
         <li><strong class="pname"><code>model</code></strong> (<a href="cmt.ConditionalDistribution-class.html" 
           class="link">ConditionalDistribution</a>) - a conditional distribution such as an <a 
           href="cmt.MCGSM-class.html" class="link">MCGSM</a></li>
-        <li><strong class="pname"><code>xmask</code></strong> (<code>ndarray</code>) - a three-dimensional Boolean array describing the input pixels</li>
-        <li><strong class="pname"><code>ymask</code></strong> (<code>ndarray</code>) - a three-dimensional Boolean array describing the output pixels</li>
+        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a three-dimensional Boolean array describing the input pixels</li>
+        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a three-dimensional Boolean array describing the output pixels</li>
         <li><strong class="pname"><code>preconditioner</code></strong> (<a href="cmt.Preconditioner-class.html" 
           class="link">Preconditioner</a>) - transforms the input before feeding it into the model</li>
     </ul></dd>
@@ -634,7 +700,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Tue Apr 23 15:30:42 2013
+    Generated by Epydoc 3.0.1 on Fri May 31 19:54:02 2013
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
