@@ -15,6 +15,7 @@ using Eigen::ArrayXd;
 using Eigen::Map;
 
 #include <cmath>
+using std::max;
 using std::min;
 
 #include "Eigen/Eigenvalues"
@@ -619,7 +620,7 @@ double CMT::MCGSM::parameterGradient(
 
 	// split data into batches for better performance
 	int numData = static_cast<int>(inputCompl.cols());
-	int batchSize = min(params.batchSize, numData);
+	int batchSize = min(max(params.batchSize, 10), numData);
 
 	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
 		const MatrixXd& input = inputCompl.middleCols(b, min(batchSize, numData - b));

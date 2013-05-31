@@ -280,6 +280,20 @@ bool CMT::Trainable::train(
 	if(input.cols() != output.cols())
 		throw Exception("The number of inputs and outputs should be the same.");
 
+	if(inputVal && outputVal) {
+		if(inputVal->rows() != dimIn() || outputVal->rows() != dimOut())
+			throw Exception("Data has wrong dimensionality.");
+
+		if(inputVal->cols() != outputVal->cols())
+			throw Exception("The number of validation inputs and outputs should be the same.");
+
+	} else if(inputVal || outputVal) {
+		throw Exception("Inputs or outputs of the validation set are missing.");
+	}
+
+	if(input.cols() < 1)
+		return true;
+
 	// copy parameters for L-BFGS
 	lbfgsfloatval_t* x = parameters(params);
 

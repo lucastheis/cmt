@@ -85,6 +85,15 @@ class Tests(unittest.TestCase):
 				'max_iter': 0,
 				})
 
+		# this should raise errors
+		self.assertRaises(RuntimeError, mcgsm.train, randn(mcgsm.dim_in - 1, 2000), randn(1, 2000))
+		self.assertRaises(RuntimeError, mcgsm.train, randn(mcgsm.dim_in - 1, 2000), randn(2000))
+		self.assertRaises(RuntimeError, mcgsm.train,
+			randn(mcgsm.dim_in - 1, 2000),
+			randn(mcgsm.dim_out, 2000),
+			randn(mcgsm.dim_in - 1, 1000),
+			randn(mcgsm.dim_out, 1000))
+
 		# parameters should not have changed
 		self.assertLess(max(abs(mcgsm.priors - priors)), 1e-20)
 		self.assertLess(max(abs(mcgsm.scales - scales)), 1e-20)
