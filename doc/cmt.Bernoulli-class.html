@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>cmt.PatchMCBM</title>
+  <title>cmt.Bernoulli</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 
@@ -55,7 +55,7 @@
     <td width="100%">
       <span class="breadcrumbs">
         <a href="cmt-module.html">Module&nbsp;cmt</a> ::
-        Class&nbsp;PatchMCBM
+        Class&nbsp;Bernoulli
       </span>
     </td>
     <td>
@@ -65,27 +65,27 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="cmt.PatchMCBM-class.html"
+            >]&nbsp;|&nbsp;<a href="cmt.Bernoulli-class.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class PatchMCBM</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Class Bernoulli</h1><p class="nomargin-top"></p>
 <pre class="base-tree">
-  object --+        
-           |        
-<a href="cmt.Distribution-class.html">Distribution</a> --+    
-               |    
-      <a href="cmt.PatchModel-class.html">PatchModel</a> --+
-                   |
-                  <strong class="uidshort">PatchMCBM</strong>
+        object --+        
+                 |        
+      <a href="cmt.Distribution-class.html">Distribution</a> --+    
+                     |    
+<a href="cmt.UnivariateDistribution-class.html">UnivariateDistribution</a> --+
+                         |
+                        <strong class="uidshort">Bernoulli</strong>
 </pre>
 
 <hr />
-<p>Model image patches by using an <a href="cmt.MCBM-class.html" 
-  class="link">MCBM</a> for each conditional distribution.</p>
+<p>The Bernoulli distribution.</p>
+  <p>$$p(y) = \rho^y (1 - \rho)^{1 - y}$$</p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -110,43 +110,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="__delitem__"></a><span class="summary-sig-name">__delitem__</span>(<span class="summary-sig-arg">x</span>,
-        <span class="summary-sig-arg">y</span>)</span><br />
-      del x[y]</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="__getitem__"></a><span class="summary-sig-name">__getitem__</span>(<span class="summary-sig-arg">x</span>,
-        <span class="summary-sig-arg">y</span>)</span><br />
-      x[y]</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt.PatchMCBM-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.Bernoulli-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
             
@@ -163,7 +127,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.PatchMCBM-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
+          <td><span class="summary-sig"><a href="cmt.Bernoulli-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
         <span class="summary-sig-arg">S</span>,
         <span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
@@ -181,100 +145,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.PatchMCBM-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.Bernoulli-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Method used by Pickle.</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="__setitem__"></a><span class="summary-sig-name">__setitem__</span>(<span class="summary-sig-arg">x</span>,
-        <span class="summary-sig-arg">i</span>,
-        <span class="summary-sig-arg">y</span>)</span><br />
-      x[i]=y</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="__setstate__"></a><span class="summary-sig-name">__setstate__</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Method used by Pickle.</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt.PatchMCBM-class.html#initialize" class="summary-sig-name">initialize</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">data</span>,
-        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Trains the model assuming shift-invariance of the patch statistics.</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="preconditioner"></a><span class="summary-sig-name">preconditioner</span>(<span class="summary-sig-arg">...</span>)</span></td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type"><code>bool</code></span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt.PatchMCBM-class.html#train" class="summary-sig-name">train</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">data</span>,
-        <span class="summary-sig-arg">dat_val</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Trains the model to the given image patches by fitting each 
-      conditional distribution in turn.</td>
           <td align="right" valign="top">
             
             
@@ -286,14 +158,9 @@
   </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.PatchModel-class.html">PatchModel</a></code></b>:
-      <code><a href="cmt.PatchModel-class.html#input_indices">input_indices</a></code>,
-      <code><a href="cmt.PatchModel-class.html#input_mask">input_mask</a></code>,
-      <code><a href="cmt.PatchModel-class.html#loglikelihood">loglikelihood</a></code>,
-      <code><a href="cmt.PatchModel-class.html#output_mask">output_mask</a></code>
-      </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.Distribution-class.html">Distribution</a></code></b>:
       <code><a href="cmt.Distribution-class.html#evaluate">evaluate</a></code>,
+      <code><a href="cmt.Distribution-class.html#loglikelihood">loglikelihood</a></code>,
       <code><a href="cmt.Distribution-class.html#sample">sample</a></code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -328,21 +195,8 @@
     </table>
   </td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="preconditioners"></a><span class="summary-name">preconditioners</span><br />
-      A dictionary containing all preconditioners.
-    </td>
-  </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.PatchModel-class.html">PatchModel</a></code></b>:
-      <code><a href="cmt.PatchModel-class.html#cols">cols</a></code>,
-      <code><a href="cmt.PatchModel-class.html#order">order</a></code>,
-      <code><a href="cmt.PatchModel-class.html#rows">rows</a></code>
-      </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.Distribution-class.html">Distribution</a></code></b>:
       <code><a href="cmt.Distribution-class.html#dim">dim</a></code>
       </p>
@@ -389,15 +243,7 @@
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>rows</code></strong> (<code>int</code>) - number of rows of the image patch</li>
-        <li><strong class="pname"><code>cols</code></strong> (<code>int</code>) - number of columns of the image patch</li>
-        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
-        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
-        <li><strong class="pname"><code>order</code></strong> (<code>list</code>) - list of tuples indicating order of pixels</li>
-        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.MCBM-class.html" class="link">MCBM</a>) - model used as a template to initialize all conditional 
-          distributions</li>
-        <li><strong class="pname"><code>max_pcs</code></strong> (<code>int</code>) - can be used to reduce dimensionality of inputs to conditional 
-          models</li>
+        <li><strong class="pname"><code>probability</code></strong> (<code>float</code>) - probability of generating a one, $\rho$</li>
     </ul></dd>
     <dt>Overrides:
         object.__init__
@@ -449,72 +295,6 @@
     <dt>Overrides:
         object.__reduce__
     </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="initialize"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">initialize</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">data</span>,
-        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Trains the model assuming shift-invariance of the patch 
-  statistics.</p>
-  <p>A single conditional distribution is fitted to the given data and all 
-  models with a <i>complete</i> neighborhood are initialized with this one 
-  set of parameters.</p>
-  <p>It is assumed that the patches are stored in row-order ('C') in the 
-  columns of <code class="link">data</code>.</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>data</code></strong> (<code>ndarray</code>) - image patches stored column-wise</li>
-    </ul></dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="train"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">train</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">data</span>,
-        <span class="sig-arg">dat_val</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Trains the model to the given image patches by fitting each 
-  conditional distribution in turn.</p>
-  <p>It is assumed that the patches are stored in row-order ('C') in the 
-  columns of <code class="link">data</code>. If hyperparameters are given, 
-  they are passed on to each conditional distribution.</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>data</code></strong> (<code>ndarray</code>) - image patches stored column-wise</li>
-        <li><strong class="pname"><code>data_val</code></strong> (<code>ndarray</code>) - image patches used for early stopping based on validation error</li>
-        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
-    </ul></dd>
-    <dt>Returns: <code>bool</code></dt>
-        <dd><code>True</code> if training of all models converged, otherwise 
-          <code>False</code></dd>
   </dl>
 </td></tr></table>
 </div>

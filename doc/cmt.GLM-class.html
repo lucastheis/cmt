@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>cmt.PatchMCBM</title>
+  <title>cmt.GLM</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 
@@ -55,7 +55,7 @@
     <td width="100%">
       <span class="breadcrumbs">
         <a href="cmt-module.html">Module&nbsp;cmt</a> ::
-        Class&nbsp;PatchMCBM
+        Class&nbsp;GLM
       </span>
     </td>
     <td>
@@ -65,27 +65,39 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="cmt.PatchMCBM-class.html"
+            >]&nbsp;|&nbsp;<a href="cmt.GLM-class.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class PatchMCBM</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Class GLM</h1><p class="nomargin-top"></p>
 <pre class="base-tree">
-  object --+        
-           |        
-<a href="cmt.Distribution-class.html">Distribution</a> --+    
-               |    
-      <a href="cmt.PatchModel-class.html">PatchModel</a> --+
-                   |
-                  <strong class="uidshort">PatchMCBM</strong>
+             object --+    
+                      |    
+<a href="cmt.ConditionalDistribution-class.html">ConditionalDistribution</a> --+
+                          |
+                         <strong class="uidshort">GLM</strong>
 </pre>
 
 <hr />
-<p>Model image patches by using an <a href="cmt.MCBM-class.html" 
-  class="link">MCBM</a> for each conditional distribution.</p>
+<p>An implementation of generalized linear models.</p>
+  <p>$$p(y \mid \mathbf{x}) = q(y \mid g(\mathbf{w}^\top \mathbf{x} + 
+  b)),$$</p>
+  <p>where $q$ is typically from the exponential family and $g$ is some 
+  nonlinearity (inverse link function) which has to be specified.</p>
+  <p>To perform logistic regression, for example, define a GLM with <a 
+  href="cmt.LogisticFunction-class.html" class="link">LogisticFunction</a> 
+  and <a href="cmt.Bernoulli-class.html" class="link">Bernoulli</a> 
+  distribution,</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>glm = GLM(inputs.shape[0], LogisticFunction, Bernoulli)
+<span class="py-prompt">&gt;&gt;&gt; </span>glm.train(inputs, outputs)</pre>
+  <p>To access the linear filter $\mathbf{w}$ or the bias $b$ use</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>glm.weights
+<span class="py-prompt">&gt;&gt;&gt; </span>glm.bias</pre>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -110,43 +122,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="__delitem__"></a><span class="summary-sig-name">__delitem__</span>(<span class="summary-sig-arg">x</span>,
-        <span class="summary-sig-arg">y</span>)</span><br />
-      del x[y]</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="__getitem__"></a><span class="summary-sig-name">__getitem__</span>(<span class="summary-sig-arg">x</span>,
-        <span class="summary-sig-arg">y</span>)</span><br />
-      x[y]</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt.PatchMCBM-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.GLM-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
             
@@ -163,7 +139,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.PatchMCBM-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
+          <td><span class="summary-sig"><a href="cmt.GLM-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
         <span class="summary-sig-arg">S</span>,
         <span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
@@ -181,27 +157,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.PatchMCBM-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.GLM-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Method used by Pickle.</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="__setitem__"></a><span class="summary-sig-name">__setitem__</span>(<span class="summary-sig-arg">x</span>,
-        <span class="summary-sig-arg">i</span>,
-        <span class="summary-sig-arg">y</span>)</span><br />
-      x[i]=y</td>
           <td align="right" valign="top">
             
             
@@ -228,16 +185,34 @@
       
     </td>
   </tr>
-<tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>float</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.GLM-class.html#_check_gradient" class="summary-sig-name" onclick="show_private();">_check_gradient</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">input</span>,
+        <span class="summary-sig-arg">output</span>,
+        <span class="summary-sig-arg">epsilon</span>=<span class="summary-sig-default">1e-5</span>,
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Compare the gradient to a numerical gradient.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.PatchMCBM-class.html#initialize" class="summary-sig-name">initialize</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">data</span>,
-        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Trains the model assuming shift-invariance of the patch statistics.</td>
+          <td><span class="summary-sig"><a name="_parameter_gradient"></a><span class="summary-sig-name">_parameter_gradient</span>(<span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
             
             
@@ -253,28 +228,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="preconditioner"></a><span class="summary-sig-name">preconditioner</span>(<span class="summary-sig-arg">...</span>)</span></td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type"><code>bool</code></span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt.PatchMCBM-class.html#train" class="summary-sig-name">train</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">data</span>,
-        <span class="summary-sig-arg">dat_val</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Trains the model to the given image patches by fitting each 
-      conditional distribution in turn.</td>
+          <td><span class="summary-sig"><a name="train"></a><span class="summary-sig-name">train</span>(<span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
             
             
@@ -286,15 +240,10 @@
   </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.PatchModel-class.html">PatchModel</a></code></b>:
-      <code><a href="cmt.PatchModel-class.html#input_indices">input_indices</a></code>,
-      <code><a href="cmt.PatchModel-class.html#input_mask">input_mask</a></code>,
-      <code><a href="cmt.PatchModel-class.html#loglikelihood">loglikelihood</a></code>,
-      <code><a href="cmt.PatchModel-class.html#output_mask">output_mask</a></code>
-      </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.Distribution-class.html">Distribution</a></code></b>:
-      <code><a href="cmt.Distribution-class.html#evaluate">evaluate</a></code>,
-      <code><a href="cmt.Distribution-class.html#sample">sample</a></code>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.ConditionalDistribution-class.html">ConditionalDistribution</a></code></b>:
+      <code><a href="cmt.ConditionalDistribution-class.html#evaluate">evaluate</a></code>,
+      <code><a href="cmt.ConditionalDistribution-class.html#loglikelihood">loglikelihood</a></code>,
+      <code><a href="cmt.ConditionalDistribution-class.html#sample">sample</a></code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__delattr__</code>,
@@ -332,19 +281,40 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="preconditioners"></a><span class="summary-name">preconditioners</span><br />
-      A dictionary containing all preconditioners.
+        <a name="bias"></a><span class="summary-name">bias</span><br />
+      Bias term, $b$.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="distribution"></a><span class="summary-name">distribution</span><br />
+      Distribution whose average value is determined by output of 
+      nonlinearity.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="nonlinearity"></a><span class="summary-name">nonlinearity</span><br />
+      Nonlinearity applied to output of linear filter, $g$.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="weights"></a><span class="summary-name">weights</span><br />
+      Linear filter, $w$.
     </td>
   </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.PatchModel-class.html">PatchModel</a></code></b>:
-      <code><a href="cmt.PatchModel-class.html#cols">cols</a></code>,
-      <code><a href="cmt.PatchModel-class.html#order">order</a></code>,
-      <code><a href="cmt.PatchModel-class.html#rows">rows</a></code>
-      </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.Distribution-class.html">Distribution</a></code></b>:
-      <code><a href="cmt.Distribution-class.html#dim">dim</a></code>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.ConditionalDistribution-class.html">ConditionalDistribution</a></code></b>:
+      <code><a href="cmt.ConditionalDistribution-class.html#dim_in">dim_in</a></code>,
+      <code><a href="cmt.ConditionalDistribution-class.html#dim_out">dim_out</a></code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__class__</code>
@@ -389,15 +359,11 @@
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>rows</code></strong> (<code>int</code>) - number of rows of the image patch</li>
-        <li><strong class="pname"><code>cols</code></strong> (<code>int</code>) - number of columns of the image patch</li>
-        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
-        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
-        <li><strong class="pname"><code>order</code></strong> (<code>list</code>) - list of tuples indicating order of pixels</li>
-        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.MCBM-class.html" class="link">MCBM</a>) - model used as a template to initialize all conditional 
-          distributions</li>
-        <li><strong class="pname"><code>max_pcs</code></strong> (<code>int</code>) - can be used to reduce dimensionality of inputs to conditional 
-          models</li>
+        <li><strong class="pname"><code>dim_in</code></strong> (<code>int</code>) - dimensionality of input</li>
+        <li><strong class="pname"><code>nonlinearity</code></strong> (<a href="cmt.Nonlinearity-class.html" 
+          class="link">Nonlinearity</a>/<code>type</code>) - nonlinearity applied to output of linear filter, $g$</li>
+        <li><strong class="pname"><code>distribution</code></strong> (<a href="cmt.UnivariateDistribution-class.html" 
+          class="link">UnivariateDistribution</a>/<code>type</code>) - distribution of outputs</li>
     </ul></dd>
     <dt>Overrides:
         object.__init__
@@ -452,15 +418,17 @@
   </dl>
 </td></tr></table>
 </div>
-<a name="initialize"></a>
-<div>
+<a name="_check_gradient"></a>
+<div class="private">
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">initialize</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">data</span>,
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_check_gradient</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">input</span>,
+        <span class="sig-arg">output</span>,
+        <span class="sig-arg">epsilon</span>=<span class="sig-default">1e-5</span>,
         <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -468,53 +436,21 @@
     </td>
   </tr></table>
   
-  <p>Trains the model assuming shift-invariance of the patch 
-  statistics.</p>
-  <p>A single conditional distribution is fitted to the given data and all 
-  models with a <i>complete</i> neighborhood are initialized with this one 
-  set of parameters.</p>
-  <p>It is assumed that the patches are stored in row-order ('C') in the 
-  columns of <code class="link">data</code>.</p>
+  <p>Compare the gradient to a numerical gradient.</p>
+  <p>Numerically estimate the gradient using finite differences and return 
+  the norm of the difference between the numerical gradient and the 
+  gradient used during training. This method is used for testing 
+  purposes.</p>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>data</code></strong> (<code>ndarray</code>) - image patches stored column-wise</li>
-    </ul></dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="train"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">train</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">data</span>,
-        <span class="sig-arg">dat_val</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Trains the model to the given image patches by fitting each 
-  conditional distribution in turn.</p>
-  <p>It is assumed that the patches are stored in row-order ('C') in the 
-  columns of <code class="link">data</code>. If hyperparameters are given, 
-  they are passed on to each conditional distribution.</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>data</code></strong> (<code>ndarray</code>) - image patches stored column-wise</li>
-        <li><strong class="pname"><code>data_val</code></strong> (<code>ndarray</code>) - image patches used for early stopping based on validation error</li>
+        <li><strong class="pname"><code>input</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>output</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>epsilon</code></strong> (<code>float</code>) - a small change added to the current parameters</li>
         <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
     </ul></dd>
-    <dt>Returns: <code>bool</code></dt>
-        <dd><code>True</code> if training of all models converged, otherwise 
-          <code>False</code></dd>
+    <dt>Returns: <code>float</code></dt>
+        <dd>difference between numerical and analytical gradient</dd>
   </dl>
 </td></tr></table>
 </div>

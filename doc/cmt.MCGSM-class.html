@@ -208,11 +208,16 @@
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
+      <span class="summary-type"><code>float</code></span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="_check_gradient"></a><span class="summary-sig-name">_check_gradient</span>(<span class="summary-sig-arg">...</span>)</span></td>
+          <td><span class="summary-sig"><a href="cmt.MCGSM-class.html#_check_gradient" class="summary-sig-name" onclick="show_private();">_check_gradient</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">input</span>,
+        <span class="summary-sig-arg">output</span>,
+        <span class="summary-sig-arg">epsilon</span>=<span class="summary-sig-default">1e-5</span>,
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Compare the gradient to a numerical gradient.</td>
           <td align="right" valign="top">
             
             
@@ -224,11 +229,17 @@
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
+      <span class="summary-type"><code>ndarray</code></span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="_check_performance"></a><span class="summary-sig-name">_check_performance</span>(<span class="summary-sig-arg">...</span>)</span></td>
+          <td><span class="summary-sig"><a href="cmt.MCGSM-class.html#_check_performance" class="summary-sig-name" onclick="show_private();">_check_performance</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">input</span>,
+        <span class="summary-sig-arg">output</span>,
+        <span class="summary-sig-arg">repetitions</span>=<span class="summary-sig-default">2</span>,
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Measures the time it takes to evaluate the parameter gradient for the
+      given data points.</td>
           <td align="right" valign="top">
             
             
@@ -256,11 +267,18 @@
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
+      <span class="summary-type"><code>ndarray</code></span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="_compute_gradient"></a><span class="summary-sig-name">_compute_gradient</span>(<span class="summary-sig-arg">...</span>)</span></td>
+          <td><span class="summary-sig"><a href="cmt.MCGSM-class.html#_parameter_gradient" class="summary-sig-name" onclick="show_private();">_parameter_gradient</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">input</span>,
+        <span class="summary-sig-arg">output</span>,
+        <span class="summary-sig-arg">x</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Computes the gradient of the parameters as returned by <a 
+      href="cmt.MCGSM-class.html#_parameters" class="link" 
+      onclick="show_private();">_parameters()</a>.</td>
           <td align="right" valign="top">
             
             
@@ -272,7 +290,7 @@
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">ndarray</span>
+      <span class="summary-type"><code>ndarray</code></span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
@@ -330,7 +348,7 @@
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">ndarray</span>
+      <span class="summary-type"><code>ndarray</code></span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
@@ -350,7 +368,7 @@
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">ndarray</span>
+      <span class="summary-type"><code>ndarray</code></span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
@@ -370,13 +388,15 @@
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">bool</span>
+      <span class="summary-type"><code>bool</code></span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="cmt.MCGSM-class.html#train" class="summary-sig-name">train</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">input</span>,
         <span class="summary-sig-arg">output</span>,
+        <span class="summary-sig-arg">input_val</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">output_val</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
       Fits model parameters to given data using L-BFGS.</td>
           <td align="right" valign="top">
@@ -549,11 +569,11 @@
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>dim_in</code></strong> (integer) - dimensionality of input</li>
-        <li><strong class="pname"><code>dim_out</code></strong> (integer) - dimensionality of output</li>
-        <li><strong class="pname"><code>num_components</code></strong> (integer) - number of components</li>
-        <li><strong class="pname"><code>num_scales</code></strong> (integer) - number of scales per scale mixture component</li>
-        <li><strong class="pname"><code>num_features</code></strong> (integer) - number of features used to approximate input covariance matrices</li>
+        <li><strong class="pname"><code>dim_in</code></strong> (<code>int</code>) - dimensionality of input</li>
+        <li><strong class="pname"><code>dim_out</code></strong> (<code>int</code>) - dimensionality of output</li>
+        <li><strong class="pname"><code>num_components</code></strong> (<code>int</code>) - number of components</li>
+        <li><strong class="pname"><code>num_scales</code></strong> (<code>int</code>) - number of scales per scale mixture component</li>
+        <li><strong class="pname"><code>num_features</code></strong> (<code>int</code>) - number of features used to approximate input covariance matrices</li>
     </ul></dd>
     <dt>Overrides:
         object.__init__
@@ -608,6 +628,113 @@
   </dl>
 </td></tr></table>
 </div>
+<a name="_check_gradient"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_check_gradient</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">input</span>,
+        <span class="sig-arg">output</span>,
+        <span class="sig-arg">epsilon</span>=<span class="sig-default">1e-5</span>,
+        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Compare the gradient to a numerical gradient.</p>
+  <p>Numerically estimate the gradient using finite differences and return 
+  the norm of the difference between the numerical gradient and the 
+  gradient used during training. This method is used for testing 
+  purposes.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>input</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>output</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>epsilon</code></strong> (<code>float</code>) - a small change added to the current parameters</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
+    </ul></dd>
+    <dt>Returns: <code>float</code></dt>
+        <dd>difference between numerical and analytical gradient</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_check_performance"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_check_performance</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">input</span>,
+        <span class="sig-arg">output</span>,
+        <span class="sig-arg">repetitions</span>=<span class="sig-default">2</span>,
+        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Measures the time it takes to evaluate the parameter gradient for the 
+  given data points.</p>
+  <p>This function can be used to tune the <code>batch_size</code> 
+  parameter.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>input</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>output</code></strong> (<code>ndarray</code>) - outputs stored in columns</li>
+        <li><strong class="pname"><code>repetitions</code></strong> (<code>int</code>) - number of times the gradient is evaluated before averaging</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>estimated time for one gradient evaluation</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_parameter_gradient"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_parameter_gradient</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">input</span>,
+        <span class="sig-arg">output</span>,
+        <span class="sig-arg">x</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Computes the gradient of the parameters as returned by <a 
+  href="cmt.MCGSM-class.html#_parameters" class="link" 
+  onclick="show_private();">_parameters()</a>.</p>
+  <p>If <code>x</code> is not specified, the gradient will be evaluated for
+  the current parameters of the model.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>input</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>output</code></strong> (<code>ndarray</code>) - outputs stored in columns</li>
+        <li><strong class="pname"><code>x</code></strong> (<code>ndarray</code>) - set of parameters for which to evaluate gradient</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>gradient of model parameters</dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="_parameters"></a>
 <div class="private">
 <table class="details" border="1" cellpadding="3"
@@ -629,9 +756,9 @@
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>parameters</code></strong> (dict) - a dictionary containing hyperparameters</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
     </ul></dd>
-    <dt>Returns: ndarray</dt>
+    <dt>Returns: <code>ndarray</code></dt>
         <dd>model parameters vectorized and concatenated</dd>
   </dl>
 </td></tr></table>
@@ -657,8 +784,8 @@
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>x</code></strong> (ndarray) - all model parameters concatenated to a vector</li>
-        <li><strong class="pname"><code>parameters</code></strong> (dict) - a dictionary containing hyperparameters</li>
+        <li><strong class="pname"><code>x</code></strong> (<code>ndarray</code>) - all model parameters concatenated to a vector</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
     </ul></dd>
   </dl>
 </td></tr></table>
@@ -684,8 +811,8 @@
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>input</code></strong> (ndarray) - inputs stored in columns</li>
-        <li><strong class="pname"><code>output</code></strong> (ndarray) - outputs stored in columns</li>
+        <li><strong class="pname"><code>input</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>output</code></strong> (<code>ndarray</code>) - outputs stored in columns</li>
     </ul></dd>
   </dl>
 </td></tr></table>
@@ -711,10 +838,10 @@
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>input</code></strong> (ndarray) - inputs stored in columns</li>
-        <li><strong class="pname"><code>output</code></strong> (ndarray) - outputs stored in columns</li>
+        <li><strong class="pname"><code>input</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>output</code></strong> (<code>ndarray</code>) - outputs stored in columns</li>
     </ul></dd>
-    <dt>Returns: ndarray</dt>
+    <dt>Returns: <code>ndarray</code></dt>
         <dd>a posterior distribution over labels for each given pair of input
           and output</dd>
   </dl>
@@ -741,10 +868,10 @@
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>input</code></strong> (ndarray) - inputs stored in columns</li>
-        <li><strong class="pname"><code>output</code></strong> (ndarray) - inputs stored in columns</li>
+        <li><strong class="pname"><code>input</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>output</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
     </ul></dd>
-    <dt>Returns: ndarray</dt>
+    <dt>Returns: <code>ndarray</code></dt>
         <dd>an integer array containing a sampled index for each input and 
           output pair</dd>
   </dl>
@@ -760,6 +887,8 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">train</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">input</span>,
         <span class="sig-arg">output</span>,
+        <span class="sig-arg">input_val</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">output_val</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -772,20 +901,24 @@
   settings.</p>
 <pre class="py-doctest">
 <span class="py-prompt">&gt;&gt;&gt; </span>model.train(input, output, parameters={
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'verbosity'</span>: 0
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'max_iter'</span>: 1000
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'threshold'</span>: 1e-5
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'num_grad'</span>: 20
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'batch_size'</span>: 2000
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'callback'</span>: None
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'cb_iter'</span>: 25
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_priors'</span>: True
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_scales'</span>: True
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_weights'</span>: True
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_features'</span>: True
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_cholesky_factors'</span>: True
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_predictors'</span>: True
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_features'</span>: 0.
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'verbosity'</span>: 0,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'max_iter'</span>: 1000,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'threshold'</span>: 1e-5,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'num_grad'</span>: 20,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'batch_size'</span>: 2000,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'callback'</span>: None,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'cb_iter'</span>: 25,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'val_iter'</span>: 5,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'val_look_ahead'</span>: 20,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_priors'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_scales'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_weights'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_features'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_cholesky_factors'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_predictors'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularizer'</span>: <span class="py-string">'L1'</span>,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_features'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_weights'</span>: 0.,
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_predictors'</span>: 0.
 <span class="py-prompt">&gt;&gt;&gt; </span>})</pre>
   <p>The parameters <code>train_priors</code>, <code>train_scales</code>, 
@@ -807,11 +940,13 @@
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>input</code></strong> (ndarray) - inputs stored in columns</li>
-        <li><strong class="pname"><code>output</code></strong> (ndarray) - outputs stored in columns</li>
-        <li><strong class="pname"><code>parameters</code></strong> (dict) - a dictionary containing hyperparameters</li>
+        <li><strong class="pname"><code>input</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>output</code></strong> (<code>ndarray</code>) - outputs stored in columns</li>
+        <li><strong class="pname"><code>input_val</code></strong> (<code>ndarray</code>) - inputs used for early stopping based on validation error</li>
+        <li><strong class="pname"><code>output_val</code></strong> (<code>ndarray</code>) - outputs used for early stopping based on validation error</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
     </ul></dd>
-    <dt>Returns: bool</dt>
+    <dt>Returns: <code>bool</code></dt>
         <dd><code>True</code> if training converged, otherwise 
           <code>False</code></dd>
   </dl>
@@ -849,7 +984,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Tue Apr 23 15:30:42 2013
+    Generated by Epydoc 3.0.1 on Fri May 31 19:54:02 2013
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
