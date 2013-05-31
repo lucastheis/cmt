@@ -61,7 +61,6 @@ void CMT::PCATransform::initialize(
 	mMeanOut = VectorXd::Zero(dimOut);
 	mPreOut = MatrixXd::Identity(dimOut, dimOut);
 	mPreOutInv = MatrixXd::Identity(dimOut, dimOut);
-	mPredictor = MatrixXd::Zero(dimOut, numPCs);
 	mGradTransform = MatrixXd::Zero(dimOut, input.rows());
 	mLogJacobian = 0.;
 
@@ -93,6 +92,8 @@ void CMT::PCATransform::initialize(
 	} else if(numPCs > mEigenvalues.size()) {
 		numPCs = mEigenvalues.size();
 	}
+
+	mPredictor = MatrixXd::Zero(dimOut, numPCs);
 
 	// make sure directions of zero variance aren't touched
 	VectorXd tmp = mEigenvalues;

@@ -350,6 +350,13 @@ class Tests(unittest.TestCase):
 
 		self.assertLess(max(abs(C - eye(5))), 1e-8)
 
+		wt = PCATransform(X, Y, var_explained=100.)
+
+		# joint covariance
+		C = cov(wt(X), bias=True)
+
+		self.assertLess(max(abs(C - eye(5))), 1e-8)
+
 		# test inverse
 		Xw, Yw = wt(X, Y)
 		Xr, Yr = wt.inverse(Xw, Yw)
