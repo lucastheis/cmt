@@ -12,6 +12,13 @@ namespace CMT {
 
 	class GSM : public Distribution {
 		public:
+			struct Parameters {
+				public:
+					int maxIter;
+
+					Parameters();
+			};
+
 			GSM(int dim = 1, int numScales = 6);
 
 			inline int dim() const;
@@ -36,10 +43,13 @@ namespace CMT {
 			virtual Array<double, 1, Dynamic> logLikelihood(
 				const MatrixXd& data) const;
 
-			virtual bool train(const MatrixXd& data);
 			virtual bool train(
 				const MatrixXd& data,
-				const Array<double, 1, Dynamic>& weights);
+				const Parameters& parameters = Parameters());
+			virtual bool train(
+				const MatrixXd& data,
+				const Array<double, 1, Dynamic>& weights,
+				const Parameters& parameters = Parameters());
 
 		protected:
 			int mDim;
@@ -95,7 +105,7 @@ Eigen::VectorXd CMT::GSM::priors() const {
 void CMT::GSM::setPriors(const VectorXd& priors) {
 	if(priors.size() != numScales())
 		throw Exception("Wrong number of priors.");
-	mPriors = priors;
+	mPriors = priors.array().abs() / priors.array().abs().sum();
 }
 
 
@@ -127,7 +137,7 @@ void CMT::GSM::setCholesky(const MatrixXd& cholesky) {
 
 
 Eigen::MatrixXd CMT::GSM::covariance() const {
-	return mCholesky.matrixLLT();
+	return mCholesky.reconstructedMatrix();
 }
 
 

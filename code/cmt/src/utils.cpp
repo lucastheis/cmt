@@ -141,8 +141,8 @@ VectorXi CMT::argSort(const VectorXd& data) {
 
 
 MatrixXd CMT::covariance(const MatrixXd& data) {
-	MatrixXd data_centered = data.colwise() - data.rowwise().mean().eval();
-	return data_centered * data_centered.transpose() / data.cols();
+	MatrixXd dataCentered = data.colwise() - data.rowwise().mean().eval();
+	return dataCentered * dataCentered.transpose() / data.cols();
 }
 
 
@@ -151,9 +151,9 @@ MatrixXd CMT::covariance(const MatrixXd& input, const MatrixXd& output) {
 	if(input.cols() != output.cols())
 		throw Exception("Number of inputs and outputs must be the same.");
 
-	MatrixXd input_centered = input.colwise() - input.rowwise().mean().eval();
-	MatrixXd output_centered = output.colwise() - output.rowwise().mean().eval();
-	return input_centered * output_centered.transpose() / output.cols();
+	MatrixXd inputCentered = input.colwise() - input.rowwise().mean().eval();
+	MatrixXd outputCentered = output.colwise() - output.rowwise().mean().eval();
+	return inputCentered * outputCentered.transpose() / output.cols();
 }
 
 

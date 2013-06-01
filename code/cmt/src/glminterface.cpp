@@ -467,7 +467,7 @@ const char* GLM_reduce_doc =
 
 PyObject* GLM_reduce(GLMObject* self, PyObject*) {
 	// constructor arguments
-	PyObject* args = Py_BuildValue("(iOO)", 
+	PyObject* args = Py_BuildValue("(iOO)",
 		self->glm->dimIn(),
 		self->nonlinearity,
 		self->distribution);

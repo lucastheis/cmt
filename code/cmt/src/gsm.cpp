@@ -1,5 +1,6 @@
 #include "gsm.h"
 #include "utils.h"
+#include "Eigen/LU"
 
 #include "Eigen/Core"
 using Eigen::Array;
@@ -14,12 +15,26 @@ using std::sqrt;
 #include <cstdlib>
 using std::rand;
 
+#include <iostream>
+
+CMT::GSM::Parameters::Parameters() :
+	maxIter(10)
+{
+}
+
+
+
 CMT::GSM::GSM(int dim, int numScales) :
 	mDim(dim),
 	mMean(VectorXd::Zero(dim)),
-	mPriors(VectorXd::Ones(numScales)),
+	mPriors(VectorXd::Ones(numScales) / numScales),
 	mScales(ArrayXd::Random(numScales).abs() / 2. + 0.75)
 {
+	if(dim < 1)
+		throw Exception("Dimensionality has to be positive.");
+	if(numScales < 1)
+		throw Exception("Number of scales has to be positive.");
+
 	MatrixXd cov = CMT::covariance(MatrixXd::Random(dim, dim * dim));
 	mCholesky.compute(cov.array() / pow(cov.determinant(), 1. / dim));
 }
@@ -54,8 +69,9 @@ MatrixXd CMT::GSM::sample(int numSamples) const {
 
 
 Array<double, 1, Dynamic> CMT::GSM::logLikelihood(const MatrixXd& data) const {
-	MatrixXd dataCentered = mCholesky.solve(data.colwise() - mMean);
-	Matrix<double, 1, Dynamic> sqNorm = dataCentered.colwise().squaredNorm();
+	MatrixXd dataCentered = data.colwise() - mMean;
+	Matrix<double, 1, Dynamic> sqNorm =
+		(mCholesky.solve(dataCentered).array() * dataCentered.array()).colwise().sum();
 
 	// normalization constant
 	double logDet = MatrixXd(mCholesky.matrixL()).diagonal().array().log().sum();
@@ -63,7 +79,7 @@ Array<double, 1, Dynamic> CMT::GSM::logLikelihood(const MatrixXd& data) const {
 
 	// joint distribution over data and scales
 	ArrayXXd logJoint = (-0.5 * mScales * sqNorm).array().colwise()
-		+ (mPriors.array().log() - mDim / 2. * mScales.array().log() - logPtf);
+		+ (mPriors.array().log() + mDim / 2. * mScales.array().log() - logPtf);
 
 	// marginalize out scales
 	return logSumExp(logJoint);
@@ -71,7 +87,40 @@ Array<double, 1, Dynamic> CMT::GSM::logLikelihood(const MatrixXd& data) const {
 
 
 
-bool CMT::GSM::train(const MatrixXd& data) {
+bool CMT::GSM::train(const MatrixXd& data, const Parameters& parameters) {
+	if(data.rows() != dim())
+		throw Exception("Data has wrong dimensionality.");
+	if(data.cols() == 0)
+		return true;
+
+	// compute mean
+	mMean = data.rowwise().mean();
+
+	// compute covariance
+	MatrixXd dataCentered = data.colwise() - mMean;
+	MatrixXd cov = dataCentered * dataCentered.transpose() / data.cols();
+	mCholesky.compute(cov.array() / pow(cov.determinant(), 1. / mDim));
+
+	// squared norm of whitened data
+	Matrix<double, 1, Dynamic> sqNorm =
+		(mCholesky.solve(dataCentered).array() * dataCentered.array()).colwise().sum();
+
+	for(int i = 0; i < parameters.maxIter; ++i) {
+		// unnormalized joint distribution over data and scales
+		ArrayXXd logJoint = (-0.5 * mScales * sqNorm).array().colwise()
+			+ (mPriors.array().log() + mDim / 2. * mScales.array().log());
+
+		// compute posterior and responsibilities (E)
+		Array<double, 1, Dynamic> uLogLik = logSumExp(logJoint);
+		ArrayXXd post = (logJoint.rowwise() - uLogLik).exp();
+		ArrayXd totalResp = post.rowwise().sum();
+		ArrayXXd weights = post.colwise() / totalResp;
+
+		// update priors and precisions (M)
+		mPriors = totalResp / data.cols();
+		mScales = mDim / (weights.rowwise() * sqNorm.array()).rowwise().sum();
+	}
+
 	return true;
 }
 
@@ -79,7 +128,8 @@ bool CMT::GSM::train(const MatrixXd& data) {
 
 bool CMT::GSM::train(
 	const MatrixXd& data,
-	const Array<double, 1, Dynamic>& weights)
+	const Array<double, 1, Dynamic>& weights,
+	const Parameters& parameters)
 {
 	return true;
 }

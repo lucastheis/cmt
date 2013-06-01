@@ -388,9 +388,9 @@ static PyGetSetDef GSM_getset[] = {
 };
 
 static PyMethodDef GSM_methods[] = {
-//	{"train", (PyCFunction)GLM_train, METH_VARARGS|METH_KEYWORDS, 0},
-//	{"__reduce__", (PyCFunction)GLM_reduce, METH_NOARGS, GLM_reduce_doc},
-//	{"__setstate__", (PyCFunction)GLM_setstate, METH_VARARGS, GLM_setstate_doc},
+	{"train", (PyCFunction)GSM_train, METH_VARARGS|METH_KEYWORDS, 0},
+	{"__reduce__", (PyCFunction)GSM_reduce, METH_NOARGS, 0},
+	{"__setstate__", (PyCFunction)GSM_setstate, METH_VARARGS, 0},
 	{0}
 };
 
