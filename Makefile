@@ -40,6 +40,8 @@ SOURCES = \
 	$(SRCDIR)/distribution.cpp \
 	$(SRCDIR)/distributioninterface.cpp \
 	$(SRCDIR)/fvbninterface.cpp \
+	$(SRCDIR)/gsm.cpp \
+	$(SRCDIR)/gsminterface.cpp \
 	$(SRCDIR)/glm.cpp \
 	$(SRCDIR)/glminterface.cpp \
 	$(SRCDIR)/mcgsm.cpp \

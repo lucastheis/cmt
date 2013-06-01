@@ -10,6 +10,7 @@
 #include "distributioninterface.h"
 #include "fvbninterface.h"
 #include "glminterface.h"
+#include "gsminterface.h"
 #include "mcbminterface.h"
 #include "mcgsminterface.h"
 #include "patchmodelinterface.h"
@@ -19,9 +20,9 @@
 #include "Eigen/Core"
 
 static const char* cmt_doc =
-	"This module provides C++ implementations of conditional models such "
-	"as the MCGSM, as well as tools for solving applications such as "
-	"filling-in, denoising, or classification.";
+	"This module provides C++ implementations of conditional models like "
+	"the MCGSM, as well as tools for applications such as filling-in, "
+	"denoising, or classification.";
 
 static PyGetSetDef Distribution_getset[] = {
 	{"dim", (getter)Distribution_dim, 0, "Dimensionality of the distribution."},
@@ -364,6 +365,75 @@ PyTypeObject MCBM_type = {
 	(initproc)MCBM_init,    /*tp_init*/
 	0,                      /*tp_alloc*/
 	CD_new,                 /*tp_new*/
+};
+
+static PyGetSetDef GSM_getset[] = {
+	{"mean",
+		(getter)GSM_mean,
+		(setter)GSM_set_mean,
+		"Mean of the distribution, $\\boldsymbol{\\mu}$."},
+	{"priors",
+		(getter)GSM_priors,
+		(setter)GSM_set_priors,
+		"Prior probabilities of scales, $\\pi_k$."},
+	{"scales",
+		(getter)GSM_scales,
+		(setter)GSM_set_scales,
+		"Precision scales of the GSM, $\\lambda_k$."},
+	{"covariance",
+		(getter)GSM_covariance,
+		(setter)GSM_set_covariance,
+		"Covariance matrix of the GSM, $\\boldsymbol{\\Sigma}$."},
+	{0}
+};
+
+static PyMethodDef GSM_methods[] = {
+//	{"train", (PyCFunction)GLM_train, METH_VARARGS|METH_KEYWORDS, 0},
+//	{"__reduce__", (PyCFunction)GLM_reduce, METH_NOARGS, GLM_reduce_doc},
+//	{"__setstate__", (PyCFunction)GLM_setstate, METH_VARARGS, GLM_setstate_doc},
+	{0}
+};
+
+PyTypeObject GSM_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                /*ob_size*/
+	"cmt.GSM",                        /*tp_name*/
+	sizeof(GSMObject),                /*tp_basicsize*/
+	0,                                /*tp_itemsize*/
+	(destructor)Distribution_dealloc, /*tp_dealloc*/
+	0,                                /*tp_print*/
+	0,                                /*tp_getattr*/
+	0,                                /*tp_setattr*/
+	0,                                /*tp_compare*/
+	0,                                /*tp_repr*/
+	0,                                /*tp_as_number*/
+	0,                                /*tp_as_sequence*/
+	0,                                /*tp_as_mapping*/
+	0,                                /*tp_hash */
+	0,                                /*tp_call*/
+	0,                                /*tp_str*/
+	0,                                /*tp_getattro*/
+	0,                                /*tp_setattro*/
+	0,                                /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
+	0,                                /*tp_doc*/
+	0,                                /*tp_traverse*/
+	0,                                /*tp_clear*/
+	0,                                /*tp_richcompare*/
+	0,                                /*tp_weaklistoffset*/
+	0,                                /*tp_iter*/
+	0,                                /*tp_iternext*/
+	GSM_methods,                      /*tp_methods*/
+	0,                                /*tp_members*/
+	GSM_getset,                       /*tp_getset*/
+	&Distribution_type,               /*tp_base*/
+	0,                                /*tp_dict*/
+	0,                                /*tp_descr_get*/
+	0,                                /*tp_descr_set*/
+	0,                                /*tp_dictoffset*/
+	(initproc)GSM_init,               /*tp_init*/
+	0,                                /*tp_alloc*/
+	Distribution_new,                 /*tp_new*/
 };
 
 static PyGetSetDef PatchModel_getset[] = {
@@ -1192,6 +1262,8 @@ PyMODINIT_FUNC initcmt() {
 		return;
 	if(PyType_Ready(&GLM_type) < 0)
 		return;
+	if(PyType_Ready(&GSM_type) < 0)
+		return;
 	if(PyType_Ready(&LogisticFunction_type) < 0)
 		return;
 	if(PyType_Ready(&MCBM_type) < 0)
@@ -1228,6 +1300,7 @@ PyMODINIT_FUNC initcmt() {
 	Py_INCREF(&Distribution_type);
 	Py_INCREF(&FVBN_type);
 	Py_INCREF(&GLM_type);
+	Py_INCREF(&GSM_type);
 	Py_INCREF(&LogisticFunction_type);
 	Py_INCREF(&MCBM_type);
 	Py_INCREF(&MCGSM_type);
@@ -1248,6 +1321,7 @@ PyMODINIT_FUNC initcmt() {
 	PyModule_AddObject(module, "Distribution", reinterpret_cast<PyObject*>(&Distribution_type));
 	PyModule_AddObject(module, "FVBN", reinterpret_cast<PyObject*>(&FVBN_type));
 	PyModule_AddObject(module, "GLM", reinterpret_cast<PyObject*>(&GLM_type));
+	PyModule_AddObject(module, "GSM", reinterpret_cast<PyObject*>(&GSM_type));
 	PyModule_AddObject(module, "LogisticFunction", reinterpret_cast<PyObject*>(&LogisticFunction_type));
 	PyModule_AddObject(module, "MCBM", reinterpret_cast<PyObject*>(&MCBM_type));
 	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));

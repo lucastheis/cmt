@@ -67,6 +67,8 @@ modules = [
 			'code/cmt/src/conditionaldistributioninterface.cpp',
 			'code/cmt/src/distribution.cpp',
 			'code/cmt/src/distributioninterface.cpp',
+			'code/cmt/src/gsm.cpp',
+			'code/cmt/src/gsminterface.cpp',
 			'code/cmt/src/glm.cpp',
 			'code/cmt/src/glminterface.cpp',
 			'code/cmt/src/fvbninterface.cpp',
@@ -109,7 +111,7 @@ CCompiler.compile = parallelCCompiler
 
 setup(
 	name='cmt',
-	version='0.2.0',
+	version='0.3.0',
 	author='Lucas Theis',
 	author_email='lucas@theis.io',
 	description='C++ implementations of conditional probabilistic models.',
