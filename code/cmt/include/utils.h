@@ -46,6 +46,8 @@ namespace CMT {
 	ArrayType concatenate(const vector<ArrayType>& data, int axis=1);
 }
 
+
+
 template <class ArrayType>
 ArrayType CMT::concatenate(const vector<ArrayType>& data, int axis) {
 	if(data.size()) {

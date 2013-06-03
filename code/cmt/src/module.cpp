@@ -13,6 +13,7 @@
 #include "gsminterface.h"
 #include "mcbminterface.h"
 #include "mcgsminterface.h"
+#include "mixtureinterface.h"
 #include "patchmodelinterface.h"
 #include "preconditionerinterface.h"
 #include "toolsinterface.h"
@@ -30,14 +31,14 @@ static PyGetSetDef Distribution_getset[] = {
 };
 
 static PyMethodDef Distribution_methods[] = {
-	{"sample", (PyCFunction)Distribution_sample, METH_VARARGS|METH_KEYWORDS, Distribution_sample_doc},
+	{"sample", (PyCFunction)Distribution_sample, METH_VARARGS | METH_KEYWORDS, Distribution_sample_doc},
 	{"loglikelihood",
 		(PyCFunction)Distribution_loglikelihood,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		Distribution_loglikelihood_doc},
 	{"evaluate",
 		(PyCFunction)Distribution_evaluate,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		Distribution_evaluate_doc},
 	{0}
 };
@@ -91,14 +92,14 @@ static PyGetSetDef CD_getset[] = {
 };
 
 static PyMethodDef CD_methods[] = {
-	{"sample", (PyCFunction)CD_sample, METH_VARARGS|METH_KEYWORDS, CD_sample_doc},
+	{"sample", (PyCFunction)CD_sample, METH_VARARGS | METH_KEYWORDS, CD_sample_doc},
 	{"loglikelihood",
 		(PyCFunction)CD_loglikelihood,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		CD_loglikelihood_doc},
 	{"evaluate",
 		(PyCFunction)CD_evaluate,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		CD_evaluate_doc},
 	{0}
 };
@@ -181,40 +182,40 @@ static PyGetSetDef MCGSM_getset[] = {
 static PyMethodDef MCGSM_methods[] = {
 	{"initialize",
 		(PyCFunction)MCGSM_initialize,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		MCGSM_initialize_doc},
-	{"train", (PyCFunction)MCGSM_train, METH_VARARGS|METH_KEYWORDS, MCGSM_train_doc},
+	{"train", (PyCFunction)MCGSM_train, METH_VARARGS | METH_KEYWORDS, MCGSM_train_doc},
 	{"posterior",
 		(PyCFunction)MCGSM_posterior,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		MCGSM_posterior_doc},
 	{"sample_posterior",
 		(PyCFunction)MCGSM_sample_posterior,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		MCGSM_sample_posterior_doc},
 	{"_check_gradient",
 		(PyCFunction)MCGSM_check_gradient,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		Trainable_check_gradient_doc},
 	{"_check_performance",
 		(PyCFunction)MCGSM_check_performance,
-		METH_VARARGS|METH_KEYWORDS, 
+		METH_VARARGS | METH_KEYWORDS, 
 		Trainable_check_performance_doc},
 	{"_parameters",
 		(PyCFunction)MCGSM_parameters,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		Trainable_parameters_doc},
 	{"_set_parameters",
 		(PyCFunction)MCGSM_set_parameters,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		Trainable_set_parameters_doc},
 	{"_parameter_gradient",
 		(PyCFunction)MCGSM_parameter_gradient,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		Trainable_parameter_gradient_doc},
 	{"_compute_data_gradient",
 		(PyCFunction)MCGSM_compute_data_gradient,
-		METH_VARARGS|METH_KEYWORDS, 0},
+		METH_VARARGS | METH_KEYWORDS, 0},
 	{"__reduce__", (PyCFunction)MCGSM_reduce, METH_NOARGS, MCGSM_reduce_doc},
 	{"__setstate__", (PyCFunction)MCGSM_setstate, METH_VARARGS, MCGSM_setstate_doc},
 	{0}
@@ -295,30 +296,30 @@ static PyGetSetDef MCBM_getset[] = {
 };
 
 static PyMethodDef MCBM_methods[] = {
-	{"train", (PyCFunction)MCBM_train, METH_VARARGS|METH_KEYWORDS, MCBM_train_doc},
+	{"train", (PyCFunction)MCBM_train, METH_VARARGS | METH_KEYWORDS, MCBM_train_doc},
 	{"sample_posterior",
 		(PyCFunction)MCBM_sample_posterior,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		MCBM_sample_posterior_doc},
 	{"_parameters",
 		(PyCFunction)MCBM_parameters,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		Trainable_parameters_doc},
 	{"_set_parameters",
 		(PyCFunction)MCBM_set_parameters,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		Trainable_set_parameters_doc},
 	{"_parameter_gradient",
 		(PyCFunction)MCBM_parameter_gradient,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		Trainable_parameter_gradient_doc},
 	{"_check_performance",
 		(PyCFunction)MCBM_check_performance,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		Trainable_check_performance_doc},
 	{"_check_gradient",
 		(PyCFunction)MCBM_check_gradient,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		Trainable_check_gradient_doc},
 	{"__reduce__", (PyCFunction)MCBM_reduce, METH_NOARGS, MCBM_reduce_doc},
 	{"__setstate__", (PyCFunction)MCBM_setstate, METH_VARARGS, MCBM_setstate_doc},
@@ -367,6 +368,108 @@ PyTypeObject MCBM_type = {
 	CD_new,                 /*tp_new*/
 };
 
+static PyMappingMethods Mixture_as_mapping = {
+	0,                             /*mp_length*/
+	(binaryfunc)Mixture_subscript, /*mp_subscript*/
+	0,                             /*mp_ass_subscript*/
+};
+
+static PyMethodDef Mixture_methods[] = {
+	{"train", (PyCFunction)Mixture_train, METH_VARARGS | METH_KEYWORDS, 0},
+//	{"__reduce__", (PyCFunction)Mixture_reduce, METH_NOARGS, 0},
+//	{"__setstate__", (PyCFunction)Mixture_setstate, METH_VARARGS, 0},
+	{0}
+};
+
+PyTypeObject Mixture_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                /*ob_size*/
+	"cmt.Mixture",                    /*tp_name*/
+	sizeof(MixtureObject),            /*tp_basicsize*/
+	0,                                /*tp_itemsize*/
+	(destructor)Distribution_dealloc, /*tp_dealloc*/
+	0,                                /*tp_print*/
+	0,                                /*tp_getattr*/
+	0,                                /*tp_setattr*/
+	0,                                /*tp_compare*/
+	0,                                /*tp_repr*/
+	0,                                /*tp_as_number*/
+	0,                                /*tp_as_sequence*/
+	&Mixture_as_mapping,              /*tp_as_mapping*/
+	0,                                /*tp_hash */
+	0,                                /*tp_call*/
+	0,                                /*tp_str*/
+	0,                                /*tp_getattro*/
+	0,                                /*tp_setattro*/
+	0,                                /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
+	0,                                /*tp_doc*/
+	0,                                /*tp_traverse*/
+	0,                                /*tp_clear*/
+	0,                                /*tp_richcompare*/
+	0,                                /*tp_weaklistoffset*/
+	0,                                /*tp_iter*/
+	0,                                /*tp_iternext*/
+	Mixture_methods,                  /*tp_methods*/
+	0,                                /*tp_members*/
+	0,                                /*tp_getset*/
+	&Distribution_type,               /*tp_base*/
+	0,                                /*tp_dict*/
+	0,                                /*tp_descr_get*/
+	0,                                /*tp_descr_set*/
+	0,                                /*tp_dictoffset*/
+	(initproc)Mixture_init,           /*tp_init*/
+	0,                                /*tp_alloc*/
+	Distribution_new,                 /*tp_new*/
+};
+
+static PyMethodDef MixtureComponent_methods[] = {
+	{"train", (PyCFunction)MixtureComponent_train, METH_VARARGS | METH_KEYWORDS, 0},
+	{0}
+};
+
+PyTypeObject MixtureComponent_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                /*ob_size*/
+	"cmt.MixtureComponent",           /*tp_name*/
+	sizeof(MixtureComponentObject),   /*tp_basicsize*/
+	0,                                /*tp_itemsize*/
+	(destructor)Distribution_dealloc, /*tp_dealloc*/
+	0,                                /*tp_print*/
+	0,                                /*tp_getattr*/
+	0,                                /*tp_setattr*/
+	0,                                /*tp_compare*/
+	0,                                /*tp_repr*/
+	0,                                /*tp_as_number*/
+	0,                                /*tp_as_sequence*/
+	0,                                /*tp_as_mapping*/
+	0,                                /*tp_hash */
+	0,                                /*tp_call*/
+	0,                                /*tp_str*/
+	0,                                /*tp_getattro*/
+	0,                                /*tp_setattro*/
+	0,                                /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
+	0,                                /*tp_doc*/
+	0,                                /*tp_traverse*/
+	0,                                /*tp_clear*/
+	0,                                /*tp_richcompare*/
+	0,                                /*tp_weaklistoffset*/
+	0,                                /*tp_iter*/
+	0,                                /*tp_iternext*/
+	MixtureComponent_methods,         /*tp_methods*/
+	0,                                /*tp_members*/
+	0,                                /*tp_getset*/
+	&Distribution_type,               /*tp_base*/
+	0,                                /*tp_dict*/
+	0,                                /*tp_descr_get*/
+	0,                                /*tp_descr_set*/
+	0,                                /*tp_dictoffset*/
+	(initproc)MixtureComponent_init,  /*tp_init*/
+	0,                                /*tp_alloc*/
+	Distribution_new,                 /*tp_new*/
+};
+
 static PyGetSetDef GSM_getset[] = {
 	{"mean",
 		(getter)GSM_mean,
@@ -388,7 +491,6 @@ static PyGetSetDef GSM_getset[] = {
 };
 
 static PyMethodDef GSM_methods[] = {
-	{"train", (PyCFunction)GSM_train, METH_VARARGS|METH_KEYWORDS, 0},
 	{"__reduce__", (PyCFunction)GSM_reduce, METH_NOARGS, 0},
 	{"__setstate__", (PyCFunction)GSM_setstate, METH_VARARGS, 0},
 	{0}
@@ -426,7 +528,7 @@ PyTypeObject GSM_type = {
 	GSM_methods,                      /*tp_methods*/
 	0,                                /*tp_members*/
 	GSM_getset,                       /*tp_getset*/
-	&Distribution_type,               /*tp_base*/
+	&MixtureComponent_type,           /*tp_base*/
 	0,                                /*tp_dict*/
 	0,                                /*tp_descr_get*/
 	0,                                /*tp_descr_set*/
@@ -579,13 +681,13 @@ static PyGetSetDef GLM_getset[] = {
 };
 
 static PyMethodDef GLM_methods[] = {
-	{"train", (PyCFunction)GLM_train, METH_VARARGS|METH_KEYWORDS, 0},
+	{"train", (PyCFunction)GLM_train, METH_VARARGS | METH_KEYWORDS, 0},
 	{"_parameter_gradient",
 		(PyCFunction)GLM_parameter_gradient,
-		METH_VARARGS|METH_KEYWORDS, 0},
+		METH_VARARGS | METH_KEYWORDS, 0},
 	{"_check_gradient",
 		(PyCFunction)GLM_check_gradient,
-		METH_VARARGS|METH_KEYWORDS,
+		METH_VARARGS | METH_KEYWORDS,
 		Trainable_check_gradient_doc},
 	{"__reduce__", (PyCFunction)GLM_reduce, METH_NOARGS, GLM_reduce_doc},
 	{"__setstate__", (PyCFunction)GLM_setstate, METH_VARARGS, GLM_setstate_doc},
@@ -884,8 +986,8 @@ static PyGetSetDef Preconditioner_getset[] = {
 };
 
 static PyMethodDef Preconditioner_methods[] = {
-	{"inverse", (PyCFunction)Preconditioner_inverse, METH_VARARGS|METH_KEYWORDS, Preconditioner_inverse_doc},
-	{"logjacobian", (PyCFunction)Preconditioner_logjacobian, METH_VARARGS|METH_KEYWORDS, Preconditioner_logjacobian_doc},
+	{"inverse", (PyCFunction)Preconditioner_inverse, METH_VARARGS | METH_KEYWORDS, Preconditioner_inverse_doc},
+	{"logjacobian", (PyCFunction)Preconditioner_logjacobian, METH_VARARGS | METH_KEYWORDS, Preconditioner_logjacobian_doc},
 	{0}
 };
 
@@ -1225,13 +1327,13 @@ PyTypeObject PCATransform_type = {
 };
 
 static PyMethodDef cmt_methods[] = {
-	{"random_select", (PyCFunction)random_select, METH_VARARGS|METH_KEYWORDS, random_select_doc},
-	{"generate_data_from_image", (PyCFunction)generate_data_from_image, METH_VARARGS|METH_KEYWORDS, generate_data_from_image_doc},
-	{"generate_data_from_video", (PyCFunction)generate_data_from_video, METH_VARARGS|METH_KEYWORDS, generate_data_from_video_doc},
-	{"sample_image", (PyCFunction)sample_image, METH_VARARGS|METH_KEYWORDS, sample_image_doc},
-	{"sample_video", (PyCFunction)sample_video, METH_VARARGS|METH_KEYWORDS, sample_video_doc},
-	{"fill_in_image", (PyCFunction)fill_in_image, METH_VARARGS|METH_KEYWORDS, fill_in_image_doc},
-	{"fill_in_image_map", (PyCFunction)fill_in_image_map, METH_VARARGS|METH_KEYWORDS, 0},
+	{"random_select", (PyCFunction)random_select, METH_VARARGS | METH_KEYWORDS, random_select_doc},
+	{"generate_data_from_image", (PyCFunction)generate_data_from_image, METH_VARARGS | METH_KEYWORDS, generate_data_from_image_doc},
+	{"generate_data_from_video", (PyCFunction)generate_data_from_video, METH_VARARGS | METH_KEYWORDS, generate_data_from_video_doc},
+	{"sample_image", (PyCFunction)sample_image, METH_VARARGS | METH_KEYWORDS, sample_image_doc},
+	{"sample_video", (PyCFunction)sample_video, METH_VARARGS | METH_KEYWORDS, sample_video_doc},
+	{"fill_in_image", (PyCFunction)fill_in_image, METH_VARARGS | METH_KEYWORDS, fill_in_image_doc},
+	{"fill_in_image_map", (PyCFunction)fill_in_image_map, METH_VARARGS | METH_KEYWORDS, 0},
 	{0}
 };
 

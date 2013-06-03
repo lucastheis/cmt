@@ -31,8 +31,6 @@ int GSM_set_scales(GSMObject*, PyObject*, void*);
 PyObject* GSM_covariance(GSMObject*, void*);
 int GSM_set_covariance(GSMObject*, PyObject*, void*);
 
-PyObject* GSM_train(GSMObject*, PyObject*, PyObject*);
-
 PyObject* GSM_reduce(GSMObject*, PyObject*);
 PyObject* GSM_setstate(GSMObject*, PyObject*);
 

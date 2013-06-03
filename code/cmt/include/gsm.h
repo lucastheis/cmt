@@ -3,22 +3,15 @@
 
 #include "Eigen/Core"
 #include "Eigen/Cholesky"
-#include "distribution.h"
+#include "mixture.h"
 #include "exception.h"
 
 namespace CMT {
 	using Eigen::VectorXd;
 	using Eigen::LLT;
 
-	class GSM : public Distribution {
+	class GSM : public Mixture::Component {
 		public:
-			struct Parameters {
-				public:
-					int maxIter;
-
-					Parameters();
-			};
-
 			GSM(int dim = 1, int numScales = 6);
 
 			inline int dim() const;

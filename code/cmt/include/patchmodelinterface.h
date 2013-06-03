@@ -28,9 +28,6 @@ PyObject* PatchModel_output_mask(PatchModelObject*, PyObject*);
 PyObject* PatchModel_input_indices(PatchModelObject*, PyObject*);
 PyObject* PatchModel_order(PatchModelObject*, void*);
 
-PyObject* PatchModel_subscript(PatchModelObject*, PyObject*);
-int PatchModel_ass_subscript(PatchModelObject*, PyObject*, PyObject*);
-
 PyObject* PatchModel_loglikelihood(PatchModelObject*, PyObject*, PyObject*);
 
 #endif

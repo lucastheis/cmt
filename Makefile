@@ -48,6 +48,8 @@ SOURCES = \
 	$(SRCDIR)/mcgsminterface.cpp \
 	$(SRCDIR)/mcbm.cpp \
 	$(SRCDIR)/mcbminterface.cpp \
+	$(SRCDIR)/mixture.cpp \
+	$(SRCDIR)/mixtureinterface.cpp \
 	$(SRCDIR)/module.cpp \
 	$(SRCDIR)/patchmodel.cpp \
 	$(SRCDIR)/patchmodelinterface.cpp \

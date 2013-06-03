@@ -15,8 +15,6 @@ using std::sqrt;
 #include <cstdlib>
 using std::rand;
 
-#include <iostream>
-
 CMT::GSM::Parameters::Parameters() :
 	maxIter(10)
 {
@@ -49,7 +47,7 @@ MatrixXd CMT::GSM::sample(int numSamples) const {
 	for(int k = 1; k < numScales(); ++k)
 		cdf[k] += cdf[k - 1];
 
-	// make sure last entry is large enough
+	// make sure last entry is definitely large enough
 	cdf[numScales() - 1] = 1.0001;
 
 	// sample scales
@@ -113,11 +111,11 @@ bool CMT::GSM::train(const MatrixXd& data, const Parameters& parameters) {
 		// compute posterior and responsibilities (E)
 		Array<double, 1, Dynamic> uLogLik = logSumExp(logJoint);
 		ArrayXXd post = (logJoint.rowwise() - uLogLik).exp();
-		ArrayXd totalResp = post.rowwise().sum();
-		ArrayXXd weights = post.colwise() / totalResp;
+		ArrayXd postSum = post.rowwise().sum();
+		ArrayXXd weights = post.colwise() / postSum;
 
 		// update priors and precisions (M)
-		mPriors = totalResp / data.cols();
+		mPriors = postSum / data.cols();
 		mScales = mDim / (weights.rowwise() * sqNorm.array()).rowwise().sum();
 	}
 
@@ -131,5 +129,34 @@ bool CMT::GSM::train(
 	const Array<double, 1, Dynamic>& weights,
 	const Parameters& parameters)
 {
+	// compute mean
+	mMean = (data.array().rowwise() * weights).rowwise().sum();
+
+	// compute covariance
+	MatrixXd dataCentered = data.colwise() - mMean;
+	MatrixXd dataWeighted = dataCentered.array().rowwise() * weights.sqrt();
+	MatrixXd cov = dataWeighted * dataWeighted.transpose();
+	mCholesky.compute(cov.array() / pow(cov.determinant(), 1. / mDim));
+
+	// squared norm of whitened data
+	Matrix<double, 1, Dynamic> sqNorm =
+		(mCholesky.solve(dataCentered).array() * dataCentered.array()).colwise().sum();
+
+	for(int i = 0; i < parameters.maxIter; ++i) {
+		// unnormalized joint distribution over data and scales
+		ArrayXXd logJoint = (-0.5 * mScales * sqNorm).array().colwise()
+			+ (mPriors.array().log() + mDim / 2. * mScales.array().log());
+
+		// compute weighted posterior and responsibilities (E)
+		Array<double, 1, Dynamic> uLogLik = logSumExp(logJoint);
+		ArrayXXd postWeighted = (logJoint.rowwise() - uLogLik).exp().rowwise() * weights;
+		ArrayXd postWeightedSum = postWeighted.rowwise().sum();
+		ArrayXXd scaleWeights = postWeighted.colwise() / postWeightedSum;
+
+		// update priors and precisions (M)
+		mPriors = postWeightedSum;
+		mScales = mDim / (scaleWeights.rowwise() * sqNorm.array()).rowwise().sum();
+	}
+
 	return true;
 }
