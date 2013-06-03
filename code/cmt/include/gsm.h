@@ -14,6 +14,8 @@ namespace CMT {
 		public:
 			GSM(int dim = 1, int numScales = 6);
 
+			virtual GSM* copy();
+
 			inline int dim() const;
 			inline int numScales() const;
 

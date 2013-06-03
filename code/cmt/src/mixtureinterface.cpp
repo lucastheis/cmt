@@ -75,7 +75,13 @@ PyObject* Mixture_train(MixtureObject* self, PyObject* args, PyObject* kwds) {
 
 	Py_DECREF(data);
 
-	return 0;
+	if(converged) {
+		Py_INCREF(Py_True);
+		return Py_True;
+	} else {
+		Py_INCREF(Py_False);
+		return Py_False;
+	}
 }
 
 
@@ -106,7 +112,16 @@ PyObject* Mixture_add_component(MixtureObject* self, PyObject* args, PyObject* k
 		&MixtureComponent_type, &component))
 		return 0;
 
-	return 0;
+	try {
+		self->mixture->addComponent(
+			reinterpret_cast<MixtureComponentObject*>(component)->component->copy());
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
@@ -127,6 +142,50 @@ PyObject* Mixture_add_component(MixtureObject* self, PyObject* args, PyObject* k
 //
 //	return params;
 //}
+
+
+
+PyObject* Mixture_reduce(MixtureObject* self, PyObject*) {
+	// constructor arguments
+	PyObject* args = Py_BuildValue("(i)", self->mixture->dim());
+
+	PyObject* components = PyTuple_New(self->mixture->numComponents());
+
+	for(int k = 0; k < self->mixture->numComponents(); ++k) {
+		PyObject* component = Mixture_subscript(self, PyInt_FromLong(k));
+		PyTuple_SetItem(components, k, component);
+	}
+
+	PyObject* state = Py_BuildValue("(O)", components);
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
+
+	Py_DECREF(components);
+	Py_DECREF(args);
+	Py_DECREF(state);
+
+	return result;
+}
+
+
+
+PyObject* Mixture_setstate(MixtureObject* self, PyObject* state) {
+	PyObject* components = PyTuple_GetItem(state, 0);
+
+	for(int k = 0; k < PyTuple_Size(components); ++k) {
+		PyObject* component = PyTuple_GetItem(components, k);
+		PyObject* args = Py_BuildValue("(O)", component);
+		PyObject* kwds = Py_BuildValue("()");
+
+		Mixture_add_component(self, args, kwds);
+
+		Py_DECREF(component);
+		Py_DECREF(args);
+		Py_DECREF(kwds);
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
 
 
 
@@ -174,8 +233,8 @@ PyObject* MixtureComponent_train(MixtureComponentObject* self, PyObject* args, P
 	if(converged) {
 		Py_INCREF(Py_True);
 		return Py_True;
+	} else {
+		Py_INCREF(Py_False);
+		return Py_False;
 	}
-
-	Py_INCREF(Py_False);
-	return Py_False;
 }

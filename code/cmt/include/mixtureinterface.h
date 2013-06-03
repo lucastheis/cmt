@@ -30,4 +30,7 @@ PyObject* Mixture_subscript(MixtureObject*, PyObject*);
 int MixtureComponent_init(MixtureComponentObject*, PyObject*, PyObject*);
 PyObject* MixtureComponent_train(MixtureComponentObject*, PyObject*, PyObject*);
 
+PyObject* Mixture_reduce(MixtureObject*, PyObject*);
+PyObject* Mixture_setstate(MixtureObject*, PyObject*);
+
 #endif

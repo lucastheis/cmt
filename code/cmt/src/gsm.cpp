@@ -39,6 +39,12 @@ CMT::GSM::GSM(int dim, int numScales) :
 
 
 
+CMT::GSM* CMT::GSM::copy() {
+	return new GSM(*this);
+}
+
+
+
 MatrixXd CMT::GSM::sample(int numSamples) const {
 	Array<double, 1, Dynamic> scales(numSamples);
 

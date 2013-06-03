@@ -23,6 +23,8 @@ namespace CMT {
 							Parameters();
 					};
 
+					virtual Component* copy() = 0;
+
 					virtual bool train(
 						const MatrixXd& data,
 						const Parameters& parameters = Parameters()) = 0;
