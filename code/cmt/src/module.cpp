@@ -374,8 +374,17 @@ static PyMappingMethods Mixture_as_mapping = {
 	0,                             /*mp_ass_subscript*/
 };
 
+static PyGetSetDef Mixture_getset[] = {
+	{"priors",
+		(getter)Mixture_priors,
+		(setter)Mixture_set_priors,
+		"Prior probabilities of mixture components, $\\pi_k$."},
+	{0}
+};
+
 static PyMethodDef Mixture_methods[] = {
 	{"train", (PyCFunction)Mixture_train, METH_VARARGS | METH_KEYWORDS, 0},
+	{"add_component", (PyCFunction)Mixture_add_component, METH_VARARGS | METH_KEYWORDS, 0},
 	{"__reduce__", (PyCFunction)Mixture_reduce, METH_NOARGS, 0},
 	{"__setstate__", (PyCFunction)Mixture_setstate, METH_VARARGS, 0},
 	{0}
@@ -412,7 +421,7 @@ PyTypeObject Mixture_type = {
 	0,                                /*tp_iternext*/
 	Mixture_methods,                  /*tp_methods*/
 	0,                                /*tp_members*/
-	0,                                /*tp_getset*/
+	Mixture_getset,                   /*tp_getset*/
 	&Distribution_type,               /*tp_base*/
 	0,                                /*tp_dict*/
 	0,                                /*tp_descr_get*/
@@ -1372,6 +1381,10 @@ PyMODINIT_FUNC initcmt() {
 		return;
 	if(PyType_Ready(&MCGSM_type) < 0)
 		return;
+	if(PyType_Ready(&Mixture_type) < 0)
+		return;
+	if(PyType_Ready(&MixtureComponent_type) < 0)
+		return;
 	if(PyType_Ready(&Nonlinearity_type) < 0)
 		return;
 	if(PyType_Ready(&PatchMCBM_type) < 0)
@@ -1404,6 +1417,8 @@ PyMODINIT_FUNC initcmt() {
 	Py_INCREF(&GLM_type);
 	Py_INCREF(&GSM_type);
 	Py_INCREF(&LogisticFunction_type);
+	Py_INCREF(&Mixture_type);
+	Py_INCREF(&MixtureComponent_type);
 	Py_INCREF(&MCBM_type);
 	Py_INCREF(&MCGSM_type);
 	Py_INCREF(&Nonlinearity_type);
@@ -1425,6 +1440,8 @@ PyMODINIT_FUNC initcmt() {
 	PyModule_AddObject(module, "GLM", reinterpret_cast<PyObject*>(&GLM_type));
 	PyModule_AddObject(module, "GSM", reinterpret_cast<PyObject*>(&GSM_type));
 	PyModule_AddObject(module, "LogisticFunction", reinterpret_cast<PyObject*>(&LogisticFunction_type));
+	PyModule_AddObject(module, "Mixture", reinterpret_cast<PyObject*>(&Mixture_type));
+	PyModule_AddObject(module, "MixtureComponent", reinterpret_cast<PyObject*>(&MixtureComponent_type));
 	PyModule_AddObject(module, "MCBM", reinterpret_cast<PyObject*>(&MCBM_type));
 	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));
 	PyModule_AddObject(module, "Nonlinearity", reinterpret_cast<PyObject*>(&Nonlinearity_type));

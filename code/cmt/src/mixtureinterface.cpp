@@ -93,9 +93,15 @@ PyObject* Mixture_subscript(MixtureObject* self, PyObject* key) {
 	}
 
 	PyObject* component = Distribution_new(&MixtureComponent_type, 0, 0);
-	reinterpret_cast<MixtureComponentObject*>(component)->component =
-		self->mixture->operator[](PyInt_AsLong(key));
-	reinterpret_cast<MixtureComponentObject*>(component)->owner = false;
+
+	try {
+		reinterpret_cast<MixtureComponentObject*>(component)->component =
+			self->mixture->operator[](PyInt_AsLong(key));
+		reinterpret_cast<MixtureComponentObject*>(component)->owner = false;
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
 
 	Py_INCREF(component);
 	return component;
@@ -142,6 +148,40 @@ PyObject* Mixture_add_component(MixtureObject* self, PyObject* args, PyObject* k
 //
 //	return params;
 //}
+
+
+
+PyObject* Mixture_priors(MixtureObject* self, void*) {
+	PyObject* array = PyArray_FromMatrixXd(self->mixture->priors());
+
+	// make array immutable
+	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
+
+	return array;
+}
+
+
+
+int Mixture_set_priors(MixtureObject* self, PyObject* value, void*) {
+	value = PyArray_FROM_OTF(value, NPY_DOUBLE, NPY_IN_ARRAY);
+
+	if(!value) {
+		PyErr_SetString(PyExc_TypeError, "Scales should be of type `ndarray`.");
+		return -1;
+	}
+
+	try {
+		self->mixture->setPriors(PyArray_ToMatrixXd(value));
+	} catch(Exception exception) {
+		Py_DECREF(value);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+
+	Py_DECREF(value);
+
+	return 0;
+}
 
 
 

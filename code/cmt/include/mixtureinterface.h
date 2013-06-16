@@ -4,6 +4,9 @@
 #include <Python.h>
 #include <arrayobject.h>
 
+#include <vector>
+using std::vector;
+
 #include "mixture.h"
 using CMT::Mixture;
 
@@ -26,6 +29,9 @@ int Mixture_init(MixtureObject*, PyObject*, PyObject*);
 PyObject* Mixture_add_component(MixtureObject*, PyObject*, PyObject*);
 PyObject* Mixture_train(MixtureObject*, PyObject*, PyObject*);
 PyObject* Mixture_subscript(MixtureObject*, PyObject*);
+
+PyObject* Mixture_priors(MixtureObject*, void*);
+int Mixture_set_priors(MixtureObject*, PyObject*, void*);
 
 int MixtureComponent_init(MixtureComponentObject*, PyObject*, PyObject*);
 PyObject* MixtureComponent_train(MixtureComponentObject*, PyObject*, PyObject*);

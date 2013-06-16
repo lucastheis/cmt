@@ -294,10 +294,10 @@ bool CMT::Trainable::train(
 	if(input.cols() < 1)
 		return true;
 
-	// copy parameters for L-BFGS
+	// create copy of model parameters for L-BFGS
 	lbfgsfloatval_t* x = parameters(params);
 
-	// optimization hyperparameters
+	// optimization hyperparameters of L-BFGS
 	lbfgs_parameter_t hyperparams;
 	lbfgs_parameter_init(&hyperparams);
 	hyperparams.max_iterations = params.maxIter;
@@ -308,7 +308,7 @@ bool CMT::Trainable::train(
 	hyperparams.ftol = 1e-4;
 	hyperparams.xtol = 1e-32;
 
-	// wrap additional arguments
+	// wrap all additional arguments to optimization routine
 	InstanceLBFGS instance(this, &params, &input, &output, inputVal, outputVal);
 
 	if(params.verbosity > 0)

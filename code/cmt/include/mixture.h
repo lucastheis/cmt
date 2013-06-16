@@ -4,6 +4,7 @@
 #include <vector>
 #include "Eigen/Core"
 #include "distribution.h"
+#include "exception.h"
 
 namespace CMT {
 	using Eigen::VectorXd;
@@ -97,12 +98,16 @@ inline int CMT::Mixture::numComponents() const {
 
 
 inline CMT::Mixture::Component* CMT::Mixture::operator[](int i) {
+	if(i < 0 || i >= mComponents.size())
+		throw Exception("Invalid component index.");
 	return mComponents[i];
 }
 
 
 
 inline const CMT::Mixture::Component* CMT::Mixture::operator[](int i) const {
+	if(i < 0 || i >= mComponents.size())
+		throw Exception("Invalid component index.");
 	return mComponents[i];
 }
 
