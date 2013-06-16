@@ -14,6 +14,7 @@ struct MixtureObject {
 	PyObject_HEAD
 	Mixture* mixture;
 	bool owner;
+	vector<PyTypeObject*> componentTypes;
 };
 
 struct MixtureComponentObject {

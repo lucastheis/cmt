@@ -92,7 +92,14 @@ PyObject* Mixture_subscript(MixtureObject* self, PyObject* key) {
 		return 0;
 	}
 
-	PyObject* component = Distribution_new(&MixtureComponent_type, 0, 0);
+	int i = PyInt_AsLong(key);
+
+	PyObject* component;
+
+	if(i < self->componentTypes.size())
+		component = Distribution_new(self->componentTypes[i], 0, 0);
+	else
+		component = Distribution_new(&MixtureComponent_type, 0, 0);
 
 	try {
 		reinterpret_cast<MixtureComponentObject*>(component)->component =
@@ -119,6 +126,7 @@ PyObject* Mixture_add_component(MixtureObject* self, PyObject* args, PyObject* k
 		return 0;
 
 	try {
+		self->componentTypes.push_back(Py_TYPE(component));
 		self->mixture->addComponent(
 			reinterpret_cast<MixtureComponentObject*>(component)->component->copy());
 	} catch(Exception exception) {
