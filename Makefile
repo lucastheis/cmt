@@ -90,6 +90,7 @@ $(OBJDIR)/%.o: %.cpp $(OBJDIR)/%.d
 	@$(CXX) $(INCLUDE) $(CXXFLAGS) -o $@ -c $<
 
 $(OBJDIR)/%.d: %.cpp
+	@mkdir -p $(@D)
 	@echo $(CXX) -MM $< -MF $@
 	@$(CXX) $(INCLUDE) -MM -MT '$(@:.d=.o)' $< -MF $@
 
