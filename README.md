@@ -4,7 +4,8 @@ A C++ implementation of conditional models such as the MCGSM and MCBM.
 
 ## Requirements
 
-* NumPy >= 2.6.0
+* Python >= 2.7.0
+* NumPy >= 1.6.1
 * automake >= 1.11.0
 * libtool >= 2.4.0
 

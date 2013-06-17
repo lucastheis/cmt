@@ -34,10 +34,9 @@ void CMT::Mixture::addComponent(Component* component) {
 	if(component->dim() != dim())
 		throw Exception("Component has wrong dimensionality.");
 
-	// add one prior weight and renormalize
-	mPriors = VectorXd(numComponents() + 1);
-	mPriors << mPriors, 1. / numComponents();
-	mPriors /= mPriors.sum();
+	VectorXd priors(numComponents() + 1);
+	priors << mPriors * numComponents(), 1.;
+	mPriors = priors / (numComponents() + 1.);
 
 	mComponents.push_back(component);
 }

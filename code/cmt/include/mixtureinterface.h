@@ -25,6 +25,8 @@ struct MixtureComponentObject {
 
 extern PyTypeObject MixtureComponent_type;
 
+extern const char* MixtureComponent_train_doc;
+
 int Mixture_init(MixtureObject*, PyObject*, PyObject*);
 
 PyObject* Mixture_add_component(MixtureObject*, PyObject*, PyObject*);

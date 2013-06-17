@@ -81,7 +81,7 @@ const char* Distribution_loglikelihood_doc =
 	"Computes the log-likelihood for the given data points in nats.\n"
 	"\n"
 	"@type  data: ndarray\n"
-	"@param data: data stored in columns\n"
+	"@param data: data points stored in columns\n"
 	"\n"
 	"@rtype: ndarray\n"
 	"@return: log-likelihood of the model evaluated for each data point";

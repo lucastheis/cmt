@@ -38,7 +38,7 @@ Mixture::Parameters* PyObject_ToMixtureParameters(PyObject* parameters) {
 			else
 				throw Exception("max_iter should be of type `int`.");
 	}
-	
+
 	return params;
 }
 
@@ -140,25 +140,6 @@ PyObject* Mixture_add_component(MixtureObject* self, PyObject* args, PyObject* k
 
 
 
-//Mixture::Component::Parameters* PyObject_ToMixtureComponentParameters(PyObject* parameters) {
-//	Mixture::Component::Parameters* params = new Mixture::Component::Parameters;
-//
-//	if(parameters && parameters != Py_None) {
-//		PyObject* max_iter = PyDict_GetItemString(parameters, "max_iter");
-//		if(max_iter)
-//			if(PyInt_Check(max_iter))
-//				params->maxIter = PyInt_AsLong(max_iter);
-//			else if(PyFloat_Check(max_iter))
-//				params->maxIter = static_cast<int>(PyFloat_AsDouble(max_iter));
-//			else
-//				throw Exception("max_iter should be of type `int`.");
-//	}
-//
-//	return params;
-//}
-
-
-
 PyObject* Mixture_priors(MixtureObject* self, void*) {
 	PyObject* array = PyArray_FromMatrixXd(self->mixture->priors());
 
@@ -244,16 +225,53 @@ int MixtureComponent_init(MixtureComponentObject*, PyObject*, PyObject*) {
 
 
 
+Mixture::Component::Parameters* PyObject_ToMixtureComponentParameters(PyObject* parameters) {
+	Mixture::Component::Parameters* params = new Mixture::Component::Parameters;
+
+	if(parameters && parameters != Py_None) {
+		PyObject* max_iter = PyDict_GetItemString(parameters, "max_iter");
+		if(max_iter)
+			if(PyInt_Check(max_iter))
+				params->maxIter = PyInt_AsLong(max_iter);
+			else if(PyFloat_Check(max_iter))
+				params->maxIter = static_cast<int>(PyFloat_AsDouble(max_iter));
+			else
+				throw Exception("max_iter should be of type `int`.");
+	}
+
+	return params;
+}
+
+
+
+const char* MixtureComponent_train_doc =
+	"train(self, data, weights=None, parameters=None)\n"
+	"\n"
+	"Trains the parameters of the distribution, possibly weighting data points.\n"
+	"\n"
+	"@type  data: C{ndarray}\n"
+	"@param data: data points stored in columns\n"
+	"\n"
+	"@type  weights: C{ndarray}\n"
+	"@param weights: weights which sum to one\n"
+	"\n"
+	"@rtype: C{bool}\n"
+	"@return: C{True} if training converged, otherwise C{False}";
+
 PyObject* MixtureComponent_train(MixtureComponentObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"data", "parameters", 0};
+	const char* kwlist[] = {"data", "weights", "parameters", 0};
 
 	PyObject* data;
+	PyObject* weights = 0;
 	PyObject* parameters = 0;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", const_cast<char**>(kwlist),
-		&data, &parameters))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|OO", const_cast<char**>(kwlist),
+		&data, &weights, &parameters))
 		return 0;
+
+	if(weights == Py_None)
+		weights = 0;
 
 	// make sure data is stored in NumPy array
 	data = PyArray_FROM_OTF(data, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
@@ -266,10 +284,23 @@ PyObject* MixtureComponent_train(MixtureComponentObject* self, PyObject* args, P
 	bool converged;
 
 	try {
-//		Mixture::Component::Parameters* params = PyObject_ToMixtureComponentParameters(parameters);
-//		converged = self->gsm->train(PyArray_ToMatrixXd(data), *params);
-//		delete params;
-		converged = self->component->train(PyArray_ToMatrixXd(data));
+		Mixture::Component::Parameters* params = PyObject_ToMixtureComponentParameters(parameters);
+
+		if(weights) {
+			MatrixXd weightsMatrix = PyArray_ToMatrixXd(weights);
+			MatrixXd dataMatrix = PyArray_ToMatrixXd(data);
+
+			if(weightsMatrix.rows() != 1)
+				weightsMatrix = weightsMatrix.transpose();
+			if(weightsMatrix.rows() != 1)
+				throw Exception("Weights should be stored in a row vector.");
+
+			converged = self->component->train(dataMatrix, weightsMatrix, *params);
+		} else {
+			converged = self->component->train(PyArray_ToMatrixXd(data), *params);
+		}
+
+		delete params;
 	} catch(Exception exception) {
 		Py_DECREF(data);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());

@@ -433,7 +433,7 @@ PyTypeObject Mixture_type = {
 };
 
 static PyMethodDef MixtureComponent_methods[] = {
-	{"train", (PyCFunction)MixtureComponent_train, METH_VARARGS | METH_KEYWORDS, 0},
+	{"train", (PyCFunction)MixtureComponent_train, METH_VARARGS | METH_KEYWORDS, MixtureComponent_train_doc},
 	{0}
 };
 

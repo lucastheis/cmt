@@ -5,10 +5,13 @@
 #include "Eigen/Cholesky"
 #include "mixture.h"
 #include "exception.h"
+#include <cmath>
 
 namespace CMT {
 	using Eigen::VectorXd;
 	using Eigen::LLT;
+
+	using std::pow;
 
 	class GSM : public Mixture::Component {
 		public:
@@ -58,8 +61,8 @@ namespace CMT {
 			// precision scales
 			VectorXd mScales;
 
-			// Cholesky factor of covariance matrix
-			LLT<MatrixXd> mCholesky;
+			// Cholesky factor of precision matrix
+			MatrixXd mCholesky;
 	};
 }
 
@@ -120,19 +123,23 @@ void CMT::GSM::setScales(const VectorXd& scales) {
 
 
 Eigen::MatrixXd CMT::GSM::cholesky() const {
-	return mCholesky.matrixL();
+	return mCholesky;
 }
 
 
 
 void CMT::GSM::setCholesky(const MatrixXd& cholesky) {
-	setCovariance(cholesky * cholesky.transpose());
+	mCholesky = cholesky;
 }
 
 
 
 Eigen::MatrixXd CMT::GSM::covariance() const {
-	return mCholesky.reconstructedMatrix();
+	// compute Cholesky factor of covariance matrix
+	MatrixXd choleskyInv = mCholesky.triangularView<Eigen::Lower>().solve(
+		MatrixXd::Identity(dim(), dim()));
+
+	return choleskyInv * choleskyInv.transpose();
 }
 
 
@@ -140,7 +147,13 @@ Eigen::MatrixXd CMT::GSM::covariance() const {
 void CMT::GSM::setCovariance(const MatrixXd& covariance) {
 	if(covariance.rows() != dim() || covariance.cols() != dim())
 		throw Exception("Cholesky factor has wrong dimensionality.");
-	mCholesky.compute(covariance);
+
+	// compute Cholesky factor of covariance matrix
+	MatrixXd cholesky = LLT<MatrixXd>(covariance).matrixL();
+
+	// compute Cholesky factor of precision matrix
+	mCholesky = cholesky.triangularView<Eigen::Lower>().solve(
+		MatrixXd::Identity(dim(), dim()));
 }
 
 #endif
