@@ -12,7 +12,27 @@ using Eigen::ArrayXXd;
 using Eigen::MatrixXd;
 
 CMT::Mixture::Parameters::Parameters() :
-	maxIter(10)
+	verbosity(1),
+	maxIter(10),
+	trainPriors(true),
+	trainComponents(true),
+	regularizePriors(0.)
+{
+}
+
+
+
+CMT::Mixture::Component::Parameters::Parameters() :
+	verbosity(0),
+	maxIter(10),
+	trainPriors(true),
+	trainCovariance(true),
+	trainScales(true),
+	trainMean(true),
+	regularizePriors(0.),
+	regularizeCovariance(0.),
+	regularizeScales(0.),
+	regularizeMean(0.)
 {
 }
 
@@ -34,8 +54,11 @@ void CMT::Mixture::addComponent(Component* component) {
 	if(component->dim() != dim())
 		throw Exception("Component has wrong dimensionality.");
 
+	// add another parameter to prior weights vector
 	VectorXd priors(numComponents() + 1);
 	priors << mPriors * numComponents(), 1.;
+
+	// renormalize
 	mPriors = priors / (numComponents() + 1.);
 
 	mComponents.push_back(component);
@@ -107,7 +130,11 @@ Array<double, 1, Dynamic> CMT::Mixture::logLikelihood(const MatrixXd& data) cons
 
 
 
-bool CMT::Mixture::train(const MatrixXd& data, const Parameters& parameters) {
+bool CMT::Mixture::train(
+	const MatrixXd& data,
+	const Parameters& parameters,
+	const Component::Parameters& componentParameters)
+{
 	ArrayXd postSum;
 	ArrayXXd post;
 	ArrayXXd weights;
@@ -118,13 +145,20 @@ bool CMT::Mixture::train(const MatrixXd& data, const Parameters& parameters) {
 		postSum = post.rowwise().sum();
 		weights = post.colwise() / postSum;
 
-		// optimize prior weights
-		mPriors = postSum / data.cols();
+		// optimize prior weights (M)
+		if(parameters.trainPriors) {
+			mPriors = postSum / data.cols() + parameters.regularizePriors;
+			mPriors /= mPriors.sum();
+		}
 
 		// optimize components (M)
-		#pragma omp parallel for
-		for(int k = 0; k < numComponents(); ++k)
-			mComponents[k]->train(data, weights.row(k));
+		if(parameters.trainComponents) {
+			#pragma omp parallel for
+			for(int k = 0; k < numComponents(); ++k)
+				mComponents[k]->train(data, weights.row(k), componentParameters);
+		} else {
+			break;
+		}
 	}
 
 	return true;

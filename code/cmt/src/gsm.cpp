@@ -15,13 +15,6 @@ using std::sqrt;
 #include <cstdlib>
 using std::rand;
 
-CMT::GSM::Parameters::Parameters() :
-	maxIter(10)
-{
-}
-
-
-
 CMT::GSM::GSM(int dim, int numScales) :
 	mDim(dim),
 	mMean(VectorXd::Zero(dim)),
@@ -95,13 +88,22 @@ bool CMT::GSM::train(const MatrixXd& data, const Parameters& parameters) {
 	if(data.cols() == 0)
 		return true;
 
-	// compute mean
-	mMean = data.rowwise().mean();
+	if(parameters.trainMean)
+		// update mean
+		mMean = data.rowwise().mean();
 
-	// compute covariance
 	MatrixXd dataCentered = data.colwise() - mMean;
 
-	setCovariance(dataCentered * dataCentered.transpose() / data.cols());
+	if(parameters.trainCovariance) {
+		MatrixXd cov = dataCentered * dataCentered.transpose() / data.cols();
+
+		// compute Cholesky factor of covariance matrix
+		MatrixXd cholesky = LLT<MatrixXd>(cov).matrixL();
+
+		// update Cholesky factor of precision matrix
+		mCholesky = cholesky.triangularView<Eigen::Lower>().solve(
+			MatrixXd::Identity(dim(), dim()));
+	}
 
 	// squared norm of whitened data
 	Matrix<double, 1, Dynamic> sqNorm = (mCholesky * dataCentered).colwise().squaredNorm();
@@ -115,11 +117,17 @@ bool CMT::GSM::train(const MatrixXd& data, const Parameters& parameters) {
 		Array<double, 1, Dynamic> uLogLik = logSumExp(logJoint);
 		ArrayXXd post = (logJoint.rowwise() - uLogLik).exp();
 		ArrayXd postSum = post.rowwise().sum();
-		ArrayXXd weights = post.colwise() / postSum;
 
-		// update priors and precisions (M)
-		mPriors = postSum / data.cols();
-		mScales = mDim / (weights.rowwise() * sqNorm.array()).rowwise().sum();
+		// update prior weights and precision scale variables (M)
+		if(parameters.trainPriors) {
+			mPriors = postSum / data.cols() + parameters.regularizePriors;
+			mPriors /= mPriors.sum();
+		}
+
+		if(parameters.trainScales) {
+			ArrayXXd weights = post.colwise() / postSum;
+			mScales = mDim / (weights.rowwise() * sqNorm.array()).rowwise().sum();
+		}
 	}
 
 	return true;
@@ -127,6 +135,13 @@ bool CMT::GSM::train(const MatrixXd& data, const Parameters& parameters) {
 
 
 
+/**
+ * Fits parameters to given weighted data using expectation maximization (EM).
+ *
+ * @param data data stored column-wise
+ * @param weights weights corresponding to data points which sum to one
+ * @param parameters hyperparameters which control the optimization and regularization
+ */
 bool CMT::GSM::train(
 	const MatrixXd& data,
 	const Array<double, 1, Dynamic>& weights,
@@ -139,14 +154,23 @@ bool CMT::GSM::train(
 	if(data.cols() != weights.cols())
 		throw Exception("Wrong number of weights.");
 
-	// compute mean
-	mMean = (data.array().rowwise() * weights).rowwise().sum();
+	if(parameters.trainMean)
+		// update mean
+		mMean = (data.array().rowwise() * weights).rowwise().sum();
 
-	// compute covariance
 	MatrixXd dataCentered = data.colwise() - mMean;
-	MatrixXd dataWeighted = dataCentered.array().rowwise() * weights.sqrt();
 
-	setCovariance(dataWeighted * dataWeighted.transpose());
+	if(parameters.trainCovariance) {
+		MatrixXd dataWeighted = dataCentered.array().rowwise() * weights.sqrt();
+		MatrixXd cov = dataWeighted * dataWeighted.transpose();
+
+		// compute Cholesky factor of covariance matrix
+		MatrixXd cholesky = LLT<MatrixXd>(cov).matrixL();
+
+		// update Cholesky factor of precision matrix
+		mCholesky = cholesky.triangularView<Eigen::Lower>().solve(
+			MatrixXd::Identity(dim(), dim()));
+	}
 
 	// squared norm of whitened data
 	Matrix<double, 1, Dynamic> sqNorm = (mCholesky * dataCentered).colwise().squaredNorm();
@@ -160,11 +184,15 @@ bool CMT::GSM::train(
 		Array<double, 1, Dynamic> uLogLik = logSumExp(logJoint);
 		ArrayXXd postWeighted = (logJoint.rowwise() - uLogLik).exp().rowwise() * weights;
 		ArrayXd postWeightedSum = postWeighted.rowwise().sum();
-		ArrayXXd scaleWeights = postWeighted.colwise() / postWeightedSum;
 
-		// update priors and precisions (M)
-		mPriors = postWeightedSum;
-		mScales = mDim / (scaleWeights.rowwise() * sqNorm.array()).rowwise().sum();
+		// update prior weights and precision scale variables (M)
+		if(parameters.trainPriors)
+			mPriors = postWeightedSum;
+
+		if(parameters.trainScales) {
+			ArrayXXd scaleWeights = postWeighted.colwise() / postWeightedSum;
+			mScales = mDim / (scaleWeights.rowwise() * sqNorm.array()).rowwise().sum();
+		}
 	}
 
 	return true;

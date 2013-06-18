@@ -19,7 +19,18 @@ namespace CMT {
 				public:
 					struct Parameters {
 						public:
+							// for simplicity, already define parameters used by
+							// subclasses of Component here
+							int verbosity;
 							int maxIter;
+							bool trainPriors;
+							bool trainCovariance;
+							bool trainScales;
+							bool trainMean;
+							double regularizePriors;
+							double regularizeCovariance;
+							double regularizeScales;
+							double regularizeMean;
 
 							Parameters();
 					};
@@ -37,7 +48,11 @@ namespace CMT {
 
 			struct Parameters {
 				public:
+					int verbosity;
 					int maxIter;
+					bool trainPriors;
+					bool trainComponents;
+					double regularizePriors;
 
 					Parameters();
 			};
@@ -62,7 +77,8 @@ namespace CMT {
 
 			virtual bool train(
 				const MatrixXd& data,
-				const Parameters& parameters = Parameters());
+				const Parameters& parameters = Parameters(),
+				const Component::Parameters& componentParameters = Component::Parameters());
 
 		protected:
 			int mDim;
