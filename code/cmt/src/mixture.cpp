@@ -40,6 +40,14 @@ CMT::Mixture::Component::Parameters::Parameters() :
 
 
 
+void CMT::Mixture::Component::initialize(
+	const MatrixXd& data,
+	const Parameters& parameters) 
+{
+}
+
+
+
 CMT::Mixture::Mixture(int dim) : mDim(dim) {
 }
 
@@ -132,11 +140,31 @@ Array<double, 1, Dynamic> CMT::Mixture::logLikelihood(const MatrixXd& data) cons
 
 
 
+void CMT::Mixture::initialize(
+	const MatrixXd& data,
+	const Parameters& parameters,
+	const Component::Parameters& componentParameters)
+{
+	if(parameters.trainPriors)
+		mPriors.setConstant(1. / numComponents()); 
+
+	#pragma omp parallel for
+	for(int k = 0; k < numComponents(); ++k)
+		mComponents[k]->initialize(data, componentParameters);
+
+	mInitialized = true;
+}
+
+
+
 bool CMT::Mixture::train(
 	const MatrixXd& data,
 	const Parameters& parameters,
 	const Component::Parameters& componentParameters)
 {
+	if(!initialized())
+		initialize(data, parameters, componentParameters);
+
 	ArrayXd postSum;
 	ArrayXXd post;
 	ArrayXXd weights;

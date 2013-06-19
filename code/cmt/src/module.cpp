@@ -388,6 +388,7 @@ static PyGetSetDef Mixture_getset[] = {
 
 static PyMethodDef Mixture_methods[] = {
 	{"train", (PyCFunction)Mixture_train, METH_VARARGS | METH_KEYWORDS, Mixture_train_doc},
+	{"initialize", (PyCFunction)Mixture_initialize, METH_VARARGS | METH_KEYWORDS, Mixture_initialize_doc},
 	{"add_component", (PyCFunction)Mixture_add_component, METH_VARARGS | METH_KEYWORDS, 0},
 	{"__reduce__", (PyCFunction)Mixture_reduce, METH_NOARGS, 0},
 	{"__setstate__", (PyCFunction)Mixture_setstate, METH_VARARGS, 0},
@@ -493,6 +494,7 @@ PyTypeObject MoGSM_type = {
 
 static PyMethodDef MixtureComponent_methods[] = {
 	{"train", (PyCFunction)MixtureComponent_train, METH_VARARGS | METH_KEYWORDS, MixtureComponent_train_doc},
+	{"initialize", (PyCFunction)MixtureComponent_initialize, METH_VARARGS | METH_KEYWORDS, MixtureComponent_initialize_doc},
 	{0}
 };
 

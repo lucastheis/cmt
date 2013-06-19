@@ -82,6 +82,32 @@ Array<double, 1, Dynamic> CMT::GSM::logLikelihood(const MatrixXd& data) const {
 
 
 
+void CMT::GSM::initialize(const MatrixXd& data, const Parameters& parameters) {
+	if(data.rows() != dim())
+		throw Exception("Data has wrong dimensionality.");
+
+	// data statistics
+	VectorXd mean = data.rowwise().mean();
+	MatrixXd cov = CMT::covariance(data)
+		+ parameters.regularizeCovariance * MatrixXd::Identity(dim(), dim());
+	MatrixXd cholesky = LLT<MatrixXd>(cov).matrixL();
+
+	// draw samples with 
+	MatrixXd samples = cholesky * sampleNormal(dim(), dim() * dim()).matrix();
+	samples.colwise() += mean;
+
+	if(parameters.trainCovariance)
+		setCovariance(CMT::covariance(samples));
+
+	if(parameters.trainMean)
+		setMean(samples.rowwise().mean());
+
+	if(parameters.trainScales)
+		mScales = ArrayXd::Random(numScales()).abs() / 2. + 0.75;
+}
+
+
+
 bool CMT::GSM::train(const MatrixXd& data, const Parameters& parameters) {
 	if(data.rows() != dim())
 		throw Exception("Data has wrong dimensionality.");

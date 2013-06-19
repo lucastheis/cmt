@@ -314,6 +314,58 @@ PyObject* Mixture_train(MixtureObject* self, PyObject* args, PyObject* kwds) {
 
 
 
+const char* Mixture_initialize_doc =
+	"train(self, data, data_valid=None, parameters=None)\n"
+	"\n"
+	"Calls L{initialize()} on all mixture components and resets all prior weights.\n"
+	"\n"
+	"@type  data: C{ndarray}\n"
+	"@param data: data points stored in columns\n"
+	"\n"
+	"@type  parameters: C{dict}\n"
+	"@param parameters: hyperparameters controlling optimization and regularization\n"
+	"\n"
+	"@type  component_parameters: C{dict}\n"
+	"@param component_parameters: hyperparameters passed down to mixture components";
+
+PyObject* Mixture_initialize(MixtureObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"data", "parameters", "component_parameters", 0};
+
+	PyObject* data;
+	PyObject* parameters = 0;
+	PyObject* component_parameters = 0;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|OOO", const_cast<char**>(kwlist),
+		&data, &parameters, &component_parameters))
+		return 0;
+
+	data = PyArray_FROM_OTF(data, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	
+	if(!data) {
+		PyErr_SetString(PyExc_TypeError, "Data should be stored in a Numpy array.");
+		return 0;
+	}
+
+	try {
+		Mixture::Parameters* params = PyObject_ToMixtureParameters(parameters);
+		Mixture::Component::Parameters* component_params =
+			PyObject_ToMixtureComponentParameters(component_parameters);
+		self->mixture->initialize(PyArray_ToMatrixXd(data), *params, *component_params);
+		delete params;
+		delete component_params;
+	} catch(Exception exception) {
+		Py_DECREF(data);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	Py_DECREF(data);
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
 PyObject* Mixture_subscript(MixtureObject* self, PyObject* key) {
 	if(!PyInt_Check(key)) {
 		PyErr_SetString(PyExc_TypeError, "Index must be an integer.");
@@ -417,7 +469,7 @@ PyObject* MoGSM_reduce(MoGSMObject* self, PyObject*) {
 		PyTuple_SetItem(components, k, component);
 	}
 
-	PyObject* state = Py_BuildValue("(O)", components);
+	PyObject* state = Py_BuildValue("(Ob)", components, self->mixture->initialized());
 	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
 
 	Py_DECREF(components);
@@ -440,7 +492,7 @@ PyObject* Mixture_reduce(MixtureObject* self, PyObject*) {
 		PyTuple_SetItem(components, k, component);
 	}
 
-	PyObject* state = Py_BuildValue("(O)", components);
+	PyObject* state = Py_BuildValue("(Ob)", components, self->mixture->initialized());
 	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
 
 	Py_DECREF(components);
@@ -453,9 +505,12 @@ PyObject* Mixture_reduce(MixtureObject* self, PyObject*) {
 
 
 PyObject* Mixture_setstate(MixtureObject* self, PyObject* state) {
-	state = PyTuple_GetItem(state, 0);
+	PyObject* components;
+	bool initialized;
 
-	PyObject* components = PyTuple_GetItem(state, 0);
+	PyArg_ParseTuple(state, "(Ob)", &components, &initialized);
+
+	self->mixture->setInitialized(initialized);
 
 	for(int k = 0; k < PyTuple_Size(components); ++k) {
 		PyObject* component = PyTuple_GetItem(components, k);
@@ -491,6 +546,9 @@ const char* MixtureComponent_train_doc =
 	"\n"
 	"@type  weights: C{ndarray}\n"
 	"@param weights: weights which sum to one\n"
+	"\n"
+	"@type  parameters: C{dict}\n"
+	"@param parameters: hyperparameters controlling optimization and regularization\n"
 	"\n"
 	"@rtype: C{bool}\n"
 	"@return: C{True} if training converged, otherwise C{False}";
@@ -553,4 +611,52 @@ PyObject* MixtureComponent_train(MixtureComponentObject* self, PyObject* args, P
 		Py_INCREF(Py_False);
 		return Py_False;
 	}
+}
+
+
+
+const char* MixtureComponent_initialize_doc =
+	"train(self, data, parameters=None)\n"
+	"\n"
+	"Tries to guess reasonable parameters based on the data.\n"
+	"\n"
+	"@type  data: C{ndarray}\n"
+	"@param data: data points stored in columns\n"
+	"\n"
+	"@type  parameters: C{dict}\n"
+	"@param parameters: hyperparameters controlling optimization and regularization";
+
+PyObject* MixtureComponent_initialize(MixtureComponentObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"data", "parameters", 0};
+
+	PyObject* data;
+	PyObject* parameters = 0;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", const_cast<char**>(kwlist),
+		&data, &parameters))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	data = PyArray_FROM_OTF(data, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!data) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy array.");
+		return 0;
+	}
+
+	try {
+		Mixture::Component::Parameters* params = PyObject_ToMixtureComponentParameters(parameters);
+		self->component->initialize(PyArray_ToMatrixXd(data), *params);
+		delete params;
+	} catch(Exception exception) {
+		Py_DECREF(data);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	Py_DECREF(data);
+
+	Py_INCREF(Py_None);
+	return Py_None;
 }

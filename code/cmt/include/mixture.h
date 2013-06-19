@@ -37,6 +37,9 @@ namespace CMT {
 
 					virtual Component* copy() = 0;
 
+					virtual void initialize(
+						const MatrixXd& data,
+						const Parameters& parameters = Parameters());
 					virtual bool train(
 						const MatrixXd& data,
 						const Parameters& parameters = Parameters()) = 0;
@@ -65,6 +68,9 @@ namespace CMT {
 			virtual int dim() const;
 			virtual int numComponents() const;
 
+			virtual bool initialized() const;
+			virtual void setInitialized(bool initialized);
+
 			virtual VectorXd priors() const;
 			virtual void setPriors(const VectorXd& priors);
 
@@ -77,6 +83,10 @@ namespace CMT {
 			virtual ArrayXXd posterior(const MatrixXd& data);
 			virtual Array<double, 1, Dynamic> logLikelihood(const MatrixXd& data) const;
 
+			virtual void initialize(
+				const MatrixXd& data,
+				const Parameters& parameters = Parameters(),
+				const Component::Parameters& componentParameters = Component::Parameters());
 			virtual bool train(
 				const MatrixXd& data,
 				const Parameters& parameters = Parameters(),
@@ -86,6 +96,7 @@ namespace CMT {
 			int mDim;
 			VectorXd mPriors;
 			vector<Component*> mComponents;
+			bool mInitialized;
 	};
 }
 
@@ -93,6 +104,24 @@ namespace CMT {
 
 inline int CMT::Mixture::dim() const {
 	return mDim;
+}
+
+
+
+inline bool CMT::Mixture::initialized() const {
+	return mInitialized;
+}
+
+
+
+inline void CMT::Mixture::setInitialized(bool initialized) {
+	mInitialized = initialized;
+}
+
+
+
+inline int CMT::Mixture::numComponents() const {
+	return mComponents.size();
 }
 
 
@@ -105,12 +134,6 @@ inline Eigen::VectorXd CMT::Mixture::priors() const {
 
 inline void CMT::Mixture::setPriors(const VectorXd& priors) {
 	mPriors = priors;
-}
-
-
-
-inline int CMT::Mixture::numComponents() const {
-	return mComponents.size();
 }
 
 

@@ -41,6 +41,9 @@ namespace CMT {
 			virtual Array<double, 1, Dynamic> logLikelihood(
 				const MatrixXd& data) const;
 
+			virtual void initialize(
+				const MatrixXd& data,
+				const Parameters& parameters = Parameters());
 			virtual bool train(
 				const MatrixXd& data,
 				const Parameters& parameters = Parameters());
