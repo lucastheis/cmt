@@ -66,6 +66,98 @@ PyObject* MoGSM_num_scales(MoGSMObject* self, void*) {
 
 
 
+Mixture::Component::Parameters* PyObject_ToMixtureComponentParameters(PyObject* parameters) {
+	Mixture::Component::Parameters* params = new Mixture::Component::Parameters;
+
+	if(parameters && parameters != Py_None) {
+		PyObject* verbosity = PyDict_GetItemString(parameters, "verbosity");
+		if(verbosity)
+			if(PyInt_Check(verbosity))
+				params->verbosity = PyInt_AsLong(verbosity);
+			else if(PyFloat_Check(verbosity))
+				params->verbosity = static_cast<int>(PyFloat_AsDouble(verbosity));
+			else
+				throw Exception("verbosity should be of type `int`.");
+
+		PyObject* max_iter = PyDict_GetItemString(parameters, "max_iter");
+		if(max_iter)
+			if(PyInt_Check(max_iter))
+				params->maxIter = PyInt_AsLong(max_iter);
+			else if(PyFloat_Check(max_iter))
+				params->maxIter = static_cast<int>(PyFloat_AsDouble(max_iter));
+			else
+				throw Exception("max_iter should be of type `int`.");
+
+		PyObject* train_priors = PyDict_GetItemString(parameters, "train_priors");
+		if(train_priors)
+			if(PyBool_Check(train_priors))
+				params->trainPriors = (train_priors == Py_True);
+			else
+				throw Exception("train_priors should be of type `bool`.");
+
+		PyObject* train_covariance = PyDict_GetItemString(parameters, "train_covariance");
+		if(train_covariance)
+			if(PyBool_Check(train_covariance))
+				params->trainCovariance = (train_covariance == Py_True);
+			else
+				throw Exception("train_covariance should be of type `bool`.");
+
+		PyObject* train_scales = PyDict_GetItemString(parameters, "train_scales");
+		if(train_scales)
+			if(PyBool_Check(train_scales))
+				params->trainScales = (train_scales == Py_True);
+			else
+				throw Exception("train_scales should be of type `bool`.");
+
+		PyObject* train_mean = PyDict_GetItemString(parameters, "train_mean");
+		if(train_mean)
+			if(PyBool_Check(train_mean))
+				params->trainMean = (train_mean == Py_True);
+			else
+				throw Exception("train_mean should be of type `bool`.");
+
+		PyObject* regularize_priors = PyDict_GetItemString(parameters, "regularize_priors");
+		if(regularize_priors)
+			if(PyFloat_Check(regularize_priors))
+				params->regularizePriors = PyFloat_AsDouble(regularize_priors);
+			else if(PyInt_Check(regularize_priors))
+				params->regularizePriors = static_cast<double>(PyFloat_AsDouble(regularize_priors));
+			else
+				throw Exception("regularize_priors should be of type `float`.");
+
+		PyObject* regularize_covariance = PyDict_GetItemString(parameters, "regularize_covariance");
+		if(regularize_covariance)
+			if(PyFloat_Check(regularize_covariance))
+				params->regularizeCovariance = PyFloat_AsDouble(regularize_covariance);
+			else if(PyInt_Check(regularize_covariance))
+				params->regularizeCovariance = static_cast<double>(PyFloat_AsDouble(regularize_covariance));
+			else
+				throw Exception("regularize_covariance should be of type `float`.");
+
+		PyObject* regularize_scales = PyDict_GetItemString(parameters, "regularize_scales");
+		if(regularize_scales)
+			if(PyFloat_Check(regularize_scales))
+				params->regularizeScales = PyFloat_AsDouble(regularize_scales);
+			else if(PyInt_Check(regularize_scales))
+				params->regularizeScales = static_cast<double>(PyFloat_AsDouble(regularize_scales));
+			else
+				throw Exception("regularize_scales should be of type `float`.");
+
+		PyObject* regularize_mean = PyDict_GetItemString(parameters, "regularize_mean");
+		if(regularize_mean)
+			if(PyFloat_Check(regularize_mean))
+				params->regularizeMean = PyFloat_AsDouble(regularize_mean);
+			else if(PyInt_Check(regularize_mean))
+				params->regularizeMean = static_cast<double>(PyFloat_AsDouble(regularize_mean));
+			else
+				throw Exception("regularize_mean should be of type `float`.");
+	}
+
+	return params;
+}
+
+
+
 Mixture::Parameters* PyObject_ToMixtureParameters(PyObject* parameters) {
 	Mixture::Parameters* params = new Mixture::Parameters;
 
@@ -173,14 +265,19 @@ const char* Mixture_train_doc =
 	"@return: C{True} if training converged, otherwise C{False}";
 
 PyObject* Mixture_train(MixtureObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"data", "parameters", 0};
+	const char* kwlist[] = {"data", "data_valid", "parameters", "component_parameters", 0};
 
 	PyObject* data;
+	PyObject* data_valid = 0;
 	PyObject* parameters = 0;
+	PyObject* component_parameters = 0;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", const_cast<char**>(kwlist),
-		&data, &parameters))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|OOO", const_cast<char**>(kwlist),
+		&data, &data_valid, &parameters, &component_parameters))
 		return 0;
+
+	if(data_valid == Py_None)
+		data_valid = 0;
 
 	data = PyArray_FROM_OTF(data, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	
@@ -193,8 +290,11 @@ PyObject* Mixture_train(MixtureObject* self, PyObject* args, PyObject* kwds) {
 
 	try {
 		Mixture::Parameters* params = PyObject_ToMixtureParameters(parameters);
-		converged = self->mixture->train(PyArray_ToMatrixXd(data), *params);
+		Mixture::Component::Parameters* component_params =
+			PyObject_ToMixtureComponentParameters(component_parameters);
+		converged = self->mixture->train(PyArray_ToMatrixXd(data), *params, *component_params);
 		delete params;
+		delete component_params;
 	} catch(Exception exception) {
 		Py_DECREF(data);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
@@ -377,98 +477,6 @@ PyObject* Mixture_setstate(MixtureObject* self, PyObject* state) {
 int MixtureComponent_init(MixtureComponentObject*, PyObject*, PyObject*) {
 	PyErr_SetString(PyExc_NotImplementedError, "This is an abstract class.");
 	return -1;
-}
-
-
-
-Mixture::Component::Parameters* PyObject_ToMixtureComponentParameters(PyObject* parameters) {
-	Mixture::Component::Parameters* params = new Mixture::Component::Parameters;
-
-	if(parameters && parameters != Py_None) {
-		PyObject* verbosity = PyDict_GetItemString(parameters, "verbosity");
-		if(verbosity)
-			if(PyInt_Check(verbosity))
-				params->verbosity = PyInt_AsLong(verbosity);
-			else if(PyFloat_Check(verbosity))
-				params->verbosity = static_cast<int>(PyFloat_AsDouble(verbosity));
-			else
-				throw Exception("verbosity should be of type `int`.");
-
-		PyObject* max_iter = PyDict_GetItemString(parameters, "max_iter");
-		if(max_iter)
-			if(PyInt_Check(max_iter))
-				params->maxIter = PyInt_AsLong(max_iter);
-			else if(PyFloat_Check(max_iter))
-				params->maxIter = static_cast<int>(PyFloat_AsDouble(max_iter));
-			else
-				throw Exception("max_iter should be of type `int`.");
-
-		PyObject* train_priors = PyDict_GetItemString(parameters, "train_priors");
-		if(train_priors)
-			if(PyBool_Check(train_priors))
-				params->trainPriors = (train_priors == Py_True);
-			else
-				throw Exception("train_priors should be of type `bool`.");
-
-		PyObject* train_covariance = PyDict_GetItemString(parameters, "train_covariance");
-		if(train_covariance)
-			if(PyBool_Check(train_covariance))
-				params->trainCovariance = (train_covariance == Py_True);
-			else
-				throw Exception("train_covariance should be of type `bool`.");
-
-		PyObject* train_scales = PyDict_GetItemString(parameters, "train_scales");
-		if(train_scales)
-			if(PyBool_Check(train_scales))
-				params->trainScales = (train_scales == Py_True);
-			else
-				throw Exception("train_scales should be of type `bool`.");
-
-		PyObject* train_mean = PyDict_GetItemString(parameters, "train_mean");
-		if(train_mean)
-			if(PyBool_Check(train_mean))
-				params->trainMean = (train_mean == Py_True);
-			else
-				throw Exception("train_mean should be of type `bool`.");
-
-		PyObject* regularize_priors = PyDict_GetItemString(parameters, "regularize_priors");
-		if(regularize_priors)
-			if(PyFloat_Check(regularize_priors))
-				params->regularizePriors = PyFloat_AsDouble(regularize_priors);
-			else if(PyInt_Check(regularize_priors))
-				params->regularizePriors = static_cast<double>(PyFloat_AsDouble(regularize_priors));
-			else
-				throw Exception("regularize_priors should be of type `float`.");
-
-		PyObject* regularize_covariance = PyDict_GetItemString(parameters, "regularize_covariance");
-		if(regularize_covariance)
-			if(PyFloat_Check(regularize_covariance))
-				params->regularizeCovariance = PyFloat_AsDouble(regularize_covariance);
-			else if(PyInt_Check(regularize_covariance))
-				params->regularizeCovariance = static_cast<double>(PyFloat_AsDouble(regularize_covariance));
-			else
-				throw Exception("regularize_covariance should be of type `float`.");
-
-		PyObject* regularize_scales = PyDict_GetItemString(parameters, "regularize_scales");
-		if(regularize_scales)
-			if(PyFloat_Check(regularize_scales))
-				params->regularizeScales = PyFloat_AsDouble(regularize_scales);
-			else if(PyInt_Check(regularize_scales))
-				params->regularizeScales = static_cast<double>(PyFloat_AsDouble(regularize_scales));
-			else
-				throw Exception("regularize_scales should be of type `float`.");
-
-		PyObject* regularize_mean = PyDict_GetItemString(parameters, "regularize_mean");
-		if(regularize_mean)
-			if(PyFloat_Check(regularize_mean))
-				params->regularizeMean = PyFloat_AsDouble(regularize_mean);
-			else if(PyInt_Check(regularize_mean))
-				params->regularizeMean = static_cast<double>(PyFloat_AsDouble(regularize_mean));
-			else
-				throw Exception("regularize_mean should be of type `float`.");
-	}
-
-	return params;
 }
 
 
