@@ -17,7 +17,11 @@ struct GSMObject {
 	bool owner;
 };
 
+extern const char* GSM_doc;
+
 int GSM_init(GSMObject*, PyObject*, PyObject*);
+
+PyObject* GSM_num_scales(GSMObject*, void*);
 
 PyObject* GSM_mean(GSMObject*, void*);
 int GSM_set_mean(GSMObject*, PyObject*, void*);

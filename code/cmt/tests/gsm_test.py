@@ -3,6 +3,8 @@ from numpy import *
 from numpy import max
 from numpy.random import randn, rand
 from numpy.linalg import inv, det, slogdet
+from tempfile import mkstemp
+from pickle import dump
 
 import sys
 sys.path.append('/Users/lucas/Code/Python/mixtures/code/')
@@ -75,6 +77,33 @@ class Tests(unittest.TestCase):
 
 		# compare with estimated entropy
 		self.assertAlmostEqual(entropy, -mean(gsm.loglikelihood(samples)), 1)
+
+
+
+	def test_pickle(self):
+		model0 = GSM(7, 9)
+
+		model0.mean = randn(7, 1)
+		model0.covariance = cov(randn(7, 20))
+
+		tmp_file = mkstemp()[1]
+
+		# store model
+		with open(tmp_file, 'w') as handle:
+			dump({'model': model0}, handle)
+
+		# load model
+		with open(tmp_file) as handle:
+			model1 = load(handle)['model']
+
+		# make sure parameters haven't changed
+		self.assertEqual(model0.dim, model1.dim)
+		self.assertEqual(model0.num_scales, model1.num_scales)
+
+		self.assertLess(max(abs(model0.scales - model0.scales)), 1e-10)
+		self.assertLess(max(abs(model0.priors - model1.priors)), 1e-10)
+		self.assertLess(max(abs(model0.mean - model1.mean)), 1e-10)
+		self.assertLess(max(abs(model0.covariance - model1.covariance)), 1e-10)
 
 
 

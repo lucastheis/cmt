@@ -379,6 +379,10 @@ static PyGetSetDef Mixture_getset[] = {
 		(getter)Mixture_priors,
 		(setter)Mixture_set_priors,
 		"Prior probabilities of mixture components, $\\pi_k$."},
+	{"num_components",
+		(getter)Mixture_num_components,
+		0,
+		"Number of mixture components."},
 	{0}
 };
 
@@ -432,6 +436,61 @@ PyTypeObject Mixture_type = {
 	Distribution_new,                 /*tp_new*/
 };
 
+static PyGetSetDef MoGSM_getset[] = {
+	{"num_scales",
+		(getter)MoGSM_num_scales,
+		0,
+		"Number of scales specified at construction."},
+	{0}
+};
+
+static PyMethodDef MoGSM_methods[] = {
+	{"__reduce__", (PyCFunction)MoGSM_reduce, METH_NOARGS, 0},
+	{0},
+};
+
+PyTypeObject MoGSM_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                /*ob_size*/
+	"cmt.MoGSM",                      /*tp_name*/
+	sizeof(MoGSMObject),              /*tp_basicsize*/
+	0,                                /*tp_itemsize*/
+	(destructor)Distribution_dealloc, /*tp_dealloc*/
+	0,                                /*tp_print*/
+	0,                                /*tp_getattr*/
+	0,                                /*tp_setattr*/
+	0,                                /*tp_compare*/
+	0,                                /*tp_repr*/
+	0,                                /*tp_as_number*/
+	0,                                /*tp_as_sequence*/
+	0,                                /*tp_as_mapping*/
+	0,                                /*tp_hash */
+	0,                                /*tp_call*/
+	0,                                /*tp_str*/
+	0,                                /*tp_getattro*/
+	0,                                /*tp_setattro*/
+	0,                                /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
+	0,                                /*tp_doc*/
+	0,                                /*tp_traverse*/
+	0,                                /*tp_clear*/
+	0,                                /*tp_richcompare*/
+	0,                                /*tp_weaklistoffset*/
+	0,                                /*tp_iter*/
+	0,                                /*tp_iternext*/
+	MoGSM_methods,                    /*tp_methods*/
+	0,                                /*tp_members*/
+	MoGSM_getset,                     /*tp_getset*/
+	&Mixture_type,                    /*tp_base*/
+	0,                                /*tp_dict*/
+	0,                                /*tp_descr_get*/
+	0,                                /*tp_descr_set*/
+	0,                                /*tp_dictoffset*/
+	(initproc)MoGSM_init,             /*tp_init*/
+	0,                                /*tp_alloc*/
+	Distribution_new,                 /*tp_new*/
+};
+
 static PyMethodDef MixtureComponent_methods[] = {
 	{"train", (PyCFunction)MixtureComponent_train, METH_VARARGS | METH_KEYWORDS, MixtureComponent_train_doc},
 	{0}
@@ -480,6 +539,10 @@ PyTypeObject MixtureComponent_type = {
 };
 
 static PyGetSetDef GSM_getset[] = {
+	{"num_scales",
+		(getter)GSM_num_scales,
+		0,
+		"Number of precision scale variables."},
 	{"mean",
 		(getter)GSM_mean,
 		(setter)GSM_set_mean,
@@ -491,7 +554,7 @@ static PyGetSetDef GSM_getset[] = {
 	{"scales",
 		(getter)GSM_scales,
 		(setter)GSM_set_scales,
-		"Precision scales of the GSM, $\\lambda_k$."},
+		"Precision scale variables of the GSM, $\\lambda_k$."},
 	{"covariance",
 		(getter)GSM_covariance,
 		(setter)GSM_set_covariance,
@@ -527,7 +590,7 @@ PyTypeObject GSM_type = {
 	0,                                /*tp_setattro*/
 	0,                                /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
-	0,                                /*tp_doc*/
+	GSM_doc,                          /*tp_doc*/
 	0,                                /*tp_traverse*/
 	0,                                /*tp_clear*/
 	0,                                /*tp_richcompare*/
@@ -1385,6 +1448,8 @@ PyMODINIT_FUNC initcmt() {
 		return;
 	if(PyType_Ready(&MixtureComponent_type) < 0)
 		return;
+	if(PyType_Ready(&MoGSM_type) < 0)
+		return;
 	if(PyType_Ready(&Nonlinearity_type) < 0)
 		return;
 	if(PyType_Ready(&PatchMCBM_type) < 0)
@@ -1417,10 +1482,11 @@ PyMODINIT_FUNC initcmt() {
 	Py_INCREF(&GLM_type);
 	Py_INCREF(&GSM_type);
 	Py_INCREF(&LogisticFunction_type);
-	Py_INCREF(&Mixture_type);
-	Py_INCREF(&MixtureComponent_type);
 	Py_INCREF(&MCBM_type);
 	Py_INCREF(&MCGSM_type);
+	Py_INCREF(&Mixture_type);
+	Py_INCREF(&MixtureComponent_type);
+	Py_INCREF(&MoGSM_type);
 	Py_INCREF(&Nonlinearity_type);
 	Py_INCREF(&PCAPreconditioner_type);
 	Py_INCREF(&PCATransform_type);
@@ -1440,10 +1506,11 @@ PyMODINIT_FUNC initcmt() {
 	PyModule_AddObject(module, "GLM", reinterpret_cast<PyObject*>(&GLM_type));
 	PyModule_AddObject(module, "GSM", reinterpret_cast<PyObject*>(&GSM_type));
 	PyModule_AddObject(module, "LogisticFunction", reinterpret_cast<PyObject*>(&LogisticFunction_type));
-	PyModule_AddObject(module, "Mixture", reinterpret_cast<PyObject*>(&Mixture_type));
-	PyModule_AddObject(module, "MixtureComponent", reinterpret_cast<PyObject*>(&MixtureComponent_type));
 	PyModule_AddObject(module, "MCBM", reinterpret_cast<PyObject*>(&MCBM_type));
 	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));
+	PyModule_AddObject(module, "Mixture", reinterpret_cast<PyObject*>(&Mixture_type));
+	PyModule_AddObject(module, "MixtureComponent", reinterpret_cast<PyObject*>(&MixtureComponent_type));
+	PyModule_AddObject(module, "MoGSM", reinterpret_cast<PyObject*>(&MoGSM_type));
 	PyModule_AddObject(module, "Nonlinearity", reinterpret_cast<PyObject*>(&Nonlinearity_type));
 	PyModule_AddObject(module, "PCAPreconditioner", reinterpret_cast<PyObject*>(&PCAPreconditioner_type));
 	PyModule_AddObject(module, "PCATransform", reinterpret_cast<PyObject*>(&PCATransform_type));

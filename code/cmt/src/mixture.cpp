@@ -13,7 +13,9 @@ using Eigen::MatrixXd;
 
 CMT::Mixture::Parameters::Parameters() :
 	verbosity(1),
-	maxIter(10),
+	maxIter(20),
+	valIter(2),
+	valLookAhead(5),
 	trainPriors(true),
 	trainComponents(true),
 	regularizePriors(0.)

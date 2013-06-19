@@ -4,6 +4,23 @@
 #include "exception.h"
 using CMT::Exception;
 
+const char* GSM_doc =
+	"GSM(dim=1, num_scales=6)\n"
+	"\n"
+	"An implementation of a finite Gaussian scale mixture.\n"
+	"\n"
+	"$$p(\\mathbf{x}) = \\sum_k \\pi_k \\mathcal{N}(\\mathbf{x}; \\mu_k, \\lambda_k^{-1} \\boldsymbol{\\Sigma}$$\n"
+	"\n"
+	"This is a mixture of Gaussians which all share the same basic covariance\n"
+	"structure $\\boldsymbol{\\Sigma}$ scaled by the precision variables $\\lambda_k$.\n"
+	"The prior probability of selecting component $k$ for generating samples is $\\pi_k$.\n"
+	"\n"
+	"@type  dim: C{int}\n"
+	"@param dim: dimensionality of the distribution\n"
+	"\n"
+	"@type  num_scales: C{int}\n"
+	"@param num_scales: number of precision scale variables";
+
 int GSM_init(GSMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"dim_in", "num_scales", 0};
 
@@ -22,6 +39,12 @@ int GSM_init(GSMObject* self, PyObject* args, PyObject* kwds) {
 	}
 
 	return 0;
+}
+
+
+
+PyObject* GSM_num_scales(GSMObject* self, void*) {
+	return PyInt_FromLong(self->gsm->numScales());
 }
 
 

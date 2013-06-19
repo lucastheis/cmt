@@ -50,6 +50,8 @@ namespace CMT {
 				public:
 					int verbosity;
 					int maxIter;
+					int valIter;
+					int valLookAhead;
 					bool trainPriors;
 					bool trainComponents;
 					double regularizePriors;

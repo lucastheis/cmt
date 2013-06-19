@@ -1,12 +1,12 @@
 import unittest
 
-from cmt import Mixture, GSM
+from cmt import Mixture, MoGSM, GSM
 from numpy import *
 from numpy import max
 from numpy.linalg import cholesky
 from numpy.random import *
-
-from matplotlib.pyplot import *
+from tempfile import mkstemp
+from pickle import dump
 
 class Test(unittest.TestCase):
 	def test_train(self):
@@ -43,10 +43,41 @@ class Test(unittest.TestCase):
 
 		self.assertLess(abs(1. - model.priors[0] / p0), 0.1)
 		self.assertLess(abs(1. - model.priors[1] / p1), 0.1)
-		self.assertLess(max(abs(model[0].mean - m0)), 0.1)
-		self.assertLess(max(abs(model[1].mean - m1)), 0.1)
+		self.assertLess(max(abs(model[0].mean - m0)), 0.2)
+		self.assertLess(max(abs(model[1].mean - m1)), 0.2)
 		self.assertLess(max(abs(model[0].covariance / model[0].scales - C0)), 0.2)
 		self.assertLess(max(abs(model[1].covariance / model[1].scales - C1)), 0.2)
+
+
+
+	def test_pickle(self):
+		models = [
+			Mixture(dim=5),
+			MoGSM(dim=3, num_components=4, num_scales=7)]
+
+		for _ in range(3):
+			models[0].add_component(GSM(models[0].dim, 7))
+
+		for model0 in models:
+			tmp_file = mkstemp()[1]
+
+			# store model
+			with open(tmp_file, 'w') as handle:
+				dump({'model': model0}, handle)
+
+			# load model
+			with open(tmp_file) as handle:
+				model1 = load(handle)['model']
+
+			# make sure parameters haven't changed
+			self.assertEqual(model0.dim, model1.dim)
+			self.assertEqual(model0.num_components, model1.num_components)
+
+			for k in range(model0.num_components):
+				self.assertLess(max(abs(model0[k].scales - model0[k].scales)), 1e-10)
+				self.assertLess(max(abs(model0[k].priors - model1[k].priors)), 1e-10)
+				self.assertLess(max(abs(model0[k].mean - model1[k].mean)), 1e-10)
+				self.assertLess(max(abs(model0[k].covariance - model1[k].covariance)), 1e-10)
 
 
 

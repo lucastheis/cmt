@@ -1,9 +1,12 @@
 #include "distributioninterface.h"
 #include "mixtureinterface.h"
 #include "pyutils.h"
+#include "gsminterface.h"
 
 #include "exception.h"
 using CMT::Exception;
+
+#include <iostream>
 
 int Mixture_init(MixtureObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"dim", 0};
@@ -25,6 +28,44 @@ int Mixture_init(MixtureObject* self, PyObject* args, PyObject* kwds) {
 
 
 
+int MoGSM_init(MoGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"dim", "num_components", "num_scales", 0};
+
+	int dim;
+	int num_components;
+	int num_scales = 6;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "ii|i", const_cast<char**>(kwlist),
+		&dim, &num_components, &num_scales))
+		return -1;
+
+	try {
+		self->mixture = new MoGSM(dim, num_components, num_scales);
+
+		for(int k = 0; k < num_components; ++k)
+			self->componentTypes.push_back(&GSM_type);
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+
+	return 0;
+}
+
+
+
+PyObject* Mixture_num_components(MixtureObject* self, void*) {
+	return PyInt_FromLong(self->mixture->numComponents());
+}
+
+
+
+PyObject* MoGSM_num_scales(MoGSMObject* self, void*) {
+	return PyInt_FromLong(self->mixture->numScales());
+}
+
+
+
 Mixture::Parameters* PyObject_ToMixtureParameters(PyObject* parameters) {
 	Mixture::Parameters* params = new Mixture::Parameters;
 
@@ -37,6 +78,24 @@ Mixture::Parameters* PyObject_ToMixtureParameters(PyObject* parameters) {
 				params->maxIter = static_cast<int>(PyFloat_AsDouble(max_iter));
 			else
 				throw Exception("max_iter should be of type `int`.");
+
+		PyObject* val_iter = PyDict_GetItemString(parameters, "val_iter");
+		if(val_iter)
+			if(PyInt_Check(val_iter))
+				params->valIter = PyInt_AsLong(val_iter);
+			else if(PyFloat_Check(val_iter))
+				params->valIter = static_cast<int>(PyFloat_AsDouble(val_iter));
+			else
+				throw Exception("val_iter should be of type `int`.");
+
+		PyObject* val_look_ahead = PyDict_GetItemString(parameters, "val_look_ahead");
+		if(val_look_ahead)
+			if(PyInt_Check(val_look_ahead))
+				params->valLookAhead = PyInt_AsLong(val_look_ahead);
+			else if(PyFloat_Check(val_look_ahead))
+				params->valLookAhead = static_cast<int>(PyFloat_AsDouble(val_look_ahead));
+			else
+				throw Exception("val_look_ahead should be of type `int`.");
 
 		PyObject* train_priors = PyDict_GetItemString(parameters, "train_priors");
 		if(train_priors)
@@ -68,27 +127,41 @@ Mixture::Parameters* PyObject_ToMixtureParameters(PyObject* parameters) {
 
 
 const char* Mixture_train_doc =
-	"train(self, data, parameters=None)\n"
+	"train(self, data, data_valid=None, parameters=None)\n"
 	"\n"
 	"Fits the parameters of the mixture distribution to the given data using expectation maximization (EM).\n"
 	"\n"
 	"The following example demonstrates possible parameters and default settings.\n"
 	"\n"
-	"\t>>> model.train(data,\n"
+	"\t>>> model.train(data, data_valid, \n"
 	"\t>>> \tparameters={\n"
 	"\t>>> \t\t'verbosity': 1,\n"
-	"\t>>> \t\t'max_iter': 10,\n"
+	"\t>>> \t\t'max_iter': 20,\n"
+	"\t>>> \t\t'val_iter': 2,\n"
+	"\t>>> \t\t'val_look_ahead': 5,\n"
 	"\t>>> \t\t'train_priors': True,\n"
 	"\t>>> \t\t'train_components': True,\n"
 	"\t>>> \t\t'regularize_priors': 0.,\n"
 	"\t>>> \t},\n"
 	"\t>>> \tcomponent_parameters={\n"
 	"\t>>> \t\t'verbosity': 0,\n"
+	"\t>>> \t\t'max_iter': 10,\n"
+	"\t>>> \t\t'train_priors': True,\n"
+	"\t>>> \t\t'train_mean': True,\n"
+	"\t>>> \t\t'train_covariance': True,\n"
+	"\t>>> \t\t'train_scales': True,\n"
+	"\t>>> \t\t'regularize_priors': 0.,\n"
+	"\t>>> \t\t'regularize_mean': 0.,\n"
+	"\t>>> \t\t'regularize_covariance': 0.,\n"
+	"\t>>> \t\t'regularize_scales': 0.,\n"
 	"\t>>> \t},\n"
 	"\t>>> })\n"
 	"\n"
 	"@type  data: C{ndarray}\n"
 	"@param data: data points stored in columns\n"
+	"\n"
+	"@type  data_valid: C{ndarray}\n"
+	"@param data_valid: validation data used for early stopping\n"
 	"\n"
 	"@type  parameters: C{dict}\n"
 	"@param parameters: hyperparameters controlling optimization and regularization\n"
@@ -229,6 +302,33 @@ int Mixture_set_priors(MixtureObject* self, PyObject* value, void*) {
 
 
 
+PyObject* MoGSM_reduce(MoGSMObject* self, PyObject*) {
+	// constructor arguments
+	PyObject* args = Py_BuildValue("(iii)",
+		self->mixture->dim(), 
+		0,
+		self->mixture->numScales());
+
+	PyObject* components = PyTuple_New(self->mixture->numComponents());
+
+	for(int k = 0; k < self->mixture->numComponents(); ++k) {
+		PyObject* component = Mixture_subscript(
+			reinterpret_cast<MixtureObject*>(self), PyInt_FromLong(k));
+		PyTuple_SetItem(components, k, component);
+	}
+
+	PyObject* state = Py_BuildValue("(O)", components);
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
+
+	Py_DECREF(components);
+	Py_DECREF(args);
+	Py_DECREF(state);
+
+	return result;
+}
+
+
+
 PyObject* Mixture_reduce(MixtureObject* self, PyObject*) {
 	// constructor arguments
 	PyObject* args = Py_BuildValue("(i)", self->mixture->dim());
@@ -253,16 +353,17 @@ PyObject* Mixture_reduce(MixtureObject* self, PyObject*) {
 
 
 PyObject* Mixture_setstate(MixtureObject* self, PyObject* state) {
+	state = PyTuple_GetItem(state, 0);
+
 	PyObject* components = PyTuple_GetItem(state, 0);
 
 	for(int k = 0; k < PyTuple_Size(components); ++k) {
 		PyObject* component = PyTuple_GetItem(components, k);
 		PyObject* args = Py_BuildValue("(O)", component);
-		PyObject* kwds = Py_BuildValue("()");
+		PyObject* kwds = Py_BuildValue("{}");
 
 		Mixture_add_component(self, args, kwds);
 
-		Py_DECREF(component);
 		Py_DECREF(args);
 		Py_DECREF(kwds);
 	}

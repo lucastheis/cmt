@@ -9,7 +9,7 @@ using CMT::Trainable;
 
 CallbackInterface::CallbackInterface(PyTypeObject* type, PyObject* callback) : 
 	mType(type),
-	mCallback(callback) 
+	mCallback(callback)
 {
 	Py_INCREF(mCallback);
 }
