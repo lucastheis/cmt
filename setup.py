@@ -76,6 +76,8 @@ modules = [
 			'code/cmt/src/mcgsminterface.cpp',
 			'code/cmt/src/mcbm.cpp',
 			'code/cmt/src/mcbminterface.cpp',
+			'code/cmt/src/mixture.cpp',
+			'code/cmt/src/mixtureinterface.cpp',
 			'code/cmt/src/module.cpp',
 			'code/cmt/src/patchmodel.cpp',
 			'code/cmt/src/patchmodelinterface.cpp',

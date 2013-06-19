@@ -5,12 +5,6 @@ from numpy.random import randn, rand
 from numpy.linalg import inv, det, slogdet
 from tempfile import mkstemp
 from pickle import dump
-
-import sys
-sys.path.append('/Users/lucas/Code/Python/mixtures/code/')
-from models import GSM as GSM_
-from time import time
-
 from cmt import GSM
 
 class Tests(unittest.TestCase):
