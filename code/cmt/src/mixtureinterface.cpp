@@ -86,6 +86,15 @@ Mixture::Component::Parameters* PyObject_ToMixtureComponentParameters(PyObject* 
 			else
 				throw Exception("max_iter should be of type `int`.");
 
+		PyObject* threshold = PyDict_GetItemString(parameters, "threshold");
+		if(threshold)
+			if(PyFloat_Check(threshold))
+				params->threshold = PyFloat_AsDouble(threshold);
+			else if(PyInt_Check(threshold))
+				params->threshold = static_cast<double>(PyFloat_AsDouble(threshold));
+			else
+				throw Exception("threshold should be of type `float`.");
+
 		PyObject* train_priors = PyDict_GetItemString(parameters, "train_priors");
 		if(train_priors)
 			if(PyBool_Check(train_priors))
@@ -160,6 +169,15 @@ Mixture::Parameters* PyObject_ToMixtureParameters(PyObject* parameters) {
 	Mixture::Parameters* params = new Mixture::Parameters;
 
 	if(parameters && parameters != Py_None) {
+		PyObject* verbosity = PyDict_GetItemString(parameters, "verbosity");
+		if(verbosity)
+			if(PyInt_Check(verbosity))
+				params->verbosity = PyInt_AsLong(verbosity);
+			else if(PyFloat_Check(verbosity))
+				params->verbosity = static_cast<int>(PyFloat_AsDouble(verbosity));
+			else
+				throw Exception("verbosity should be of type `int`.");
+
 		PyObject* max_iter = PyDict_GetItemString(parameters, "max_iter");
 		if(max_iter)
 			if(PyInt_Check(max_iter))
@@ -168,6 +186,15 @@ Mixture::Parameters* PyObject_ToMixtureParameters(PyObject* parameters) {
 				params->maxIter = static_cast<int>(PyFloat_AsDouble(max_iter));
 			else
 				throw Exception("max_iter should be of type `int`.");
+
+		PyObject* threshold = PyDict_GetItemString(parameters, "threshold");
+		if(threshold)
+			if(PyFloat_Check(threshold))
+				params->threshold = PyFloat_AsDouble(threshold);
+			else if(PyInt_Check(threshold))
+				params->threshold = static_cast<double>(PyFloat_AsDouble(threshold));
+			else
+				throw Exception("threshold should be of type `float`.");
 
 		PyObject* val_iter = PyDict_GetItemString(parameters, "val_iter");
 		if(val_iter)

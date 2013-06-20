@@ -23,6 +23,7 @@ namespace CMT {
 							// subclasses of Component here
 							int verbosity;
 							int maxIter;
+							double threshold;
 							bool trainPriors;
 							bool trainCovariance;
 							bool trainScales;
@@ -53,6 +54,7 @@ namespace CMT {
 				public:
 					int verbosity;
 					int maxIter;
+					double threshold;
 					int valIter;
 					int valLookAhead;
 					bool trainPriors;
@@ -91,6 +93,11 @@ namespace CMT {
 				const MatrixXd& data,
 				const Parameters& parameters = Parameters(),
 				const Component::Parameters& componentParameters = Component::Parameters());
+//			virtual bool train(
+//				const MatrixXd& data,
+//				const MatrixXd& dataValid,
+//				const Parameters& parameters = Parameters(),
+//				const Component::Parameters& componentParameters = Component::Parameters());
 
 		protected:
 			int mDim;

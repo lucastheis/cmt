@@ -42,7 +42,7 @@ class Test(unittest.TestCase):
 		model[1].scales = [1.]
 
 		# training shouldn't change the parameters too much
-		model.train(data, parameters={'max_iter': 20})
+		model.train(data, parameters={'verbosity': 0, 'max_iter': 20, 'threshold': 1e-7})
 
 		self.assertLess(abs(1. - model.priors[0] / p0), 0.1)
 		self.assertLess(abs(1. - model.priors[1] / p1), 0.1)

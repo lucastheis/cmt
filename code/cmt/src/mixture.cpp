@@ -4,6 +4,17 @@
 #include <cmath>
 using std::log;
 
+#include <limits>
+using std::numeric_limits;
+
+#include <iostream>
+using std::cout;
+using std::endl;
+
+#include <iomanip>
+using std::setw;
+using std::setprecision;
+
 #include "Eigen/Core"
 using Eigen::Dynamic;
 using Eigen::Array;
@@ -14,6 +25,7 @@ using Eigen::MatrixXd;
 CMT::Mixture::Parameters::Parameters() :
 	verbosity(1),
 	maxIter(20),
+	threshold(1e-5),
 	valIter(2),
 	valLookAhead(5),
 	trainPriors(true),
@@ -27,6 +39,7 @@ CMT::Mixture::Parameters::Parameters() :
 CMT::Mixture::Component::Parameters::Parameters() :
 	verbosity(0),
 	maxIter(10),
+	threshold(1e-5),
 	trainPriors(true),
 	trainCovariance(true),
 	trainScales(true),
@@ -165,13 +178,36 @@ bool CMT::Mixture::train(
 	if(!initialized())
 		initialize(data, parameters, componentParameters);
 
-	ArrayXd postSum;
+	ArrayXXd logJoint(numComponents(), data.cols());
+	Array<double, Dynamic, 1> postSum;
+	Array<double, 1, Dynamic> logLik;
 	ArrayXXd post;
 	ArrayXXd weights;
+	double avgLogLoss = numeric_limits<double>::infinity();
+	double avgLogLossNew;
 
 	for(int i = 0; i < parameters.maxIter; ++i) {
-		// compute responsibilities (E)
-		post = posterior(data);
+		// compute joint probability of data and assignments (E)
+		#pragma omp parallel for
+		for(int k = 0; k < numComponents(); ++k)
+			logJoint.row(k) = mComponents[k]->logLikelihood(data) + log(mPriors[k]);
+
+		// compute normalized posterior (E)
+		logLik = logSumExp(logJoint);
+
+		// average negative log-likelihood in bits per component
+		avgLogLossNew = -logLik.mean() / log(2.) / dim();
+
+		if(parameters.verbosity > 0)
+			cout << setw(6) << i << setw(11) << setprecision(5) << avgLogLossNew << endl;
+
+		// test for convergence
+		if(avgLogLoss - avgLogLossNew < parameters.threshold)
+			return true;
+		avgLogLoss = avgLogLossNew;
+
+		// compute normalized posterior (E)
+		post = (logJoint.rowwise() - logLik).exp();
 		postSum = post.rowwise().sum();
 		weights = post.colwise() / postSum;
 
@@ -191,5 +227,59 @@ bool CMT::Mixture::train(
 		}
 	}
 
-	return true;
+	if(parameters.verbosity > 0)
+		cout << setw(6) << parameters.maxIter << setw(11) << setprecision(5) << evaluate(data) << endl;
+
+	return false;
 }
+
+
+
+//bool CMT::Mixture::train(
+//	const MatrixXd& data,
+//	const MatrixXd& dataValid,
+//	const Parameters& parameters,
+//	const Component::Parameters& componentParameters)
+//{
+//	if(!initialized())
+//		initialize(data, parameters, componentParameters);
+//
+//	ArrayXXd logJoint(numComponents(), data.cols());
+//	ArrayXd postSum;
+//	ArrayXd logLik;
+//	ArrayXXd post;
+//	ArrayXXd weights;
+//
+//	for(int i = 0; i < parameters.maxIter; ++i) {
+//		// compute joint probability of data and assignments (E)
+//		#pragma omp parallel for
+//		for(int k = 0; k < numComponents(); ++k)
+//			logJoint.row(k) = mComponents[k]->logLikelihood(data) + log(mPriors[k]);
+//
+//		// compute normalized posterior (E)
+//		logLik = logSumExp(logJoint);
+//		post = (logJoint.rowwise() - logLik).exp();
+//		postSum = post.rowwise().sum();
+//		weights = post.colwise() / postSum;
+//
+//		// optimize prior weights (M)
+//		if(parameters.trainPriors) {
+//			mPriors = postSum / data.cols() + parameters.regularizePriors;
+//			mPriors /= mPriors.sum();
+//		}
+//
+//		// optimize components (M)
+//		if(parameters.trainComponents) {
+//			#pragma omp parallel for
+//			for(int k = 0; k < numComponents(); ++k)
+//				mComponents[k]->train(data, weights.row(k), componentParameters);
+//		} else {
+//			break;
+//		}
+//
+//		if(parameters.verbosity > 0)
+//			cout << setw(6) << i << setw(11) << setprecision(5) << -logLik.mean() << endl;
+//	}
+//
+//	return true;
+//}
