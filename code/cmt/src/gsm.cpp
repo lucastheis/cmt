@@ -141,7 +141,7 @@ bool CMT::GSM::train(const MatrixXd& data, const Parameters& parameters) {
 
 		// compute posterior and responsibilities (E)
 		Array<double, 1, Dynamic> uLogLik = logSumExp(logJoint);
-		ArrayXXd post = (logJoint.rowwise() - uLogLik).exp();
+		ArrayXXd post = (logJoint.rowwise() - uLogLik).eval().exp();
 		ArrayXd postSum = post.rowwise().sum();
 
 		// update prior weights and precision scale variables (M)
@@ -187,6 +187,7 @@ bool CMT::GSM::train(
 	MatrixXd dataCentered = data.colwise() - mMean;
 
 	if(parameters.trainCovariance) {
+
 		MatrixXd dataWeighted = dataCentered.array().rowwise() * weights.sqrt();
 		MatrixXd cov = dataWeighted * dataWeighted.transpose();
 
@@ -206,19 +207,22 @@ bool CMT::GSM::train(
 		ArrayXXd logJoint = (-0.5 * mScales * sqNorm).array().colwise()
 			+ (mPriors.array().log() + mDim / 2. * mScales.array().log());
 
-		// compute weighted posterior and responsibilities (E)
-		Array<double, 1, Dynamic> uLogLik = logSumExp(logJoint);
-		ArrayXXd postWeighted = (logJoint.rowwise() - uLogLik).exp().rowwise() * weights;
-		ArrayXd postWeightedSum = postWeighted.rowwise().sum();
+ 		// compute posterior and responsibilities (E)
+ 		Array<double, 1, Dynamic> uLogLik = logSumExp(logJoint);
+  		ArrayXXd postWeighted = logJoint.rowwise() - uLogLik;
+  		postWeighted = postWeighted.exp();
+  		postWeighted.rowwise() *= weights;
 
-		// update prior weights and precision scale variables (M)
-		if(parameters.trainPriors)
-			mPriors = postWeightedSum;
-
-		if(parameters.trainScales) {
-			ArrayXXd scaleWeights = postWeighted.colwise() / postWeightedSum;
-			mScales = mDim / (scaleWeights.rowwise() * sqNorm.array()).rowwise().sum();
-		}
+  		ArrayXd postWeightedSum = postWeighted.rowwise().sum();
+ 
+  		// update prior weights and precision scale variables (M)
+  		if(parameters.trainPriors)
+  			mPriors = postWeightedSum;
+  
+  		if(parameters.trainScales) {
+  			ArrayXXd scaleWeights = postWeighted.colwise() / postWeightedSum;
+  			mScales = mDim / (scaleWeights.rowwise() * sqNorm.array()).rowwise().sum();
+  		}
 	}
 
 	return true;
