@@ -48,7 +48,7 @@ void CMT::Mixture::Component::initialize(
 
 
 
-CMT::Mixture::Mixture(int dim) : mDim(dim) {
+CMT::Mixture::Mixture(int dim) : mDim(dim), mInitialized(false) {
 }
 
 
