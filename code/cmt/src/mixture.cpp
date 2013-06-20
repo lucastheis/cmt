@@ -11,6 +11,8 @@ using Eigen::ArrayXd;
 using Eigen::ArrayXXd;
 using Eigen::MatrixXd;
 
+#include <iostream>
+
 CMT::Mixture::Parameters::Parameters() :
 	verbosity(1),
 	maxIter(20),

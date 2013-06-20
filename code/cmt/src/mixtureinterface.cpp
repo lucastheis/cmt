@@ -6,8 +6,6 @@
 #include "exception.h"
 using CMT::Exception;
 
-#include <iostream>
-
 int Mixture_init(MixtureObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"dim", 0};
 
