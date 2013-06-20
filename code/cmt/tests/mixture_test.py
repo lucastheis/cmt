@@ -31,6 +31,7 @@ class Test(unittest.TestCase):
 			dot(cholesky(C0), randn(model.dim, int(p0 * N))) + m0,
 			dot(cholesky(C1), randn(model.dim, int(p1 * N))) + m1])
 
+		# if this is not call train() will initialize the parameters
 		model.initialize(data)
 
 		model[0].mean = m0
