@@ -207,22 +207,21 @@ bool CMT::GSM::train(
 		ArrayXXd logJoint = (-0.5 * mScales * sqNorm).array().colwise()
 			+ (mPriors.array().log() + mDim / 2. * mScales.array().log());
 
- 		// compute posterior and responsibilities (E)
- 		Array<double, 1, Dynamic> uLogLik = logSumExp(logJoint);
-  		ArrayXXd postWeighted = logJoint.rowwise() - uLogLik;
-  		postWeighted = postWeighted.exp();
-  		postWeighted.rowwise() *= weights;
+		// compute posterior and responsibilities (E)
+		ArrayXXd postWeighted = logJoint.rowwise() - logJoint.colwise().maxCoeff();
+		postWeighted = postWeighted.exp();
+		postWeighted.rowwise() *= weights / postWeighted.colwise().sum();
 
-  		ArrayXd postWeightedSum = postWeighted.rowwise().sum();
- 
-  		// update prior weights and precision scale variables (M)
-  		if(parameters.trainPriors)
-  			mPriors = postWeightedSum;
-  
-  		if(parameters.trainScales) {
-  			ArrayXXd scaleWeights = postWeighted.colwise() / postWeightedSum;
-  			mScales = mDim / (scaleWeights.rowwise() * sqNorm.array()).rowwise().sum();
-  		}
+		ArrayXd postWeightedSum = postWeighted.rowwise().sum();
+
+		// update prior weights and precision scale variables (M)
+		if(parameters.trainPriors)
+			mPriors = postWeightedSum;
+
+		if(parameters.trainScales) {
+			ArrayXXd scaleWeights = postWeighted.colwise() / postWeightedSum;
+			mScales = mDim / (scaleWeights.rowwise() * sqNorm.array()).rowwise().sum();
+		}
 	}
 
 	return true;
