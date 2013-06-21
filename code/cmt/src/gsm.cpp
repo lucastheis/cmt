@@ -45,6 +45,8 @@ CMT::Mixture::Component& CMT::GSM::operator=(const Mixture::Component& component
 	mMean = gsm.mMean;
 	mScales = gsm.mScales;
 	mCholesky = gsm.mCholesky;
+
+	return *this;
 }
 
 
@@ -199,7 +201,6 @@ bool CMT::GSM::train(
 	MatrixXd dataCentered = data.colwise() - mMean;
 
 	if(parameters.trainCovariance) {
-
 		MatrixXd dataWeighted = dataCentered.array().rowwise() * weights.sqrt();
 		MatrixXd cov = dataWeighted * dataWeighted.transpose();
 

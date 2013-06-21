@@ -26,9 +26,10 @@ class Tests(unittest.TestCase):
 		gsm0.mean = [1, 1, 1]
 		gsm0.scales = [1, 5]
 		gsm0.priors = [0.7, 0.3]
+
 		gsm0.covariance = gsm0.covariance / power(det(gsm0.covariance), 1. / gsm0.dim)
 
-		samples = gsm0.sample(20000)
+		samples = gsm0.sample(50000)
 
 		# try to recover parameters
 		gsm1 = GSM(3, 2)
@@ -47,7 +48,8 @@ class Tests(unittest.TestCase):
 		weights = rand(1, samples.shape[1])
 		weights /= sum(weights)
 
-		gsm1.train(samples, weights, parameters={'max_iter': 50})
+		gsm1 = GSM(3, 2)
+		gsm1.train(samples, weights=weights, parameters={'max_iter': 100})
 
 		# normalize
 		f = power(det(gsm1.covariance), 1. / gsm1.dim)
