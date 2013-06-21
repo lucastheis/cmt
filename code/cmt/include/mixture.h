@@ -37,6 +37,7 @@ namespace CMT {
 					};
 
 					virtual Component* copy() = 0;
+					virtual Component& operator=(const Component& component) = 0;
 
 					virtual void initialize(
 						const MatrixXd& data,
@@ -93,11 +94,11 @@ namespace CMT {
 				const MatrixXd& data,
 				const Parameters& parameters = Parameters(),
 				const Component::Parameters& componentParameters = Component::Parameters());
-//			virtual bool train(
-//				const MatrixXd& data,
-//				const MatrixXd& dataValid,
-//				const Parameters& parameters = Parameters(),
-//				const Component::Parameters& componentParameters = Component::Parameters());
+			virtual bool train(
+				const MatrixXd& data,
+				const MatrixXd& dataValid,
+				const Parameters& parameters = Parameters(),
+				const Component::Parameters& componentParameters = Component::Parameters());
 
 		protected:
 			int mDim;

@@ -175,7 +175,6 @@ int CMT::Trainable::callbackLBFGS(
 			cout << setw(6) << iteration << setw(11) << setprecision(5) << fx << endl;
 	}
 
-
 	if(params.callback && iteration % params.cbIter == 0) {
 		inst->cd->setParameters(x, params);
 

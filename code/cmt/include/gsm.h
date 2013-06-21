@@ -18,6 +18,7 @@ namespace CMT {
 			GSM(int dim = 1, int numScales = 6);
 
 			virtual GSM* copy();
+			virtual Mixture::Component& operator=(const Component& component);
 
 			inline int dim() const;
 			inline int numScales() const;

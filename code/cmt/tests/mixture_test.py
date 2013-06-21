@@ -22,7 +22,7 @@ class Test(unittest.TestCase):
 
 		p0 = 0.3
 		p1 = 0.7
-		N = 10000
+		N = 20000
 		m0 = array([[2], [0], [0]])
 		m1 = array([[0], [2], [1]])
 		C0 = cov(randn(model.dim, model.dim**2))

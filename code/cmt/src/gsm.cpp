@@ -37,6 +37,18 @@ CMT::GSM* CMT::GSM::copy() {
 
 
 
+CMT::Mixture::Component& CMT::GSM::operator=(const Mixture::Component& component) {
+	// requires that component is a GSM
+	const GSM& gsm = dynamic_cast<const GSM&>(component);
+
+	mDim = gsm.mDim;
+	mMean = gsm.mMean;
+	mScales = gsm.mScales;
+	mCholesky = gsm.mCholesky;
+}
+
+
+
 MatrixXd CMT::GSM::sample(int numSamples) const {
 	Array<double, 1, Dynamic> scales(numSamples);
 

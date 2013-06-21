@@ -244,7 +244,7 @@ Mixture::Parameters* PyObject_ToMixtureParameters(PyObject* parameters) {
 
 
 const char* Mixture_train_doc =
-	"train(self, data, data_valid=None, parameters=None)\n"
+	"train(self, data, data_valid=None, parameters=None, component_parameters=None)\n"
 	"\n"
 	"Fits the parameters of the mixture distribution to the given data using expectation maximization (EM).\n"
 	"\n"
@@ -311,22 +311,43 @@ PyObject* Mixture_train(MixtureObject* self, PyObject* args, PyObject* kwds) {
 		return 0;
 	}
 
+	if(data_valid) {
+		data_valid = PyArray_FROM_OTF(data_valid, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		
+		if(!data_valid) {
+			PyErr_SetString(PyExc_TypeError, "Validation data should be stored in a Numpy array.");
+			Py_DECREF(data);
+			return 0;
+		}
+	}
+
 	bool converged;
 
 	try {
 		Mixture::Parameters* params = PyObject_ToMixtureParameters(parameters);
 		Mixture::Component::Parameters* component_params =
 			PyObject_ToMixtureComponentParameters(component_parameters);
-		converged = self->mixture->train(PyArray_ToMatrixXd(data), *params, *component_params);
+
+		if(data_valid)
+			converged = self->mixture->train(
+				PyArray_ToMatrixXd(data),
+				PyArray_ToMatrixXd(data_valid),
+				*params,
+				*component_params);
+		else
+			converged = self->mixture->train(PyArray_ToMatrixXd(data), *params, *component_params);
+
 		delete params;
 		delete component_params;
 	} catch(Exception exception) {
 		Py_DECREF(data);
+		Py_XDECREF(data_valid);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}
 
 	Py_DECREF(data);
+	Py_XDECREF(data_valid);
 
 	if(converged) {
 		Py_INCREF(Py_True);
