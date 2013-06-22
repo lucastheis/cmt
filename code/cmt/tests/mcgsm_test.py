@@ -8,7 +8,7 @@ from numpy import *
 from numpy import min, max
 from numpy.linalg import cholesky, inv
 from numpy.random import *
-from scipy.stats import kstest, norm
+from scipy.stats import kstest, ks_2samp, norm
 from pickle import dump, load
 from tempfile import mkstemp
 
@@ -161,6 +161,21 @@ class Tests(unittest.TestCase):
 			mogsm[k].priors = exp(mcgsm.priors[k, :]) / sum(exp(mcgsm.priors[k, :]))
 
 		self.assertAlmostEqual(mcgsm.evaluate(input, output), mogsm.evaluate(output), 5)
+
+		mogsm_samples = mogsm.sample(N)
+		mcgsm_samples = mcgsm.sample(input)
+
+		# generated samples should have the same distribution
+		for i in range(mogsm.dim):
+			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[0]) > 0.0001)
+			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[1]) > 0.0001)
+			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[2]) > 0.0001)
+
+		posterior = mcgsm.posterior(input, mcgsm_samples)
+
+		# average posterior should correspond to prior
+		for k in range(mogsm.num_components):
+			self.assertLess(abs(1 - mean(posterior[k]) / mogsm.priors[k]), 0.1)
 
 
 
