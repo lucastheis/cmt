@@ -126,6 +126,13 @@ namespace CMT {
 			MatrixXd mFeatures;
 			vector<MatrixXd> mCholeskyFactors;
 			vector<MatrixXd> mPredictors;
+
+			virtual bool train(
+				const MatrixXd& input,
+				const MatrixXd& output,
+				const MatrixXd* inputVal = 0,
+				const MatrixXd* outputVal = 0,
+				const Trainable::Parameters& params = Trainable::Parameters());
 	};
 }
 

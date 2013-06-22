@@ -214,6 +214,13 @@ Mixture::Parameters* PyObject_ToMixtureParameters(PyObject* parameters) {
 			else
 				throw Exception("val_look_ahead should be of type `int`.");
 
+		PyObject* initialize = PyDict_GetItemString(parameters, "initialize");
+		if(initialize)
+			if(PyBool_Check(initialize))
+				params->initialize = (initialize == Py_True);
+			else
+				throw Exception("initialize should be of type `bool`.");
+
 		PyObject* train_priors = PyDict_GetItemString(parameters, "train_priors");
 		if(train_priors)
 			if(PyBool_Check(train_priors))
@@ -256,6 +263,7 @@ const char* Mixture_train_doc =
 	"\t>>> \t\t'max_iter': 20,\n"
 	"\t>>> \t\t'val_iter': 2,\n"
 	"\t>>> \t\t'val_look_ahead': 5,\n"
+	"\t>>> \t\t'initialize': True,\n"
 	"\t>>> \t\t'train_priors': True,\n"
 	"\t>>> \t\t'train_components': True,\n"
 	"\t>>> \t\t'regularize_priors': 0.,\n"

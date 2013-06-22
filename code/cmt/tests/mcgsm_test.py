@@ -3,12 +3,12 @@ import unittest
 
 sys.path.append('./code')
 
-from cmt import MCGSM
+from cmt import MCGSM, MoGSM
 from numpy import *
 from numpy import min, max
-from numpy.linalg import cholesky
+from numpy.linalg import cholesky, inv
 from numpy.random import *
-from scipy.stats import kstest, norm
+from scipy.stats import kstest, ks_2samp, norm
 from pickle import dump, load
 from tempfile import mkstemp
 
@@ -124,6 +124,58 @@ class Tests(unittest.TestCase):
 
 		# test callback
 		self.assertTrue(range(cb_iter, max_iter + 1, cb_iter) == count)
+
+
+
+	def test_mogsm(self):
+		mcgsm = MCGSM(
+			dim_in=0,
+			dim_out=3,
+			num_components=2,
+			num_scales=2,
+			num_features=0)
+
+		p0 = 0.3
+		p1 = 0.7
+		N = 20000
+		m0 = array([[2], [0], [0]])
+		m1 = array([[0], [2], [1]])
+		C0 = cov(randn(mcgsm.dim_out, mcgsm.dim_out**2))
+		C1 = cov(randn(mcgsm.dim_out, mcgsm.dim_out**2))
+		input = zeros([0, N])
+		output = hstack([
+			dot(cholesky(C0), randn(mcgsm.dim_out, round(p0 * N))) + m0,
+			dot(cholesky(C1), randn(mcgsm.dim_out, round(p1 * N))) + m1]) * (rand(1, N) + 0.5)
+
+		mcgsm.train(input, output, parameters={'verbosity': 0, 'max_iter': 10})
+
+		mogsm = MoGSM(3, 2, 2)
+
+		# translate parameters from MCGSM to MoGSM
+		mogsm.priors = sum(exp(mcgsm.priors), 1) / sum(exp(mcgsm.priors))
+
+		for k in range(mogsm.num_components):
+			mogsm[k].mean = zeros([mogsm.dim, 1])
+			mogsm[k].covariance = inv(dot(mcgsm.cholesky_factors[k], mcgsm.cholesky_factors[k].T))
+			mogsm[k].scales = exp(mcgsm.scales[k, :])
+			mogsm[k].priors = exp(mcgsm.priors[k, :]) / sum(exp(mcgsm.priors[k, :]))
+
+		self.assertAlmostEqual(mcgsm.evaluate(input, output), mogsm.evaluate(output), 5)
+
+		mogsm_samples = mogsm.sample(N)
+		mcgsm_samples = mcgsm.sample(input)
+
+		# generated samples should have the same distribution
+		for i in range(mogsm.dim):
+			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[0]) > 0.0001)
+			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[1]) > 0.0001)
+			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[2]) > 0.0001)
+
+		posterior = mcgsm.posterior(input, mcgsm_samples)
+
+		# average posterior should correspond to prior
+		for k in range(mogsm.num_components):
+			self.assertLess(abs(1 - mean(posterior[k]) / mogsm.priors[k]), 0.1)
 
 
 

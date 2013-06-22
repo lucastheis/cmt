@@ -28,6 +28,7 @@ CMT::Mixture::Parameters::Parameters() :
 	threshold(1e-5),
 	valIter(2),
 	valLookAhead(5),
+	initialize(true),
 	trainPriors(true),
 	trainComponents(true),
 	regularizePriors(0.)
@@ -175,7 +176,7 @@ bool CMT::Mixture::train(
 	const Parameters& parameters,
 	const Component::Parameters& componentParameters)
 {
-	if(!initialized())
+	if(parameters.initialize && !initialized())
 		initialize(data, parameters, componentParameters);
 
 	ArrayXXd logJoint(numComponents(), data.cols());
@@ -241,7 +242,7 @@ bool CMT::Mixture::train(
 	const Parameters& parameters,
 	const Component::Parameters& componentParameters)
 {
-	if(!initialized())
+	if(parameters.initialize && !initialized())
 		initialize(data, parameters, componentParameters);
 
 	ArrayXXd logJoint(numComponents(), data.cols());

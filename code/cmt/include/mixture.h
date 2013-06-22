@@ -58,6 +58,7 @@ namespace CMT {
 					double threshold;
 					int valIter;
 					int valLookAhead;
+					bool initialize;
 					bool trainPriors;
 					bool trainComponents;
 					double regularizePriors;
