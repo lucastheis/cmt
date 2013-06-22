@@ -3,13 +3,14 @@
 
 #include "Eigen/Core"
 #include "Eigen/Cholesky"
+#include "Eigen/LU"
 #include "mixture.h"
 #include "exception.h"
 #include <cmath>
 
 namespace CMT {
 	using Eigen::VectorXd;
-	using Eigen::LLT;
+	using Eigen::MatrixXd;
 
 	using std::pow;
 
@@ -133,31 +134,27 @@ Eigen::MatrixXd CMT::GSM::cholesky() const {
 
 
 void CMT::GSM::setCholesky(const MatrixXd& cholesky) {
+	if(cholesky.rows() != dim() || cholesky.cols() != dim())
+		throw Exception("Cholesky factor has wrong dimensionality.");
 	mCholesky = cholesky;
 }
 
 
 
 Eigen::MatrixXd CMT::GSM::covariance() const {
-	// compute Cholesky factor of covariance matrix
 	MatrixXd choleskyInv = mCholesky.triangularView<Eigen::Lower>().solve(
 		MatrixXd::Identity(dim(), dim()));
-
-	return choleskyInv * choleskyInv.transpose();
+	return choleskyInv.transpose() * choleskyInv;
 }
 
 
 
 void CMT::GSM::setCovariance(const MatrixXd& covariance) {
 	if(covariance.rows() != dim() || covariance.cols() != dim())
-		throw Exception("Cholesky factor has wrong dimensionality.");
-
-	// compute Cholesky factor of covariance matrix
-	MatrixXd cholesky = LLT<MatrixXd>(covariance).matrixL();
+		throw Exception("Covariance matrix has wrong dimensionality.");
 
 	// compute Cholesky factor of precision matrix
-	mCholesky = cholesky.triangularView<Eigen::Lower>().solve(
-		MatrixXd::Identity(dim(), dim()));
+	mCholesky = covariance.inverse().llt().matrixL();
 }
 
 #endif

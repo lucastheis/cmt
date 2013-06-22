@@ -70,14 +70,14 @@ MatrixXd CMT::GSM::sample(int numSamples) const {
 		scales[i] = sqrt(mScales[j]);
 	}
 
-	MatrixXd samples = mCholesky.triangularView<Eigen::Lower>().solve(sampleNormal(mDim, numSamples).matrix());
+	MatrixXd samples = mCholesky.transpose().triangularView<Eigen::Upper>().solve(sampleNormal(mDim, numSamples).matrix());
 	return (samples.array().rowwise() / scales).colwise() + mMean.array();
 }
 
 
 
 Array<double, 1, Dynamic> CMT::GSM::logLikelihood(const MatrixXd& data) const {
-	MatrixXd dataWhitened = mCholesky * (data.colwise() - mMean);
+	MatrixXd dataWhitened = mCholesky.transpose() * (data.colwise() - mMean);
 	Matrix<double, 1, Dynamic> sqNorm = dataWhitened.colwise().squaredNorm();
 
 	// normalization constant
@@ -102,7 +102,7 @@ void CMT::GSM::initialize(const MatrixXd& data, const Parameters& parameters) {
 	VectorXd mean = data.rowwise().mean();
 	MatrixXd cov = CMT::covariance(data)
 		+ parameters.regularizeCovariance * MatrixXd::Identity(dim(), dim());
-	MatrixXd cholesky = LLT<MatrixXd>(cov).matrixL();
+	MatrixXd cholesky = cov.llt().matrixL();
 
 	// draw samples with 
 	MatrixXd samples = cholesky * sampleNormal(dim(), dim() * dim()).matrix();
@@ -135,16 +135,12 @@ bool CMT::GSM::train(const MatrixXd& data, const Parameters& parameters) {
 	if(parameters.trainCovariance) {
 		MatrixXd cov = dataCentered * dataCentered.transpose() / data.cols();
 
-		// compute Cholesky factor of covariance matrix
-		MatrixXd cholesky = LLT<MatrixXd>(cov).matrixL();
-
-		// update Cholesky factor of precision matrix
-		mCholesky = cholesky.triangularView<Eigen::Lower>().solve(
-			MatrixXd::Identity(dim(), dim()));
+		// compute Cholesky factor of precision matrix
+		mCholesky = cov.inverse().llt().matrixL();
 	}
 
 	// squared norm of whitened data
-	Matrix<double, 1, Dynamic> sqNorm = (mCholesky * dataCentered).colwise().squaredNorm();
+	Matrix<double, 1, Dynamic> sqNorm = (mCholesky.transpose() * dataCentered).colwise().squaredNorm();
 
 	for(int i = 0; i < parameters.maxIter; ++i) {
 		// unnormalized joint distribution over data and scales
@@ -199,20 +195,15 @@ bool CMT::GSM::train(
 	MatrixXd dataCentered = data.colwise() - mMean;
 
 	if(parameters.trainCovariance) {
-
 		MatrixXd dataWeighted = dataCentered.array().rowwise() * weights.sqrt();
 		MatrixXd cov = dataWeighted * dataWeighted.transpose();
 
-		// compute Cholesky factor of covariance matrix
-		MatrixXd cholesky = LLT<MatrixXd>(cov).matrixL();
-
-		// update Cholesky factor of precision matrix
-		mCholesky = cholesky.triangularView<Eigen::Lower>().solve(
-			MatrixXd::Identity(dim(), dim()));
+		// compute Cholesky factor of precision matrix
+		mCholesky = cov.inverse().llt().matrixL();
 	}
 
 	// squared norm of whitened data
-	Matrix<double, 1, Dynamic> sqNorm = (mCholesky * dataCentered).colwise().squaredNorm();
+	Matrix<double, 1, Dynamic> sqNorm = (mCholesky.transpose() * dataCentered).colwise().squaredNorm();
 
 	for(int i = 0; i < parameters.maxIter; ++i) {
 		// unnormalized joint distribution over data and scales
