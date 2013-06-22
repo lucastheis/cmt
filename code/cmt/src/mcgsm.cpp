@@ -1,5 +1,6 @@
 #include "mcgsm.h"
 #include "utils.h"
+#include "mogsm.h"
 
 #include <utility>
 using std::pair;
@@ -422,7 +423,7 @@ Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(const MatrixXd& input, const
 
 		// normalization constants of experts
 		double logDet = mCholeskyFactors[i].diagonal().array().abs().log().sum();
-		ArrayXd logPartf = mDimOut * mScales.row(i).array() / 2. +
+		ArrayXd logPartf = mDimOut / 2. * mScales.row(i).array() +
 			logDet - mDimOut / 2. * log(2. * PI);
 		negEnergy.colwise() += logPartf;
 
@@ -928,4 +929,70 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::MCGSM::computeDa
 	}
 
 	return make_pair(make_pair(inputGradients, outputGradients), logLikelihood);
+}
+
+
+
+bool CMT::MCGSM::train(
+	const MatrixXd& input,
+	const MatrixXd& output,
+	const MatrixXd* inputVal,
+	const MatrixXd* outputVal,
+	const Trainable::Parameters& params)
+{
+	if(!mDimIn) {
+		// MCGSM reduces to MoGSM for zero-dimensional inputs
+		MoGSM mogsm(mDimOut, mNumComponents, mNumScales);
+
+		// initialize model
+		ArrayXd priors = mPriors.exp().rowwise().sum();
+		mogsm.setPriors(priors / priors.sum());
+
+		for(int k = 0; k < mNumComponents; ++k) {
+			ArrayXd priors = mPriors.row(k).exp().transpose();
+			GSM* gsm = dynamic_cast<GSM*>(mogsm[k]);
+			gsm->setMean(VectorXd::Zero(mDimOut));
+			gsm->setPriors(priors / priors.sum());
+			gsm->setScales(mScales.row(k).exp().transpose());
+			gsm->setCholesky(mCholeskyFactors[k]);
+		}
+
+		// optimization hyperparameters
+		MoGSM::Parameters mogsmParams;
+		mogsmParams.initialize = false;
+		mogsmParams.verbosity = params.verbosity;
+		mogsmParams.maxIter = params.maxIter;
+		mogsmParams.threshold = params.threshold;
+		mogsmParams.valIter = params.valIter;
+		mogsmParams.valLookAhead = params.valLookAhead;
+
+		MoGSM::Component::Parameters gsmParams;
+		gsmParams.trainMean = false;
+
+		// fit parameters of model to data
+		bool converged;
+		if(outputVal)
+			converged = mogsm.train(output, *outputVal, mogsmParams, gsmParams);
+		else
+			converged = mogsm.train(output, mogsmParams, gsmParams);
+
+		// copy parameters back
+		mPriors.colwise() = mogsm.priors().array().log();
+
+		vector<MatrixXd> choleskyFactors;
+
+		for(int k = 0; k < mNumComponents; ++k) {
+			GSM* gsm = dynamic_cast<GSM*>(mogsm[k]);
+
+			mPriors.row(k) += gsm->priors().array().log().transpose();
+			mScales.row(k) = gsm->scales().array().log().transpose();
+			choleskyFactors.push_back(gsm->cholesky());
+		}
+
+		setCholeskyFactors(choleskyFactors);
+
+		return converged;
+	} else {
+		return Trainable::train(input, output, inputVal, outputVal, params);
+	}
 }
