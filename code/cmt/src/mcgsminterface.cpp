@@ -1,5 +1,8 @@
 #include "callbackinterface.h"
 #include "trainableinterface.h"
+#include "conditionaldistributioninterface.h"
+#include "preconditionerinterface.h"
+#include "patchmodelinterface.h"
 
 #include "Eigen/Core"
 using Eigen::Map;
@@ -857,6 +860,559 @@ PyObject* MCGSM_setstate(MCGSMObject* self, PyObject* state, PyObject*) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
+
+const char* PatchMCGSM_doc =
+	"Model image patches by using an L{MCGSM} for each conditional distribution.\n"
+	"\n"
+	"@type  rows: C{int}\n"
+	"@param rows: number of rows of the image patch\n"
+	"\n"
+	"@type  cols: C{int}\n"
+	"@param cols: number of columns of the image patch\n"
+	"\n"
+	"@type  input_mask: C{ndarray}\n"
+	"@param input_mask: a Boolean array describing the input pixels\n"
+	"\n"
+	"@type  output_mask: C{ndarray}\n"
+	"@param output_mask: a Boolean array describing the output pixels\n"
+	"\n"
+	"@type  order: C{list}\n"
+	"@param order: list of tuples indicating order of pixels\n"
+	"\n"
+	"@type  model: L{MCGSM}\n"
+	"@param model: model used as a template to initialize all conditional distributions\n"
+	"\n"
+	"@type  max_pcs: C{int}\n"
+	"@param max_pcs: can be used to reduce dimensionality of inputs to conditional models";
+
+int PatchMCGSM_init(PatchMCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"rows", "cols", "input_mask", "output_mask", "order", "model", "max_pcs", 0};
+
+	int rows;
+	int cols;
+	PyObject* input_mask = 0;
+	PyObject* output_mask = 0;
+	PyObject* order = 0;
+	PyObject* model = 0;
+	int max_pcs = -1;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "ii|OOOOi", const_cast<char**>(kwlist),
+		&rows, &cols, &input_mask, &output_mask, &order, &model, &max_pcs))
+		return -1;
+
+	if(order == Py_None)
+		order = 0;
+
+	if(order && !PyList_Check(order)) {
+		PyErr_SetString(PyExc_TypeError, "Pixel order should be of type `list`.");
+		return -1;
+	}
+
+	if(model == Py_None)
+		model = 0;
+
+	if(model && !PyType_IsSubtype(Py_TYPE(model), &MCGSM_type)) {
+		PyErr_SetString(PyExc_TypeError, "Model should be a subtype of `MCGSM`.");
+		return -1;
+	}
+
+	if(input_mask == Py_None)
+		input_mask = 0;
+
+	if(output_mask == Py_None)
+		output_mask = 0;
+
+	if(input_mask && output_mask) {
+		input_mask = PyArray_FROM_OTF(input_mask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		output_mask = PyArray_FROM_OTF(output_mask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!input_mask || !output_mask) {
+			Py_XDECREF(input_mask);
+			Py_XDECREF(output_mask);
+			PyErr_SetString(PyExc_TypeError, "Masks have to be given as Boolean arrays.");
+			return -1;
+		}
+	}
+
+	// create the actual model
+	try {
+		if(order) {
+			if(input_mask && output_mask) {
+				self->patchMCGSM = new PatchModel<MCGSM, PCAPreconditioner>(
+					rows,
+					cols,
+					PyList_AsTuples(order),
+					PyArray_ToMatrixXb(input_mask),
+					PyArray_ToMatrixXb(output_mask),
+					model ? reinterpret_cast<MCGSMObject*>(model)->mcgsm : 0,
+					max_pcs);
+
+				Py_DECREF(input_mask);
+				Py_DECREF(output_mask);
+			} else {
+				self->patchMCGSM = new PatchModel<MCGSM, PCAPreconditioner>(
+					rows,
+					cols,
+					PyList_AsTuples(order),
+					model ? reinterpret_cast<MCGSMObject*>(model)->mcgsm : 0,
+					max_pcs);
+			}
+		} else {
+			if(input_mask && output_mask) {
+				self->patchMCGSM = new PatchModel<MCGSM, PCAPreconditioner>(
+					rows,
+					cols,
+					PyArray_ToMatrixXb(input_mask),
+					PyArray_ToMatrixXb(output_mask),
+					model ? reinterpret_cast<MCGSMObject*>(model)->mcgsm : 0,
+					max_pcs);
+
+				Py_DECREF(input_mask);
+				Py_DECREF(output_mask);
+			} else {
+				self->patchMCGSM = new PatchModel<MCGSM, PCAPreconditioner>(
+					rows,
+					cols,
+					model ? reinterpret_cast<MCGSMObject*>(model)->mcgsm : 0,
+					max_pcs);
+			}
+		}
+	} catch(Exception exception) {
+		Py_XDECREF(input_mask);
+		Py_XDECREF(output_mask);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+
+	return 0;
+}
+
+
+
+PyObject* PatchMCGSM_subscript(PatchMCGSMObject* self, PyObject* key) {
+	if(!PyTuple_Check(key)) {
+		PyErr_SetString(PyExc_TypeError, "Index must be a tuple.");
+		return 0;
+	}
+
+	int i;
+	int j;
+
+	if(!PyArg_ParseTuple(key, "ii", &i, &j)) {
+		PyErr_SetString(PyExc_TypeError, "Index should consist of a row and a column.");
+		return 0;
+	}
+
+	PyObject* obj = CD_new(&MCGSM_type, 0, 0);
+	reinterpret_cast<MCGSMObject*>(obj)->mcgsm = &self->patchMCGSM->operator()(i, j);
+	reinterpret_cast<MCGSMObject*>(obj)->owner = false;
+	Py_INCREF(obj);
+
+	return obj;
+}
+
+
+
+int PatchMCGSM_ass_subscript(PatchMCGSMObject* self, PyObject* key, PyObject* value) {
+	if(!PyType_IsSubtype(Py_TYPE(value), &MCGSM_type)) {
+		PyErr_SetString(PyExc_TypeError, "Conditional distribution should be a subtype of `MCGSM`.");
+		return -1;
+	}
+
+	if(!PyTuple_Check(key)) {
+		PyErr_SetString(PyExc_TypeError, "Index must be a tuple.");
+		return -1;
+	}
+
+	int i;
+	int j;
+
+	if(!PyArg_ParseTuple(key, "ii", &i, &j)) {
+		PyErr_SetString(PyExc_TypeError, "Index should consist of a row and a column.");
+		return -1;
+	}
+
+	if(self->patchMCGSM->operator()(i, j).dimIn() != reinterpret_cast<MCGSMObject*>(value)->mcgsm->dimIn()) {
+		PyErr_SetString(PyExc_ValueError, "Given model has wrong input dimensionality.");
+		return -1;
+	}
+
+	self->patchMCGSM->operator()(i, j) = *reinterpret_cast<MCGSMObject*>(value)->mcgsm;
+
+	return 0;
+}
+
+
+
+PyObject* PatchMCGSM_preconditioner(PatchMCGSMObject* self, PyObject* args) {
+	int i;
+	int j;
+
+	if(!PyArg_ParseTuple(args, "ii", &i, &j)) {
+		PyErr_SetString(PyExc_TypeError, "Index should consist of a row and a column.");
+		return 0;
+	}
+
+	try {
+		PCAPreconditioner* pc = &self->patchMCGSM->preconditioner(i, j);
+		PyObject* preconditioner = Preconditioner_new(&PCAPreconditioner_type, 0, 0);
+		reinterpret_cast<PCAPreconditionerObject*>(preconditioner)->owner = false;
+		reinterpret_cast<PCAPreconditionerObject*>(preconditioner)->preconditioner = pc;
+		Py_INCREF(preconditioner);
+		return preconditioner;
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+PyObject* PatchMCGSM_preconditioners(PatchMCGSMObject* self, void*) {
+	if(self->patchMCGSM->maxPCs() < 0)
+		return PyDict_New();
+
+	PyObject* preconditioners = PyDict_New();
+
+	for(int i = 0; i < self->patchMCGSM->rows(); ++i) {
+		for(int j = 0; j < self->patchMCGSM->cols(); ++j) {
+			PyObject* index = Py_BuildValue("(ii)", i, j);
+			PyObject* preconditioner = PatchMCGSM_preconditioner(self, index);
+
+			if(!preconditioner) {
+				PyErr_Clear();
+				Py_DECREF(index);
+				continue;
+			}
+
+			PyDict_SetItem(preconditioners, index, preconditioner);
+
+			Py_DECREF(index);
+			Py_DECREF(preconditioner);
+		}
+	}
+
+	return preconditioners;
+}
+
+
+
+int PatchMCGSM_set_preconditioners(PatchMCGSMObject* self, PyObject* value, void*) {
+	if(!PyDict_Check(value)) {
+		PyErr_SetString(PyExc_RuntimeError, "Preconditioners have to be stored in a dictionary."); 
+		return -1;
+	}
+
+	for(int i = 0; i < self->patchMCGSM->rows(); ++i)
+		for(int j = 0; j < self->patchMCGSM->cols(); ++j) {
+			PyObject* index = Py_BuildValue("(ii)", i, j);
+			PyObject* preconditioner = PyDict_GetItem(value, index);
+
+			if(!preconditioner)
+				continue;
+
+			if(!PyType_IsSubtype(Py_TYPE(preconditioner), &PCAPreconditioner_type)) {
+				PyErr_SetString(PyExc_RuntimeError,
+					"All preconditioners must be of type `PCAPreconditioner`.");
+				return -1;
+			}
+
+			try {
+ 				self->patchMCGSM->setPreconditioner(i, j,
+ 					*reinterpret_cast<PCAPreconditionerObject*>(preconditioner)->preconditioner);
+			} catch(Exception exception) {
+				PyErr_SetString(PyExc_RuntimeError, exception.message());
+				return -1;
+			}
+
+			Py_DECREF(index);
+		}
+
+	return 0;
+}
+
+
+
+const char* PatchMCGSM_initialize_doc =
+	"initialize(self, data, parameters=None)\n"
+	"\n"
+	"Tries to guess reasonable parameters for all conditional distributions based on the data.\n"
+	"\n"
+	"It is assumed that the patches are stored in row-order ('C') in the columns of\n"
+	"L{data}.\n"
+	"\n"
+	"@type  data: C{ndarray}\n"
+	"@param data: image patches stored column-wise";
+
+PyObject* PatchMCGSM_initialize(PatchMCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"data", "parameters", 0};
+
+	PyObject* data;
+	PyObject* parameters = 0;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", const_cast<char**>(kwlist), 
+		&data, &parameters))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	data = PyArray_FROM_OTF(data, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!data) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		MCGSM::Parameters* params = dynamic_cast<MCGSM::Parameters*>(
+			PyObject_ToMCGSMParameters(parameters));
+
+		self->patchMCGSM->initialize(PyArray_ToMatrixXd(data), *params);
+
+		delete params;
+
+		Py_DECREF(data);
+		Py_INCREF(Py_None);
+		return Py_None;
+	} catch(Exception exception) {
+		Py_DECREF(data);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+const char* PatchMCGSM_train_doc =
+	"train(self, data, dat_val=None, parameters=None)\n"
+	"\n"
+	"Trains the model to the given image patches by fitting each conditional\n"
+	"distribution in turn.\n"
+	"\n"
+	"It is assumed that the patches are stored in row-order ('C') in the columns of\n"
+	"L{data}. If hyperparameters are given, they are passed on to each conditional\n"
+	"distribution.\n"
+	"\n"
+	"@type  data: C{ndarray}\n"
+	"@param data: image patches stored column-wise\n"
+	"\n"
+	"@type  data_val: C{ndarray}\n"
+	"@param data_val: image patches used for early stopping based on validation error\n"
+	"\n"
+	"@type  parameters: C{dict}\n"
+	"@param parameters: a dictionary containing hyperparameters\n"
+	"\n"
+	"@rtype: C{bool}\n"
+	"@return: C{True} if training of all models converged, otherwise C{False}";
+
+PyObject* PatchMCGSM_train(PatchMCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"i", "j", "data", "data_val", "parameters", 0};
+
+	PyObject* data;
+	PyObject* data_val = 0;
+	PyObject* parameters = 0;
+	int i = -1;
+	int j = -1;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiO|OO", const_cast<char**>(kwlist),
+		&i, &j,
+		&data,
+		&data_val,
+		&parameters))
+	{
+		PyErr_Clear();
+
+		const char* kwlist[] = {"data", "data_val", "parameters", 0};
+
+		if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|OO", const_cast<char**>(kwlist),
+			&data,
+			&data_val,
+			&parameters))
+			return 0;
+	}
+
+	// make sure data is stored in NumPy array
+	data = PyArray_FROM_OTF(data, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!data) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy array.");
+		return 0;
+	}
+
+	if(data_val == Py_None)
+		data_val = 0;
+
+	if(data_val) {
+		data_val = PyArray_FROM_OTF(data_val, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!data_val) {
+			Py_DECREF(data);
+			PyErr_SetString(PyExc_TypeError, "Validation data has to be stored in NumPy array.");
+			return 0;
+		}
+	}
+
+	try {
+		bool converged;
+
+		MCGSM::Parameters* params = dynamic_cast<MCGSM::Parameters*>(
+			PyObject_ToMCGSMParameters(parameters));
+
+		if(data_val) {
+			if(i > -1 && j > -1)
+				converged = self->patchMCGSM->train(
+					i, j,
+					PyArray_ToMatrixXd(data),
+					PyArray_ToMatrixXd(data_val),
+					*params);
+			else
+				converged = self->patchMCGSM->train(
+					PyArray_ToMatrixXd(data),
+					PyArray_ToMatrixXd(data_val),
+					*params);
+		} else {
+			if(i > -1 && j > -1)
+				converged = self->patchMCGSM->train(
+					i, j,
+					PyArray_ToMatrixXd(data),
+					*params);
+			else
+				converged = self->patchMCGSM->train(
+					PyArray_ToMatrixXd(data),
+					*params);
+		}
+
+		delete params;
+
+		if(converged) {
+			Py_DECREF(data);
+			Py_XDECREF(data_val);
+			Py_INCREF(Py_True);
+			return Py_True;
+		} else {
+			Py_DECREF(data);
+			Py_XDECREF(data_val);
+			Py_INCREF(Py_False);
+			return Py_False;
+		}
+	} catch(Exception exception) {
+		Py_DECREF(data);
+		Py_XDECREF(data_val);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+const char* PatchMCGSM_reduce_doc =
+	"__reduce__(self)\n"
+	"\n"
+	"Method used by Pickle.";
+
+PyObject* PatchMCGSM_reduce(PatchMCGSMObject* self, PyObject*) {
+	int rows = self->patchMCGSM->rows();
+	int cols = self->patchMCGSM->cols();
+	int maxPCs = self->patchMCGSM->maxPCs();
+
+	PyObject* order = PatchModel_order(
+		reinterpret_cast<PatchModelObject*>(self), 0);
+	PyObject* inputMask = PatchModel_input_mask(
+		reinterpret_cast<PatchModelObject*>(self), 0);
+	PyObject* outputMask = PatchModel_output_mask(
+		reinterpret_cast<PatchModelObject*>(self), 0);
+
+	// constructor arguments
+	PyObject* args = Py_BuildValue("(iiOOOOi)",
+		rows,
+		cols,
+		inputMask,
+		outputMask,
+		order,
+		Py_None,
+		maxPCs);
+	
+	Py_DECREF(order);
+	Py_DECREF(inputMask);
+	Py_DECREF(outputMask);
+
+	// parameters
+	PyObject* models = PyTuple_New(self->patchMCGSM->dim());
+
+	for(int i = 0; i < rows; ++i)
+		for(int j = 0; j < cols; ++j) {
+			PyObject* index = Py_BuildValue("(ii)", i, j);
+			PyObject* mcbm = PatchMCGSM_subscript(self, index);
+
+			// add MCGSM to list of models
+			PyTuple_SetItem(models, i * cols + j, mcbm);
+
+			Py_DECREF(index);
+		}
+
+	PyObject* preconditioners = PatchMCGSM_preconditioners(self, 0);
+
+	PyObject* state = Py_BuildValue("(OO)", models, preconditioners);
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
+
+	Py_DECREF(preconditioners);
+	Py_DECREF(args);
+	Py_DECREF(state);
+
+	return result;
+}
+
+
+
+const char* PatchMCGSM_setstate_doc =
+	"__setstate__(self)\n"
+	"\n"
+	"Method used by Pickle.";
+
+PyObject* PatchMCGSM_setstate(PatchMCGSMObject* self, PyObject* state) {
+	int cols = self->patchMCGSM->cols();
+
+	// for some reason the actual state is encapsulated in another tuple
+	state = PyTuple_GetItem(state, 0);
+
+	PyObject* models = PyTuple_GetItem(state, 0);
+  	PyObject* preconditioners = PyTuple_GetItem(state, 1);
+
+	if(PyTuple_Size(models) != self->patchMCGSM->dim()) {
+		PyErr_SetString(PyExc_RuntimeError, "Something went wrong while unpickling the model.");
+		return 0;
+	}
+
+	try {
+		for(int i = 0; i < self->patchMCGSM->dim(); ++i) {
+			PyObject* index = Py_BuildValue("(ii)", i / cols, i % cols);
+			PatchMCGSM_ass_subscript(self, index, PyTuple_GetItem(models, i));
+			Py_DECREF(index);
+
+			if(PyErr_Occurred())
+				return 0;
+		}
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+  	if(preconditioners)
+  		PatchMCGSM_set_preconditioners(self, preconditioners, 0);
 
 	Py_INCREF(Py_None);
 	return Py_None;
