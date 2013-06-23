@@ -380,11 +380,9 @@ class Tests(unittest.TestCase):
 		data = randn(4, 10000)
 
 		model.initialize(data)
-		converged = model.train(data, parameters={'max_iter': 200, 'treshold': 1e-4, 'verbosity': 1})
+		converged = model.train(data, parameters={'verbosity': 0, 'max_iter': 200, 'treshold': 1e-4})
 
 		self.assertTrue(converged)
-		
-#		samples = model.sample(1000)
 
 
 

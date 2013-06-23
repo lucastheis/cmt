@@ -781,6 +781,8 @@ PyObject* MCGSM_compute_data_gradient(MCGSMObject* self, PyObject* args, PyObjec
 
 		Py_DECREF(inputGradient);
 		Py_DECREF(outputGradient);
+		Py_DECREF(logLikelihood);
+
 		Py_DECREF(input);
 		Py_DECREF(output);
 
