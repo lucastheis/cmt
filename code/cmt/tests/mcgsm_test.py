@@ -3,7 +3,7 @@ import unittest
 
 sys.path.append('./code')
 
-from cmt import MCGSM, MoGSM
+from cmt import MCGSM, MoGSM, PatchMCGSM, GSM
 from numpy import *
 from numpy import min, max
 from numpy.linalg import cholesky, inv
@@ -318,6 +318,73 @@ class Tests(unittest.TestCase):
 
 		for pred0, pred1 in zip(mcgsm0.predictors, mcgsm1.predictors):
 			self.assertLess(max(abs(pred0 - pred1)), 1e-20)
+
+
+
+	def test_patchmcgsm(self):
+		xmask = ones([8, 8], dtype='bool')
+		ymask = zeros([8, 8], dtype='bool')
+		xmask[-1, -1] = False
+		ymask[-1, -1] = True
+
+		model = PatchMCGSM(8, 8, xmask, ymask, model=MCGSM(sum(xmask), 1))
+
+		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
+		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)
+
+		for i in range(8):
+			for j in range(8):
+				self.assertEqual(model[i, j].dim_in, (i + 1) * (j + 1) - 1)
+				self.assertTrue(isinstance(model[i, j], MCGSM))
+
+		# random pixel ordering
+		rows, cols = 7, 5
+		order = [(i // cols, i % cols) for i in permutation(rows * cols)]
+
+		model = PatchMCGSM(rows, cols, xmask, ymask, order, MCGSM(sum(xmask), 1))
+
+		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
+		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)
+
+		for i in range(rows):
+			for j in range(cols):
+				self.assertEqual(model.input_mask(i, j).sum(), model[i, j].dim_in)
+
+		# test constructors
+		model0 = PatchMCGSM(rows, cols, max_pcs=3)
+		model1 = PatchMCGSM(rows, cols, model0.input_mask(), model0.output_mask(), model0.order)
+
+		self.assertLess(max(abs(model0.input_mask() - model1.input_mask())), 1e-8)
+		self.assertLess(max(abs(model0.output_mask() - model1.output_mask())), 1e-8)
+		self.assertLess(max(abs(asarray(model0.order) - asarray(model1.order))), 1e-8)
+
+		# test computation of input masks
+		model = PatchMCGSM(rows, cols, order, max_pcs=3)
+
+		i, j = model0.order[0]
+		input_mask = model.input_mask(i, j)
+		for i, j in model.order[1:]:
+			self.assertEqual(sum(model.input_mask(i, j) - input_mask), 1)
+			input_mask = model.input_mask(i, j)
+
+
+
+	def test_patchmcgsm_train(self):
+		xmask = ones([2, 2], dtype='bool')
+		ymask = zeros([2, 2], dtype='bool')
+		xmask[-1, -1] = False
+		ymask[-1, -1] = True
+
+		model = PatchMCGSM(2, 2, xmask, ymask, model=MCGSM(sum(xmask), 1, 1, 1))
+
+		data = randn(4, 10000)
+
+		model.initialize(data)
+		converged = model.train(data, parameters={'max_iter': 200, 'treshold': 1e-4, 'verbosity': 1})
+
+		self.assertTrue(converged)
+		
+#		samples = model.sample(1000)
 
 
 

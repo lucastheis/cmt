@@ -48,6 +48,12 @@ namespace CMT {
 
 			virtual Array<double, 1, Dynamic> logLikelihood(
 				int i, int j, const MatrixXd& data) const = 0;
+
+			virtual ConditionalDistribution& operator()(int i, int j) = 0;
+			virtual const ConditionalDistribution& operator()(int i, int j) const = 0;
+
+			virtual AffinePreconditioner& preconditioner(int i, int j) = 0;
+			virtual const AffinePreconditioner& preconditioner(int i, int j) const = 0;
 	};
 
 	template <class CD, class PC = CMT::PCAPreconditioner>
@@ -591,6 +597,7 @@ void CMT::PatchModel<CD, PC>::initialize(const MatrixXd& data, const Parameters&
 		MatrixXd output = data.row(m * mCols + n);
 		MatrixXd input(mInputIndices[i].size(), data.cols());
 
+		// subselect input from patches
 		#pragma omp parallel for
 		for(int j = 0; j < mInputIndices[i].size(); ++j) {
 			// coordinates of j-th input to i-th model
@@ -601,6 +608,7 @@ void CMT::PatchModel<CD, PC>::initialize(const MatrixXd& data, const Parameters&
 			input.row(j) = data.row(m * mCols + n);
 		}
 
+		// initialize model
 		if(mMaxPCs >= 0) {
 			if(mPreconditioners[i])
 				delete mPreconditioners[i];

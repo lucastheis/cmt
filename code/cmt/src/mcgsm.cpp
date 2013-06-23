@@ -195,9 +195,7 @@ void CMT::MCGSM::initialize(const MatrixXd& input, const MatrixXd& output) {
 			gsm->setCholesky(mCholeskyFactors[k]);
 		}
 
-		// optimization hyperparameters
-		
-
+		// hyperparameters
 		MoGSM::Parameters mogsmParams;
 		MoGSM::Component::Parameters gsmParams;
 		gsmParams.trainMean = false;

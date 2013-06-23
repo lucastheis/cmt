@@ -1,5 +1,6 @@
 #include "patchmodelinterface.h"
 #include "pyutils.h"
+#include "distributioninterface.h"
 
 #include "exception.h"
 using CMT::Exception;

@@ -3,7 +3,10 @@
 ## 0.4.0
 
 - Added generalized linear model (GLM) and fully-visible belief network (FVBN).
+- Added mixture models such as mixtures of Gaussian and GSMs.
+- Added *PatchMCGSM*.
 - Made implementation of new conditional models easier by introducing interface *Trainable*.
+- Most methods of *MCGSM* can now cope with zero-dimensional inputs.
 
 ## 0.3.0
 

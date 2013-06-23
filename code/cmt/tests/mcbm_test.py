@@ -233,7 +233,7 @@ class Tests(unittest.TestCase):
 		data = array([[0, 1], [1, 0]], dtype='bool').reshape(-1, 1)
 		data = tile(data, (1, 1000)) ^ (randn(1, 1000) > .5)
 
-		model.initialize(data, parameters={'max_iter': 100})
+		model.initialize(data)
 
 		# training should converge in much less than 2000 iterations
 		self.assertTrue(model.train(data, parameters={'max_iter': 2000}))

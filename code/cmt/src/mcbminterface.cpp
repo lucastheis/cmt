@@ -820,12 +820,12 @@ int PatchMCBM_ass_subscript(PatchMCBMObject* self, PyObject* key, PyObject* valu
 		return -1;
 	}
 
- 	if(self->patchMCBM->operator()(i, j).dimIn() != reinterpret_cast<MCBMObject*>(value)->mcbm->dimIn()) {
+	if(self->patchMCBM->operator()(i, j).dimIn() != reinterpret_cast<MCBMObject*>(value)->mcbm->dimIn()) {
 		PyErr_SetString(PyExc_ValueError, "Given model has wrong input dimensionality.");
 		return -1;
 	}
- 
- 	self->patchMCBM->operator()(i, j) = *reinterpret_cast<MCBMObject*>(value)->mcbm;
+
+	self->patchMCBM->operator()(i, j) = *reinterpret_cast<MCBMObject*>(value)->mcbm;
 
 	return 0;
 }
@@ -926,10 +926,7 @@ int PatchMCBM_set_preconditioners(PatchMCBMObject* self, PyObject* value, void*)
 const char* PatchMCBM_initialize_doc =
 	"initialize(self, data, parameters=None)\n"
 	"\n"
-	"Trains the model assuming shift-invariance of the patch statistics.\n"
-	"\n"
-	"A single conditional distribution is fitted to the given data and all models with\n"
-	"a I{complete} neighborhood are initialized with this one set of parameters.\n"
+	"Tries to guess reasonable parameters for all conditional distributions based on the data.\n"
 	"\n"
 	"It is assumed that the patches are stored in row-order ('C') in the columns of\n"
 	"L{data}.\n"

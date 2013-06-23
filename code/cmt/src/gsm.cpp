@@ -15,6 +15,8 @@ using std::sqrt;
 #include <cstdlib>
 using std::rand;
 
+#include <iostream>
+
 CMT::GSM::GSM(int dim, int numScales) :
 	mDim(dim),
 	mMean(VectorXd::Zero(dim)),
@@ -26,7 +28,7 @@ CMT::GSM::GSM(int dim, int numScales) :
 	if(numScales < 1)
 		throw Exception("Number of scales has to be positive.");
 
-	setCovariance(CMT::covariance(MatrixXd::Random(dim, dim * dim)));
+	setCovariance(CMT::covariance(MatrixXd::Random(dim, dim * dim + 10)));
 }
 
 
@@ -72,7 +74,8 @@ MatrixXd CMT::GSM::sample(int numSamples) const {
 		scales[i] = sqrt(mScales[j]);
 	}
 
-	MatrixXd samples = mCholesky.transpose().triangularView<Eigen::Upper>().solve(sampleNormal(mDim, numSamples).matrix());
+	MatrixXd samples = mCholesky.transpose().triangularView<Eigen::Upper>().solve(
+		sampleNormal(mDim, numSamples).matrix());
 	return (samples.array().rowwise() / scales).colwise() + mMean.array();
 }
 
@@ -104,10 +107,11 @@ void CMT::GSM::initialize(const MatrixXd& data, const Parameters& parameters) {
 	VectorXd mean = data.rowwise().mean();
 	MatrixXd cov = CMT::covariance(data)
 		+ parameters.regularizeCovariance * MatrixXd::Identity(dim(), dim());
+
 	MatrixXd cholesky = cov.llt().matrixL();
 
 	// draw samples with 
-	MatrixXd samples = cholesky * sampleNormal(dim(), dim() * dim()).matrix();
+	MatrixXd samples = cholesky * sampleNormal(dim(), dim() * dim() + 10).matrix();
 	samples.colwise() += mean;
 
 	if(parameters.trainCovariance)

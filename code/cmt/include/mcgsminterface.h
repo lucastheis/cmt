@@ -11,13 +11,28 @@
 #include "mcgsm.h"
 using CMT::MCGSM;
 
+#include "patchmodel.h"
+using CMT::PatchModel;
+
+#include "pcapreconditioner.h"
+using CMT::PCAPreconditioner;
+
+
 struct MCGSMObject {
 	PyObject_HEAD
 	MCGSM* mcgsm;
 	bool owner;
 };
 
+struct PatchMCGSMObject {
+	PyObject_HEAD
+	PatchModel<MCGSM, PCAPreconditioner>* patchMCGSM;
+	bool owner;
+};
+
 extern PyTypeObject MCGSM_type;
+//extern PyTypeObject PatchMCGSM_type;
+extern PyTypeObject PCAPreconditioner_type;
 
 extern const char* MCGSM_doc;
 extern const char* MCGSM_initialize_doc;
@@ -26,6 +41,12 @@ extern const char* MCGSM_sample_posterior_doc;
 extern const char* MCGSM_posterior_doc;
 extern const char* MCGSM_reduce_doc;
 extern const char* MCGSM_setstate_doc;
+
+extern const char* PatchMCGSM_doc;
+extern const char* PatchMCGSM_initialize_doc;
+extern const char* PatchMCGSM_train_doc;
+extern const char* PatchMCGSM_reduce_doc;
+extern const char* PatchMCGSM_setstate_doc;
 
 int MCGSM_init(MCGSMObject*, PyObject*, PyObject*);
 
@@ -68,5 +89,20 @@ PyObject* MCGSM_compute_data_gradient(MCGSMObject*, PyObject*, PyObject*);
 
 PyObject* MCGSM_reduce(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_setstate(MCGSMObject*, PyObject*, PyObject*);
+
+int PatchMCGSM_init(PatchMCGSMObject*, PyObject*, PyObject*);
+
+PyObject* PatchMCGSM_subscript(PatchMCGSMObject*, PyObject* key);
+int PatchMCGSM_ass_subscript(PatchMCGSMObject*, PyObject*, PyObject*);
+
+PyObject* PatchMCGSM_preconditioner(PatchMCGSMObject*, PyObject*);
+PyObject* PatchMCGSM_preconditioners(PatchMCGSMObject*, void*);
+int PatchMCGSM_set_preconditioners(PatchMCGSMObject*, PyObject*, void*);
+
+PyObject* PatchMCGSM_initialize(PatchMCGSMObject*, PyObject*, PyObject*);
+PyObject* PatchMCGSM_train(PatchMCGSMObject*, PyObject*, PyObject*);
+
+PyObject* PatchMCGSM_reduce(PatchMCGSMObject*, PyObject*);
+PyObject* PatchMCGSM_setstate(PatchMCGSMObject*, PyObject*);
 
 #endif

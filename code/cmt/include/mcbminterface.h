@@ -79,6 +79,8 @@ PyObject* MCBM_check_performance(MCBMObject* self, PyObject* args, PyObject* kwd
 PyObject* MCBM_reduce(MCBMObject*, PyObject*);
 PyObject* MCBM_setstate(MCBMObject*, PyObject*);
 
+PyObject* MCBM_sample_posterior(MCBMObject*, PyObject*, PyObject*);
+
 int PatchMCBM_init(PatchMCBMObject*, PyObject*, PyObject*);
 
 PyObject* PatchMCBM_subscript(PatchMCBMObject*, PyObject*);
@@ -87,8 +89,6 @@ int PatchMCBM_ass_subscript(PatchMCBMObject*, PyObject*, PyObject*);
 PyObject* PatchMCBM_preconditioner(PatchMCBMObject*, PyObject*);
 PyObject* PatchMCBM_preconditioners(PatchMCBMObject*, void*);
 int PatchMCBM_set_preconditioners(PatchMCBMObject*, PyObject*, void*);
-
-PyObject* MCBM_sample_posterior(MCBMObject*, PyObject*, PyObject*);
 
 PyObject* PatchMCBM_initialize(PatchMCBMObject*, PyObject*, PyObject*);
 PyObject* PatchMCBM_train(PatchMCBMObject*, PyObject*, PyObject*);
