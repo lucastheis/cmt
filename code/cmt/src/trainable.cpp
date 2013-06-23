@@ -305,7 +305,7 @@ bool CMT::Trainable::train(
 	hyperparams.linesearch = LBFGS_LINESEARCH_MORETHUENTE;
 	hyperparams.max_linesearch = 100;
 	hyperparams.ftol = 1e-4;
-	hyperparams.xtol = 1e-32;
+	hyperparams.xtol = 1e-128;
 
 	// wrap all additional arguments to optimization routine
 	InstanceLBFGS instance(this, &params, &input, &output, inputVal, outputVal);
