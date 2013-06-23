@@ -36,7 +36,6 @@ namespace CMT {
 
 					Parameters();
 					Parameters(const Parameters& params);
-					virtual ~Parameters();
 					virtual Parameters& operator=(const Parameters& params);
 			};
 

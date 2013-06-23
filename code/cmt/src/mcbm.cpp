@@ -1,9 +1,9 @@
 #include "mcbm.h"
 #include "utils.h"
 
-#include <map>
-using std::make_pair;
+#include <utility>
 using std::pair;
+using std::make_pair;
 
 #include <cmath>
 using std::min;
@@ -17,8 +17,6 @@ using Eigen::Array;
 using Eigen::ArrayXXd;
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
-
-#include <iostream>
 
 CMT::MCBM::Parameters::Parameters() :
 	Trainable::Parameters::Parameters()
@@ -50,13 +48,6 @@ CMT::MCBM::Parameters::Parameters(const Parameters& params) :
 	regularizeWeights(params.regularizeWeights),
 	regularizer(params.regularizer)
 {
-	if(params.callback)
-		callback = params.callback->copy();
-}
-
-
-
-CMT::MCBM::Parameters::~Parameters() {
 }
 
 
@@ -591,7 +582,7 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::MCBM::computeDat
 
 	return make_pair(
 		make_pair(
-			ArrayXXd::Zero(input.rows(), input.cols()), 
+			ArrayXXd::Zero(input.rows(), input.cols()),
 			ArrayXXd::Zero(output.rows(), output.cols())), 
 		logLikelihood(input, output));
 }

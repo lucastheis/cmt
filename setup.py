@@ -86,6 +86,7 @@ modules = [
 			'code/cmt/src/preconditioner.cpp',
 			'code/cmt/src/preconditionerinterface.cpp',
 			'code/cmt/src/pyutils.cpp',
+			'code/cmt/src/stm.cpp',
 			'code/cmt/src/tools.cpp',
 			'code/cmt/src/toolsinterface.cpp',
 			'code/cmt/src/trainable.cpp',

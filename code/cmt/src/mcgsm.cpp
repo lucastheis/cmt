@@ -54,11 +54,6 @@ CMT::MCGSM::Parameters::Parameters(const Parameters& params) :
 
 
 
-CMT::MCGSM::Parameters::~Parameters() {
-}
-
-
-
 CMT::MCGSM::Parameters& CMT::MCGSM::Parameters::operator=(const Parameters& params) {
 	Trainable::Parameters::operator=(params);
 

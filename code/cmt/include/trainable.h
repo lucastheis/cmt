@@ -1,7 +1,7 @@
 #ifndef CMT_TRAINABLE_H
 #define CMT_TRAINABLE_H
 
-#include <map>
+#include <utility>
 #include "Eigen/Core"
 #include "lbfgs.h"
 #include "conditionaldistribution.h"
