@@ -123,7 +123,7 @@ Trainable::Parameters* PyObject_ToMCBMParameters(PyObject* parameters) {
 const char* MCBM_doc =
 	"An implementation of a mixture of conditional Boltzmann machines.\n"
 	"\n"
-	"The distribution defined by the model is\n"
+	"The conditional distribution defined by the model is\n"
 	"\n"
 	"$$p(\\mathbf{y} \\mid \\mathbf{x}) \\propto \\sum_{c} \\exp\\left(\\eta_c + \\sum_i \\beta_{ci} \\left(\\mathbf{b}_i^\\top \\mathbf{x}\\right)^2 + \\mathbf{w}_c^\\top \\mathbf{x} + \\mathbf{y}_c^\\top \\mathbf{A}_c \\mathbf{x} + v_c y\\right),$$\n"
 	"\n"
@@ -152,7 +152,7 @@ const char* MCBM_doc =
 	"@param num_components: number of components\n"
 	"\n"
 	"@type  num_features: C{int}\n"
-	"@param num_features: number of features used to approximate input covariance matrices";
+	"@param num_features: number of quadratic features";
 
 int MCBM_init(MCBMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"dim_in", "num_components", "num_features", 0};
@@ -426,9 +426,9 @@ const char* MCBM_train_doc =
 	"\n"
 	"The parameters C{train_priors}, C{train_weights}, and so on can be used to control which "
 	"parameters will be optimized. Optimization stops after C{max_iter} iterations or if "
-	"the gradient is sufficiently small enough, as specified by C{threshold}."
-	"C{num_grad} is the number of gradients used by L-BFGS to approximate the inverse Hessian "
-	"matrix.\n"
+	"the difference in (penalized) log-likelihood is sufficiently small enough, as specified by "
+	"C{threshold}. C{num_grad} is the number of gradients used by L-BFGS to approximate the inverse "
+	"Hessian matrix.\n"
 	"\n"
 	"The parameter C{batch_size} has no effect on the solution of the optimization but "
 	"can affect speed by reducing the number of cache misses.\n"
@@ -461,7 +461,7 @@ const char* MCBM_train_doc =
 PyObject* MCBM_train(MCBMObject* self, PyObject* args, PyObject* kwds) {
 	return Trainable_train(
 		reinterpret_cast<TrainableObject*>(self), 
-		args, 
+		args,
 		kwds,
 		&PyObject_ToMCBMParameters);
 }

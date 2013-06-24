@@ -241,6 +241,13 @@ Array<double, 1, Dynamic> CMT::MCBM::logLikelihood(
 	const MatrixXd& input,
 	const MatrixXd& output) const 
 {
+	if(input.rows() != dimIn())
+		throw Exception("Input has wrong dimensionality.");
+	if(output.rows() != dimOut())
+		throw Exception("Input has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("The number of inputs and outputs must be the same.");
+
 	if(mDimIn) {
 		// some intermediate computations
 		ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
@@ -575,8 +582,8 @@ double CMT::MCBM::parameterGradient(
 
 
 pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::MCBM::computeDataGradient(
-			const MatrixXd& input,
-			const MatrixXd& output) const
+	const MatrixXd& input,
+	const MatrixXd& output) const
 {
 	throw Exception("Not implemented.");
 

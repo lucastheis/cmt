@@ -59,6 +59,7 @@ SOURCES = \
 	$(SRCDIR)/preconditionerinterface.cpp \
 	$(SRCDIR)/pyutils.cpp \
 	$(SRCDIR)/stm.cpp \
+	$(SRCDIR)/stminterface.cpp \
 	$(SRCDIR)/tools.cpp \
 	$(SRCDIR)/toolsinterface.cpp \
 	$(SRCDIR)/trainable.cpp \

@@ -76,10 +76,10 @@ PyObject* MCBM_parameter_gradient(MCBMObject*, PyObject*, PyObject*);
 PyObject* MCBM_check_gradient(MCBMObject*, PyObject*, PyObject*);
 PyObject* MCBM_check_performance(MCBMObject* self, PyObject* args, PyObject* kwds);
 
+PyObject* MCBM_sample_posterior(MCBMObject*, PyObject*, PyObject*);
+
 PyObject* MCBM_reduce(MCBMObject*, PyObject*);
 PyObject* MCBM_setstate(MCBMObject*, PyObject*);
-
-PyObject* MCBM_sample_posterior(MCBMObject*, PyObject*, PyObject*);
 
 int PatchMCBM_init(PatchMCBMObject*, PyObject*, PyObject*);
 

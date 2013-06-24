@@ -16,6 +16,7 @@
 #include "mixtureinterface.h"
 #include "patchmodelinterface.h"
 #include "preconditionerinterface.h"
+#include "stminterface.h"
 #include "toolsinterface.h"
 #include "trainableinterface.h"
 #include "Eigen/Core"
@@ -364,6 +365,109 @@ PyTypeObject MCBM_type = {
 	0,                      /*tp_descr_set*/
 	0,                      /*tp_dictoffset*/
 	(initproc)MCBM_init,    /*tp_init*/
+	0,                      /*tp_alloc*/
+	CD_new,                 /*tp_new*/
+};
+
+static PyGetSetDef STM_getset[] = {
+	{"dim_in_nonlinear", (getter)STM_dim_in_nonlinear, 0, "Dimensionality of nonlinear inputs."},
+	{"dim_in_linear", (getter)STM_dim_in_nonlinear, 0, "Dimensionality of linear inputs."},
+	{"num_components", (getter)STM_num_components, 0, "Numer of predictors."},
+	{"num_features",
+		(getter)STM_num_features, 0,
+		"Number of features available to approximate input covariances."},
+	{"biases",
+		(getter)STM_biases,
+		(setter)STM_set_biases,
+		"Bias terms controlling strength of each mixture component, $a_k$."},
+	{"weights",
+		(getter)STM_weights,
+		(setter)STM_set_weights,
+		"Weights relating features and mixture components, $\\beta_{kl}$."},
+	{"features", 
+		(getter)STM_features,
+		(setter)STM_set_features,
+		"Features used for capturing structure in inputs, $\\mathbf{u}_l$."},
+	{"predictors",
+		(getter)STM_predictors,
+		(setter)STM_set_predictors,
+		"Parameters relating inputs and outputs, $\\mathbf{w}_k$."},
+	{"linear_predictor",
+		(getter)STM_linear_predictor,
+		(setter)STM_set_linear_predictor,
+		"Parameters relating inputs and outputs, $\\mathbf{v}$."},
+	{0}
+};
+
+static PyMethodDef STM_methods[] = {
+	{"train", (PyCFunction)STM_train, METH_VARARGS | METH_KEYWORDS, STM_train_doc},
+//	{"sample_posterior",
+//		(PyCFunction)STM_sample_posterior,
+//		METH_VARARGS | METH_KEYWORDS,
+//		STM_sample_posterior_doc},
+	{"_parameters",
+		(PyCFunction)STM_parameters,
+		METH_VARARGS | METH_KEYWORDS,
+		Trainable_parameters_doc},
+	{"_set_parameters",
+		(PyCFunction)STM_set_parameters,
+		METH_VARARGS | METH_KEYWORDS,
+		Trainable_set_parameters_doc},
+	{"_parameter_gradient",
+		(PyCFunction)STM_parameter_gradient,
+		METH_VARARGS | METH_KEYWORDS,
+		Trainable_parameter_gradient_doc},
+	{"_check_performance",
+		(PyCFunction)STM_check_performance,
+		METH_VARARGS | METH_KEYWORDS,
+		Trainable_check_performance_doc},
+	{"_check_gradient",
+		(PyCFunction)STM_check_gradient,
+		METH_VARARGS | METH_KEYWORDS,
+		Trainable_check_gradient_doc},
+	{"__reduce__", (PyCFunction)STM_reduce, METH_NOARGS, STM_reduce_doc},
+	{"__setstate__", (PyCFunction)STM_setstate, METH_VARARGS, STM_setstate_doc},
+	{0}
+};
+
+PyTypeObject STM_type = {
+	PyObject_HEAD_INIT(0)
+	0,                      /*ob_size*/
+	"cmt.STM",              /*tp_name*/
+	sizeof(STMObject),      /*tp_basicsize*/
+	0,                      /*tp_itemsize*/
+	(destructor)CD_dealloc, /*tp_dealloc*/
+	0,                      /*tp_print*/
+	0,                      /*tp_getattr*/
+	0,                      /*tp_setattr*/
+	0,                      /*tp_compare*/
+	0,                      /*tp_repr*/
+	0,                      /*tp_as_number*/
+	0,                      /*tp_as_sequence*/
+	0,                      /*tp_as_mapping*/
+	0,                      /*tp_hash */
+	0,                      /*tp_call*/
+	0,                      /*tp_str*/
+	0,                      /*tp_getattro*/
+	0,                      /*tp_setattro*/
+	0,                      /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,     /*tp_flags*/
+	STM_doc,                /*tp_doc*/
+	0,                      /*tp_traverse*/
+	0,                      /*tp_clear*/
+	0,                      /*tp_richcompare*/
+	0,                      /*tp_weaklistoffset*/
+	0,                      /*tp_iter*/
+	0,                      /*tp_iternext*/
+	STM_methods,            /*tp_methods*/
+	0,                      /*tp_members*/
+	STM_getset,             /*tp_getset*/
+	&CD_type,               /*tp_base*/
+	0,                      /*tp_dict*/
+	0,                      /*tp_descr_get*/
+	0,                      /*tp_descr_set*/
+	0,                      /*tp_dictoffset*/
+	(initproc)STM_init,     /*tp_init*/
 	0,                      /*tp_alloc*/
 	CD_new,                 /*tp_new*/
 };
@@ -1531,6 +1635,8 @@ PyMODINIT_FUNC initcmt() {
 		return;
 	if(PyType_Ready(&Preconditioner_type) < 0)
 		return;
+	if(PyType_Ready(&STM_type) < 0)
+		return;
 	if(PyType_Ready(&UnivariateDistribution_type) < 0)
 		return;
 	if(PyType_Ready(&WhiteningPreconditioner_type) < 0)
@@ -1563,6 +1669,7 @@ PyMODINIT_FUNC initcmt() {
 	Py_INCREF(&PatchMCGSM_type);
 	Py_INCREF(&PatchModel_type);
 	Py_INCREF(&Preconditioner_type);
+	Py_INCREF(&STM_type);
 	Py_INCREF(&UnivariateDistribution_type);
 	Py_INCREF(&WhiteningPreconditioner_type);
 	Py_INCREF(&WhiteningTransform_type);
@@ -1588,6 +1695,7 @@ PyMODINIT_FUNC initcmt() {
 	PyModule_AddObject(module, "PatchMCGSM", reinterpret_cast<PyObject*>(&PatchMCGSM_type));
 	PyModule_AddObject(module, "PatchModel", reinterpret_cast<PyObject*>(&PatchModel_type));
 	PyModule_AddObject(module, "Preconditioner", reinterpret_cast<PyObject*>(&Preconditioner_type));
+	PyModule_AddObject(module, "STM", reinterpret_cast<PyObject*>(&STM_type));
 	PyModule_AddObject(module, "UnivariateDistribution", reinterpret_cast<PyObject*>(&UnivariateDistribution_type));
 	PyModule_AddObject(module, "WhiteningPreconditioner", reinterpret_cast<PyObject*>(&WhiteningPreconditioner_type));
 	PyModule_AddObject(module, "WhiteningTransform", reinterpret_cast<PyObject*>(&WhiteningTransform_type));
