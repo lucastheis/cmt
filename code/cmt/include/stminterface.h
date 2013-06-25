@@ -61,8 +61,6 @@ PyObject* STM_parameter_gradient(STMObject*, PyObject*, PyObject*);
 PyObject* STM_check_gradient(STMObject*, PyObject*, PyObject*);
 PyObject* STM_check_performance(STMObject* self, PyObject* args, PyObject* kwds);
 
-//PyObject* STM_sample_posterior(STMObject*, PyObject*, PyObject*);
-
 PyObject* STM_reduce(STMObject*, PyObject*);
 PyObject* STM_setstate(STMObject*, PyObject*);
 

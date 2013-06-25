@@ -19,6 +19,8 @@ using CMT::sampleImage;
 using CMT::sampleVideo;
 using CMT::fillInImage;
 using CMT::fillInImageMAP;
+using CMT::extractWindows;
+using CMT::sampleSpikeTrain;
 
 #include <utility>
 using std::pair;
@@ -677,6 +679,100 @@ PyObject* fill_in_image_map(PyObject* self, PyObject* args, PyObject* kwds) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}
+
+	return 0;
+}
+
+
+
+const char* extract_windows_doc =
+	"extract_windows(time_series, window_length)\n"
+	"\n"
+	"Extract windows from a given time series.\n"
+	"\n"
+	"This method can be used to, for example, extract stimulus and spike windows\n"
+	"before training a neuron model such as the L{STM}.\n"
+	"\n"
+	"\t>>> spikes = extract_windows(spike_train, 20)\n"
+	"\t>>> stimuli = extract_windows(stimulus, 20)\n"
+	"\n"
+	"The last row of C{spikes} contains the most recent bin of each window.\n"
+	"We can use\n"
+	"\n"
+	"\t>>> inputs = vstack([stimuli, spikes[:-1]])\n"
+	"\t>>> outputs = spikes[-1]\n"
+	"\n"
+	"to generate the inputs and outputs to a neuron model.\n"
+	"\n"
+	"\t>>> stm = STM(20, 50, 3, 10)\n"
+	"\t>>> stm.train(inputs, outputs)\n"
+	"\n"
+	"@type  time_series: C{ndarray}\n"
+	"@param time_series: an NxT array representing an N-dimensional time series of length T\n"
+	"\n"
+	"@type  window_length: C{int}\n"
+	"@param window_length: number of bins of the extracted windows\n"
+	"\n"
+	"@rtype: C{tuple}\n"
+	"@return: all possible overlapping windows of the time series";
+
+PyObject* extract_windows(PyObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"time_series", "window_length", 0};
+
+	PyObject* time_series;
+	int window_length;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "Oi", const_cast<char**>(kwlist),
+		&time_series, &window_length))
+		return 0;
+
+	time_series = PyArray_FROM_OTF(time_series, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!time_series) {
+		PyErr_SetString(PyExc_TypeError, "time_series should be of type `ndarray`.");
+		return 0;
+	}
+
+	try {
+		PyObject* result = PyArray_FromMatrixXd(
+			extractWindows(PyArray_ToMatrixXd(time_series), window_length));
+
+		Py_DECREF(time_series);
+
+		return result;
+	} catch(Exception exception) {
+		Py_DECREF(time_series);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	Py_DECREF(time_series);
+
+	return 0;
+}
+
+
+
+const char* sample_spike_train_doc =
+	"sample_spike_train(time_series, window_length)\n"
+	"\n"
+	"Sample spike train for a given stimulus.\n"
+	"\n"
+	"@rtype: C{tuple}\n"
+	"@return: sampled spike train";
+
+PyObject* sample_spike_train(PyObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"stimulus", "model", "stimulus_history", "spike_history", "preconditioner", 0};
+
+	PyObject* stimulus;
+	PyObject* modelObj;
+	int stimulus_history;
+	int spike_history = 0;
+	PyObject* preconditionerObj = 0;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!i|iO!", const_cast<char**>(kwlist),
+		&stimulus, &CD_type, &modelObj, &stimulus_history, &spike_history, &Preconditioner_type, &preconditionerObj))
+		return 0;
 
 	return 0;
 }

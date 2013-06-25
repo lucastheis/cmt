@@ -444,61 +444,6 @@ PyObject* STM_train(STMObject* self, PyObject* args, PyObject* kwds) {
 
 
 
-//const char* STM_sample_posterior_doc =
-//	"sample_posterior(self, input, output)\n"
-//	"\n"
-//	"Samples component labels $c$ from the posterior $p(c \\mid \\mathbf{x}, \\mathbf{y})$.\n"
-//	"\n"
-//	"@type  input: C{ndarray}\n"
-//	"@param input: inputs stored in columns\n"
-//	"\n"
-//	"@type  output: C{ndarray}\n"
-//	"@param output: inputs stored in columns\n"
-//	"\n"
-//	"@rtype: C{ndarray}\n"
-//	"@return: an integer array containing a sampled index for each input and output pair";
-//
-//PyObject* STM_sample_posterior(STMObject* self, PyObject* args, PyObject* kwds) {
-//	const char* kwlist[] = {"input", "output", 0};
-//
-//	PyObject* input;
-//	PyObject* output;
-//
-//	// read arguments
-//	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output))
-//		return 0;
-//
-//	// make sure data is stored in NumPy array
-//	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-//	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-//
-//	if(!input || !output) {
-//		Py_XDECREF(input);
-//		Py_XDECREF(output);
-//		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
-//		return 0;
-//	}
-//
-//	try {
-//		PyObject* result = PyArray_FromMatrixXi(
-//			self->distribution->samplePosterior(
-//				PyArray_ToMatrixXd(input),
-//				PyArray_ToMatrixXd(output)));
-//		Py_DECREF(input);
-//		Py_DECREF(output);
-//		return result;
-//	} catch(Exception exception) {
-//		Py_DECREF(input);
-//		Py_DECREF(output);
-//		PyErr_SetString(PyExc_RuntimeError, exception.message());
-//		return 0;
-//	}
-//
-//	return 0;
-//}
-
-
-
 PyObject* STM_parameters(STMObject* self, PyObject* args, PyObject* kwds) {
 	return Trainable_parameters(
 		reinterpret_cast<TrainableObject*>(self),

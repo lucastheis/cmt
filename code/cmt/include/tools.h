@@ -112,6 +112,15 @@ namespace CMT {
 		const Preconditioner* preconditioner = 0,
 		int numIterations = 10,
 		int patchSize = 20);
+
+	ArrayXXd extractWindows(const ArrayXXd& timeSeries, int windowLength);
+
+	ArrayXXd sampleSpikeTrain(
+		const ArrayXXd& stimulus,
+		const ConditionalDistribution& model,
+		int stimulusHistory,
+		int spikeHistory = 0,
+		const Preconditioner* preconditioner = 0);
 }
 
 #endif

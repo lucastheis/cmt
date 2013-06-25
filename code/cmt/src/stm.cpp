@@ -224,6 +224,56 @@ Array<double, 1, Dynamic> CMT::STM::logLikelihood(
 
 
 
+bool CMT::STM::train(
+	const MatrixXd& inputNonlinear,
+	const MatrixXd& inputLinear,
+	const MatrixXd& output,
+	const Parameters& params)
+{
+	if(inputNonlinear.cols() != inputLinear.cols())
+		throw Exception("Number of nonlinear and linear inputs must be the same.");
+
+	// stack inputs
+	MatrixXd input(
+		inputNonlinear.rows() + inputLinear.rows(),
+		inputLinear.cols());
+	input << inputNonlinear, inputLinear;
+
+	return train(input, output, params);
+}
+
+
+
+bool CMT::STM::train(
+	const MatrixXd& inputNonlinear,
+	const MatrixXd& inputLinear,
+	const MatrixXd& output,
+	const MatrixXd& inputNonlinearVal,
+	const MatrixXd& inputLinearVal,
+	const MatrixXd& outputVal,
+	const Parameters& params)
+{
+	if(inputNonlinear.cols() != inputLinear.cols())
+		throw Exception("Number of nonlinear and linear inputs must be the same.");
+	if(inputNonlinearVal.cols() != inputLinearVal.cols())
+		throw Exception("Number of nonlinear and linear inputs must be the same.");
+
+	// stack inputs
+	MatrixXd input(
+		inputNonlinear.rows() + inputLinear.rows(),
+		inputLinear.cols());
+	input << inputNonlinear, inputLinear;
+
+	MatrixXd inputVal(
+		inputNonlinearVal.rows() + inputLinearVal.rows(),
+		inputLinearVal.cols());
+	inputVal << inputNonlinearVal, inputLinearVal;
+
+	return train(input, output, inputVal, outputVal, params);
+}
+
+
+
 int CMT::STM::numParameters(const Trainable::Parameters& params_) const {
 	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 

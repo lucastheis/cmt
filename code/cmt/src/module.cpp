@@ -401,10 +401,6 @@ static PyGetSetDef STM_getset[] = {
 
 static PyMethodDef STM_methods[] = {
 	{"train", (PyCFunction)STM_train, METH_VARARGS | METH_KEYWORDS, STM_train_doc},
-//	{"sample_posterior",
-//		(PyCFunction)STM_sample_posterior,
-//		METH_VARARGS | METH_KEYWORDS,
-//		STM_sample_posterior_doc},
 	{"_parameters",
 		(PyCFunction)STM_parameters,
 		METH_VARARGS | METH_KEYWORDS,
@@ -1577,6 +1573,7 @@ static PyMethodDef cmt_methods[] = {
 	{"sample_video", (PyCFunction)sample_video, METH_VARARGS | METH_KEYWORDS, sample_video_doc},
 	{"fill_in_image", (PyCFunction)fill_in_image, METH_VARARGS | METH_KEYWORDS, fill_in_image_doc},
 	{"fill_in_image_map", (PyCFunction)fill_in_image_map, METH_VARARGS | METH_KEYWORDS, 0},
+	{"extract_windows", (PyCFunction)extract_windows, METH_VARARGS | METH_KEYWORDS, extract_windows_doc},
 	{0}
 };
 

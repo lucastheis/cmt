@@ -7,6 +7,7 @@ using std::rand;
 
 #include <cmath>
 using std::exp;
+using std::max;
 
 #include <set>
 using std::set;
@@ -35,6 +36,7 @@ using Eigen::Array;
 using Eigen::ArrayXd;
 using Eigen::ArrayXXd;
 using Eigen::VectorXd;
+using Eigen::Map;
 
 #include <iostream>
 #include <iomanip>
@@ -1279,4 +1281,72 @@ ArrayXXd CMT::fillInImageMAP(
 		}
 
 	return img;
+}
+
+
+
+ArrayXXd CMT::extractWindows(const ArrayXXd& timeSeries, int windowLength) {
+	ArrayXXd windows(timeSeries.rows() * windowLength, timeSeries.cols() - windowLength + 1);
+
+	#ifndef EIGEN_DEFAULT_TO_ROW_MAJOR
+	const double* dataFrom = timeSeries.data();
+	double* dataTo = windows.data();
+	#endif
+
+	#pragma omp parallel for
+	for(int t = 0; t < windows.cols(); ++t) {
+		// read entries from time series in column-major order
+		#ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
+		for(int j = 0, k = 0; j < windowLength; ++j)
+			for(int i = 0; i < timeSeries.rows(); ++i, ++k)
+				windows(k, t) = timeSeries(i, t + j);
+		#else
+		for(int i = 0; i < windows.rows(); ++i)
+			dataTo[t * windows.rows() + i] = dataFrom[t * timeSeries.rows() + i];
+		#endif
+	}
+
+	return windows;
+}
+
+
+
+ArrayXXd CMT::sampleSpikeTrain(
+	const ArrayXXd& stimulus,
+	const ConditionalDistribution& model,
+	int stimulusHistory,
+	int spikeHistory,
+	const Preconditioner* preconditioner)
+{
+	if(spikeHistory <= 0)
+		if(preconditioner)
+			return model.sample(extractWindows(stimulus, stimulusHistory));
+		else
+			return model.sample(
+				preconditioner->operator()(extractWindows(stimulus, stimulusHistory)));
+
+	int offset = max(stimulusHistory, spikeHistory + 1);
+
+	int dimStim = stimulusHistory * stimulus.rows();
+	int dimHis = spikeHistory * model.dimOut();
+
+	// sampled spike train
+	ArrayXd spikeTrain(model.dimOut(), stimulus.cols());
+
+	// stimulus plus spike history
+	ArrayXd input(dimStim + dimHis);
+
+	for(int t = offset - 1; t < stimulus.cols(); ++t) {
+		for(int j = 0, k = 0; j < stimulusHistory; ++j)
+			for(int i = 0; i < stimulus.rows(); ++i, ++k)
+				input[k] = stimulus(i, t - stimulusHistory + j + 1);
+
+		for(int j = 0, k = 0; j < spikeHistory; ++j)
+			for(int i = 0; i < model.dimOut(); ++i, ++k)
+				input[dimStim + k] = spikeTrain(i, t - spikeHistory + j);
+
+		spikeTrain.col(t) = model.sample(input);
+	}
+
+	return spikeTrain;
 }

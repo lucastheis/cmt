@@ -8,9 +8,12 @@ from cmt import random_select
 from cmt import generate_data_from_image, sample_image
 from cmt import generate_data_from_video, sample_video
 from cmt import fill_in_image, fill_in_image_map
+from cmt import extract_windows
 from numpy import *
 from numpy import max
 from numpy.random import *
+
+from time import time
 
 class ToolsTest(unittest.TestCase):
 	def test_random_select(self):
@@ -248,6 +251,28 @@ class ToolsTest(unittest.TestCase):
 		# this should raise no exception
 		wt = WhiteningPreconditioner(randn(4, 1000), randn(1, 1000))
 		fill_in_image_map(img, model, xmask, ymask, fmask, wt, num_iter=1, patch_size=20)
+
+
+
+	def test_preprocess_spike_train(self):
+		stimulus = arange(20).T.reshape(-1, 2).T
+		spike_train = arange(10).reshape(1, -1)
+
+		spike_history = 3
+		stimulus_history = 2
+
+		stimuli = extract_windows(stimulus, stimulus_history)
+		spikes = extract_windows(spike_train, spike_history)
+
+		stimuli = stimuli[:, -spikes.shape[1]:]
+		spikes = spikes[:, -stimuli.shape[1]:]
+
+		self.assertEqual(stimuli.shape[0], stimulus.shape[0] * stimulus_history)
+		self.assertEqual(stimuli.shape[1], stimulus.shape[1] - max([stimulus_history, spike_history]) + 1)
+		self.assertEqual(spikes.shape[0], spike_train.shape[0] * spike_history)
+		self.assertEqual(spikes.shape[1], spike_train.shape[1] - max([stimulus_history, spike_history]) + 1)
+		self.assertLess(max(abs(spikes[:, -1] - spike_train[0, -spike_history:])), 1e-8)
+		self.assertLess(max(abs(stimuli[:, -1] - stimulus[:, -stimulus_history:].T.ravel())), 1e-8)
 
 
 

@@ -81,6 +81,20 @@ namespace CMT {
 				const MatrixXd& inputLinear,
 				const MatrixXd& output) const;
 
+			virtual bool train(
+				const MatrixXd& inputNonlinear,
+				const MatrixXd& inputLinear,
+				const MatrixXd& output,
+				const Parameters& params = Parameters());
+			virtual bool train(
+				const MatrixXd& inputNonlinear,
+				const MatrixXd& inputLinear,
+				const MatrixXd& output,
+				const MatrixXd& inputNonlinearVal,
+				const MatrixXd& inputLinearVal,
+				const MatrixXd& outputVal,
+				const Parameters& params = Parameters());
+
 			virtual int numParameters(
 				const Trainable::Parameters& params = Parameters()) const;
 			virtual lbfgsfloatval_t* parameters(
