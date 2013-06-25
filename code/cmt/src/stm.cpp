@@ -540,14 +540,17 @@ bool CMT::STM::train(
 		Bernoulli distribution;
 		GLM glm(dimInLinear(), &nonlinearity, &distribution);
 
+		bool converged;
 		if(inputVal && outputVal)
-			glm.train(input, output, *inputVal, *outputVal, params);
+			converged = glm.train(input, output, *inputVal, *outputVal, params);
 		else
-			glm.train(input, output, params);
+			converged = glm.train(input, output, params);
 
 		// copy parameters
 		mLinearPredictor = glm.weights();
 		mBiases.setConstant(glm.bias() - log(numComponents()));
+
+		return converged;
 	} else {
 		return Trainable::train(input, output, inputVal, outputVal, params);
 	}
