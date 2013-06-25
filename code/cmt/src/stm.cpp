@@ -1,4 +1,5 @@
 #include "stm.h"
+#include "glm.h"
 #include "utils.h"
 
 #include "Eigen/Core"
@@ -115,7 +116,7 @@ CMT::STM::STM(int dimInNonlinear, int dimInLinear, int numComponents, int numFea
 MatrixXd CMT::STM::sample(const MatrixXd& input) const {
 	// compute probability of generating a 1
 	Array<double, 1, Dynamic> logProb1 =
-		logLikelihood(input, MatrixXd::Ones(1, input.cols())).exp();
+		logLikelihood(input, MatrixXd::Ones(1, input.cols()));
 
 	// sample uniformly between 0 and 1
 	Array<double, 1, Dynamic> uniRand =
@@ -514,4 +515,40 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::STM::computeData
 			ArrayXXd::Zero(input.rows(), input.cols()),
 			ArrayXXd::Zero(output.rows(), output.cols())), 
 		logLikelihood(input, output));
+}
+
+
+
+bool CMT::STM::train(
+	const MatrixXd& input,
+	const MatrixXd& output,
+	const MatrixXd* inputVal,
+	const MatrixXd* outputVal,
+	const Trainable::Parameters& params)
+{
+	if(!dimIn()) {
+		// STM reduces to Bernoulli
+		double prob = output.array().mean();
+		mBiases.setConstant(prob > 0. ? log(prob) - log(1. - prob) - log(numComponents()) : -50.);
+		return true;
+	} else if(!dimInNonlinear()) {
+		if(dimInLinear() != input.rows())
+			throw Exception("Input has wrong dimensionality.");
+
+		// STM reduces to GLM
+		LogisticFunction nonlinearity;
+		Bernoulli distribution;
+		GLM glm(dimInLinear(), &nonlinearity, &distribution);
+
+		if(inputVal && outputVal)
+			glm.train(input, output, *inputVal, *outputVal, params);
+		else
+			glm.train(input, output, params);
+
+		// copy parameters
+		mLinearPredictor = glm.weights();
+		mBiases.setConstant(glm.bias() - log(numComponents()));
+	} else {
+		return Trainable::train(input, output, inputVal, outputVal, params);
+	}
 }

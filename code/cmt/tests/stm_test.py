@@ -3,7 +3,7 @@ import unittest
 
 sys.path.append('./code')
 
-from cmt import STM
+from cmt import STM, GLM, Bernoulli, LogisticFunction
 from numpy import *
 from numpy import max, min
 from numpy.random import *
@@ -31,6 +31,8 @@ class Tests(unittest.TestCase):
 
 		# check hyperparameters
 		self.assertEqual(stm.dim_in, dim_in_linear + dim_in_nonlinear)
+		self.assertEqual(stm.dim_in_linear, dim_in_linear)
+		self.assertEqual(stm.dim_in_nonlinear, dim_in_nonlinear)
 		self.assertEqual(stm.num_components, num_components)
 		self.assertEqual(stm.num_features, num_features)
 	
@@ -54,36 +56,66 @@ class Tests(unittest.TestCase):
 
 
 
-#	def test_train(self):
-#		stm = STM(8, 4, 20)
-#
-#		parameters = stm._parameters()
-#
-#		stm.train(
-#			randint(2, size=[stm.dim_in, 2000]),
-#			randint(2, size=[stm.dim_out, 2000]),
-#			parameters={
-#				'verbosity': 0,
-#				'max_iter': 0,
-#				})
-#
-#		# parameters should not have changed
-#		self.assertLess(max(abs(stm._parameters() - parameters)), 1e-20)
-#
-#		def callback(i, stm):
-#			return
-#
-#		stm.train(
-#			randint(2, size=[stm.dim_in, 10000]),
-#			randint(2, size=[stm.dim_out, 10000]),
-#			parameters={
-#				'verbosity': 0,
-#				'max_iter': 10,
-#				'threshold': 0.,
-#				'batch_size': 1999,
-#				'callback': callback,
-#				'cb_iter': 1,
-#				})
+	def test_train(self):
+		stm = STM(8, 4, 4, 10)
+
+		parameters = stm._parameters()
+
+		stm.train(
+			randint(2, size=[stm.dim_in, 2000]),
+			randint(2, size=[stm.dim_out, 2000]),
+			parameters={
+				'verbosity': 0,
+				'max_iter': 0,
+				})
+
+		# parameters should not have changed
+		self.assertLess(max(abs(stm._parameters() - parameters)), 1e-20)
+
+		def callback(i, stm):
+			callback.counter += 1
+			return
+		callback.counter = 0
+
+		max_iter = 10
+
+		stm.train(
+			randint(2, size=[stm.dim_in, 10000]),
+			randint(2, size=[stm.dim_out, 10000]),
+			parameters={
+				'verbosity': 0,
+				'max_iter': max_iter,
+				'threshold': 0.,
+				'batch_size': 1999,
+				'callback': callback,
+				'cb_iter': 2,
+				})
+
+		self.assertEqual(callback.counter, max_iter / 2)
+
+		# test zero-dimensional nonlinear inputs
+		stm = STM(0, 5, 5)
+
+		glm = GLM(stm.dim_in_linear, LogisticFunction, Bernoulli)
+		glm.weights = randn(*glm.weights.shape)
+
+		input = randn(stm.dim_in_linear, 10000)
+		output = glm.sample(input)
+
+		stm.train(input, output, parameters={'max_iter': 20})
+
+		# STM should be able to learn GLM behavior
+		self.assertAlmostEqual(glm.evaluate(input, output), stm.evaluate(input, output), 1)
+
+		# test zero-dimensional inputs
+		stm = STM(0, 0, 10)
+
+		input = empty([0, 10000])
+		output = rand(1, 10000) < 0.35
+
+		stm.train(input, output)
+
+		self.assertLess(abs(mean(stm.sample(input)) - mean(output)), 0.1)
 
 
 

@@ -110,6 +110,13 @@ namespace CMT {
 			MatrixXd mFeatures;
 			MatrixXd mPredictors;
 			VectorXd mLinearPredictor;
+
+			bool train(
+				const MatrixXd& input,
+				const MatrixXd& output,
+				const MatrixXd* inputVal,
+				const MatrixXd* outputVal,
+				const Trainable::Parameters& params);
 	};
 }
 

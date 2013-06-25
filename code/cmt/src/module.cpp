@@ -371,7 +371,7 @@ PyTypeObject MCBM_type = {
 
 static PyGetSetDef STM_getset[] = {
 	{"dim_in_nonlinear", (getter)STM_dim_in_nonlinear, 0, "Dimensionality of nonlinear inputs."},
-	{"dim_in_linear", (getter)STM_dim_in_nonlinear, 0, "Dimensionality of linear inputs."},
+	{"dim_in_linear", (getter)STM_dim_in_linear, 0, "Dimensionality of linear inputs."},
 	{"num_components", (getter)STM_num_components, 0, "Numer of predictors."},
 	{"num_features",
 		(getter)STM_num_features, 0,
