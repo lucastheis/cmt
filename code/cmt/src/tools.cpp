@@ -1312,40 +1312,54 @@ ArrayXXd CMT::extractWindows(const ArrayXXd& timeSeries, int windowLength) {
 
 
 ArrayXXd CMT::sampleSpikeTrain(
-	const ArrayXXd& stimulus,
+	const ArrayXXd& stimuli,
 	const ConditionalDistribution& model,
-	int stimulusHistory,
 	int spikeHistory,
 	const Preconditioner* preconditioner)
 {
 	if(spikeHistory <= 0)
-		if(preconditioner)
-			return model.sample(extractWindows(stimulus, stimulusHistory));
-		else
-			return model.sample(
-				preconditioner->operator()(extractWindows(stimulus, stimulusHistory)));
+		return model.sample(stimuli);
 
-	int offset = max(stimulusHistory, spikeHistory + 1);
-
-	int dimStim = stimulusHistory * stimulus.rows();
 	int dimHis = spikeHistory * model.dimOut();
 
-	// sampled spike train
-	ArrayXd spikeTrain(model.dimOut(), stimulus.cols());
+	// container for sampled spike train
+	ArrayXXd spikeTrain = ArrayXXd::Zero(model.dimOut(), stimuli.cols());
 
-	// stimulus plus spike history
-	ArrayXd input(dimStim + dimHis);
+	if(preconditioner) {
+		// container for input to the model and spike history
+		ArrayXd input(stimuli.rows() + preconditioner->dimInPre());
+		ArrayXd spikes(spikeHistory * model.dimOut());
 
-	for(int t = offset - 1; t < stimulus.cols(); ++t) {
-		for(int j = 0, k = 0; j < stimulusHistory; ++j)
-			for(int i = 0; i < stimulus.rows(); ++i, ++k)
-				input[k] = stimulus(i, t - stimulusHistory + j + 1);
+		for(int t = spikeHistory; t < stimuli.cols(); ++t) {
+			// extract spike history
+			for(int k = 0, i = t - spikeHistory; i < t; ++i)
+				for(int j = 0; j < model.dimOut(); ++j, ++k)
+					spikes[k] = spikeTrain(j, i);
 
-		for(int j = 0, k = 0; j < spikeHistory; ++j)
-			for(int i = 0; i < model.dimOut(); ++i, ++k)
-				input[dimStim + k] = spikeTrain(i, t - spikeHistory + j);
+			// transform spike history
+			spikes = preconditioner->operator()(spikes);
 
-		spikeTrain.col(t) = model.sample(input);
+			// copy stimulus and transformed spike history into input
+			for(int i = 0; i < stimuli.rows(); ++i)
+				input[i] = stimuli(i, t);
+			for(int i = 0; i < spikes.rows(); ++i)
+				input[stimuli.rows() + i] = spikes[i];
+
+			spikeTrain.col(t) = model.sample(input);
+		}
+	} else {
+		ArrayXd input(stimuli.rows() + spikeHistory * model.dimOut());
+
+		for(int t = spikeHistory; t < stimuli.cols(); ++t) {
+			// copy stimulus and spike history into input
+			for(int i = 0; i < stimuli.rows(); ++i)
+				input[i] = stimuli(i, t);
+			for(int i = t - spikeHistory, k = stimuli.rows(); i < t; ++i)
+				for(int j = 0; j < model.dimOut(); ++j, ++k)
+					input[k] = spikeTrain(j, i);
+
+			spikeTrain.col(t) = model.sample(input);
+		}
 	}
 
 	return spikeTrain;

@@ -754,25 +754,83 @@ PyObject* extract_windows(PyObject* self, PyObject* args, PyObject* kwds) {
 
 
 const char* sample_spike_train_doc =
-	"sample_spike_train(time_series, window_length)\n"
+	"sample_spike_train(stimuli, model, spike_history=0, preconditioner=None)\n"
 	"\n"
-	"Sample spike train for a given stimulus.\n"
+	"Generate a spike train using a given model and a sequence of stimuli.\n"
+	"\n"
+	"If the model's output depends on the spike history, the length of the\n"
+	"spike history taken into account can be specified using C{spike_history}.\n"
+	"If C{spike_history} is positive, the model at time $t$ will receive the\n"
+	"stimulus at time $t$ concatenated with C{spike_history} bins of the\n"
+	"spike train preceding. The last entry of the input to the model is the\n"
+	"most recent bin of the spike train.\n"
+	"\n"
+	"If C{preconditioner} is specified, the spike history is first transformed\n"
+	"before appending it to the stimulus.\n"
+	"\n"
+	"@type  stimuli: C{ndarray}\n"
+	"@param stimuli: each column represents (possibly preprocessed) stimulus window\n"
+	"\n"
+	"@type  model: L{ConditionalDistribution}\n"
+	"@param model: a conditional distribution such as an L{STM}\n"
+	"\n"
+	"@type  spike_history: L{ConditionalDistribution}\n"
+	"@param spike_history: number of spikes used as input to the model\n"
+	"\n"
+	"@type  preconditioner: L{Preconditioner}\n"
+	"@param preconditioner: transforms the spike history before appending it to the input\n"
 	"\n"
 	"@rtype: C{tuple}\n"
 	"@return: sampled spike train";
 
 PyObject* sample_spike_train(PyObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"stimulus", "model", "stimulus_history", "spike_history", "preconditioner", 0};
+	const char* kwlist[] = {
+		"stimulus", "model", "spike_history", "preconditioner", 0};
 
 	PyObject* stimulus;
 	PyObject* modelObj;
-	int stimulus_history;
 	int spike_history = 0;
 	PyObject* preconditionerObj = 0;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!i|iO!", const_cast<char**>(kwlist),
-		&stimulus, &CD_type, &modelObj, &stimulus_history, &spike_history, &Preconditioner_type, &preconditionerObj))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!|iO!", const_cast<char**>(kwlist),
+		&stimulus,
+		&CD_type, &modelObj,
+		&spike_history,
+		&Preconditioner_type, &preconditionerObj))
 		return 0;
+
+	if(preconditionerObj == Py_None)
+		preconditionerObj = 0;
+
+	stimulus = PyArray_FROM_OTF(stimulus, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!stimulus) {
+		PyErr_SetString(PyExc_TypeError, "stimulus should be of type `ndarray`.");
+		return 0;
+	}
+
+	const ConditionalDistribution& model = *reinterpret_cast<CDObject*>(modelObj)->cd;
+
+	Preconditioner* preconditioner = preconditionerObj ?
+		reinterpret_cast<PreconditionerObject*>(preconditionerObj)->preconditioner : 0;
+
+	try {
+		ArrayXXd spikeTrain = sampleSpikeTrain(
+			PyArray_ToMatrixXd(stimulus),
+			model,
+			spike_history,
+			preconditioner);
+
+		Py_DECREF(stimulus);
+		
+		return PyArray_FromMatrixXd(spikeTrain);
+	} catch(Exception exception) {
+		Py_DECREF(stimulus);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	Py_DECREF(stimulus);
 
 	return 0;
 }

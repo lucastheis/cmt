@@ -116,9 +116,8 @@ namespace CMT {
 	ArrayXXd extractWindows(const ArrayXXd& timeSeries, int windowLength);
 
 	ArrayXXd sampleSpikeTrain(
-		const ArrayXXd& stimulus,
+		const ArrayXXd& stimuli,
 		const ConditionalDistribution& model,
-		int stimulusHistory,
 		int spikeHistory = 0,
 		const Preconditioner* preconditioner = 0);
 }
