@@ -18,6 +18,7 @@ extern const char* generate_data_from_image_doc;
 extern const char* generate_data_from_video_doc;
 extern const char* fill_in_image_doc;
 extern const char* extract_windows_doc;
+extern const char* sample_spike_train_doc;
 
 PyObject* random_select(PyObject*, PyObject*, PyObject*);
 PyObject* generate_data_from_image(PyObject*, PyObject*, PyObject*);

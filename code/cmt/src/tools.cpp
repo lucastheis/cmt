@@ -1337,13 +1337,13 @@ ArrayXXd CMT::sampleSpikeTrain(
 					spikes[k] = spikeTrain(j, i);
 
 			// transform spike history
-			spikes = preconditioner->operator()(spikes);
+			ArrayXd spikesPrec = preconditioner->operator()(spikes);
 
 			// copy stimulus and transformed spike history into input
 			for(int i = 0; i < stimuli.rows(); ++i)
 				input[i] = stimuli(i, t);
-			for(int i = 0; i < spikes.rows(); ++i)
-				input[stimuli.rows() + i] = spikes[i];
+			for(int i = 0; i < spikesPrec.rows(); ++i)
+				input[stimuli.rows() + i] = spikesPrec[i];
 
 			spikeTrain.col(t) = model.sample(input);
 		}

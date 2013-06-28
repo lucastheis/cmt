@@ -1574,7 +1574,7 @@ static PyMethodDef cmt_methods[] = {
 	{"fill_in_image", (PyCFunction)fill_in_image, METH_VARARGS | METH_KEYWORDS, fill_in_image_doc},
 	{"fill_in_image_map", (PyCFunction)fill_in_image_map, METH_VARARGS | METH_KEYWORDS, 0},
 	{"extract_windows", (PyCFunction)extract_windows, METH_VARARGS | METH_KEYWORDS, extract_windows_doc},
-	{"sample_spike_train", (PyCFunction)extract_windows, METH_VARARGS | METH_KEYWORDS, extract_windows_doc},
+	{"sample_spike_train", (PyCFunction)sample_spike_train, METH_VARARGS | METH_KEYWORDS, sample_spike_train_doc},
 	{0}
 };
 

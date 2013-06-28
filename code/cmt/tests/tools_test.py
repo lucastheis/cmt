@@ -4,13 +4,14 @@ import unittest
 sys.path.append('./code')
 
 from cmt import MCGSM, WhiteningPreconditioner
+from cmt import GLM, LogisticFunction, Bernoulli, AffineTransform
 from cmt import random_select
 from cmt import generate_data_from_image, sample_image
 from cmt import generate_data_from_video, sample_video
 from cmt import fill_in_image, fill_in_image_map
-from cmt import extract_windows
+from cmt import extract_windows, sample_spike_train
 from numpy import *
-from numpy import max
+from numpy import max, all
 from numpy.random import *
 
 from time import time
@@ -273,6 +274,40 @@ class ToolsTest(unittest.TestCase):
 		self.assertEqual(spikes.shape[1], spike_train.shape[1] - max([stimulus_history, spike_history]) + 1)
 		self.assertLess(max(abs(spikes[:, -1] - spike_train[0, -spike_history:])), 1e-8)
 		self.assertLess(max(abs(stimuli[:, -1] - stimulus[:, -stimulus_history:].T.ravel())), 1e-8)
+
+
+
+	def test_sample_spike_train(self):
+		inputs = array([
+			[0, 0, 0, 0, 1, 1, 1, 1],
+			[0, 0, 1, 1, 0, 0, 1, 1],
+			[0, 1, 0, 1, 0, 1, 0, 1]])
+		outputs = array([[1, 0, 0, 0, 1, 0, 0, 0]])
+
+		glm = GLM(3, LogisticFunction, Bernoulli)
+		glm.train(inputs, outputs)
+
+		# generate a spike train without any stimulus input
+		spike_train = sample_spike_train(empty([0, 100]), glm, 3)
+
+		# test difference to expected spike train
+		diff = spike_train.ravel()[:10] - [0, 0, 0, 1, 0, 0, 1, 0, 0, 1]
+		self.assertLess(max(abs(diff)), 1e-8)
+
+		# preconditioner which removes first (uninformative) dimension from input
+		m = zeros([3, 1])
+		A = array([[0, 1, 0], [0, 0, 1]])
+		pre = AffineTransform(m, A)
+
+		glm = GLM(2, LogisticFunction, Bernoulli)
+		glm.train(pre(inputs), outputs)
+
+		# generate a spike train with preconditioned spike history
+		spike_train = sample_spike_train(empty([0, 100]), glm, 3, pre)
+
+		# test difference to expected spike train
+		diff = spike_train.ravel()[:10] - [0, 0, 0, 1, 0, 0, 1, 0, 0, 1]
+		self.assertLess(max(abs(diff)), 1e-8)
 
 
 
