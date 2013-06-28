@@ -15,7 +15,7 @@ CMT::AffineTransform::AffineTransform(const VectorXd& meanIn, const MatrixXd& pr
 		meanIn,
 		VectorXd::Zero(dimOut),
 		preIn,
-		preIn.inverse(),
+		preIn.rows() == preIn.cols() ? preIn.inverse().eval() : pInverse(preIn),
 		MatrixXd::Identity(dimOut, dimOut),
 		MatrixXd::Identity(dimOut, dimOut),
 		MatrixXd::Zero(dimOut, preIn.rows()))

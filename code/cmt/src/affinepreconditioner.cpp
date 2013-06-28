@@ -21,9 +21,9 @@ CMT::AffinePreconditioner::AffinePreconditioner(
 	mMeanIn(meanIn),
 	mMeanOut(meanOut),
 	mPreIn(preIn),
-	mPreInInv(preIn.inverse()),
+	mPreInInv(preIn.rows() == preIn.cols() ? preIn.inverse().eval() : pInverse(preIn)),
 	mPreOut(preOut),
-	mPreOutInv(preOut.inverse()),
+	mPreOutInv(preOut.rows() == preOut.cols() ? preOut.inverse().eval() : pInverse(preOut)),
 	mPredictor(predictor),
 	mLogJacobian(preOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum())
 {
