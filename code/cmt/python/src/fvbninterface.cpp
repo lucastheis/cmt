@@ -5,7 +5,7 @@
 #include "distributioninterface.h"
 #include "glminterface.h"
 
-#include "exception.h"
+#include "cmt/utils"
 using CMT::Exception;
 
 GLM::Nonlinearity* fvbnNonlinearity = new LogisticFunction;

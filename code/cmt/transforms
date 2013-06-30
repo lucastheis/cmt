@@ -1,0 +1,12 @@
+#ifndef CMT_TRANSFORMS_H
+#define CMT_TRANSFORMS_H
+
+#include "include/preconditioner.h"
+#include "include/affinepreconditioner.h"
+#include "include/affinetransform.h"
+#include "include/pcapreconditioner.h"
+#include "include/pcatransform.h"
+#include "include/whiteningpreconditioner.h"
+#include "include/whiteningtransform.h"
+
+#endif

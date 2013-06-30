@@ -3,7 +3,7 @@
 #include "trainableinterface.h"
 #include "callbackinterface.h"
 
-#include "exception.h"
+#include "cmt/utils"
 using CMT::Exception;
 
 PyObject* Nonlinearity_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {

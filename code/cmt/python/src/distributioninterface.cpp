@@ -1,7 +1,7 @@
 #include "distributioninterface.h"
 #include "Eigen/Core"
 
-#include "exception.h"
+#include "cmt/utils"
 using CMT::Exception;
 
 PyObject* Distribution_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {

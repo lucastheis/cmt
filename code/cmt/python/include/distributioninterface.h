@@ -8,7 +8,7 @@
 #include <arrayobject.h>
 #include "pyutils.h"
 
-#include "distribution.h"
+#include "cmt/models"
 using CMT::Distribution;
 
 struct DistributionObject {

@@ -1,0 +1,7 @@
+#ifndef CMT_UTILS_H
+#define CMT_UTILS_H
+
+#include "include/exception.h"
+#include "include/utils.h"
+
+#endif

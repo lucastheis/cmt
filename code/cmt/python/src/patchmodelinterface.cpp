@@ -2,7 +2,7 @@
 #include "pyutils.h"
 #include "distributioninterface.h"
 
-#include "exception.h"
+#include "cmt/utils"
 using CMT::Exception;
 
 const char* PatchModel_doc =

@@ -33,36 +33,36 @@ PyObject* Trainable_train(
 	TrainableObject* self,
 	PyObject* args,
 	PyObject* kwds,
-	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*) = &PyObject_ToParameters);
+	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*));
 
 PyObject* Trainable_parameters(
 	TrainableObject* self,
 	PyObject* args,
 	PyObject* kwds,
-	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*) = &PyObject_ToParameters);
+	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*));
 
 PyObject* Trainable_set_parameters(
 	TrainableObject* self,
 	PyObject* args,
 	PyObject* kwds,
-	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*) = &PyObject_ToParameters);
+	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*));
 
 PyObject* Trainable_check_gradient(
 	TrainableObject* self,
 	PyObject* args,
 	PyObject* kwds,
-	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*) = &PyObject_ToParameters);
+	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*));
 
 PyObject* Trainable_parameter_gradient(
 	TrainableObject* self,
 	PyObject* args,
 	PyObject* kwds,
-	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*) = &PyObject_ToParameters);
+	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*));
 
 PyObject* Trainable_check_performance(
 	TrainableObject* self,
 	PyObject* args,
 	PyObject* kwds,
-	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*) = &PyObject_ToParameters);
+	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*));
 
 #endif

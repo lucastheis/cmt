@@ -1,10 +1,10 @@
 #include "conditionaldistributioninterface.h"
 #include "Eigen/Core"
 
-#include "exception.h"
+#include "cmt/utils"
 using CMT::Exception;
 
-#include "conditionaldistribution.h"
+#include "cmt/models"
 using CMT::ConditionalDistribution;
 
 PyObject* CD_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {

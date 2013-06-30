@@ -7,7 +7,7 @@
 #include <Python.h>
 #include <arrayobject.h>
 
-#include "patchmodel.h"
+#include "cmt/models"
 using CMT::PatchModelBase;
 using CMT::PatchModel;
 

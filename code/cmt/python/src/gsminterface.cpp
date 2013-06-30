@@ -1,7 +1,7 @@
 #include "gsminterface.h"
 #include "distributioninterface.h"
 
-#include "exception.h"
+#include "cmt/utils"
 using CMT::Exception;
 
 const char* GSM_doc =

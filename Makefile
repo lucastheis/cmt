@@ -22,7 +22,7 @@ INCPYTHON = \
 	$(shell python -c "from distutils import sysconfig; print(sysconfig.get_python_inc());")
 INCNUMPY = \
 	$(shell python -c "import os; from numpy.distutils import misc_util; print(os.path.join(misc_util.get_numpy_include_dirs()[0], 'numpy'));")
-INCLUDE = -Icode -Icode/cmt/include -Icode/liblbfgs/include -I$(INCPYTHON) -I$(INCNUMPY)
+INCLUDE = -Icode -Icode/cmt/include -Icode/cmt/python/include -Icode/liblbfgs/include -I$(INCPYTHON) -I$(INCNUMPY)
 
 PYTHONPATH = \
 	$(shell python -c "from distutils import sysconfig; print(sysconfig.get_python_lib());")
@@ -30,40 +30,42 @@ PYTHONPATH = \
 # source and object files
 INCDIR = code/cmt/include
 SRCDIR = code/cmt/src
+PYIDIR = code/cmt/python/include
+PYSDIR = code/cmt/python/src
 OBJDIR = build
 SOURCES = \
 	$(SRCDIR)/affinepreconditioner.cpp \
 	$(SRCDIR)/affinetransform.cpp \
-	$(SRCDIR)/callbackinterface.cpp \
+	$(PYSDIR)/callbackinterface.cpp \
 	$(SRCDIR)/conditionaldistribution.cpp \
-	$(SRCDIR)/conditionaldistributioninterface.cpp \
+	$(PYSDIR)/conditionaldistributioninterface.cpp \
 	$(SRCDIR)/distribution.cpp \
-	$(SRCDIR)/distributioninterface.cpp \
-	$(SRCDIR)/fvbninterface.cpp \
+	$(PYSDIR)/distributioninterface.cpp \
+	$(PYSDIR)/fvbninterface.cpp \
 	$(SRCDIR)/gsm.cpp \
-	$(SRCDIR)/gsminterface.cpp \
+	$(PYSDIR)/gsminterface.cpp \
 	$(SRCDIR)/glm.cpp \
-	$(SRCDIR)/glminterface.cpp \
+	$(PYSDIR)/glminterface.cpp \
 	$(SRCDIR)/mcgsm.cpp \
-	$(SRCDIR)/mcgsminterface.cpp \
+	$(PYSDIR)/mcgsminterface.cpp \
 	$(SRCDIR)/mcbm.cpp \
-	$(SRCDIR)/mcbminterface.cpp \
+	$(PYSDIR)/mcbminterface.cpp \
 	$(SRCDIR)/mixture.cpp \
-	$(SRCDIR)/mixtureinterface.cpp \
-	$(SRCDIR)/module.cpp \
+	$(PYSDIR)/mixtureinterface.cpp \
+	$(PYSDIR)/module.cpp \
 	$(SRCDIR)/patchmodel.cpp \
-	$(SRCDIR)/patchmodelinterface.cpp \
+	$(PYSDIR)/patchmodelinterface.cpp \
 	$(SRCDIR)/pcapreconditioner.cpp \
 	$(SRCDIR)/pcatransform.cpp \
 	$(SRCDIR)/preconditioner.cpp \
-	$(SRCDIR)/preconditionerinterface.cpp \
-	$(SRCDIR)/pyutils.cpp \
+	$(PYSDIR)/preconditionerinterface.cpp \
+	$(PYSDIR)/pyutils.cpp \
 	$(SRCDIR)/stm.cpp \
-	$(SRCDIR)/stminterface.cpp \
+	$(PYSDIR)/stminterface.cpp \
 	$(SRCDIR)/tools.cpp \
-	$(SRCDIR)/toolsinterface.cpp \
+	$(PYSDIR)/toolsinterface.cpp \
 	$(SRCDIR)/trainable.cpp \
-	$(SRCDIR)/trainableinterface.cpp \
+	$(PYSDIR)/trainableinterface.cpp \
 	$(SRCDIR)/utils.cpp \
 	$(SRCDIR)/whiteningpreconditioner.cpp \
 	$(SRCDIR)/whiteningtransform.cpp
