@@ -8,7 +8,7 @@
 #include <arrayobject.h>
 #include "pyutils.h"
 
-#include "gsm.h"
+#include "cmt/models"
 using CMT::GSM;
 
 struct GSMObject {

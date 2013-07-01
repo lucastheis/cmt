@@ -8,7 +8,7 @@
 #include <arrayobject.h>
 #include "pyutils.h"
 
-#include "conditionaldistribution.h"
+#include "cmt/models"
 using CMT::ConditionalDistribution;
 
 struct CDObject {

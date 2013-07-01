@@ -3,16 +3,14 @@
 #include "preconditionerinterface.h"
 #include "conditionaldistributioninterface.h"
 
-#include "exception.h"
+#include "cmt/utils"
 using CMT::Exception;
-
-#include "utils.h"
 using CMT::randomSelect;
 
-#include "conditionaldistribution.h"
+#include "cmt/models"
 using CMT::ConditionalDistribution;
 
-#include "tools.h"
+#include "cmt/tools"
 using CMT::generateDataFromImage;
 using CMT::generateDataFromVideo;
 using CMT::sampleImage;

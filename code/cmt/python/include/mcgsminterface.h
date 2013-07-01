@@ -8,15 +8,12 @@
 #include <arrayobject.h>
 #include "pyutils.h"
 
-#include "mcgsm.h"
+#include "cmt/models"
 using CMT::MCGSM;
-
-#include "patchmodel.h"
 using CMT::PatchModel;
 
-#include "pcapreconditioner.h"
+#include "cmt/transforms"
 using CMT::PCAPreconditioner;
-
 
 struct MCGSMObject {
 	PyObject_HEAD

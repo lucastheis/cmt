@@ -7,15 +7,13 @@
 #include <Python.h>
 #include <arrayobject.h>
 
-#include "glm.h"
+#include "cmt/models"
 using CMT::GLM;
 using CMT::LogisticFunction;
 using CMT::Bernoulli;
-
-#include "patchmodel.h"
 using CMT::PatchModel;
 
-#include "pcatransform.h"
+#include "cmt/transforms"
 using CMT::PCATransform;
 
 struct FVBNObject {

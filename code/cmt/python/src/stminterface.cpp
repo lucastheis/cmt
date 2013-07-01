@@ -6,7 +6,7 @@
 #include "Eigen/Core"
 using Eigen::Map;
 
-#include "exception.h"
+#include "cmt/utils"
 using CMT::Exception;
 
 Trainable::Parameters* PyObject_ToSTMParameters(PyObject* parameters) {

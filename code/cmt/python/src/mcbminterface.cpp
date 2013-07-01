@@ -3,6 +3,7 @@
 #include "trainableinterface.h"
 #include "patchmodelinterface.h"
 #include "preconditionerinterface.h"
+#include "mcbminterface.h"
 
 #include <utility>
 using std::make_pair;
@@ -10,12 +11,10 @@ using std::make_pair;
 #include "Eigen/Core"
 using Eigen::Map;
 
-#include "exception.h"
+#include "cmt/utils"
 using CMT::Exception;
 
-#include "mcbminterface.h"
-using CMT::MCBM;
-using CMT::PatchModel;
+#include "cmt/tools"
 using CMT::Tuples;
 
 Trainable::Parameters* PyObject_ToMCBMParameters(PyObject* parameters) {

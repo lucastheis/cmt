@@ -1,10 +1,10 @@
 #include "callbackinterface.h"
 #include "conditionaldistributioninterface.h"
 
-#include "exception.h"
+#include "cmt/utils"
 using CMT::Exception;
 
-#include "trainable.h"
+#include "cmt/models"
 using CMT::Trainable;
 
 CallbackInterface::CallbackInterface(PyTypeObject* type, PyObject* callback) : 

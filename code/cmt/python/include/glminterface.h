@@ -9,7 +9,7 @@
 #include "pyutils.h"
 #include "trainableinterface.h"
 
-#include "glm.h"
+#include "cmt/models"
 using CMT::GLM;
 using CMT::LogisticFunction;
 using CMT::Bernoulli;

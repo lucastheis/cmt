@@ -1,7 +1,7 @@
 #include "pyutils.h"
 #include <inttypes.h>
 
-#include "exception.h"
+#include "cmt/utils"
 using CMT::Exception;
 
 #include "Eigen/Core"

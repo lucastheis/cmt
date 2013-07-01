@@ -3,7 +3,7 @@
 #include "pyutils.h"
 #include "gsminterface.h"
 
-#include "exception.h"
+#include "cmt/utils"
 using CMT::Exception;
 
 int Mixture_init(MixtureObject* self, PyObject* args, PyObject* kwds) {

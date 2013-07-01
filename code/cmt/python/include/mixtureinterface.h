@@ -7,10 +7,8 @@
 #include <vector>
 using std::vector;
 
-#include "mixture.h"
+#include "cmt/models"
 using CMT::Mixture;
-
-#include "mogsm.h"
 using CMT::MoGSM;
 
 struct MixtureObject {

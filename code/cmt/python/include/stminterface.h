@@ -8,13 +8,11 @@
 #include <arrayobject.h>
 #include "pyutils.h"
 
-#include "stm.h"
+#include "cmt/models"
 using CMT::STM;
-
-#include "patchmodel.h"
 using CMT::PatchModel;
 
-#include "pcatransform.h"
+#include "cmt/transforms"
 using CMT::PCATransform;
 
 struct STMObject {

@@ -3,6 +3,7 @@
 #include "conditionaldistributioninterface.h"
 #include "preconditionerinterface.h"
 #include "patchmodelinterface.h"
+#include "mcgsminterface.h"
 
 #include "Eigen/Core"
 using Eigen::Map;
@@ -10,11 +11,8 @@ using Eigen::Map;
 #include <map>
 using std::pair;
 
-#include "exception.h"
+#include "cmt/utils"
 using CMT::Exception;
-
-#include "mcgsminterface.h"
-using CMT::MCGSM;
 
 Trainable::Parameters* PyObject_ToMCGSMParameters(PyObject* parameters) {
 	MCGSM::Parameters* params = dynamic_cast<MCGSM::Parameters*>(

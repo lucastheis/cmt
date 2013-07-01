@@ -2,9 +2,11 @@
 #define CALLBACKTRAIN_H
 
 #include <Python.h>
-#include "trainable.h"
 
-class CallbackInterface : public CMT::Trainable::Callback {
+#include "cmt/models"
+using CMT::Trainable;
+
+class CallbackInterface : public Trainable::Callback {
 	public:
 		CallbackInterface(PyTypeObject* type, PyObject* callback);
 		CallbackInterface(const CallbackInterface& callbackInterface);
