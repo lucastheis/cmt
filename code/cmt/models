@@ -1,5 +1,5 @@
-#ifndef CMT_MODELS_H
-#define CMT_MODELS_H
+#ifndef CMT_MODELS_
+#define CMT_MODELS_
 
 #include "include/conditionaldistribution.h"
 #include "include/distribution.h"

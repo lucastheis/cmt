@@ -1,6 +1,6 @@
 #include "trainableinterface.h"
 
-#include "exception.h"
+#include "cmt/utils"
 using CMT::Exception;
 
 #include "Eigen/Core"

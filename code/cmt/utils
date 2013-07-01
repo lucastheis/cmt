@@ -1,5 +1,5 @@
-#ifndef CMT_UTILS_H
-#define CMT_UTILS_H
+#ifndef CMT_UTILS_
+#define CMT_UTILS_
 
 #include "include/exception.h"
 #include "include/utils.h"

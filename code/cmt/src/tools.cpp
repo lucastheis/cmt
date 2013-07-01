@@ -1320,8 +1320,6 @@ ArrayXXd CMT::sampleSpikeTrain(
 	if(spikeHistory <= 0)
 		return model.sample(stimuli);
 
-	int dimHis = spikeHistory * model.dimOut();
-
 	// container for sampled spike train
 	ArrayXXd spikeTrain = ArrayXXd::Zero(model.dimOut(), stimuli.cols());
 

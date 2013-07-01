@@ -1,5 +1,11 @@
 OS = $(shell uname)
 
+INCDIR = code/cmt/include
+SRCDIR = code/cmt/src
+PYIDIR = code/cmt/python/include
+PYSDIR = code/cmt/python/src
+OBJDIR = build
+
 # compiler and linker options
 ifeq ($(OS), Darwin)
 CXX = \
@@ -22,17 +28,12 @@ INCPYTHON = \
 	$(shell python -c "from distutils import sysconfig; print(sysconfig.get_python_inc());")
 INCNUMPY = \
 	$(shell python -c "import os; from numpy.distutils import misc_util; print(os.path.join(misc_util.get_numpy_include_dirs()[0], 'numpy'));")
-INCLUDE = -Icode -Icode/cmt/include -Icode/cmt/python/include -Icode/liblbfgs/include -I$(INCPYTHON) -I$(INCNUMPY)
+INCLUDE = -Icode -I$(INCDIR) -I$(PYIDIR) -Icode/liblbfgs/include -I$(INCPYTHON) -I$(INCNUMPY)
 
 PYTHONPATH = \
 	$(shell python -c "from distutils import sysconfig; print(sysconfig.get_python_lib());")
 
 # source and object files
-INCDIR = code/cmt/include
-SRCDIR = code/cmt/src
-PYIDIR = code/cmt/python/include
-PYSDIR = code/cmt/python/src
-OBJDIR = build
 SOURCES = \
 	$(SRCDIR)/affinepreconditioner.cpp \
 	$(SRCDIR)/affinetransform.cpp \

@@ -4,7 +4,7 @@
 using std::pair;
 using std::make_pair;
 
-#include "exception.h"
+#include "cmt/utils"
 using CMT::Exception;
 
 PyObject* Preconditioner_call(PreconditionerObject* self, PyObject* args, PyObject* kwds) {

@@ -18,7 +18,7 @@ using Eigen::Array;
 using Eigen::ArrayXXd;
 using Eigen::Dynamic;
 
-#include "tools.h"
+#include "cmt/tools"
 using CMT::Tuples;
 
 typedef Matrix<bool, Dynamic, Dynamic> MatrixXb;

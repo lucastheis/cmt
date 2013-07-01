@@ -1,5 +1,5 @@
-#ifndef CMT_TOOLS_H
-#define CMT_TOOLS_H
+#ifndef CMT_TOOLS_
+#define CMT_TOOLS_
 
 #include "include/tools.h"
 

@@ -1,5 +1,5 @@
-#ifndef CMT_TRANSFORMS_H
-#define CMT_TRANSFORMS_H
+#ifndef CMT_TRANSFORMS_
+#define CMT_TRANSFORMS_
 
 #include "include/preconditioner.h"
 #include "include/affinepreconditioner.h"
