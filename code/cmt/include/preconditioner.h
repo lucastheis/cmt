@@ -24,9 +24,14 @@ namespace CMT {
 			virtual pair<ArrayXXd, ArrayXXd> operator()(
 				const ArrayXXd& input,
 				const ArrayXXd& output) const = 0;
+			virtual pair<ArrayXXd, ArrayXXd> operator()(
+				const pair<ArrayXXd, ArrayXXd>& data) const;
+
 			virtual pair<ArrayXXd, ArrayXXd> inverse(
 				const ArrayXXd& input,
 				const ArrayXXd& output) const = 0;
+			virtual pair<ArrayXXd, ArrayXXd> inverse(
+				const pair<ArrayXXd, ArrayXXd>& data) const;
 
 			virtual ArrayXXd operator()(const ArrayXXd& input) const = 0;
 			virtual ArrayXXd inverse(const ArrayXXd& input) const = 0;
@@ -34,10 +39,14 @@ namespace CMT {
 			virtual Array<double, 1, Dynamic> logJacobian(
 				const ArrayXXd& input,
 				const ArrayXXd& output) const = 0;
+			virtual Array<double, 1, Dynamic> logJacobian(
+				const pair<ArrayXXd, ArrayXXd>& data) const;
 
 			virtual pair<ArrayXXd, ArrayXXd> adjustGradient(
 				const ArrayXXd& inputGradient,
 				const ArrayXXd& outputGradient) const = 0;
+			virtual pair<ArrayXXd, ArrayXXd> adjustGradient(
+				const pair<ArrayXXd, ArrayXXd>& dataGradient) const;
 	};
 }
 

@@ -1,4 +1,5 @@
 #include "conditionaldistributioninterface.h"
+#include "preconditionerinterface.h"
 #include "Eigen/Core"
 
 #include "cmt/utils"
@@ -151,23 +152,30 @@ const char* CD_evaluate_doc =
 	"Computes the average negative conditional log-likelihood for the given data points "
 	"in bits per output component (smaller is better).\n"
 	"\n"
+	"If a preconditioner is specified, its Jacobian is taken into account into the evaluation.\n"
+	"\n"
 	"@type  input: ndarray\n"
 	"@param input: inputs stored in columns\n"
 	"\n"
 	"@type  output: ndarray\n"
 	"@param output: outputs stored in columns\n"
 	"\n"
+	"@type  preconditioner: L{Preconditioner}\n"
+	"@param preconditioner: preconditioner used to preprocess the data\n"
+	"\n"
 	"@rtype: double\n"
 	"@return: performance in bits per component";
 
 PyObject* CD_evaluate(CDObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", 0};
+	const char* kwlist[] = {"input", "output", "preconditioner", 0};
 
 	PyObject* input;
 	PyObject* output;
+	PyObject* preconditioner = 0;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|O!", const_cast<char**>(kwlist),
+		&input, &output, &Preconditioner_type, &preconditioner))
 		return 0;
 
 	// make sure data is stored in NumPy array
@@ -180,8 +188,17 @@ PyObject* CD_evaluate(CDObject* self, PyObject* args, PyObject* kwds) {
 	}
 
 	try {
-		double result = 
-			self->cd->evaluate(PyArray_ToMatrixXd(input), PyArray_ToMatrixXd(output));
+		double result;
+
+		if(preconditioner)
+			result = self->cd->evaluate(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output),
+				*reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner);
+		else
+			result = self->cd->evaluate(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output));
 		Py_DECREF(input);
 		Py_DECREF(output);
 		return PyFloat_FromDouble(result);

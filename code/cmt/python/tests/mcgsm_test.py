@@ -3,7 +3,7 @@ import unittest
 
 sys.path.append('./code')
 
-from cmt import MCGSM, MoGSM, PatchMCGSM, GSM
+from cmt import MCGSM, MoGSM, PatchMCGSM, GSM, WhiteningPreconditioner
 from numpy import *
 from numpy import min, max
 from numpy.linalg import cholesky, inv
@@ -242,6 +242,22 @@ class Tests(unittest.TestCase):
 						'regularize_weights': 0.7,
 					})
 				self.assertLess(err, 1e-6)
+
+
+
+	def test_evaluate(self):
+		mcgsm = MCGSM(5, 3, 4, 2, 10)
+
+		inputs = randn(mcgsm.dim_in, 100)
+		outputs = mcgsm.sample(inputs)
+
+		pre = WhiteningPreconditioner(inputs, outputs)
+
+		loglik1 = -mcgsm.evaluate(*pre(inputs, outputs), preconditioner=pre)
+		loglik2 = (mcgsm.loglikelihood(*pre(inputs, outputs)).mean() 
+			+ pre.logjacobian(inputs, outputs).mean()) / log(2.) / mcgsm.dim_out
+
+		self.assertAlmostEqual(loglik1, loglik2, 8)
 
 
 
