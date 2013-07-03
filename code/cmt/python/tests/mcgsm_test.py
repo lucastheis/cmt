@@ -253,7 +253,7 @@ class Tests(unittest.TestCase):
 
 		pre = WhiteningPreconditioner(inputs, outputs)
 
-		loglik1 = -mcgsm.evaluate(*pre(inputs, outputs), preconditioner=pre)
+		loglik1 = -mcgsm.evaluate(inputs, outputs, pre)
 		loglik2 = (mcgsm.loglikelihood(*pre(inputs, outputs)).mean() 
 			+ pre.logjacobian(inputs, outputs).mean()) / log(2.) / mcgsm.dim_out
 
