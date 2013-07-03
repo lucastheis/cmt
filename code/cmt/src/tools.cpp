@@ -17,6 +17,10 @@ using std::vector;
 using std::pair;
 using std::make_pair;
 
+#include <algorithm>
+using std::copy;
+using std::random_shuffle;
+
 #include "tools.h"
 using CMT::Tuple;
 using CMT::Tuples;
@@ -145,13 +149,19 @@ pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	// sample random image locations
 	set<int> indices = randomSelect(numSamples, w * h);
 
+	// randomize order of indices
+	vector<int> indicesRand(indices.size());
+	copy(indices.begin(), indices.end(), indicesRand.begin());
+	random_shuffle(indicesRand.begin(), indicesRand.end());
+
+	// allocate memory
 	pair<ArrayXXd, ArrayXXd> data = make_pair(
 		ArrayXXd(inputIndices.size(), numSamples),
 		ArrayXXd(outputIndices.size(), numSamples));
 
 	int k = 0;
 
-	for(set<int>::iterator iter = indices.begin(); iter != indices.end(); ++iter, ++k) {
+	for(vector<int>::iterator iter = indicesRand.begin(); iter != indicesRand.end(); ++iter, ++k) {
 		// compute indices of image location
 		int i = *iter / w;
 		int j = *iter % w;
