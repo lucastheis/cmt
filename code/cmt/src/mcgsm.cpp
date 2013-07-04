@@ -31,8 +31,8 @@ CMT::MCGSM::Parameters::Parameters() :
 	trainCholeskyFactors(true),
 	trainPredictors(true),
 	regularizeFeatures(0.),
-	regularizeWeights(0.),
 	regularizePredictors(0.),
+	regularizeWeights(0.),
 	regularizer(L1)
 {
 }
