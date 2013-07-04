@@ -19,18 +19,18 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
 CMT::MCBM::Parameters::Parameters() :
-	Trainable::Parameters::Parameters()
+	Trainable::Parameters::Parameters(),
+	trainPriors(true),
+	trainWeights(true),
+	trainFeatures(true),
+	trainPredictors(true),
+	trainInputBias(true),
+	trainOutputBias(true),
+	regularizeFeatures(0.),
+	regularizePredictors(0.),
+	regularizeWeights(0.),
+	regularizer(L1)
 {
-	trainPriors = true;
-	trainWeights = true;
-	trainFeatures = true;
-	trainPredictors = true;
-	trainInputBias = true;
-	trainOutputBias = true;
-	regularizeFeatures = 0.;
-	regularizePredictors = 0.;
-	regularizeWeights = 0.;
-	regularizer = L1;
 }
 
 
@@ -521,7 +521,7 @@ double CMT::MCBM::parameterGradient(
 			outputBiasGrad -= post1Tmp.rowwise().sum().matrix();
 	}
 
-	double normConst = inputCompl.cols() * log(2.);
+	double normConst = inputCompl.cols() * log(2.) * dimOut();
 
 	if(g) {
 		for(int i = 0; i < offset; ++i)

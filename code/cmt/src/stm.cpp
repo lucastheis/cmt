@@ -482,36 +482,42 @@ double CMT::STM::parameterGradient(
 			linearPredictorGrad -= inputLinear * tmp.transpose().matrix();
 	}
 
-	double normConst = inputCompl.cols() * log(2.);
+	double normConst = inputCompl.cols() * log(2.) * dimOut();
 
 	if(g) {
 		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
 
-		if(params.regularizer == Parameters::L2) {
-			if(params.trainFeatures && params.regularizeFeatures > 0.)
-				featuresGrad += params.regularizeFeatures * 2. * features;
+		switch(params.regularizer) {
+			case Parameters::L1:
+				if(params.trainFeatures && params.regularizeFeatures > 0.)
+					featuresGrad += params.regularizeFeatures * signum(features);
 
-			if(params.trainPredictors && params.regularizePredictors > 0.)
-				predictorsGrad += params.regularizePredictors * 2. * predictors;
+				if(params.trainPredictors && params.regularizePredictors > 0.)
+					predictorsGrad += params.regularizePredictors * signum(predictors);
 
-			if(params.trainWeights && params.regularizeWeights > 0.)
-				weightsGrad += params.regularizeWeights * 2. * weights;
+				if(params.trainWeights && params.regularizeWeights > 0.)
+					weightsGrad += params.regularizeWeights * signum(weights);
 
-			if(params.trainLinearPredictor && params.regularizeLinearPredictor > 0.)
-				linearPredictorGrad += params.regularizeLinearPredictor * 2. * linearPredictor;
-		} else {
-			if(params.trainFeatures && params.regularizeFeatures > 0.)
-				featuresGrad += params.regularizeFeatures * signum(features);
+				if(params.trainLinearPredictor && params.regularizeLinearPredictor > 0.)
+					linearPredictorGrad += params.regularizeLinearPredictor * signum(linearPredictor);
 
-			if(params.trainPredictors && params.regularizePredictors > 0.)
-				predictorsGrad += params.regularizePredictors * signum(predictors);
+				break;
 
-			if(params.trainWeights && params.regularizeWeights > 0.)
-				weightsGrad += params.regularizeWeights * signum(weights);
+			case Parameters::L2:
+				if(params.trainFeatures && params.regularizeFeatures > 0.)
+					featuresGrad += params.regularizeFeatures * 2. * features;
 
-			if(params.trainLinearPredictor && params.regularizeLinearPredictor > 0.)
-				linearPredictorGrad += params.regularizeLinearPredictor * signum(linearPredictor);
+				if(params.trainPredictors && params.regularizePredictors > 0.)
+					predictorsGrad += params.regularizePredictors * 2. * predictors;
+
+				if(params.trainWeights && params.regularizeWeights > 0.)
+					weightsGrad += params.regularizeWeights * 2. * weights;
+
+				if(params.trainLinearPredictor && params.regularizeLinearPredictor > 0.)
+					linearPredictorGrad += params.regularizeLinearPredictor * 2. * linearPredictor;
+
+				break;
 		}
 	}
 

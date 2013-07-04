@@ -526,7 +526,7 @@ const char* MCGSM_train_doc =
 	"\t>>> model.train(input, output, parameters={\n"
 	"\t>>> \t'verbosity': 0,\n"
 	"\t>>> \t'max_iter': 1000,\n"
-	"\t>>> \t'threshold': 1e-5,\n"
+	"\t>>> \t'threshold': 1e-7,\n"
 	"\t>>> \t'num_grad': 20,\n"
 	"\t>>> \t'batch_size': 2000,\n"
 	"\t>>> \t'callback': None,\n"

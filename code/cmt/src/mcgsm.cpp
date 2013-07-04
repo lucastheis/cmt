@@ -23,17 +23,18 @@ using std::min;
 using Eigen::SelfAdjointEigenSolver;
 
 CMT::MCGSM::Parameters::Parameters() :
-	Trainable::Parameters::Parameters()
+	Trainable::Parameters::Parameters(),
+	trainPriors(true),
+	trainScales(true),
+	trainWeights(true),
+	trainFeatures(true),
+	trainCholeskyFactors(true),
+	trainPredictors(true),
+	regularizeFeatures(0.),
+	regularizeWeights(0.),
+	regularizePredictors(0.),
+	regularizer(L1)
 {
-	trainPriors = true;
-	trainScales = true;
-	trainWeights = true;
-	trainFeatures = true;
-	trainCholeskyFactors = true;
-	trainPredictors = true;
-	regularizeFeatures = 0.;
-	regularizePredictors = 0.;
-	regularizer = L1;
 }
 
 
@@ -47,6 +48,7 @@ CMT::MCGSM::Parameters::Parameters(const Parameters& params) :
 	trainCholeskyFactors(params.trainCholeskyFactors),
 	trainPredictors(params.trainPredictors),
 	regularizeFeatures(params.regularizeFeatures),
+	regularizeWeights(params.regularizeWeights),
 	regularizePredictors(params.regularizePredictors),
 	regularizer(params.regularizer)
 {
@@ -64,6 +66,7 @@ CMT::MCGSM::Parameters& CMT::MCGSM::Parameters::operator=(const Parameters& para
 	trainCholeskyFactors = params.trainCholeskyFactors;
 	trainPredictors = params.trainPredictors;
 	regularizeFeatures = params.regularizeFeatures;
+	regularizeWeights = params.regularizeWeights;
 	regularizePredictors = params.regularizePredictors;
 	regularizer = params.regularizer;
 
@@ -557,6 +560,7 @@ int CMT::MCGSM::numParameters(const Trainable::Parameters& params_) const {
 		numParams += mNumComponents * mDimOut * (mDimOut + 1) / 2 - mNumComponents;
 	if(params.trainPredictors)
 		numParams += mNumComponents * mPredictors[0].size();
+
 	return numParams;
 }
 
@@ -568,6 +572,7 @@ lbfgsfloatval_t* CMT::MCGSM::parameters(const Trainable::Parameters& params_) co
 	lbfgsfloatval_t* x = lbfgs_malloc(numParameters(params));
 
 	int k = 0;
+
 	if(params.trainPriors)
 		for(int i = 0; i < mPriors.size(); ++i, ++k)
 			x[k] = mPriors.data()[i];
@@ -860,7 +865,7 @@ double CMT::MCGSM::parameterGradient(
 		}
 	}
 
-	double normConst = inputCompl.cols() * log(2.);
+	double normConst = inputCompl.cols() * log(2.) * dimOut();
 
 	if(g) {
 		// write back gradients of Cholesky factors

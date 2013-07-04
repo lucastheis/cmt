@@ -57,7 +57,7 @@ if sys.platform != 'darwin':
 		'-std=c++0x']
 
 modules = [
-	Extension('cmt',
+	Extension('_cmt',
 		language='c++',
 		sources=[
 			'code/cmt/python/src/callbackinterface.cpp',
@@ -116,10 +116,12 @@ CCompiler.compile = parallelCCompiler
 
 setup(
 	name='cmt',
-	version='0.3.0',
+	version='0.3.5',
 	author='Lucas Theis',
 	author_email='lucas@theis.io',
-	description='C++ implementations of conditional probabilistic models.',
+	description='Fast implementations of different probabilistic models.',
 	url='http://github.com/lucastheis/cmt',
 	license='MIT',
-	ext_modules=modules)
+	ext_modules=modules,
+	package_dir={'cmt': 'code/cmt/python'},
+	packages=['cmt'])

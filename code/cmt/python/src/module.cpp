@@ -21,11 +21,6 @@
 #include "trainableinterface.h"
 #include "Eigen/Core"
 
-static const char* cmt_doc =
-	"This module provides C++ implementations of conditional models like "
-	"the MCGSM, as well as tools for applications such as filling-in, "
-	"denoising, or classification.";
-
 static PyGetSetDef Distribution_getset[] = {
 	{"dim", (getter)Distribution_dim, 0, "Dimensionality of the distribution."},
 	{0}
@@ -1565,7 +1560,23 @@ PyTypeObject PCATransform_type = {
 	Preconditioner_new,                 /*tp_new*/
 };
 
+static const char* cmt_doc =
+	"This module provides fast implementations of different probabilistic models.";
+
+PyObject* seed(PyObject* self, PyObject* args, PyObject* kwds) {
+	int seed;
+
+	if(!PyArg_ParseTuple(args, "i", &seed))
+		return 0;
+
+	srand(seed);
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 static PyMethodDef cmt_methods[] = {
+	{"seed", (PyCFunction)seed, METH_VARARGS, 0},
 	{"random_select", (PyCFunction)random_select, METH_VARARGS | METH_KEYWORDS, random_select_doc},
 	{"generate_data_from_image", (PyCFunction)generate_data_from_image, METH_VARARGS | METH_KEYWORDS, generate_data_from_image_doc},
 	{"generate_data_from_video", (PyCFunction)generate_data_from_video, METH_VARARGS | METH_KEYWORDS, generate_data_from_video_doc},
@@ -1578,7 +1589,7 @@ static PyMethodDef cmt_methods[] = {
 	{0}
 };
 
-PyMODINIT_FUNC initcmt() {
+PyMODINIT_FUNC init_cmt() {
 	// set random seed
 	timeval time;
 	gettimeofday(&time, 0);
@@ -1588,7 +1599,7 @@ PyMODINIT_FUNC initcmt() {
 	import_array();
 
 	// create module object
-	PyObject* module = Py_InitModule3("cmt", cmt_methods, cmt_doc);
+	PyObject* module = Py_InitModule3("_cmt", cmt_methods, cmt_doc);
 
 	// initialize types
 	if(PyType_Ready(&AffinePreconditioner_type) < 0)
