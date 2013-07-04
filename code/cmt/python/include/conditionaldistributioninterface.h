@@ -17,6 +17,8 @@ struct CDObject {
 	bool owner; 
 };
 
+extern PyTypeObject Preconditioner_type;
+
 extern const char* CD_doc;
 extern const char* CD_sample_doc;
 extern const char* CD_loglikelihood_doc;

@@ -73,6 +73,7 @@ PyObject* Preconditioner_call(PreconditionerObject* self, PyObject* args, PyObje
 }
 
 
+
 const char* Preconditioner_inverse_doc =
 	"inverse(self, input, output=None)\n"
 	"\n"

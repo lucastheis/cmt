@@ -3,6 +3,7 @@
 
 #include <map>
 #include "Eigen/Core"
+#include "preconditioner.h"
 
 namespace CMT {
 	using std::pair;
@@ -25,7 +26,14 @@ namespace CMT {
 				const MatrixXd& input,
 				const MatrixXd& output) const = 0;
 			virtual double evaluate(const MatrixXd& input, const MatrixXd& output) const;
+			virtual double evaluate(
+					const MatrixXd& input,
+					const MatrixXd& output,
+					const Preconditioner& preconditioner) const;
 			virtual double evaluate(const pair<ArrayXXd, ArrayXXd>& data) const;
+			virtual double evaluate(
+					const pair<ArrayXXd, ArrayXXd>& data,
+					const Preconditioner& preconditioner) const;
 
 			virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
 				const MatrixXd& input,

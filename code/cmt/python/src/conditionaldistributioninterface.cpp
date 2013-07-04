@@ -1,4 +1,5 @@
 #include "conditionaldistributioninterface.h"
+#include "preconditionerinterface.h"
 #include "Eigen/Core"
 
 #include "cmt/utils"
@@ -146,10 +147,14 @@ PyObject* CD_loglikelihood(CDObject* self, PyObject* args, PyObject* kwds) {
 
 
 const char* CD_evaluate_doc =
-	"evaluate(self, input, output)\n"
+	"evaluate(self, input, output, preconditioner=None)\n"
 	"\n"
 	"Computes the average negative conditional log-likelihood for the given data points "
 	"in bits per output component (smaller is better).\n"
+	"\n"
+	"If a preconditioner is specified, the data is transformed before computing the likelihood "
+	"and the result is corrected for the Jacobian of the transformation. Note that the data should "
+	"*not* already be transformed when specifying a preconditioner.\n"
 	"\n"
 	"@type  input: ndarray\n"
 	"@param input: inputs stored in columns\n"
@@ -157,18 +162,31 @@ const char* CD_evaluate_doc =
 	"@type  output: ndarray\n"
 	"@param output: outputs stored in columns\n"
 	"\n"
+	"@type  preconditioner: L{Preconditioner}\n"
+	"@param preconditioner: preconditioner that is used to transform the data\n"
+	"\n"
 	"@rtype: double\n"
 	"@return: performance in bits per component";
 
 PyObject* CD_evaluate(CDObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"input", "output", 0};
+	const char* kwlist[] = {"input", "output", "preconditioner", 0};
 
 	PyObject* input;
 	PyObject* output;
+	PyObject* preconditioner = 0;
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|O", const_cast<char**>(kwlist),
+		&input, &output, &preconditioner))
 		return 0;
+
+	if(preconditioner == Py_None)
+		return 0;
+
+	if(preconditioner && !PyType_IsSubtype(Py_TYPE(preconditioner), &Preconditioner_type)) {
+		PyErr_SetString(PyExc_TypeError, "Preconditioner has wrong type.");
+		return 0;
+	}
 
 	// make sure data is stored in NumPy array
 	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
@@ -180,8 +198,17 @@ PyObject* CD_evaluate(CDObject* self, PyObject* args, PyObject* kwds) {
 	}
 
 	try {
-		double result = 
-			self->cd->evaluate(PyArray_ToMatrixXd(input), PyArray_ToMatrixXd(output));
+		double result;
+
+		if(preconditioner)
+			result = self->cd->evaluate(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output),
+				*reinterpret_cast<PreconditionerObject*>(preconditioner)->preconditioner);
+		else
+			result = self->cd->evaluate(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output));
 		Py_DECREF(input);
 		Py_DECREF(output);
 		return PyFloat_FromDouble(result);

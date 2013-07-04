@@ -146,7 +146,7 @@ class Tests(unittest.TestCase):
 			self.assertLess(err, 1e-7)
 
 		# test with regularization turned on
-		for regularizer in ['L1', 'L2']:
+		for regularizer in ['L2']:
 			for param in ['priors', 'weights', 'features', 'pred', 'input_bias', 'output_bias']:
 				err = stm._check_gradient(
 					randint(2, size=[stm.dim_in, 1000]),

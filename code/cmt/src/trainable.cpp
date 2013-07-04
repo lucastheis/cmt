@@ -22,7 +22,7 @@ CMT::Trainable::Callback::~Callback() {
 CMT::Trainable::Parameters::Parameters() {
 	verbosity = 0;
 	maxIter = 1000;
-	threshold = 1e-5;
+	threshold = 1e-7;
 	numGrad = 20;
 	batchSize = 2000;
 	callback = 0;
@@ -145,6 +145,7 @@ int CMT::Trainable::callbackLBFGS(
 
 	const CMT::Trainable::Parameters& params = *inst->params;
 
+	// check whether to evaluate validation set
 	if(inst->inputVal && inst->outputVal && iteration % params.valIter == 0) {
 		inst->cd->setParameters(x, params);
 
@@ -185,6 +186,8 @@ int CMT::Trainable::callbackLBFGS(
 	// check for convergence
 	if(inst->fx - fx < params.threshold)
 		return 1;
+
+	inst->fx = fx;
 
 	return 0;
 }
@@ -305,7 +308,7 @@ bool CMT::Trainable::train(
 	hyperparams.linesearch = LBFGS_LINESEARCH_MORETHUENTE;
 	hyperparams.max_linesearch = 100;
 	hyperparams.ftol = 1e-4;
-	hyperparams.xtol = 1e-128;
+	hyperparams.xtol = 1e-32;
 
 	// wrap all additional arguments to optimization routine
 	InstanceLBFGS instance(this, &params, &input, &output, inputVal, outputVal);
@@ -313,11 +316,11 @@ bool CMT::Trainable::train(
 	if(params.verbosity > 0)
 		if(inputVal && outputVal) {
 			cout << setw(6) << 0;
-			cout << setw(11) << setprecision(5) << evaluate(input, output);
+			cout << setw(11) << setprecision(5) << evaluateLBFGS(&instance, x, 0, 0, 0.);
 			cout << setw(11) << setprecision(5) << evaluate(*inputVal, *outputVal) << endl;
 		} else {
 			cout << setw(6) << 0;
-			cout << setw(11) << setprecision(5) << evaluate(input, output) << endl;
+			cout << setw(11) << setprecision(5) << evaluateLBFGS(&instance, x, 0, 0, 0.) << endl;
 		}
 
 	// start LBFGS optimization

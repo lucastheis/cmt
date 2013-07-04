@@ -10,6 +10,11 @@ using Eigen::VectorXd;
 namespace CMT {
 	class AffinePreconditioner : public Preconditioner {
 		public:
+			using Preconditioner::operator();
+			using Preconditioner::inverse;
+			using Preconditioner::logJacobian;
+			using Preconditioner::adjustGradient;
+
 			AffinePreconditioner(
 				const VectorXd& meanIn,
 				const VectorXd& meanOut,

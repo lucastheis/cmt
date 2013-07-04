@@ -72,7 +72,7 @@ SOURCES = \
 	$(SRCDIR)/whiteningtransform.cpp
 OBJECTS = $(patsubst %.cpp,$(OBJDIR)/%.o,$(SOURCES))
 
-MODULE = $(OBJDIR)/cmt.so
+MODULE = $(OBJDIR)/_cmt.so
 
 # keep object files around
 .SECONDARY:
