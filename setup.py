@@ -124,4 +124,9 @@ setup(
 	license='MIT',
 	ext_modules=modules,
 	package_dir={'cmt': 'code/cmt/python'},
-	packages=['cmt'])
+	packages=[
+		'cmt',
+		'cmt.models',
+		'cmt.transforms',
+		'cmt.tools',
+		'cmt.utils'])
