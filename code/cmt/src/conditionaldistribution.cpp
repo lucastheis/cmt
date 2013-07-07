@@ -52,6 +52,6 @@ double CMT::ConditionalDistribution::evaluate(
 	const pair<ArrayXXd, ArrayXXd>& data,
 	const Preconditioner& preconditioner) const
 {
-	return -logLikelihood(preconditioner(data.first, data.second)).mean() / log(2.) / dimOut();
+	return -logLikelihood(preconditioner(data.first, data.second)).mean() / log(2.) / dimOut()
 		- preconditioner.logJacobian(data).mean() / log(2.) / dimOut();
 }

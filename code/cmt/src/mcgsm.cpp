@@ -48,8 +48,8 @@ CMT::MCGSM::Parameters::Parameters(const Parameters& params) :
 	trainCholeskyFactors(params.trainCholeskyFactors),
 	trainPredictors(params.trainPredictors),
 	regularizeFeatures(params.regularizeFeatures),
-	regularizeWeights(params.regularizeWeights),
 	regularizePredictors(params.regularizePredictors),
+	regularizeWeights(params.regularizeWeights),
 	regularizer(params.regularizer)
 {
 }
