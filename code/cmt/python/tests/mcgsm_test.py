@@ -1,9 +1,6 @@
 import sys
 import unittest
 
-sys.path.append('./code')
-
-from cmt import MCGSM, MoGSM, PatchMCGSM, GSM, WhiteningPreconditioner
 from numpy import *
 from numpy import min, max
 from numpy.linalg import cholesky, inv
@@ -11,6 +8,8 @@ from numpy.random import *
 from scipy.stats import kstest, ks_2samp, norm
 from pickle import dump, load
 from tempfile import mkstemp
+from cmt.models import MCGSM, MoGSM, PatchMCGSM, GSM
+from cmt.transforms import WhiteningPreconditioner
 
 class Tests(unittest.TestCase):
 	def test_basics(self):

@@ -1,16 +1,13 @@
 import sys
 import unittest
 
-sys.path.append('./code')
-
 from pickle import dump, load
 from tempfile import mkstemp
 from numpy import *
 from numpy import max
 from numpy.random import randn, rand
-from cmt import Bernoulli
-from cmt import LogisticFunction
-from cmt import GLM
+from cmt.models import Bernoulli, GLM
+from cmt.utils import LogisticFunction
 
 class Tests(unittest.TestCase):
 	def test_bernoulli(self):

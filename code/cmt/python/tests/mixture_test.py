@@ -1,12 +1,12 @@
 import unittest
 
-from cmt import Mixture, MoGSM, GSM
 from numpy import *
 from numpy import max
 from numpy.linalg import cholesky
 from numpy.random import *
 from tempfile import mkstemp
 from pickle import dump
+from cmt.models import Mixture, MoGSM, GSM
 
 class Test(unittest.TestCase):
 	def test_train(self):

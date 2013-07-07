@@ -1,20 +1,17 @@
 import sys
 import unittest
 
-sys.path.append('./code')
-
-from cmt import MCGSM, WhiteningPreconditioner
-from cmt import GLM, LogisticFunction, Bernoulli, AffineTransform
-from cmt import random_select
-from cmt import generate_data_from_image, sample_image
-from cmt import generate_data_from_video, sample_video
-from cmt import fill_in_image, fill_in_image_map
-from cmt import extract_windows, sample_spike_train
 from numpy import *
 from numpy import max, all
 from numpy.random import *
-
-from time import time
+from cmt.models import MCGSM, GLM, Bernoulli
+from cmt.transforms import WhiteningPreconditioner, AffineTransform
+from cmt.utils import LogisticFunction, random_select
+from cmt.tools import generate_data_from_image, sample_image
+from cmt.tools import generate_data_from_video, sample_video
+from cmt.tools import fill_in_image, fill_in_image_map
+from cmt.tools import extract_windows, sample_spike_train
+from cmt.tools import generate_masks
 
 class ToolsTest(unittest.TestCase):
 	def test_random_select(self):
@@ -308,6 +305,22 @@ class ToolsTest(unittest.TestCase):
 		# test difference to expected spike train
 		diff = spike_train.ravel()[:10] - [0, 0, 0, 1, 0, 0, 1, 0, 0, 1]
 		self.assertLess(max(abs(diff)), 1e-8)
+
+
+
+	def test_generate_maks(self):
+		# make sure masks don't overlap
+		input_mask, output_mask = generate_masks(7, 1)
+		self.assertFalse(any(input_mask & output_mask))
+
+		input_mask, output_mask = generate_masks(8, 2)
+		self.assertFalse(any(input_mask & output_mask))
+
+		input_mask, output_mask = generate_masks(7, 1, [1, 0])
+		self.assertFalse(any(input_mask & output_mask))
+
+		input_mask, output_mask = generate_masks([3, 7, 7], 3, [1, 0, 0])
+		self.assertFalse(any(input_mask & output_mask))
 
 
 

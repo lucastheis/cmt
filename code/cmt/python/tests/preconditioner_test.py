@@ -1,16 +1,14 @@
 import sys
 import unittest
 
-sys.path.append('./code')
-
-from cmt import AffinePreconditioner, WhiteningPreconditioner, PCAPreconditioner
-from cmt import AffineTransform, WhiteningTransform, PCATransform
 from numpy import *
 from numpy import max, round
 from numpy.random import *
 from numpy.linalg import inv, slogdet
 from pickle import dump, load
 from tempfile import mkstemp
+from cmt.transforms import AffinePreconditioner, WhiteningPreconditioner, PCAPreconditioner
+from cmt.transforms import AffineTransform, WhiteningTransform, PCATransform
 
 class Tests(unittest.TestCase):
 	def test_affine_preconditioner(self):

@@ -1,11 +1,12 @@
 import unittest
+
 from numpy import *
 from numpy import max
 from numpy.random import randn, rand
 from numpy.linalg import inv, det, slogdet
 from tempfile import mkstemp
 from pickle import dump
-from cmt import GSM
+from cmt.models import GSM
 
 class Tests(unittest.TestCase):
 	def test_basics(self):

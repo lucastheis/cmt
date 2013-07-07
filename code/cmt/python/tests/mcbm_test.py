@@ -1,14 +1,12 @@
 import sys
 import unittest
 
-sys.path.append('./code')
-
-from cmt import MCBM, PatchMCBM
 from numpy import *
 from numpy import max, min
 from numpy.random import *
 from pickle import dump, load
 from tempfile import mkstemp
+from cmt.models import MCBM, PatchMCBM
 
 class Tests(unittest.TestCase):
 	def test_basics(self):

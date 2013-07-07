@@ -4,9 +4,10 @@ import unittest
 from numpy import *
 from numpy.random import randn, permutation
 from numpy import max
-from cmt import FVBN, GLM, LogisticFunction, Bernoulli
 from pickle import dump, load
 from tempfile import mkstemp
+from cmt.models import FVBN, GLM, Bernoulli
+from cmt.utils import LogisticFunction
 
 class Tests(unittest.TestCase):
 	def test_fvbn(self):
