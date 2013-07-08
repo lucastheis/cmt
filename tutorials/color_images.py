@@ -59,7 +59,7 @@ def main(argv):
 
 	# train model
 	model0, pre0 = train_model(img[:, :, 0], input_mask0, output_mask0)
-	model1, pre1 = train_model(img, input_mask1, output_mask1)
+	model1, pre1 = train_model(img,          input_mask1, output_mask1)
 
 	# synthesize a new image
 	img_sample = img.copy()
