@@ -5,12 +5,12 @@ Trains an MCGSM on a single grayscale images.
 import sys
 
 from itertools import chain
-from numpy import mean, split, min, max, log
-from matplotlib.pyplot import imread, imsave
+from numpy import split, min, max, log
 from pickle import dump
 from cmt.models import MCGSM
 from cmt.transforms import WhiteningPreconditioner
-from cmt.tools import generate_data_from_image, sample_image, rgb2gray
+from cmt.tools import generate_data_from_image, sample_image
+from cmt.tools import imread, imwrite, rgb2gray
 
 # causal neighborhood and target pixel
 input_mask = [
@@ -70,13 +70,13 @@ def main(argv):
 	# synthesize a new image
 	img_sample = sample_image(img, model, input_mask, output_mask, pre)
 
-	imsave('newyork_sample.png', img_sample,
+	imwrite('newyork_sample.png', img_sample,
 		cmap='gray',
 		vmin=min(img),
 		vmax=max(img))
 
 	# save model
-	with open('model.pck', 'wb') as handle:
+	with open('image_model.pck', 'wb') as handle:
 		dump({
 			'model': model,
 			'input_mask': input_mask,
