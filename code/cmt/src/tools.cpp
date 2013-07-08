@@ -251,6 +251,11 @@ pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	// sample random image locations
 	set<int> indices = randomSelect(numSamples, w * h);
 
+	// randomize order of indices
+	vector<int> indicesRand(indices.size());
+	copy(indices.begin(), indices.end(), indicesRand.begin());
+	random_shuffle(indicesRand.begin(), indicesRand.end());
+
 	int numInputs = inputIndices.size();
 	int numOutputs = outputIndices.size();
 
@@ -260,7 +265,7 @@ pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 
 	int k = 0;
 
-	for(set<int>::iterator iter = indices.begin(); iter != indices.end(); ++iter, ++k) {
+	for(vector<int>::iterator iter = indicesRand.begin(); iter != indicesRand.end(); ++iter, ++k) {
 		// compute indices of image location
 		int i = *iter / w;
 		int j = *iter % w;
@@ -390,13 +395,18 @@ pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	// sample random image locations
 	set<int> indices = randomSelect(numSamples, w * h);
 
+	// randomize order of indices
+	vector<int> indicesRand(indices.size());
+	copy(indices.begin(), indices.end(), indicesRand.begin());
+	random_shuffle(indicesRand.begin(), indicesRand.end());
+
 	pair<ArrayXXd, ArrayXXd> data = make_pair(
 		ArrayXXd(numInputs, numSamples),
 		ArrayXXd(numOutputs, numSamples));
 
 	int k = 0;
 
-	for(set<int>::iterator iter = indices.begin(); iter != indices.end(); ++iter, ++k) {
+	for(vector<int>::iterator iter = indicesRand.begin(); iter != indicesRand.end(); ++iter, ++k) {
 		// compute indices of image location
 		int i = *iter / w;
 		int j = *iter % w;
@@ -530,13 +540,18 @@ pair<ArrayXXd, ArrayXXd> CMT::generateDataFromVideo(
 	// sample random video locations
 	set<int> indices = randomSelect(numSamples, w * h * l);
 
+	// randomize order of indices
+	vector<int> indicesRand(indices.size());
+	copy(indices.begin(), indices.end(), indicesRand.begin());
+	random_shuffle(indicesRand.begin(), indicesRand.end());
+
 	pair<ArrayXXd, ArrayXXd> data = make_pair(
 		ArrayXXd(numInputs, numSamples),
 		ArrayXXd(numOutputs, numSamples));
 
 	int k = 0;
 
-	for(set<int>::iterator iter = indices.begin(); iter != indices.end(); ++iter, ++k) {
+	for(vector<int>::iterator iter = indicesRand.begin(); iter != indicesRand.end(); ++iter, ++k) {
 		// compute indices of video location
 		int f = *iter / (w * h);
 		int r = *iter % (w * h);
