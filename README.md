@@ -90,4 +90,9 @@ on 64-bit systems and
 
 	python setup.py build --compiler=intel
 
-on 32-bit systems.
+on 32-bit systems. The following might be helpful when trying to compile the L-BFGS library with the
+Intel compiler.
+
+	./autogen.sh
+	CC=icc ./configure --enable-sse2
+	CC=icc make CFLAGS="-fPIC"

@@ -353,6 +353,9 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 						preconditioner));
 			}
 		} else {
+			if(PyArray_NDIM(input_mask) > 2 || PyArray_NDIM(output_mask) > 2)
+				throw Exception("You cannot use multi-channel masks with single-channel images.");
+
 			// single-channel image and single-channel masks
 			imgSample = PyArray_FromMatrixXd(
 				sampleImage(
