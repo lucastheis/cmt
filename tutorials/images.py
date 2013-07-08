@@ -47,9 +47,9 @@ def main(argv):
 	model = MCGSM(
 		dim_in=data_train[0].shape[0],
 		dim_out=data_train[1].shape[0],
-		num_components=12,
-		num_scales=6,
-		num_features=36)
+		num_components=8,
+		num_scales=4,
+		num_features=32)
 
 	# fit parameters
 	model.initialize(*pre(*data_train))
@@ -77,7 +77,10 @@ def main(argv):
 
 	# save model
 	with open('model.pck', 'wb') as handle:
-		dump({'model': model}, handle, 1)
+		dump({
+			'model': model,
+			'input_mask': input_mask,
+			'output_mask': output_mask}, handle, 1)
 
 	return 0
 
