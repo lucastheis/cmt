@@ -172,8 +172,7 @@ Array<double, 1, Dynamic> CMT::STM::logLikelihood(
 	}
 
 	// model has only nonlinear inputs
-	MatrixXd weightsSqr = mWeights.array().square();
-	MatrixXd jointEnergy = weightsSqr * (mFeatures.transpose() * input).array().square().matrix();
+	MatrixXd jointEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
 	jointEnergy += mPredictors * input;
 	jointEnergy.colwise() += mBiases;
 
@@ -205,8 +204,7 @@ Array<double, 1, Dynamic> CMT::STM::logLikelihood(
 
 	if(dimInNonlinear()) {
 		// model has linear and nonlinear inputs
-		MatrixXd weightsSqr = mWeights.array().square();
-		MatrixXd jointEnergy = weightsSqr * (mFeatures.transpose() * inputNonlinear).array().square().matrix();
+		MatrixXd jointEnergy = mWeights * (mFeatures.transpose() * inputNonlinear).array().square().matrix();
 		jointEnergy += mPredictors * inputNonlinear;
 		jointEnergy.colwise() += mBiases;
 
@@ -429,10 +427,10 @@ double CMT::STM::parameterGradient(
 
 		ArrayXXd featureOutput = features.transpose() * inputNonlinear;
 		MatrixXd featureOutputSq = featureOutput.square();
-		MatrixXd weightsSq = weights.array().square();
-		MatrixXd weightsOutput = weightsSq * featureOutputSq;
+		MatrixXd weightsOutput = weights * featureOutputSq;
+		ArrayXXd predictorOutput = predictors * inputNonlinear;
 
-		MatrixXd jointEnergy = weightsOutput + predictors * inputNonlinear;
+		MatrixXd jointEnergy = weights * featureOutputSq + predictors * inputNonlinear;
 		jointEnergy.colwise() += biases;
 
 		Matrix<double, 1, Dynamic> response = logSumExp(jointEnergy);
@@ -464,14 +462,12 @@ double CMT::STM::parameterGradient(
 			#pragma omp critical
 			biasesGrad -= postTmp.rowwise().sum();
 
-		if(params.trainWeights) {
-			MatrixXd tmp2 = (postTmp * featureOutputSq.transpose()).array() * weights.array() * 2.;
+		if(params.trainWeights)
 			#pragma omp critical
-			weightsGrad -= tmp2;
-		}
+			weightsGrad -= postTmp * featureOutputSq.transpose();
 
 		if(params.trainFeatures) {
-			ArrayXXd tmp2 = 2. * weightsSq.transpose() * postTmp;
+			ArrayXXd tmp2 = 2. * weights.transpose() * postTmp;
 			MatrixXd tmp3 = featureOutput * tmp2;
 			#pragma omp critical
 			featuresGrad -= inputNonlinear * tmp3.transpose();
