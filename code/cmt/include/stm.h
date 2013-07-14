@@ -32,6 +32,7 @@ namespace CMT {
 			};
 
 			using Trainable::logLikelihood;
+			using Trainable::initialize;
 			using Trainable::train;
 
 			STM(
@@ -67,6 +68,8 @@ namespace CMT {
 
 			inline VectorXd linearPredictor() const;
 			inline void setLinearPredictor(const VectorXd& linearPredictor);
+
+			virtual void initialize(const MatrixXd& input, const MatrixXd& output);
 
 			virtual MatrixXd sample(const MatrixXd& input) const;
 			virtual MatrixXd sample(

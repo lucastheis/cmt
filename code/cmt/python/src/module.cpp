@@ -177,9 +177,9 @@ static PyGetSetDef MCGSM_getset[] = {
 
 static PyMethodDef MCGSM_methods[] = {
 	{"initialize",
-		(PyCFunction)MCGSM_initialize,
+		(PyCFunction)Trainable_initialize,
 		METH_VARARGS | METH_KEYWORDS,
-		MCGSM_initialize_doc},
+		Trainable_initialize_doc},
 	{"train", (PyCFunction)MCGSM_train, METH_VARARGS | METH_KEYWORDS, MCGSM_train_doc},
 	{"posterior",
 		(PyCFunction)MCGSM_posterior,
@@ -395,6 +395,10 @@ static PyGetSetDef STM_getset[] = {
 };
 
 static PyMethodDef STM_methods[] = {
+	{"initialize",
+		(PyCFunction)Trainable_initialize,
+		METH_VARARGS | METH_KEYWORDS,
+		Trainable_initialize_doc},
 	{"train", (PyCFunction)STM_train, METH_VARARGS | METH_KEYWORDS, STM_train_doc},
 	{"_parameters",
 		(PyCFunction)STM_parameters,

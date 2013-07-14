@@ -101,6 +101,59 @@ Trainable::Parameters* PyObject_ToParameters(
 
 
 
+const char* Trainable_initialize_doc =
+	"initialize(self, input, output)\n"
+	"\n"
+	"Tries to guess more sensible initial values for the model parameters from data.\n"
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: C{ndarray}\n"
+	"@param output: outputs stored in columns";
+
+PyObject* Trainable_initialize(TrainableObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", "output", 0};
+
+	PyObject* input;
+	PyObject* output;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist),
+		&input, &output))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output) {
+		Py_XDECREF(input);
+		Py_XDECREF(output);
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		self->distribution->initialize(
+			PyArray_ToMatrixXd(input), 
+			PyArray_ToMatrixXd(output));
+		Py_DECREF(input);
+		Py_DECREF(output);
+		Py_INCREF(Py_None);
+		return Py_None;
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
 PyObject* Trainable_train(
 	TrainableObject* self,
 	PyObject* args,

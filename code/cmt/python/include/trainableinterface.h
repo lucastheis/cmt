@@ -18,6 +18,7 @@ struct TrainableObject {
 	bool owner;
 };
 
+extern const char* Trainable_initialize_doc;
 extern const char* Trainable_parameters_doc;
 extern const char* Trainable_set_parameters_doc;
 extern const char* Trainable_parameter_gradient_doc;
@@ -28,6 +29,8 @@ Trainable::Parameters* PyObject_ToParameters(
 	PyObject* parameters,
 	Trainable::Parameters* params);
 Trainable::Parameters* PyObject_ToParameters(PyObject* parameters);
+
+PyObject* Trainable_initialize(TrainableObject* self, PyObject* args, PyObject* kwds);
 
 PyObject* Trainable_train(
 	TrainableObject* self,

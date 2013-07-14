@@ -1,12 +1,20 @@
 #include "stm.h"
 #include "glm.h"
 #include "utils.h"
+#include "Eigen/Cholesky"
+#include "Eigen/LU"
+
+#include "Eigen/Eigenvalues"
+using Eigen::SelfAdjointEigenSolver;
 
 #include "Eigen/Core"
 using Eigen::MatrixXd;
 using Eigen::ArrayXXd;
+using Eigen::ArrayXd;
 using Eigen::Array;
 using Eigen::Dynamic;
+using Eigen::VectorXi;
+using Eigen::VectorXd;
 
 #include <utility>
 using std::pair;
@@ -82,11 +90,11 @@ CMT::STM::STM(int dimIn, int numComponents, int numFeatures) :
 		throw Exception("The number of components has to be positive.");
 
 	// initialize parameters
-	mBiases = VectorXd::Zero(mNumComponents);
-	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100. + 0.01;
+	mBiases = -10. * ArrayXd::Random(mNumComponents).abs() - log(mNumComponents);
+	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100.;
 	mFeatures = sampleNormal(mDimInNonlinear, mNumFeatures) / 100.;
 	mPredictors = sampleNormal(mNumComponents, mDimInNonlinear) / 100.;
-	mLinearPredictor = VectorXd(mDimInLinear);
+	mLinearPredictor = VectorXd::Zero(mDimInLinear);
 }
 
 
@@ -104,11 +112,11 @@ CMT::STM::STM(int dimInNonlinear, int dimInLinear, int numComponents, int numFea
 		throw Exception("The number of components has to be positive.");
 
 	// initialize parameters
-	mBiases = VectorXd::Zero(mNumComponents);
-	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100. + 0.01;
+	mBiases = -10. * ArrayXd::Random(mNumComponents).abs() - log(mNumComponents);
+	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100.;
 	mFeatures = sampleNormal(mDimInNonlinear, mNumFeatures) / 100.;
 	mPredictors = sampleNormal(mNumComponents, mDimInNonlinear) / 100.;
-	mLinearPredictor = VectorXd::Zero(mDimInLinear) / 100.;
+	mLinearPredictor = sampleNormal(mDimInLinear, 1) / 100.;
 }
 
 
@@ -220,6 +228,73 @@ Array<double, 1, Dynamic> CMT::STM::logLikelihood(
 	Array<double, 1, Dynamic> logProb0 = -(1. + response.exp()).log();
 
 	return output.array() * logProb1 + (1. - output.array()) * logProb0;
+}
+
+
+
+void CMT::STM::initialize(const MatrixXd& input, const MatrixXd& output) {
+	if(input.rows() != dimIn() || output.rows() != dimOut())
+		throw Exception("Data has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("The number of inputs and outputs should be the same.");
+
+	Array<bool, 1, Dynamic> spikes = output.array() > 0.5;
+	int numSpikes = output.sum();
+
+	if(dimInNonlinear() > 0) {
+		MatrixXd inputNonlinear = input.topRows(dimInNonlinear());
+
+		if(numSpikes > dimInNonlinear()) {
+			MatrixXd inputs1(inputNonlinear.rows(), numSpikes);
+			MatrixXd inputs0(inputNonlinear.rows(), spikes.size() - numSpikes);
+
+			// separate data into spike-triggered and non-spike-triggered stimuli
+			for(int i = 0, i0 = 0, i1 = 0; i < spikes.size(); ++i)
+				if(spikes[i])
+					inputs1.col(i1++) = inputNonlinear.col(i);
+				else
+					inputs0.col(i0++) = inputNonlinear.col(i);
+
+			// spike-triggered/non-spike-triggered mean and precision
+			VectorXd m1 = inputs1.rowwise().mean();
+			VectorXd m0 = inputs0.rowwise().mean();
+
+			MatrixXd S1 = covariance(inputs1).inverse();
+			MatrixXd S0 = covariance(inputs0).inverse();
+
+			// parameters of a quadratic model
+			MatrixXd K = (S0 - S1) / 2.;
+			VectorXd w = S1 * m1 - S0 * m0;
+			double p = static_cast<float>(numSpikes) / output.cols();
+			double a = 0.5 * (m0.transpose() * S0 * m0)(0, 0) - 0.5 * (m1.transpose() * S1 * m1)(0, 0)
+				+ 0.5 * logDetPD(S1) - 0.5 * logDetPD(S0) + log(p) - log(1. - p)
+				- log(mNumComponents);
+
+			// decompose matrix into eigenvectors
+			SelfAdjointEigenSolver<MatrixXd> eigenSolver(K);
+			VectorXd eigVals = eigenSolver.eigenvalues();
+			MatrixXd eigVecs = eigenSolver.eigenvectors();
+			VectorXi indices = argSort(eigVals.array().abs());
+
+			// use most informative eigenvectors as features
+			for(int i = 0; i < mNumFeatures && i < indices.size(); ++i) {
+				int j = indices[i];
+				mWeights.col(i).setConstant(eigVals[j]);
+				mFeatures.col(i) = eigVecs.col(j);
+			}
+
+			mWeights += MatrixXd::Random(mNumComponents, mNumFeatures) / 10.;
+			mPredictors.rowwise() = w.transpose();
+			mPredictors += sampleNormal(mNumComponents, mDimInNonlinear).matrix() / 1000.;
+			mBiases.setConstant(a);
+			mBiases += VectorXd::Random(mNumComponents) / 10.;
+		}
+	}
+
+	if(dimInLinear() > 0) {
+		mLinearPredictor = input.bottomRows(dimInLinear()) * output.transpose()
+			/ static_cast<float>(numSpikes);
+	}
 }
 
 
