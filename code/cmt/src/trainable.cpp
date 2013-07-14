@@ -22,7 +22,7 @@ CMT::Trainable::Callback::~Callback() {
 CMT::Trainable::Parameters::Parameters() {
 	verbosity = 0;
 	maxIter = 1000;
-	threshold = 1e-7;
+	threshold = 1e-9;
 	numGrad = 20;
 	batchSize = 2000;
 	callback = 0;
@@ -308,7 +308,6 @@ bool CMT::Trainable::train(
 	hyperparams.linesearch = LBFGS_LINESEARCH_MORETHUENTE;
 	hyperparams.max_linesearch = 100;
 	hyperparams.ftol = 1e-4;
-	hyperparams.xtol = 1e-32;
 
 	// wrap all additional arguments to optimization routine
 	InstanceLBFGS instance(this, &params, &input, &output, inputVal, outputVal);
