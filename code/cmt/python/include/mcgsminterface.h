@@ -32,7 +32,6 @@ extern PyTypeObject MCGSM_type;
 extern PyTypeObject PCAPreconditioner_type;
 
 extern const char* MCGSM_doc;
-extern const char* MCGSM_initialize_doc;
 extern const char* MCGSM_train_doc;
 extern const char* MCGSM_sample_posterior_doc;
 extern const char* MCGSM_posterior_doc;
@@ -69,7 +68,6 @@ int MCGSM_set_cholesky_factors(MCGSMObject*, PyObject*, void*);
 PyObject* MCGSM_predictors(MCGSMObject*, PyObject*, void*);
 int MCGSM_set_predictors(MCGSMObject*, PyObject*, void*);
 
-PyObject* MCGSM_initialize(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_train(MCGSMObject*, PyObject*, PyObject*);
 
 PyObject* MCGSM_check_gradient(MCGSMObject*, PyObject*, PyObject*);
