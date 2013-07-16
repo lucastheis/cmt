@@ -1,3 +1,7 @@
+#include "lbfgs.h"
+#include "utils.h"
+#include "exception.h"
+
 #include <algorithm>
 using std::max;
 using std::min;
@@ -7,7 +11,9 @@ using std::rand;
 
 #include <cmath>
 using std::exp;
-using std::max;
+
+#include <cstring>
+using std::memcpy;
 
 #include <set>
 using std::set;
@@ -28,10 +34,6 @@ using CMT::ConditionalDistribution;
 using CMT::ArrayXXb;
 using CMT::Preconditioner;
 using CMT::extractFromImage;
-
-#include "lbfgs.h"
-#include "utils.h"
-#include "exception.h"
 
 #include "Eigen/Core"
 using Eigen::Block;
@@ -1326,8 +1328,10 @@ ArrayXXd CMT::extractWindows(const ArrayXXd& timeSeries, int windowLength) {
 			for(int i = 0; i < timeSeries.rows(); ++i, ++k)
 				windows(k, t) = timeSeries(i, t + j);
 		#else
-		for(int i = 0; i < windows.rows(); ++i)
-			dataTo[t * windows.rows() + i] = dataFrom[t * timeSeries.rows() + i];
+		memcpy(
+			dataTo + t * windows.rows(),
+			dataFrom + t * timeSeries.rows(),
+			sizeof(double) * windows.rows());
 		#endif
 	}
 
