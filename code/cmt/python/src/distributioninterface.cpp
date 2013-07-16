@@ -29,7 +29,7 @@ int Distribution_init(DistributionObject*, PyObject*, PyObject*) {
 
 void Distribution_dealloc(DistributionObject* self) {
 	// delete actual instance
-	if(self->owner)
+	if(self->dist && self->owner)
 		delete self->dist;
 
 	// delete DistributionObject

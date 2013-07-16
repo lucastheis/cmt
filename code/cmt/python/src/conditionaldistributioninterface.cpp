@@ -33,7 +33,7 @@ int CD_init(CDObject* self, PyObject* args, PyObject* kwds) {
 
 void CD_dealloc(CDObject* self) {
 	// delete actual instance
-	if(self->owner)
+	if(self->cd && self->owner)
 		delete self->cd;
 
 	// delete CDObject
