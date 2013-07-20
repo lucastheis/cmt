@@ -132,7 +132,9 @@ CMT::STM::STM(
 	mDimInNonlinear(dimInNonlinear),
 	mDimInLinear(dimInLinear),
 	mNumComponents(numComponents),
-	mNumFeatures(numFeatures < 0 ? dimInNonlinear : numFeatures)
+	mNumFeatures(numFeatures < 0 ? dimInNonlinear : numFeatures),
+	mNonlinearity(nonlinearity ? nonlinearity : defaultNonlinearity),
+	mDistribution(distribution ? distribution : defaultDistribution)
 {
 	// check hyperparameters
 	if(mDimInNonlinear < 0 || mDimInLinear < 0)
@@ -209,9 +211,7 @@ Array<double, 1, Dynamic> CMT::STM::logLikelihood(
 
 
 
-Array<double, 1, Dynamic> CMT::STM::response(
-	const MatrixXd& input) const
-{
+Array<double, 1, Dynamic> CMT::STM::response(const MatrixXd& input) const {
 	if(input.rows() != dimIn())
 		throw Exception("Input has wrong dimensionality.");
 
@@ -569,7 +569,7 @@ double CMT::STM::parameterGradient(
 			// don't compute gradients
 			continue;
 
-		Array<double, 1, Dynamic> tmp = -mDistribution->gradient(output, response)
+		Array<double, 1, Dynamic> tmp = -mDistribution->gradient(output, nonlinearity->operator()(response))
 			* nonlinearity->derivative(response);
 
 		MatrixXd postTmp = posterior.array().rowwise() * tmp;
