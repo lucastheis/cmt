@@ -335,14 +335,15 @@ bool CMT::Trainable::train(
 	setParameters(x, params);
 
 	if(inputVal && outputVal && instance.parameters) {
+		// negative log-likelihood using current parameters
 		double logLoss = evaluate(*inputVal, *outputVal);
 
-		// use parameters which minimize the validation error
+		// switch to parameters which minimize the validation error
 		setParameters(instance.parameters, params);
 
 		// check that they really give a smaller validation error
-		if(evaluate(*inputVal, *outputVal) > logLoss)
-			// otherwise, use other parameters after all
+		if(logLoss < evaluate(*inputVal, *outputVal))
+			// otherwise, use other set of parameters after all
 			setParameters(x, params);
 	}
 

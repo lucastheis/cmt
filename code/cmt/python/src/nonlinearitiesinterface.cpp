@@ -18,7 +18,7 @@ PyObject* Nonlinearity_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 
 
 const char* Nonlinearity_doc =
-	"Abstract base class for nonlinear functions usable by L{GLM}.";
+	"Abstract base class for nonlinear functions used, for example, by L{GLM}.";
 
 int Nonlinearity_init(
 	NonlinearityObject* self,

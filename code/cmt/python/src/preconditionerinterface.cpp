@@ -229,7 +229,7 @@ int Preconditioner_init(WhiteningPreconditionerObject* self, PyObject* args, PyO
 
 
 void Preconditioner_dealloc(PreconditionerObject* self) {
-	if(self->owner)
+	if(self->preconditioner && self->owner)
 		// delete actual instance
 		delete self->preconditioner;
 

@@ -62,8 +62,6 @@ int GLM_init(GLMObject* self, PyObject* args, PyObject* kwds) {
 		return -1;
 	}
 
-	Py_INCREF(nonlinearity);
-
 	if(PyType_Check(distribution)) {
 		if(!PyType_IsSubtype(reinterpret_cast<PyTypeObject*>(distribution), &UnivariateDistribution_type)) {
 			PyErr_SetString(PyExc_TypeError, "Distribution should be a subtype of `UnivariateDistribution`.");
@@ -80,6 +78,7 @@ int GLM_init(GLMObject* self, PyObject* args, PyObject* kwds) {
 		return -1;
 	}
 
+	Py_INCREF(nonlinearity);
 	Py_INCREF(distribution);
 
 	// create actual GLM instance
@@ -103,11 +102,12 @@ int GLM_init(GLMObject* self, PyObject* args, PyObject* kwds) {
 
 void GLM_dealloc(GLMObject* self) {
 	// delete actual instance
-	if(self->owner)
+	if(self->glm && self->owner) {
 		delete self->glm;
 
-	Py_DECREF(self->nonlinearity);
-	Py_DECREF(self->distribution);
+		Py_DECREF(self->nonlinearity);
+		Py_DECREF(self->distribution);
+	}
 
 	// delete GLMObject
 	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));

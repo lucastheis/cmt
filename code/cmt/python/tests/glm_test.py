@@ -38,6 +38,9 @@ class Tests(unittest.TestCase):
 
 		self.assertTrue(isinstance(glm.distribution, Bernoulli))
 
+		# test wrong order of arguments
+		self.assertRaises(TypeError, lambda: GLM(5, Bernoulli, LogisticFunction))
+
 
 
 	def test_glm_train(self):

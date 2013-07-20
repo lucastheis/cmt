@@ -4,7 +4,7 @@
 using CMT::Exception;
 
 const char* UnivariateDistribution_doc =
-	"Abstract base class for univariate distributions usable by L{GLM}.";
+	"Abstract base class for univariate distributions used, for example, by L{GLM}.";
 
 int UnivariateDistribution_init(
 	UnivariateDistributionObject* self,
