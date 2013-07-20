@@ -12,31 +12,36 @@ CMT::Nonlinearity::~Nonlinearity() {
 
 
 
+CMT::LogisticFunction::LogisticFunction(double epsilon) : mEpsilon(epsilon) {
+}
+
+
+
 ArrayXXd CMT::LogisticFunction::operator()(const ArrayXXd& data) const {
-	return 1. / (1. + (-data).exp());
+	return mEpsilon / 2. + (1. - mEpsilon) / (1. + (-data).exp());
 }
 
 
 
 double CMT::LogisticFunction::operator()(double data) const {
-	return 1. / (1. + exp(-data));
+	return mEpsilon / 2. + (1. - mEpsilon) / (1. + exp(-data));
 }
 
 
 
 ArrayXXd CMT::LogisticFunction::derivative(const ArrayXXd& data) const {
 	ArrayXXd tmp = operator()(data);
-	return tmp * (1. - tmp);
+	return (1. - mEpsilon) * tmp * (1. - tmp);
 }
 
 
 
 ArrayXXd CMT::LogisticFunction::inverse(const ArrayXXd& data) const {
-	return (data / (1. - data)).log();
+	return ((data - mEpsilon / 2.) / (1. - data - mEpsilon / 2.)).log();
 }
 
 
 
 double CMT::LogisticFunction::inverse(double data) const {
-	return log(data / (1. - data));
+	return log((data - mEpsilon / 2.) / (1. - data - mEpsilon / 2.));
 }

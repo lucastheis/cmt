@@ -9,6 +9,7 @@ namespace CMT {
 	class Nonlinearity {
 		public:
 			virtual ~Nonlinearity();
+
 			virtual ArrayXXd operator()(const ArrayXXd& data) const = 0;
 			virtual double operator()(double data) const = 0;
 	};
@@ -25,13 +26,20 @@ namespace CMT {
 	};
 
 	class LogisticFunction : public InvertibleNonlinearity, public DifferentiableNonlinearity {
-		virtual ArrayXXd operator()(const ArrayXXd& data) const;
-		virtual double operator()(double data) const;
-		virtual ArrayXXd derivative(const ArrayXXd& data) const;
-		virtual ArrayXXd inverse(const ArrayXXd& data) const;
-		virtual double inverse(double data) const;
-	};
+		public:
+			LogisticFunction(double epsilon = 1e-50);
 
+			virtual ArrayXXd operator()(const ArrayXXd& data) const;
+			virtual double operator()(double data) const;
+
+			virtual ArrayXXd derivative(const ArrayXXd& data) const;
+
+			virtual ArrayXXd inverse(const ArrayXXd& data) const;
+			virtual double inverse(double data) const;
+
+		protected:
+			double mEpsilon;
+	};
 }
 
 #endif
