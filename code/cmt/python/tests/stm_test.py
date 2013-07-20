@@ -8,6 +8,7 @@ from pickle import dump, load
 from tempfile import mkstemp
 from cmt.models import STM, GLM, Bernoulli
 from cmt.utils import LogisticFunction
+from scipy.stats import norm
 
 class Tests(unittest.TestCase):
 	def test_basics(self):
@@ -52,6 +53,21 @@ class Tests(unittest.TestCase):
 		self.assertEqual(output.shape[1], num_samples)
 		self.assertEqual(loglik.shape[0], 1)
 		self.assertEqual(loglik.shape[1], num_samples)
+
+
+
+	def test_sample(self):
+		q = 0.92
+		N = 10000
+
+		stm = STM(0, 0, 1, 1)
+		stm.biases = [log(q / (1. - q))]
+
+		x = mean(stm.sample(empty([0, N]))) - q
+		p = 2. - 2. * norm.cdf(abs(x), scale=sqrt(q * (1. - q) / N))
+
+		# should fail in about 1/1000 tests, but not more
+		self.assertGreater(p, 0.0001)
 
 
 

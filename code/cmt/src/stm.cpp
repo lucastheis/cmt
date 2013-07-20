@@ -1,8 +1,10 @@
-#include "stm.h"
 #include "glm.h"
 #include "utils.h"
 #include "Eigen/Cholesky"
 #include "Eigen/LU"
+
+#include "stm.h"
+using CMT::STM;
 
 #include "Eigen/Eigenvalues"
 using Eigen::SelfAdjointEigenSolver;
@@ -16,6 +18,17 @@ using Eigen::Dynamic;
 using Eigen::VectorXi;
 using Eigen::VectorXd;
 
+#include "nonlinearities.h"
+using CMT::Nonlinearity;
+using CMT::LogisticFunction;
+
+#include "univariatedistributions.h"
+using CMT::UnivariateDistribution;
+using CMT::Bernoulli;
+
+#include <typeinfo>
+using std::bad_cast;
+
 #include <utility>
 using std::pair;
 using std::make_pair;
@@ -23,6 +36,9 @@ using std::make_pair;
 #include <cmath>
 using std::max;
 using std::min;
+
+Nonlinearity* const STM::defaultNonlinearity = new LogisticFunction;
+UnivariateDistribution* const STM::defaultDistribution = new Bernoulli;
 
 CMT::STM::Parameters::Parameters() :
 	Trainable::Parameters::Parameters(),
@@ -77,11 +93,18 @@ CMT::STM::Parameters& CMT::STM::Parameters::operator=(const Parameters& params) 
 
 
 
-CMT::STM::STM(int dimIn, int numComponents, int numFeatures) :
+CMT::STM::STM(
+	int dimIn,
+	int numComponents,
+	int numFeatures,
+	Nonlinearity* nonlinearity,
+	UnivariateDistribution* distribution) :
 	mDimInNonlinear(dimIn),
 	mDimInLinear(0),
 	mNumComponents(numComponents),
-	mNumFeatures(numFeatures < 0 ? dimIn : numFeatures)
+	mNumFeatures(numFeatures < 0 ? dimIn : numFeatures),
+	mNonlinearity(nonlinearity ? nonlinearity : defaultNonlinearity),
+	mDistribution(distribution ? distribution : defaultDistribution)
 {
 	// check hyperparameters
 	if(mDimInNonlinear < 0)
@@ -99,7 +122,13 @@ CMT::STM::STM(int dimIn, int numComponents, int numFeatures) :
 
 
 
-CMT::STM::STM(int dimInNonlinear, int dimInLinear, int numComponents, int numFeatures) :
+CMT::STM::STM(
+	int dimInNonlinear,
+	int dimInLinear,
+	int numComponents,
+	int numFeatures,
+	Nonlinearity* nonlinearity,
+	UnivariateDistribution* distribution) :
 	mDimInNonlinear(dimInNonlinear),
 	mDimInLinear(dimInLinear),
 	mNumComponents(numComponents),
@@ -122,31 +151,14 @@ CMT::STM::STM(int dimInNonlinear, int dimInLinear, int numComponents, int numFea
 
 
 MatrixXd CMT::STM::sample(const MatrixXd& input) const {
-	// compute probability of generating a 1
-	Array<double, 1, Dynamic> logProb1 =
-		logLikelihood(input, MatrixXd::Ones(1, input.cols()));
-
-	// sample uniformly between 0 and 1
-	Array<double, 1, Dynamic> uniRand =
-		Array<double, 1, Dynamic>::Random(input.cols()).abs();
-
-	return (uniRand < logProb1.exp()).cast<double>();
+	return mDistribution->sample(mNonlinearity->operator()(response(input)));
 }
 
 
 
 MatrixXd CMT::STM::sample(const MatrixXd& inputNonlinear, const MatrixXd& inputLinear) const {
-	// compute probability of generating a 1
-	Array<double, 1, Dynamic> logProb1 = logLikelihood(
-		inputNonlinear,
-		inputLinear,
-		MatrixXd::Ones(1, inputNonlinear.cols()));
-
-	// sample uniformly between 0 and 1
-	Array<double, 1, Dynamic> uniRand =
-		Array<double, 1, Dynamic>::Random(inputNonlinear.cols()).abs();
-
-	return (uniRand < logProb1.exp()).cast<double>();
+	return mDistribution->sample(
+		mNonlinearity->operator()(response(inputNonlinear, inputLinear)));
 }
 
 
@@ -170,27 +182,9 @@ Array<double, 1, Dynamic> CMT::STM::logLikelihood(
 	if(input.cols() != output.cols())
 		throw Exception("The number of inputs and outputs must be the same.");
 
-	if(!dimIn()) {
-		// model has no inputs and reduces to Bernoulli
-		double response = numComponents() > 0 ? log(mBiases.array().exp().sum()) : mBiases[0];
-		double logProb1 = -log(1. + exp(-response));
-		double logProb0 = -log(1. + exp(response));
-
-		return output.array() * logProb1 + (1. - output.array()) * logProb0;
-	}
-
-	// model has only nonlinear inputs
-	MatrixXd jointEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
-	jointEnergy += mPredictors * input;
-	jointEnergy.colwise() += mBiases;
-
-	Array<double, 1, Dynamic> response = logSumExp(jointEnergy);
-
-	// apply logistic sigmoid function
-	Array<double, 1, Dynamic> logProb1 = -(1. + (-response).exp()).log();
-	Array<double, 1, Dynamic> logProb0 = -(1. + response.exp()).log();
-
-	return output.array() * logProb1 + (1. - output.array()) * logProb0;
+	return mDistribution->logLikelihood(
+		output,
+		mNonlinearity->operator()(response(input)));
 }
 
 
@@ -208,26 +202,66 @@ Array<double, 1, Dynamic> CMT::STM::logLikelihood(
 	if(inputNonlinear.rows() != dimInNonlinear() || inputLinear.rows() != dimInLinear())
 		throw Exception("Input has wrong dimensionality.");
 
+	return mDistribution->logLikelihood(
+		output,
+		mNonlinearity->operator()(response(inputNonlinear, inputLinear)));
+}
+
+
+
+Array<double, 1, Dynamic> CMT::STM::response(
+	const MatrixXd& input) const
+{
+	if(input.rows() != dimIn())
+		throw Exception("Input has wrong dimensionality.");
+
+	if(dimInLinear())
+		// split nonlinear and linear inputs
+		return response(
+			input.topRows(dimInNonlinear()),
+			input.bottomRows(dimInLinear()));
+
 	Array<double, 1, Dynamic> response;
 
-	if(dimInNonlinear()) {
-		// model has linear and nonlinear inputs
-		MatrixXd jointEnergy = mWeights * (mFeatures.transpose() * inputNonlinear).array().square().matrix();
-		jointEnergy += mPredictors * inputNonlinear;
-		jointEnergy.colwise() += mBiases;
+	if(!dimIn())
+		// model has no inputs and reduces to univariate distribution
+		return Array<double, 1, Dynamic>::Constant(input.cols(),
+			numComponents() > 1 ? log(mBiases.array().exp().sum()) : mBiases[0]);
 
-		response = logSumExp(jointEnergy) + (mLinearPredictor.transpose() * inputLinear).array();
-	} else {
+	// model has only nonlinear inputs
+	MatrixXd jointEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
+	jointEnergy += mPredictors * input;
+	jointEnergy.colwise() += mBiases;
+
+	return logSumExp(jointEnergy);
+}
+
+
+
+Array<double, 1, Dynamic> CMT::STM::response(
+	const MatrixXd& inputNonlinear,
+	const MatrixXd& inputLinear) const
+{
+	if(!dimInLinear())
+		return response(inputNonlinear);
+
+	if(inputNonlinear.rows() != dimInNonlinear() || inputLinear.rows() != dimInLinear())
+		throw Exception("Input has wrong dimensionality.");
+
+	Array<double, 1, Dynamic> response;
+
+	if(!dimInNonlinear()) {
 		// model has only linear inputs
-		double bias = numComponents() > 0 ? log(mBiases.array().exp().sum()) : mBiases[0];
-		response = (mLinearPredictor.transpose() * inputLinear).array() + bias;
+		double bias = numComponents() > 1 ? log(mBiases.array().exp().sum()) : mBiases[0];
+		return (mLinearPredictor.transpose() * inputLinear).array() + bias;
 	}
 
-	// apply logistic sigmoid function
-	Array<double, 1, Dynamic> logProb1 = -(1. + (-response).exp()).log();
-	Array<double, 1, Dynamic> logProb0 = -(1. + response.exp()).log();
+	// model has linear and nonlinear inputs
+	MatrixXd jointEnergy = mWeights * (mFeatures.transpose() * inputNonlinear).array().square().matrix();
+	jointEnergy += mPredictors * inputNonlinear;
+	jointEnergy.colwise() += mBiases;
 
-	return output.array() * logProb1 + (1. - output.array()) * logProb0;
+	return logSumExp(jointEnergy) + (mLinearPredictor.transpose() * inputLinear).array();
 }
 
 
@@ -283,18 +317,16 @@ void CMT::STM::initialize(const MatrixXd& input, const MatrixXd& output) {
 				mFeatures.col(i) = eigVecs.col(j);
 			}
 
-			mWeights += MatrixXd::Random(mNumComponents, mNumFeatures) / 10.;
+			mWeights = mWeights.array() * (0.5 + 0.5 * ArrayXXd::Random(mNumComponents, mNumFeatures).abs());
 			mPredictors.rowwise() = w.transpose();
-			mPredictors += sampleNormal(mNumComponents, mDimInNonlinear).matrix() / 1000.;
+			mPredictors += sampleNormal(mNumComponents, mDimInNonlinear).matrix() * log(mNumComponents) / 10.;
 			mBiases.setConstant(a);
-			mBiases += VectorXd::Random(mNumComponents) / 10.;
+			mBiases += VectorXd::Random(mNumComponents) * log(mNumComponents) / 100.;
 		}
 	}
 
-	if(dimInLinear() > 0) {
-		mLinearPredictor = input.bottomRows(dimInLinear()) * output.transpose()
-			/ static_cast<float>(numSpikes);
-	}
+	if(dimInLinear() > 0)
+		mLinearPredictor = input.bottomRows(dimInLinear()) * output.transpose() / numSpikes;
 }
 
 
@@ -435,6 +467,15 @@ double CMT::STM::parameterGradient(
 	lbfgsfloatval_t* g,
 	const Trainable::Parameters& params_) const
 {
+ 	// check if nonlinearity is differentiable
+ 	DifferentiableNonlinearity* nonlinearity;
+
+ 	try {
+ 		nonlinearity = dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
+	} catch(const bad_cast&) {
+		throw Exception("Cannot train with non-differentiable nonlinearity.");
+	}
+
 	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 
 	// average log-likelihood
@@ -516,11 +557,10 @@ double CMT::STM::parameterGradient(
 		if(dimInLinear())
 			response += linearPredictor.transpose() * inputLinear;
 
-		// apply logistic sigmoid function
-		Array<double, 1, Dynamic> prob1 = 1. / (1. + (-response.array()).exp());
-		Array<double, 1, Dynamic> prob0 = 1. - prob1;
-
-		double logLikBatch = (output.array() * prob1.log() + (1. - output.array()) * prob0.log()).sum();
+		// update log-likelihood
+		double logLikBatch = mDistribution->logLikelihood(
+			output,
+			nonlinearity->operator()(response)).sum();
 
 		#pragma omp critical
 		logLik += logLikBatch;
@@ -529,7 +569,8 @@ double CMT::STM::parameterGradient(
 			// don't compute gradients
 			continue;
 
-		Array<double, 1, Dynamic> tmp = output.array() * prob0 - (1. - output.array()) * prob1;
+		Array<double, 1, Dynamic> tmp = -mDistribution->gradient(output, response)
+			* nonlinearity->derivative(response);
 
 		MatrixXd postTmp = posterior.array().rowwise() * tmp;
 
@@ -658,18 +699,28 @@ bool CMT::STM::train(
 	const Trainable::Parameters& params)
 {
 	if(!dimIn()) {
-		// STM reduces to Bernoulli
-		double prob = output.array().mean();
-		mBiases.setConstant(prob > 0. ? log(prob) - log(1. - prob) - log(numComponents()) : -50.);
+		// STM reduces to univariate distribution
+		InvertibleNonlinearity* nonlinearity;
+
+		try {
+			nonlinearity = dynamic_cast<InvertibleNonlinearity*>(mNonlinearity);
+		} catch(const bad_cast&) {
+			throw Exception("Need invertible nonlinearity to train.");
+		}
+
+		double mean = output.array().mean();
+		if(mean >= 0. && mean < 1e-50)
+			mean = 1e-50;
+
+		mBiases.setConstant(nonlinearity->inverse(mean) - log(numComponents()));
+
 		return true;
 	} else if(!dimInNonlinear()) {
 		if(dimInLinear() != input.rows())
 			throw Exception("Input has wrong dimensionality.");
 
 		// STM reduces to GLM
-		LogisticFunction nonlinearity;
-		Bernoulli distribution;
-		GLM glm(dimInLinear(), &nonlinearity, &distribution);
+		GLM glm(dimInLinear(), mNonlinearity, mDistribution);
 
 		bool converged;
 		if(inputVal && outputVal)

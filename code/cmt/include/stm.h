@@ -4,6 +4,8 @@
 #include "Eigen/Core"
 #include "exception.h"
 #include "trainable.h"
+#include "nonlinearities.h"
+#include "univariatedistributions.h"
 
 namespace CMT {
 	using Eigen::VectorXd;
@@ -38,12 +40,16 @@ namespace CMT {
 			STM(
 				int dimIn, 
 				int numComponents = 3,
-				int numFeatures = -1);
+				int numFeatures = -1,
+				Nonlinearity* nonlinearity = 0,
+				UnivariateDistribution* distribution = 0);
 			STM(
 				int dimInNonlinear, 
 				int dimInLinear, 
 				int numComponents = 3,
-				int numFeatures = -1);
+				int numFeatures = -1,
+				Nonlinearity* nonlinearity = 0,
+				UnivariateDistribution* distribution = 0);
 			STM(int dimIn, const STM& mcbm);
 
 			inline int dimIn() const;
@@ -117,10 +123,16 @@ namespace CMT {
 				const MatrixXd& output) const;
 
 		protected:
+			static Nonlinearity* const defaultNonlinearity;
+			static UnivariateDistribution* const defaultDistribution;
+
 			int mDimInNonlinear;
 			int mDimInLinear;
 			int mNumComponents;
 			int mNumFeatures;
+
+			Nonlinearity* mNonlinearity;
+			UnivariateDistribution* mDistribution;
 
 			VectorXd mBiases;
 			MatrixXd mWeights;
@@ -134,6 +146,12 @@ namespace CMT {
 				const MatrixXd* inputVal,
 				const MatrixXd* outputVal,
 				const Trainable::Parameters& params);
+
+			Array<double, 1, Dynamic> response(
+				const MatrixXd& input) const;
+			Array<double, 1, Dynamic> response(
+				const MatrixXd& inputNonlinear,
+				const MatrixXd& inputLinear) const;
 	};
 }
 
