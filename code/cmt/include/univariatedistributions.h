@@ -13,6 +13,9 @@ namespace CMT {
 		public:
 			inline int dim() const;
 
+			virtual double mean() const = 0;
+			virtual void setMean(double mean) = 0;
+
 			/**
 			 * Log-likelihood for different settings of the mean parameter.
 			 *
@@ -50,9 +53,12 @@ namespace CMT {
 			inline double probability() const;
 			inline void setProbability(double prob);
 
+			virtual double mean() const;
+			virtual void setMean(double mean);
+
 			virtual MatrixXd sample(int numSamples) const;
 			virtual MatrixXd sample(
-				const Array<double, 1, Dynamic>& data) const;
+				const Array<double, 1, Dynamic>& means) const;
 
 			virtual Array<double, 1, Dynamic> logLikelihood(
 				const MatrixXd& data) const;

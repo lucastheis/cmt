@@ -13,6 +13,18 @@ CMT::Bernoulli::Bernoulli(double prob) : mProb(prob) {
 
 
 
+double CMT::Bernoulli::mean() const {
+	return probability();
+}
+
+
+
+void CMT::Bernoulli::setMean(double mean) {
+	setProbability(mean);
+}
+
+
+
 MatrixXd CMT::Bernoulli::sample(int numSamples) const {
 	return (Array<double, 1, Dynamic>::Random(numSamples).abs() < mProb).cast<double>();
 }
