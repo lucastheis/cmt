@@ -7,30 +7,9 @@ from numpy import *
 from numpy import max
 from numpy.random import randn, rand
 from cmt.models import Bernoulli, GLM
-from cmt.utils import LogisticFunction
+from cmt.nonlinear import LogisticFunction
 
 class Tests(unittest.TestCase):
-	def test_bernoulli(self):
-		bernoulli = Bernoulli(.725)
-		self.assertAlmostEqual(mean(bernoulli.sample(1000000)), .725, 2)
-
-		samples = bernoulli.sample(10)
-
-		loglik = log(.725) * samples + log(0.275) * (1. - samples)
-		self.assertLess(max(abs(loglik - bernoulli.loglikelihood(samples))), 1e-8)
-
-
-
-	def test_logistic_function(self):
-		f = LogisticFunction()
-		x = randn(1000)
-		y = f(x).ravel()
-
-		for i in range(x.size):
-			self.assertAlmostEqual(y[i], 1. / (1. + exp(-x[i])))
-
-
-
 	def test_glm_basics(self):
 		glm = GLM(4, LogisticFunction, Bernoulli)
 
@@ -82,29 +61,7 @@ class Tests(unittest.TestCase):
 
 
 	def test_glm_pickle(self):
-		f0 = LogisticFunction()
-
 		tmp_file = mkstemp()[1]
-
-		with open(tmp_file, 'w') as handle:
-			dump({'f': f0}, handle)
-
-		with open(tmp_file) as handle:
-			f1 = load(handle)['f']
-
-		x = randn(100)
-		self.assertLess(max(abs(f0(x) - f1(x))), 1e-6)
-
-		p0 = Bernoulli(.3)
-
-		with open(tmp_file, 'w') as handle:
-			dump({'p': p0}, handle)
-
-		with open(tmp_file) as handle:
-			p1 = load(handle)['p']
-
-		x = p0.sample(100)
-		self.assertLess(max(abs(p0.loglikelihood(x) - p1.loglikelihood(x))), 1e-6)
 
 		model0 = GLM(5, LogisticFunction, Bernoulli)
 		model0.weights = randn(*model0.weights.shape)

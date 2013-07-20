@@ -5,11 +5,15 @@
 #include "distributioninterface.h"
 #include "glminterface.h"
 
+#include "cmt/nonlinear"
+using CMT::LogisticFunction;
+using CMT::Nonlinearity;
+
 #include "cmt/utils"
 using CMT::Exception;
 
-GLM::Nonlinearity* fvbnNonlinearity = new LogisticFunction;
-GLM::UnivariateDistribution* fvbnDistribution = new Bernoulli;
+Nonlinearity* fvbnNonlinearity = new LogisticFunction;
+UnivariateDistribution* fvbnDistribution = new Bernoulli;
 
 const char* FVBN_doc =
 	"Model image patches using a GLM for each conditional distribution.\n"

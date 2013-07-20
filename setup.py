@@ -70,12 +70,14 @@ modules = [
 			'code/cmt/python/src/mcgsminterface.cpp',
 			'code/cmt/python/src/module.cpp',
 			'code/cmt/python/src/mixtureinterface.cpp',
+			'code/cmt/python/src/nonlinearitiesinterface.cpp',
 			'code/cmt/python/src/patchmodelinterface.cpp',
 			'code/cmt/python/src/preconditionerinterface.cpp',
 			'code/cmt/python/src/pyutils.cpp',
 			'code/cmt/python/src/stminterface.cpp',
 			'code/cmt/python/src/toolsinterface.cpp',
 			'code/cmt/python/src/trainableinterface.cpp',
+			'code/cmt/python/src/univariatedistributionsinterface.cpp',
 			'code/cmt/src/affinepreconditioner.cpp',
 			'code/cmt/src/affinetransform.cpp',
 			'code/cmt/src/conditionaldistribution.cpp',
@@ -85,6 +87,7 @@ modules = [
 			'code/cmt/src/mcbm.cpp',
 			'code/cmt/src/mcgsm.cpp',
 			'code/cmt/src/mixture.cpp',
+			'code/cmt/src/nonlinearities.cpp',
 			'code/cmt/src/patchmodel.cpp',
 			'code/cmt/src/pcapreconditioner.cpp',
 			'code/cmt/src/pcatransform.cpp',
@@ -93,6 +96,7 @@ modules = [
 			'code/cmt/src/tools.cpp',
 			'code/cmt/src/trainable.cpp',
 			'code/cmt/src/utils.cpp',
+			'code/cmt/src/univariatedistributions.cpp',
 			'code/cmt/src/whiteningpreconditioner.cpp',
 			'code/cmt/src/whiteningtransform.cpp'],
 		include_dirs=[
@@ -129,4 +133,5 @@ setup(
 		'cmt.models',
 		'cmt.transforms',
 		'cmt.tools',
-		'cmt.utils'])
+		'cmt.utils',
+		'cmt.nonlinear'])

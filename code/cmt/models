@@ -12,5 +12,6 @@
 #include "include/mogsm.h"
 #include "include/patchmodel.h"
 #include "include/trainable.h"
+#include "include/univariatedistributions.h"
 
 #endif

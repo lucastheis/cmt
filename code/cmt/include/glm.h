@@ -4,6 +4,8 @@
 #include "Eigen/Core"
 #include "trainable.h"
 #include "distribution.h"
+#include "nonlinearities.h"
+#include "univariatedistributions.h"
 
 namespace CMT {
 	using Eigen::Array;
@@ -15,47 +17,6 @@ namespace CMT {
 	 */
 	class GLM : public Trainable {
 		public:
-			class Nonlinearity {
-				public:
-					virtual ~Nonlinearity();
-					virtual ArrayXXd operator()(const ArrayXXd& data) const = 0;
-					virtual ArrayXXd derivative(const ArrayXXd& data) const = 0;
-			};
-
-			class UnivariateDistribution : public Distribution {
-				public:
-					inline int dim() const;
-
-					/**
-					 * Log-likelihood for different settings of the mean parameter.
-					 *
-					 * @param data data points for which to evaluate log-likelihood
-					 * @param means parameters for which to evaluate log-likelihood
-					 */
-					virtual Array<double, 1, Dynamic> logLikelihood(
-						const Array<double, 1, Dynamic>& data,
-						const Array<double, 1, Dynamic>& means) const = 0;
-
-					/**
-					 * Generate sample using different parameter settings.
-					 *
-					 * @param data data points for which to evaluate gradient
-					 * @param means parameters for which to evaluate gradient
-					 */
-					virtual MatrixXd sample(
-						const Array<double, 1, Dynamic>& means) const = 0;
-
-					/**
-					 * Derivative of the *negative* log-likelihood with respect to the mean.
-					 *
-					 * @param data data points for which to evaluate gradient
-					 * @param means parameters for which to evaluate gradient
-					 */
-					virtual Array<double, 1, Dynamic> gradient(
-						const Array<double, 1, Dynamic>& data,
-						const Array<double, 1, Dynamic>& means) const = 0;
-			};
-
 			using Trainable::logLikelihood;
 
 			GLM(
@@ -112,54 +73,6 @@ namespace CMT {
 			Nonlinearity* mNonlinearity;
 			UnivariateDistribution* mDistribution;
 	};
-
-	class LogisticFunction : public GLM::Nonlinearity {
-		virtual ArrayXXd operator()(const ArrayXXd& data) const;
-		virtual ArrayXXd derivative(const ArrayXXd& data) const;
-	};
-
-	class Bernoulli : public GLM::UnivariateDistribution {
-		public:
-			Bernoulli(double prob = 0.5);
-
-			inline double probability() const;
-			inline void setProbability(double prob);
-
-			virtual MatrixXd sample(int numSamples) const;
-			virtual MatrixXd sample(
-				const Array<double, 1, Dynamic>& data) const;
-
-			virtual Array<double, 1, Dynamic> logLikelihood(
-				const MatrixXd& data) const;
-			virtual Array<double, 1, Dynamic> logLikelihood(
-				const Array<double, 1, Dynamic>& data,
-				const Array<double, 1, Dynamic>& means) const;
-
-			virtual Array<double, 1, Dynamic> gradient(
-				const Array<double, 1, Dynamic>& data,
-				const Array<double, 1, Dynamic>& means) const;
-
-		protected:
-			double mProb;
-	};
-}
-
-
-
-inline double CMT::Bernoulli::probability() const {
-	return mProb;
-}
-
-
-
-inline void CMT::Bernoulli::setProbability(double prob) {
-	mProb = prob;
-}
-
-
-
-inline int CMT::GLM::UnivariateDistribution::dim() const {
-	return 1;
 }
 
 
@@ -176,7 +89,7 @@ inline int CMT::GLM::dimOut() const {
 
 
 
-inline CMT::GLM::Nonlinearity* CMT::GLM::nonlinearity() const {
+inline CMT::Nonlinearity* CMT::GLM::nonlinearity() const {
 	return mNonlinearity;
 }
 
@@ -188,7 +101,7 @@ inline void CMT::GLM::setNonlinearity(Nonlinearity* nonlinearity) {
 
 
 
-inline CMT::GLM::UnivariateDistribution* CMT::GLM::distribution() const {
+inline CMT::UnivariateDistribution* CMT::GLM::distribution() const {
 	return mDistribution;
 }
 

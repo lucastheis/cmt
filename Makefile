@@ -54,6 +54,8 @@ SOURCES = \
 	$(SRCDIR)/mixture.cpp \
 	$(PYSDIR)/mixtureinterface.cpp \
 	$(PYSDIR)/module.cpp \
+	$(SRCDIR)/nonlinearities.cpp \
+	$(PYSDIR)/nonlinearitiesinterface.cpp \
 	$(SRCDIR)/patchmodel.cpp \
 	$(PYSDIR)/patchmodelinterface.cpp \
 	$(SRCDIR)/pcapreconditioner.cpp \
@@ -68,6 +70,8 @@ SOURCES = \
 	$(SRCDIR)/trainable.cpp \
 	$(PYSDIR)/trainableinterface.cpp \
 	$(SRCDIR)/utils.cpp \
+	$(SRCDIR)/univariatedistributions.cpp \
+	$(PYSDIR)/univariatedistributionsinterface.cpp \
 	$(SRCDIR)/whiteningpreconditioner.cpp \
 	$(SRCDIR)/whiteningtransform.cpp
 OBJECTS = $(patsubst %.cpp,$(OBJDIR)/%.o,$(SOURCES))
