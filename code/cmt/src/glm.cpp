@@ -19,22 +19,25 @@ using std::min;
 using std::pair;
 using std::make_pair;
 
+#include <typeinfo>
+using std::bad_cast;
+
 #include "Eigen/Core"
 using Eigen::Dynamic;
 using Eigen::Array;
 using Eigen::ArrayXXd;
 using Eigen::MatrixXd;
 
-Nonlinearity* defaultNonlinearity = new LogisticFunction;
-UnivariateDistribution* defaultDistribution = new Bernoulli;
+Nonlinearity* const GLM::defaultNonlinearity = new LogisticFunction;
+UnivariateDistribution* const GLM::defaultDistribution = new Bernoulli;
 
 CMT::GLM::GLM(
 	int dimIn,
 	Nonlinearity* nonlinearity,
 	UnivariateDistribution* distribution) :
 	mDimIn(dimIn),
-	mNonlinearity(nonlinearity),
-	mDistribution(distribution)
+	mNonlinearity(nonlinearity ? nonlinearity : defaultNonlinearity),
+	mDistribution(distribution ? distribution : defaultDistribution)
 {
 	if(mDimIn < 0)
 		throw Exception("Input dimensionality should be non-negative.");
@@ -152,11 +155,22 @@ double CMT::GLM::parameterGradient(
  	VectorLBFGS weights(const_cast<lbfgsfloatval_t*>(x), mDimIn);
  	VectorLBFGS weightsGrad(g, mDimIn);
  	double bias = x[mDimIn];
+
+ 	// check if nonlinearity is differentiable
+ 	DifferentiableNonlinearity* nonlinearity;
+
+ 	try {
+ 		nonlinearity = dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
+	} catch(const bad_cast&) {
+		throw Exception("Cannot train with non-differentiable nonlinearity.");
+	}
  
+ 	// initialize gradient and log-likelihood
  	if(g) {
  		weightsGrad.setZero();
  		g[mDimIn] = 0.;
 	}
+
  	double logLik = 0.;
  
  	#pragma omp parallel for
@@ -177,7 +191,7 @@ double CMT::GLM::parameterGradient(
  
  		if(g) {
  			Array<double, 1, Dynamic> tmp1 = mDistribution->gradient(output, means);
- 			Array<double, 1, Dynamic> tmp2 = mNonlinearity->derivative(responses);
+ 			Array<double, 1, Dynamic> tmp2 = nonlinearity->derivative(responses);
  			Array<double, 1, Dynamic> tmp3 = tmp1 * tmp2;
  
  			// weights gradient

@@ -67,6 +67,9 @@ namespace CMT {
 				const Parameters& params) const;
 
 		protected:
+			static Nonlinearity* const defaultNonlinearity;
+			static UnivariateDistribution* const defaultDistribution;
+
 			int mDimIn;
 			VectorXd mWeights;
 			double mBias;
