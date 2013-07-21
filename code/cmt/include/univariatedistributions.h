@@ -3,6 +3,7 @@
 
 #include "Eigen/Core"
 #include "distribution.h"
+#include "exception.h"
 
 namespace CMT {
 	using Eigen::Array;
@@ -73,6 +74,31 @@ namespace CMT {
 		protected:
 			double mProb;
 	};
+
+	class Poisson : public UnivariateDistribution {
+		public:
+			Poisson(double lambda = 1.);
+
+			virtual double mean() const;
+			virtual void setMean(double mean);
+
+			virtual MatrixXd sample(int numSamples) const;
+			virtual MatrixXd sample(
+				const Array<double, 1, Dynamic>& means) const;
+
+			virtual Array<double, 1, Dynamic> logLikelihood(
+				const MatrixXd& data) const;
+			virtual Array<double, 1, Dynamic> logLikelihood(
+				const Array<double, 1, Dynamic>& data,
+				const Array<double, 1, Dynamic>& means) const;
+
+			virtual Array<double, 1, Dynamic> gradient(
+				const Array<double, 1, Dynamic>& data,
+				const Array<double, 1, Dynamic>& means) const;
+
+		protected:
+			double mLambda;
+	};
 }
 
 
@@ -90,6 +116,8 @@ inline double CMT::Bernoulli::probability() const {
 
 
 inline void CMT::Bernoulli::setProbability(double prob) {
+	if(prob < 0. || prob > 1.)
+		throw Exception("Probability has to be between 0 and 1.");
 	mProb = prob;
 }
 

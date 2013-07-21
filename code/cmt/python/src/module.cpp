@@ -1219,6 +1219,53 @@ PyTypeObject Bernoulli_type = {
 	Distribution_new,                 /*tp_new*/
 };
 
+static PyMethodDef Poisson_methods[] = {
+	{"__reduce__", (PyCFunction)Poisson_reduce, METH_NOARGS, Poisson_reduce_doc},
+	{0}
+};
+
+PyTypeObject Poisson_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                /*ob_size*/
+	"cmt.Poisson",                  /*tp_name*/
+	sizeof(PoissonObject),          /*tp_basicsize*/
+	0,                                /*tp_itemsize*/
+	(destructor)Distribution_dealloc, /*tp_dealloc*/
+	0,                                /*tp_print*/
+	0,                                /*tp_getattr*/
+	0,                                /*tp_setattr*/
+	0,                                /*tp_compare*/
+	0,                                /*tp_repr*/
+	0,                                /*tp_as_number*/
+	0,                                /*tp_as_sequence*/
+	0,                                /*tp_as_mapping*/
+	0,                                /*tp_hash */
+	0,                                /*tp_call*/
+	0,                                /*tp_str*/
+	0,                                /*tp_getattro*/
+	0,                                /*tp_setattro*/
+	0,                                /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
+	Poisson_doc,                    /*tp_doc*/
+	0,                                /*tp_traverse*/
+	0,                                /*tp_clear*/
+	0,                                /*tp_richcompare*/
+	0,                                /*tp_weaklistoffset*/
+	0,                                /*tp_iter*/
+	0,                                /*tp_iternext*/
+	Poisson_methods,                /*tp_methods*/
+	0,                                /*tp_members*/
+	0,                                /*tp_getset*/
+	&UnivariateDistribution_type,     /*tp_base*/
+	0,                                /*tp_dict*/
+	0,                                /*tp_descr_get*/
+	0,                                /*tp_descr_set*/
+	0,                                /*tp_dictoffset*/
+	(initproc)Poisson_init,         /*tp_init*/
+	0,                                /*tp_alloc*/
+	Distribution_new,                 /*tp_new*/
+};
+
 static PyGetSetDef Preconditioner_getset[] = {
 	{"dim_in", (getter)Preconditioner_dim_in, 0, 0},
 	{"dim_out", (getter)Preconditioner_dim_out, 0, 0},
@@ -1648,6 +1695,8 @@ PyMODINIT_FUNC init_cmt() {
 		return;
 	if(PyType_Ready(&PCATransform_type) < 0)
 		return;
+	if(PyType_Ready(&Poisson_type) < 0)
+		return;
 	if(PyType_Ready(&Preconditioner_type) < 0)
 		return;
 	if(PyType_Ready(&STM_type) < 0)
@@ -1683,6 +1732,7 @@ PyMODINIT_FUNC init_cmt() {
 	Py_INCREF(&PatchMCBM_type);
 	Py_INCREF(&PatchMCGSM_type);
 	Py_INCREF(&PatchModel_type);
+	Py_INCREF(&Poisson_type);
 	Py_INCREF(&Preconditioner_type);
 	Py_INCREF(&STM_type);
 	Py_INCREF(&UnivariateDistribution_type);
@@ -1709,6 +1759,7 @@ PyMODINIT_FUNC init_cmt() {
 	PyModule_AddObject(module, "PatchMCBM", reinterpret_cast<PyObject*>(&PatchMCBM_type));
 	PyModule_AddObject(module, "PatchMCGSM", reinterpret_cast<PyObject*>(&PatchMCGSM_type));
 	PyModule_AddObject(module, "PatchModel", reinterpret_cast<PyObject*>(&PatchModel_type));
+	PyModule_AddObject(module, "Poisson", reinterpret_cast<PyObject*>(&Poisson_type));
 	PyModule_AddObject(module, "Preconditioner", reinterpret_cast<PyObject*>(&Preconditioner_type));
 	PyModule_AddObject(module, "STM", reinterpret_cast<PyObject*>(&STM_type));
 	PyModule_AddObject(module, "UnivariateDistribution", reinterpret_cast<PyObject*>(&UnivariateDistribution_type));

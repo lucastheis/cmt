@@ -1,5 +1,5 @@
 #include "univariatedistributions.h"
-#include "exception.h"
+#include "utils.h"
 
 #include "Eigen/Core"
 using Eigen::MatrixXd;
@@ -78,4 +78,61 @@ Array<double, 1, Dynamic> CMT::Bernoulli::gradient(
 		grad[i] = data[i] > 0.5 ? -1. / means[i] : 1. / (1. - means[i]);
 
 	return grad;
+}
+
+
+
+CMT::Poisson::Poisson(double lambda) : mLambda(lambda) {
+	if(lambda < 0.)
+		throw Exception("Lambda has to be non-negative.");
+}
+
+
+
+double CMT::Poisson::mean() const {
+	return mLambda;
+}
+
+
+
+void CMT::Poisson::setMean(double mean) {
+	if(mean < 0.)
+		throw Exception("The mean cannot be negative.");
+	mLambda = mean;
+}
+
+
+
+MatrixXd CMT::Poisson::sample(int numSamples) const {
+	return samplePoisson(1, numSamples, mLambda).cast<double>();
+}
+
+
+
+MatrixXd CMT::Poisson::sample(const Array<double, 1, Dynamic>& means) const {
+	return samplePoisson(means).cast<double>();
+}
+
+
+
+Array<double, 1, Dynamic> CMT::Poisson::logLikelihood(const MatrixXd& data) const {
+	return data.array() * log(mLambda) - lnGamma(data.array() + 1.) - mLambda;
+}
+
+
+
+Array<double, 1, Dynamic> CMT::Poisson::logLikelihood(
+	const Array<double, 1, Dynamic>& data,
+	const Array<double, 1, Dynamic>& means) const
+{
+	return data * log(means) - lnGamma(data + 1.) - means;
+}
+
+
+
+Array<double, 1, Dynamic> CMT::Poisson::gradient(
+	const Array<double, 1, Dynamic>& data,
+	const Array<double, 1, Dynamic>& means) const
+{
+	return 1. - data / means;
 }

@@ -12,5 +12,6 @@ from _cmt import MoGSM
 from _cmt import PatchMCBM
 from _cmt import PatchMCGSM
 from _cmt import PatchModel
+from _cmt import Poisson
 from _cmt import STM
 from _cmt import UnivariateDistribution

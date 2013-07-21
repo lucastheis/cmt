@@ -2,8 +2,10 @@
 
 ## 0.4.0
 
+– Added spike-triggered mixture model (STM).
+– Added simple univariate distributions such as Bernoulli and Poisson.
 - Added generalized linear model (GLM) and fully-visible belief network (FVBN).
-- Added mixture models such as mixtures of Gaussian and GSMs.
+- Added mixture of Gaussian scale mixture (MoGSM).
 - Added *PatchMCGSM*.
 - Made implementation of new conditional models easier by introducing interface *Trainable*.
 - Most methods of *MCGSM* can now cope with zero-dimensional inputs.

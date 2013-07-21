@@ -26,8 +26,15 @@ namespace CMT {
 
 	MatrixXd signum(const MatrixXd& matrix);
 
+	double gamma(double x);
+	double lnGamma(double x);
+	ArrayXXd gamma(const ArrayXXd& arr);
+	ArrayXXd lnGamma(const ArrayXXd& arr);
+
 	ArrayXXd sampleNormal(int m = 1, int n = 1);
 	ArrayXXd sampleGamma(int m = 1, int n = 1, int k = 1);
+	ArrayXXi samplePoisson(int m = 1, int n = 1, double lambda = 1.);
+	ArrayXXi samplePoisson(const ArrayXXd& lambda);
 	set<int> randomSelect(int k, int n);
 
 	VectorXi argSort(const VectorXd& data);
