@@ -20,29 +20,32 @@ const char* GLM_doc =
 	"\t>>> glm = GLM(inputs.shape[0], LogisticFunction, Bernoulli)\n"
 	"\t>>> glm.train(inputs, outputs)\n"
 	"\n"
-	"To access the linear filter $\\mathbf{w}$ or the bias $b$ use\n"
+	"To access the linear filter $\\mathbf{w}$, the bias $b$, the nonlinearity $g$ or the\n"
+	"output distribution $f$, use\n"
 	"\n"
 	"\t>>> glm.weights\n"
 	"\t>>> glm.bias\n"
+	"\t>>> glm.nonlinearity\n"
+	"\t>>> glm.distribution\n"
 	"\n"
 	"@type  dim_in: C{int}\n"
 	"@param dim_in: dimensionality of input\n"
 	"\n"
 	"@type  nonlinearity: L{Nonlinearity}/C{type}\n"
-	"@param nonlinearity: nonlinearity applied to output of linear filter, $g$\n"
+	"@param nonlinearity: nonlinearity applied to output of linear filter, $g$ (default: L{LogisticFunction})\n"
 	"\n"
 	"@type  distribution: L{UnivariateDistribution}/C{type}\n"
-	"@param distribution: distribution of outputs";
+	"@param distribution: distribution of outputs, $q$ (default: L{Bernoulli})";
 
 int GLM_init(GLMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"dim_in", "nonlinearity", "distribution", 0};
 
 	int dim_in;
-	PyObject* nonlinearity;
-	PyObject* distribution;
+	PyObject* nonlinearity = reinterpret_cast<PyObject*>(&LogisticFunction_type);
+	PyObject* distribution = reinterpret_cast<PyObject*>(&Bernoulli_type);
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iOO", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|OO", const_cast<char**>(kwlist),
 		&dim_in, &nonlinearity, &distribution))
 		return -1;
 

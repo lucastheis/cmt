@@ -23,8 +23,11 @@ struct GLMObject {
 	UnivariateDistributionObject* distribution;
 };
 
-extern PyTypeObject UnivariateDistribution_type;
 extern PyTypeObject GLM_type;
+extern PyTypeObject Nonlinearity_type;
+extern PyTypeObject LogisticFunction_type;
+extern PyTypeObject UnivariateDistribution_type;
+extern PyTypeObject Bernoulli_type;
 
 extern const char* GLM_doc;
 extern const char* GLM_reduce_doc;

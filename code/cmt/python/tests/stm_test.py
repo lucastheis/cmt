@@ -6,8 +6,8 @@ from numpy import max, min
 from numpy.random import *
 from pickle import dump, load
 from tempfile import mkstemp
-from cmt.models import STM, GLM, Bernoulli
-from cmt.utils import LogisticFunction
+from cmt.models import STM, GLM, Bernoulli, Poisson
+from cmt.nonlinear import LogisticFunction, ExponentialFunction
 from scipy.stats import norm
 
 class Tests(unittest.TestCase):
@@ -186,6 +186,19 @@ class Tests(unittest.TestCase):
 				randint(2, size=[stm.dim_in, 1000]),
 				randint(2, size=[stm.dim_out, 1000]),
 				stm._parameters()))))
+
+
+
+	def test_poisson(self):
+		stm = STM(5, 5, 3, 10, ExponentialFunction, Poisson)
+
+		# choose random parameters
+		stm._set_parameters(randn(*stm._parameters().shape) / 100.)
+
+		err = stm._check_gradient(
+			randn(stm.dim_in, 1000),
+			randint(2, size=[stm.dim_out, 1000]), 1e-5)
+		self.assertLess(err, 1e-8)
 
 
 

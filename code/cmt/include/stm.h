@@ -75,6 +75,12 @@ namespace CMT {
 			inline VectorXd linearPredictor() const;
 			inline void setLinearPredictor(const VectorXd& linearPredictor);
 
+			inline Nonlinearity* nonlinearity() const;
+			inline void setNonlinearity(Nonlinearity* nonlinearity);
+
+			inline UnivariateDistribution* distribution() const;
+			inline void setDistribution(UnivariateDistribution* distribution);
+
 			virtual void initialize(const MatrixXd& input, const MatrixXd& output);
 
 			virtual MatrixXd sample(const MatrixXd& input) const;
@@ -263,6 +269,30 @@ inline void CMT::STM::setLinearPredictor(const VectorXd& linearPredictor) {
 	if(linearPredictor.size() != dimInLinear())
 		throw Exception("Linear predictor has wrong dimensionality.");
 	mLinearPredictor = linearPredictor;
+}
+
+
+
+inline CMT::Nonlinearity* CMT::STM::nonlinearity() const {
+	return mNonlinearity;
+}
+
+
+
+inline void CMT::STM::setNonlinearity(Nonlinearity* nonlinearity) {
+	mNonlinearity = nonlinearity;
+}
+
+
+
+inline CMT::UnivariateDistribution* CMT::STM::distribution() const {
+	return mDistribution;
+}
+
+
+
+inline void CMT::STM::setDistribution(UnivariateDistribution* distribution) {
+	mDistribution = distribution;
 }
 
 #endif

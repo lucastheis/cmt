@@ -393,6 +393,14 @@ static PyGetSetDef STM_getset[] = {
 		(getter)STM_linear_predictor,
 		(setter)STM_set_linear_predictor,
 		"Parameters relating inputs and outputs, $\\mathbf{v}$."},
+	{"nonlinearity",
+		(getter)STM_nonlinearity,
+		(setter)STM_set_nonlinearity,
+		"Nonlinearity applied to output of log-sum-exp, $g$."},
+	{"distribution",
+		(getter)STM_distribution,
+		(setter)STM_set_distribution,
+		"Distribution whose average value is determined by output of nonlinearity."},
 	{0}
 };
 

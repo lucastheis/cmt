@@ -118,18 +118,19 @@ const char* STM_doc =
 	"\n"
 	"The conditional distribution defined by the model is\n"
 	"\n"
-	"$$p(\\mathbf{y} \\mid \\mathbf{x}, \\mathbf{z}) = \\sigma(f(\\mathbf{x}, \\mathbf{z}))^y (1 - \\sigma(f(\\mathbf{x}, \\mathbf{z})))^{1 - y}$$\n"
+	"$$p(y \\mid \\mathbf{x}, \\mathbf{z}) = q(y \\mid g(f(\\mathbf{x}, \\mathbf{z})))$$\n"
 	"\n"
-	"where $y \\in \\{0, 1\\}$, $\\mathbf{x} \\in \\mathbb{R}^N$, $\\mathbf{z} \\in \\mathbb{R}^M$ and\n"
+	"where $y$ is a scalar, $\\mathbf{x} \\in \\mathbb{R}^N$, $\\mathbf{z} \\in \\mathbb{R}^M$, $q$\n"
+	"is a univariate distribution, $g$ is some nonlinearity, and\n"
 	"\n"
-	"$$f(\\mathbf{x}, \\mathbf{z}) = \\log \\sum_k \\exp\\left( \\sum_l \\beta_{kl} (\\mathbf{u}_l^\\top \\mathbf{x})^2 + \\mathbf{w}_k \\mathbf{x} + a_k \\right) + \\mathbf{v}^\\top \\mathbf{z}$$\n"
+	"$$f(\\mathbf{x}, \\mathbf{z}) = \\log \\sum_k \\exp\\left( \\sum_l \\beta_{kl} (\\mathbf{u}_l^\\top \\mathbf{x})^2 + \\mathbf{w}_k \\mathbf{x} + a_k \\right) + \\mathbf{v}^\\top \\mathbf{z}.$$\n"
 	"\n"
-	"As you can see, part of the input is processed nonlinearly and part of\n"
+	"As you can see from the equation above, part of the input is processed nonlinearly and part of\n"
 	"the input is processed linearly. To create an STM with $N$-dimensional\n"
 	"nonlinear inputs $\\mathbf{x}$ and $M$-dimensional linear inputs $\\mathbf{z}$\n"
 	"with, for example, 3 components and 20 features $\\mathbf{u}_l$, use\n"
 	"\n"
-	"\t>>> stm = STM(N, M, 3, 20)\n"
+	"\t>>> stm = STM(N, M, 3, 20, LogisticFunction, Bernoulli)\n"
 	"\n"
 	"To access the different parameters, you can use\n"
 	"\n"
@@ -138,38 +139,98 @@ const char* STM_doc =
 	"\t>>> stm.features\n"
 	"\t>>> stm.predictors\n"
 	"\t>>> stm.linear_predictor\n"
+	"\t>>> stm.nonlinearity\n"
+	"\t>>> stm.distribution\n"
 	"\n"
 	"which correspond to $a_k$, $\\beta_{kl}$, $\\mathbf{u}_l$, $\\mathbf{w}_k$,\n"
-	"and $\\mathbf{v}$, respectively.\n"
+	"$\\mathbf{v}$, $g$, and $q$ respectively.\n"
 	"\n"
 	"@type  dim_in_nonlinear: C{int}\n"
 	"@param dim_in_nonlinear: dimensionality of nonlinear portion of input\n"
 	"\n"
 	"@type  dim_in_linear: C{int}\n"
-	"@param dim_in_linear: dimensionality of linear portion of input\n"
+	"@param dim_in_linear: dimensionality of linear portion of input (default: 0)\n"
 	"\n"
 	"@type  num_components: C{int}\n"
-	"@param num_components: number of components\n"
+	"@param num_components: number of components (default: 3)\n"
 	"\n"
 	"@type  num_features: C{int}\n"
-	"@param num_features: number of quadratic features";
+	"@param num_features: number of quadratic features"
+	"\n"
+	"@type  nonlinearity: L{Nonlinearity}/C{type}\n"
+	"@param nonlinearity: nonlinearity applied to log-sum-exp, $g$ (default: L{LogisticFunction})\n"
+	"\n"
+	"@type  distribution: L{UnivariateDistribution}/C{type}\n"
+	"@param distribution: distribution of outputs, $q$ (default: L{Bernoulli})";
 
 int STM_init(STMObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"dim_in_nonlinear", "dim_in_linear", "num_components", "num_features", 0};
+	const char* kwlist[] = {
+		"dim_in_nonlinear",
+		"dim_in_linear",
+		"num_components",
+		"num_features",
+		"nonlinearity",
+		"distribution", 0};
 
 	int dim_in_nonlinear;
 	int dim_in_linear = 0;
-	int num_components = 8;
+	int num_components = 3;
 	int num_features = -1;
+	PyObject* nonlinearity = reinterpret_cast<PyObject*>(&LogisticFunction_type);
+	PyObject* distribution = reinterpret_cast<PyObject*>(&Bernoulli_type);
 
 	// read arguments
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|iii", const_cast<char**>(kwlist),
-		&dim_in_nonlinear, &dim_in_linear, &num_components, &num_features))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|iiiOO", const_cast<char**>(kwlist),
+		&dim_in_nonlinear, &dim_in_linear, &num_components, &num_features, &nonlinearity, &distribution))
 		return -1;
+
+	if(PyType_Check(nonlinearity)) {
+		if(!PyType_IsSubtype(reinterpret_cast<PyTypeObject*>(nonlinearity), &Nonlinearity_type)) {
+			PyErr_SetString(PyExc_TypeError, "Nonlinearity should be a subtype of `Nonlinearity`.");
+			return -1;
+		}
+
+		// create instance of type
+		nonlinearity = PyObject_CallObject(nonlinearity, 0);
+
+		if(!nonlinearity)
+			return -1;
+	} else if(!PyType_IsSubtype(Py_TYPE(nonlinearity), &Nonlinearity_type)) {
+		PyErr_SetString(PyExc_TypeError, "Nonlinearity should be of type `Nonlinearity`.");
+		return -1;
+	}
+
+	if(PyType_Check(distribution)) {
+		if(!PyType_IsSubtype(reinterpret_cast<PyTypeObject*>(distribution), &UnivariateDistribution_type)) {
+			PyErr_SetString(PyExc_TypeError, "Distribution should be a subtype of `UnivariateDistribution`.");
+			return -1;
+		}
+
+		// create instance of type
+		distribution = PyObject_CallObject(distribution, 0);
+
+		if(!distribution)
+			return -1;
+	} else if(!PyType_IsSubtype(Py_TYPE(distribution), &UnivariateDistribution_type)) {
+		PyErr_SetString(PyExc_TypeError, "Distribution should be of type `UnivariateDistribution`.");
+		return -1;
+	}
+
+	Py_INCREF(nonlinearity);
+	Py_INCREF(distribution);
 
 	// create actual STM instance
 	try {
-		self->distribution = new STM(dim_in_nonlinear, dim_in_linear, num_components, num_features);
+		self->nonlinearity = reinterpret_cast<NonlinearityObject*>(nonlinearity);
+		self->distribution = reinterpret_cast<UnivariateDistributionObject*>(distribution);
+
+		self->stm = new STM(
+			dim_in_nonlinear,
+			dim_in_linear,
+			num_components,
+			num_features,
+			self->nonlinearity->nonlinearity,
+			self->distribution->distribution);
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return -1;
@@ -181,31 +242,31 @@ int STM_init(STMObject* self, PyObject* args, PyObject* kwds) {
 
 
 PyObject* STM_dim_in_nonlinear(STMObject* self, void*) {
-	return PyInt_FromLong(self->distribution->dimInNonlinear());
+	return PyInt_FromLong(self->stm->dimInNonlinear());
 }
 
 
 
 PyObject* STM_dim_in_linear(STMObject* self, void*) {
-	return PyInt_FromLong(self->distribution->dimInLinear());
+	return PyInt_FromLong(self->stm->dimInLinear());
 }
 
 
 
 PyObject* STM_num_components(STMObject* self, void*) {
-	return PyInt_FromLong(self->distribution->numComponents());
+	return PyInt_FromLong(self->stm->numComponents());
 }
 
 
 
 PyObject* STM_num_features(STMObject* self, void*) {
-	return PyInt_FromLong(self->distribution->numFeatures());
+	return PyInt_FromLong(self->stm->numFeatures());
 }
 
 
 
 PyObject* STM_biases(STMObject* self, void*) {
-	PyObject* array = PyArray_FromMatrixXd(self->distribution->biases());
+	PyObject* array = PyArray_FromMatrixXd(self->stm->biases());
 
 	// make array immutable
 	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
@@ -224,7 +285,7 @@ int STM_set_biases(STMObject* self, PyObject* value, void*) {
 	}
 
 	try {
-		self->distribution->setBiases(PyArray_ToMatrixXd(value));
+		self->stm->setBiases(PyArray_ToMatrixXd(value));
 	} catch(Exception exception) {
 		Py_DECREF(value);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
@@ -239,7 +300,7 @@ int STM_set_biases(STMObject* self, PyObject* value, void*) {
 
 
 PyObject* STM_weights(STMObject* self, void*) {
-	PyObject* array = PyArray_FromMatrixXd(self->distribution->weights());
+	PyObject* array = PyArray_FromMatrixXd(self->stm->weights());
 
 	// make array immutable
 	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
@@ -258,7 +319,7 @@ int STM_set_weights(STMObject* self, PyObject* value, void*) {
 	}
 
 	try {
-		self->distribution->setWeights(PyArray_ToMatrixXd(value));
+		self->stm->setWeights(PyArray_ToMatrixXd(value));
 	} catch(Exception exception) {
 		Py_DECREF(value);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
@@ -273,7 +334,7 @@ int STM_set_weights(STMObject* self, PyObject* value, void*) {
 
 
 PyObject* STM_features(STMObject* self, void*) {
-	PyObject* array = PyArray_FromMatrixXd(self->distribution->features());
+	PyObject* array = PyArray_FromMatrixXd(self->stm->features());
 
 	// make array immutable
 	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
@@ -292,7 +353,7 @@ int STM_set_features(STMObject* self, PyObject* value, void*) {
 	}
 
 	try {
-		self->distribution->setFeatures(PyArray_ToMatrixXd(value));
+		self->stm->setFeatures(PyArray_ToMatrixXd(value));
 	} catch(Exception exception) {
 		Py_DECREF(value);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
@@ -307,7 +368,7 @@ int STM_set_features(STMObject* self, PyObject* value, void*) {
 
 
 PyObject* STM_predictors(STMObject* self, void*) {
-	PyObject* array = PyArray_FromMatrixXd(self->distribution->predictors());
+	PyObject* array = PyArray_FromMatrixXd(self->stm->predictors());
 
 	// make array immutable
 	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
@@ -326,7 +387,7 @@ int STM_set_predictors(STMObject* self, PyObject* value, void*) {
 	}
 
 	try {
-		self->distribution->setPredictors(PyArray_ToMatrixXd(value));
+		self->stm->setPredictors(PyArray_ToMatrixXd(value));
 	} catch(Exception exception) {
 		Py_DECREF(value);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
@@ -341,7 +402,7 @@ int STM_set_predictors(STMObject* self, PyObject* value, void*) {
 
 
 PyObject* STM_linear_predictor(STMObject* self, void*) {
-	PyObject* array = PyArray_FromMatrixXd(self->distribution->linearPredictor());
+	PyObject* array = PyArray_FromMatrixXd(self->stm->linearPredictor());
 
 	// make array immutable
 	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
@@ -360,7 +421,7 @@ int STM_set_linear_predictor(STMObject* self, PyObject* value, void*) {
 	}
 
 	try {
-		self->distribution->setLinearPredictor(PyArray_ToMatrixXd(value));
+		self->stm->setLinearPredictor(PyArray_ToMatrixXd(value));
 	} catch(Exception exception) {
 		Py_DECREF(value);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
@@ -368,6 +429,80 @@ int STM_set_linear_predictor(STMObject* self, PyObject* value, void*) {
 	}
 
 	Py_DECREF(value);
+
+	return 0;
+}
+
+
+
+PyObject* STM_nonlinearity(STMObject* self, void*) {
+	Py_INCREF(self->nonlinearity);
+	return reinterpret_cast<PyObject*>(self->nonlinearity);
+}
+
+
+
+int STM_set_nonlinearity(STMObject* self, PyObject* nonlinearity, void*) {
+	// read arguments
+	if(PyType_Check(nonlinearity)) {
+		if(!PyType_IsSubtype(reinterpret_cast<PyTypeObject*>(nonlinearity), &Nonlinearity_type)) {
+			PyErr_SetString(PyExc_TypeError, "Nonlinearity should be a subtype of `Nonlinearity`.");
+			return -1;
+		}
+
+		// create instance of type
+		nonlinearity = PyObject_CallObject(nonlinearity, 0);
+	} else if(!PyType_IsSubtype(Py_TYPE(nonlinearity), &Nonlinearity_type)) {
+		PyErr_SetString(PyExc_TypeError, "Nonlinearity should be of type `Nonlinearity`.");
+		return -1;
+	}
+
+	try {
+		Py_INCREF(nonlinearity);
+		Py_DECREF(self->nonlinearity);
+		self->nonlinearity = reinterpret_cast<NonlinearityObject*>(nonlinearity);
+		self->stm->setNonlinearity(reinterpret_cast<NonlinearityObject*>(nonlinearity)->nonlinearity);
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+
+	return 0;
+}
+
+
+
+PyObject* STM_distribution(STMObject* self, void*) {
+	Py_INCREF(self->distribution);
+	return reinterpret_cast<PyObject*>(self->distribution);
+}
+
+
+
+int STM_set_distribution(STMObject* self, PyObject* distribution, void*) {
+	// read arguments
+	if(PyType_Check(distribution)) {
+		if(!PyType_IsSubtype(reinterpret_cast<PyTypeObject*>(distribution), &UnivariateDistribution_type)) {
+			PyErr_SetString(PyExc_TypeError, "Distribution should be a subtype of `UnivariateDistribution`.");
+			return -1;
+		}
+
+		// create instance of type
+		distribution = PyObject_CallObject(distribution, 0);
+	} else if(!PyType_IsSubtype(Py_TYPE(distribution), &UnivariateDistribution_type)) {
+		PyErr_SetString(PyExc_TypeError, "Distribution should be of type `UnivariateDistribution`.");
+		return -1;
+	}
+
+	try {
+		Py_INCREF(distribution);
+		Py_DECREF(self->distribution);
+		self->distribution = reinterpret_cast<UnivariateDistributionObject*>(distribution);
+		self->stm->setDistribution(reinterpret_cast<UnivariateDistributionObject*>(distribution)->distribution);
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
 
 	return 0;
 }
@@ -505,10 +640,10 @@ const char* STM_reduce_doc =
 PyObject* STM_reduce(STMObject* self, PyObject*) {
 	// constructor arguments
 	PyObject* args = Py_BuildValue("(iiii)",
-		self->distribution->dimInNonlinear(),
-		self->distribution->dimInLinear(),
-		self->distribution->numComponents(),
-		self->distribution->numFeatures());
+		self->stm->dimInNonlinear(),
+		self->stm->dimInLinear(),
+		self->stm->numComponents(),
+		self->stm->numFeatures());
 
 	// parameters
 	PyObject* biases = STM_biases(self, 0);

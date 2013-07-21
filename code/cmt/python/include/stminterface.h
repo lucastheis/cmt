@@ -7,6 +7,8 @@
 #include <Python.h>
 #include <arrayobject.h>
 #include "pyutils.h"
+#include "nonlinearitiesinterface.h"
+#include "univariatedistributionsinterface.h"
 
 #include "cmt/models"
 using CMT::STM;
@@ -17,11 +19,17 @@ using CMT::PCATransform;
 
 struct STMObject {
 	PyObject_HEAD
-	STM* distribution;
+	STM* stm;
 	bool owner;
+	NonlinearityObject* nonlinearity;
+	UnivariateDistributionObject* distribution;
 };
 
 extern PyTypeObject STM_type;
+extern PyTypeObject Nonlinearity_type;
+extern PyTypeObject LogisticFunction_type;
+extern PyTypeObject UnivariateDistribution_type;
+extern PyTypeObject Bernoulli_type;
 
 extern const char* STM_doc;
 extern const char* STM_train_doc;
@@ -50,6 +58,12 @@ int STM_set_predictors(STMObject*, PyObject*, void*);
 
 PyObject* STM_linear_predictor(STMObject*, void*);
 int STM_set_linear_predictor(STMObject*, PyObject*, void*);
+
+PyObject* STM_nonlinearity(STMObject*, void*);
+int STM_set_nonlinearity(STMObject*, PyObject*, void*);
+
+PyObject* STM_distribution(STMObject*, void*);
+int STM_set_distribution(STMObject*, PyObject*, void*);
 
 PyObject* STM_train(STMObject*, PyObject*, PyObject*);
 
