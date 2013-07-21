@@ -45,3 +45,38 @@ ArrayXXd CMT::LogisticFunction::inverse(const ArrayXXd& data) const {
 double CMT::LogisticFunction::inverse(double data) const {
 	return log((data - mEpsilon / 2.) / (1. - data - mEpsilon / 2.));
 }
+
+
+
+CMT::ExponentialFunction::ExponentialFunction() {
+}
+
+
+
+ArrayXXd CMT::ExponentialFunction::operator()(const ArrayXXd& data) const {
+	return data.exp();
+}
+
+
+
+double CMT::ExponentialFunction::operator()(double data) const {
+	return exp(data);
+}
+
+
+
+ArrayXXd CMT::ExponentialFunction::derivative(const ArrayXXd& data) const {
+	return data.exp();
+}
+
+
+
+ArrayXXd CMT::ExponentialFunction::inverse(const ArrayXXd& data) const {
+	return data.log();
+}
+
+
+
+double CMT::ExponentialFunction::inverse(double data) const {
+	return log(data);
+}

@@ -1041,6 +1041,11 @@ PyTypeObject FVBN_type = {
 	Distribution_new,                 /*tp_new*/
 };
 
+static PyMethodDef Nonlinearity_methods[] = {
+	{"__reduce__", (PyCFunction)Nonlinearity_reduce, METH_NOARGS, Nonlinearity_reduce_doc},
+	{0}
+};
+
 PyTypeObject Nonlinearity_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
@@ -1070,7 +1075,7 @@ PyTypeObject Nonlinearity_type = {
 	0,                                /*tp_weaklistoffset*/
 	0,                                /*tp_iter*/
 	0,                                /*tp_iternext*/
-	0,                                /*tp_methods*/
+	Nonlinearity_methods,             /*tp_methods*/
 	0,                                /*tp_members*/
 	0,                                /*tp_getset*/
 	0,                                /*tp_base*/
@@ -1081,11 +1086,6 @@ PyTypeObject Nonlinearity_type = {
 	(initproc)Nonlinearity_init,      /*tp_init*/
 	0,                                /*tp_alloc*/
 	Nonlinearity_new,                 /*tp_new*/
-};
-
-static PyMethodDef LogisticFunction_methods[] = {
-	{"__reduce__", (PyCFunction)LogisticFunction_reduce, METH_NOARGS, LogisticFunction_reduce_doc},
-	{0}
 };
 
 PyTypeObject LogisticFunction_type = {
@@ -1117,7 +1117,7 @@ PyTypeObject LogisticFunction_type = {
 	0,                                /*tp_weaklistoffset*/
 	0,                                /*tp_iter*/
 	0,                                /*tp_iternext*/
-	LogisticFunction_methods,         /*tp_methods*/
+	0,                                /*tp_methods*/
 	0,                                /*tp_members*/
 	0,                                /*tp_getset*/
 	&Nonlinearity_type,               /*tp_base*/
@@ -1128,6 +1128,48 @@ PyTypeObject LogisticFunction_type = {
 	(initproc)LogisticFunction_init,  /*tp_init*/
 	0,                                /*tp_alloc*/
 	Nonlinearity_new,                 /*tp_new*/
+};
+
+PyTypeObject ExponentialFunction_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                  /*ob_size*/
+	"cmt.ExponentialFunction",          /*tp_name*/
+	sizeof(LogisticFunctionObject),     /*tp_basicsize*/
+	0,                                  /*tp_itemsize*/
+	(destructor)Nonlinearity_dealloc,   /*tp_dealloc*/
+	0,                                  /*tp_print*/
+	0,                                  /*tp_getattr*/
+	0,                                  /*tp_setattr*/
+	0,                                  /*tp_compare*/
+	0,                                  /*tp_repr*/
+	0,                                  /*tp_as_number*/
+	0,                                  /*tp_as_sequence*/
+	0,                                  /*tp_as_mapping*/
+	0,                                  /*tp_hash */
+	0,                                  /*tp_call*/
+	0,                                  /*tp_str*/
+	0,                                  /*tp_getattro*/
+	0,                                  /*tp_setattro*/
+	0,                                  /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                 /*tp_flags*/
+	ExponentialFunction_doc,            /*tp_doc*/
+	0,                                  /*tp_traverse*/
+	0,                                  /*tp_clear*/
+	0,                                  /*tp_richcompare*/
+	0,                                  /*tp_weaklistoffset*/
+	0,                                  /*tp_iter*/
+	0,                                  /*tp_iternext*/
+	0,                                  /*tp_methods*/
+	0,                                  /*tp_members*/
+	0,                                  /*tp_getset*/
+	&Nonlinearity_type,                 /*tp_base*/
+	0,                                  /*tp_dict*/
+	0,                                  /*tp_descr_get*/
+	0,                                  /*tp_descr_set*/
+	0,                                  /*tp_dictoffset*/
+	(initproc)ExponentialFunction_init, /*tp_init*/
+	0,                                  /*tp_alloc*/
+	Nonlinearity_new,                   /*tp_new*/
 };
 
 PyTypeObject UnivariateDistribution_type = {
@@ -1665,6 +1707,8 @@ PyMODINIT_FUNC init_cmt() {
 		return;
 	if(PyType_Ready(&Distribution_type) < 0)
 		return;
+	if(PyType_Ready(&ExponentialFunction_type) < 0)
+		return;
 	if(PyType_Ready(&FVBN_type) < 0)
 		return;
 	if(PyType_Ready(&GLM_type) < 0)
@@ -1717,6 +1761,7 @@ PyMODINIT_FUNC init_cmt() {
 	Py_INCREF(&Bernoulli_type);
 	Py_INCREF(&CD_type);
 	Py_INCREF(&Distribution_type);
+	Py_INCREF(&ExponentialFunction_type);
 	Py_INCREF(&FVBN_type);
 	Py_INCREF(&GLM_type);
 	Py_INCREF(&GSM_type);
@@ -1744,6 +1789,7 @@ PyMODINIT_FUNC init_cmt() {
 	PyModule_AddObject(module, "Bernoulli", reinterpret_cast<PyObject*>(&Bernoulli_type));
 	PyModule_AddObject(module, "ConditionalDistribution", reinterpret_cast<PyObject*>(&CD_type));
 	PyModule_AddObject(module, "Distribution", reinterpret_cast<PyObject*>(&Distribution_type));
+	PyModule_AddObject(module, "ExponentialFunction", reinterpret_cast<PyObject*>(&ExponentialFunction_type));
 	PyModule_AddObject(module, "FVBN", reinterpret_cast<PyObject*>(&FVBN_type));
 	PyModule_AddObject(module, "GLM", reinterpret_cast<PyObject*>(&GLM_type));
 	PyModule_AddObject(module, "GSM", reinterpret_cast<PyObject*>(&GSM_type));

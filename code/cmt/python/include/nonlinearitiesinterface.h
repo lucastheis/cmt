@@ -11,6 +11,7 @@
 #include "cmt/nonlinear"
 using CMT::Nonlinearity;
 using CMT::LogisticFunction;
+using CMT::ExponentialFunction;
 
 struct NonlinearityObject {
 	PyObject_HEAD
@@ -24,18 +25,26 @@ struct LogisticFunctionObject {
 	bool owner;
 };
 
+struct ExponentialFunctionObject {
+	PyObject_HEAD
+	ExponentialFunction* nonlinearity;
+	bool owner;
+};
+
 extern PyTypeObject Nonlinearity_type;
 
 extern const char* Nonlinearity_doc;
+extern const char* Nonlinearity_reduce_doc;
 extern const char* LogisticFunction_doc;
-extern const char* LogisticFunction_reduce_doc;
+extern const char* ExponentialFunction_doc;
 
 PyObject* Nonlinearity_new(PyTypeObject* type, PyObject* args, PyObject* kwds);
 int Nonlinearity_init(NonlinearityObject*, PyObject*, PyObject*);
 void Nonlinearity_dealloc(NonlinearityObject*);
 PyObject* Nonlinearity_call(NonlinearityObject*, PyObject*, PyObject*);
+PyObject* Nonlinearity_reduce(NonlinearityObject*, PyObject*);
 
 int LogisticFunction_init(LogisticFunctionObject*, PyObject*, PyObject*);
-PyObject* LogisticFunction_reduce(LogisticFunctionObject*, PyObject*);
+int ExponentialFunction_init(ExponentialFunctionObject*, PyObject*, PyObject*);
 
 #endif

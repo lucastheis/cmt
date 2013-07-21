@@ -71,6 +71,22 @@ PyObject* Nonlinearity_call(NonlinearityObject* self, PyObject* args, PyObject*)
 
 
 
+const char* Nonlinearity_reduce_doc =
+	"__reduce__(self)\n"
+	"\n"
+	"Method used by Pickle.";
+
+PyObject* Nonlinearity_reduce(NonlinearityObject* self, PyObject*) {
+	PyObject* args = Py_BuildValue("()");
+	PyObject* result = Py_BuildValue("(OO)", Py_TYPE(self), args);
+
+	Py_DECREF(args);
+
+	return result;
+}
+
+
+
 const char* LogisticFunction_doc =
 	"The sigmoidal logistic function.\n"
 	"\n"
@@ -90,16 +106,19 @@ int LogisticFunction_init(LogisticFunctionObject* self, PyObject*, PyObject*) {
 
 
 
-const char* LogisticFunction_reduce_doc =
-	"__reduce__(self)\n"
+const char* ExponentialFunction_doc =
+	"The exponential function.\n"
 	"\n"
-	"Method used by Pickle.";
+	"$$f(x) = e^{x}$$";
 
-PyObject* LogisticFunction_reduce(LogisticFunctionObject* self, PyObject*) {
-	PyObject* args = Py_BuildValue("()");
-	PyObject* result = Py_BuildValue("(OO)", Py_TYPE(self), args);
+int ExponentialFunction_init(ExponentialFunctionObject* self, PyObject*, PyObject*) {
+	try {
+		self->nonlinearity = new ExponentialFunction;
+		return 0;
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
 
-	Py_DECREF(args);
-
-	return result;
+	return -1;
 }
