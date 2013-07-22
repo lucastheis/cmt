@@ -37,6 +37,9 @@ using std::make_pair;
 using std::max;
 using std::min;
 
+#include <limits>
+using std::numeric_limits;
+
 Nonlinearity* const STM::defaultNonlinearity = new LogisticFunction;
 UnivariateDistribution* const STM::defaultDistribution = new Bernoulli;
 
@@ -670,6 +673,10 @@ double CMT::STM::parameterGradient(
 			
 			break;
 	}
+
+	if(value != value)
+		// value is NaN; line search probably went into bad region of parameter space
+		value = numeric_limits<double>::max();
 
 	return value;
 }
