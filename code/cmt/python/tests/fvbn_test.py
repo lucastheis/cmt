@@ -7,7 +7,7 @@ from numpy import max
 from pickle import dump, load
 from tempfile import mkstemp
 from cmt.models import FVBN, GLM, Bernoulli
-from cmt.utils import LogisticFunction
+from cmt.nonlinear import LogisticFunction
 
 class Tests(unittest.TestCase):
 	def test_fvbn(self):

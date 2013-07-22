@@ -6,7 +6,8 @@ from numpy import max, all
 from numpy.random import *
 from cmt.models import MCGSM, GLM, Bernoulli
 from cmt.transforms import WhiteningPreconditioner, AffineTransform
-from cmt.utils import LogisticFunction, random_select
+from cmt.utils import random_select
+from cmt.nonlinear import LogisticFunction
 from cmt.tools import generate_data_from_image, sample_image
 from cmt.tools import generate_data_from_video, sample_video
 from cmt.tools import fill_in_image, fill_in_image_map

@@ -27,7 +27,7 @@ namespace CMT {
 
 	class LogisticFunction : public InvertibleNonlinearity, public DifferentiableNonlinearity {
 		public:
-			LogisticFunction(double epsilon = 1e-50);
+			LogisticFunction(double epsilon = 1e-12);
 
 			virtual ArrayXXd operator()(const ArrayXXd& data) const;
 			virtual double operator()(double data) const;
