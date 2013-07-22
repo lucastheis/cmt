@@ -105,6 +105,9 @@ pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	int w = img.cols() - inputMask.cols() + 1;
 	int h = img.rows() - inputMask.rows() + 1;
 
+	if(w < 1 || h < 1)
+		throw Exception("Image not large enough for these masks.");
+
 	// precompute indices of active pixels in masks
 	pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask, outputMask);
 	Tuples& inputIndices = inOutIndices.first;
