@@ -43,7 +43,7 @@ namespace CMT {
 
 	class ExponentialFunction : public InvertibleNonlinearity, public DifferentiableNonlinearity {
 		public:
-			ExponentialFunction();
+			ExponentialFunction(double epsilon = 1e-12);
 
 			virtual ArrayXXd operator()(const ArrayXXd& data) const;
 			virtual double operator()(double data) const;
@@ -52,6 +52,9 @@ namespace CMT {
 
 			virtual ArrayXXd inverse(const ArrayXXd& data) const;
 			virtual double inverse(double data) const;
+
+		protected:
+			double mEpsilon;
 	};
 }
 

@@ -350,7 +350,7 @@ bool CMT::Trainable::train(
 	// free memory used by LBFGS
 	lbfgs_free(x);
 
-	if(status >= 0 || status == LBFGSERR_ROUNDING_ERROR) {
+	if(status >= 0) {
 		return true;
 	} else {
 		if(status != LBFGSERR_MAXIMUMITERATION)

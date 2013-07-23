@@ -48,19 +48,19 @@ double CMT::LogisticFunction::inverse(double data) const {
 
 
 
-CMT::ExponentialFunction::ExponentialFunction() {
+CMT::ExponentialFunction::ExponentialFunction(double epsilon) : mEpsilon(epsilon) {
 }
 
 
 
 ArrayXXd CMT::ExponentialFunction::operator()(const ArrayXXd& data) const {
-	return data.exp();
+	return data.exp() + mEpsilon;
 }
 
 
 
 double CMT::ExponentialFunction::operator()(double data) const {
-	return exp(data);
+	return exp(data) + mEpsilon;
 }
 
 
@@ -72,11 +72,11 @@ ArrayXXd CMT::ExponentialFunction::derivative(const ArrayXXd& data) const {
 
 
 ArrayXXd CMT::ExponentialFunction::inverse(const ArrayXXd& data) const {
-	return data.log();
+	return (data - mEpsilon).log();
 }
 
 
 
 double CMT::ExponentialFunction::inverse(double data) const {
-	return log(data);
+	return log(data - mEpsilon);
 }

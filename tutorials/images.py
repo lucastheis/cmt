@@ -1,5 +1,5 @@
 """
-Trains an MCGSM on a single grayscale images.
+Trains an MCGSM on a single grayscale image.
 """
 
 import sys
