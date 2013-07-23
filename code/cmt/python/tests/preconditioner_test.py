@@ -9,6 +9,7 @@ from pickle import dump, load
 from tempfile import mkstemp
 from cmt.transforms import AffinePreconditioner, WhiteningPreconditioner, PCAPreconditioner
 from cmt.transforms import AffineTransform, WhiteningTransform, PCATransform
+from cmt.transforms import BinningTransform
 
 class Tests(unittest.TestCase):
 	def test_affine_preconditioner(self):
@@ -399,6 +400,43 @@ class Tests(unittest.TestCase):
 		# make sure linear transformation hasn't changed
 		self.assertLess(max(abs(X0 - X1)), 1e-20)
 		self.assertLess(max(abs(Y0 - Y1)), 1e-20)
+
+
+
+	def test_binning_transform(self):
+		pre = BinningTransform(4, 12, 2)
+		
+		self.assertEqual(pre.dim_in, 12)
+		self.assertEqual(pre.dim_in_pre, 12 / pre.binning)
+
+		x = array([[1, 1, 1, 1, 0, 1, 2, 3, -1, 1, -1, 1]]).T
+		y = pre(x)
+
+		self.assertEqual(y[0], 4.)
+		self.assertEqual(y[1], 6.)
+		self.assertEqual(y[2], 0.)
+
+
+
+	def test_binning_transform_pickle(self):
+		pre0 = BinningTransform(3, 9, 5)
+
+		tmp_file = mkstemp()[1]
+
+		# store transformation
+		with open(tmp_file, 'w') as handle:
+			dump({'pre': pre0}, handle)
+
+		# load transformation
+		with open(tmp_file) as handle:
+			pre1 = load(handle)['pre']
+
+		# make sure linear transformation hasn't changed
+		self.assertEqual(pre1.dim_in, pre0.dim_in)
+		self.assertEqual(pre1.dim_in_pre, pre0.dim_in_pre)
+		self.assertEqual(pre1.dim_out, pre0.dim_out)
+		self.assertEqual(pre1.dim_out_pre, pre0.dim_out_pre)
+		self.assertEqual(pre1.binning, pre0.binning)
 
 
 

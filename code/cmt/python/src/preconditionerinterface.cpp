@@ -79,13 +79,13 @@ const char* Preconditioner_inverse_doc =
 	"\n"
 	"Computes original inputs and outputs from transformed inputs and outputs."
 	"\n"
-	"@type  input: ndarray\n"
+	"@type  input: C{ndarray}\n"
 	"@param input: preconditioned inputs stored in columns\n"
 	"\n"
-	"@type  output: ndarray\n"
+	"@type  output: C{ndarray}\n"
 	"@param output: preconditioned outputs stored in columns\n"
 	"\n"
-	"@rtype: tuple/ndarray\n"
+	"@rtype: tuple/C{ndarray}\n"
 	"@return: tuple or array containing inputs or inputs and outputs, respectively";
 
 PyObject* Preconditioner_inverse(PreconditionerObject* self, PyObject* args, PyObject* kwds) {
@@ -159,13 +159,13 @@ const char* Preconditioner_logjacobian_doc =
 	"Computes the conditional log-Jacobian determinant for the given data points "
 	"(using the natural logarithm).\n"
 	"\n"
-	"@type  input: ndarray\n"
+	"@type  input: C{ndarray}\n"
 	"@param input: inputs stored in columns\n"
 	"\n"
-	"@type  output: ndarray\n"
+	"@type  output: C{ndarray}\n"
 	"@param output: outputs stored in columns\n"
 	"\n"
-	"@rtype: ndarray\n"
+	"@rtype: C{ndarray}\n"
 	"@return: log-Jacobian of the transformation for each data point";
 
 PyObject* Preconditioner_logjacobian(PreconditionerObject* self, PyObject* args, PyObject* kwds) {
@@ -245,8 +245,20 @@ PyObject* Preconditioner_dim_in(PreconditionerObject* self, void*) {
 
 
 
+PyObject* Preconditioner_dim_in_pre(PreconditionerObject* self, void*) {
+	return PyInt_FromLong(self->preconditioner->dimInPre());
+}
+
+
+
 PyObject* Preconditioner_dim_out(PreconditionerObject* self, void*) {
 	return PyInt_FromLong(self->preconditioner->dimOut());
+}
+
+
+
+PyObject* Preconditioner_dim_out_pre(PreconditionerObject* self, void*) {
+	return PyInt_FromLong(self->preconditioner->dimOutPre());
 }
 
 
@@ -261,19 +273,19 @@ const char* AffinePreconditioner_doc =
 	"\n"
 	"where $\\mathbf{x}$ represents the input and $\\mathbf{y}$ represents the output.\n"
 	"\n"
-	"@type  mean_in: ndarray\n"
+	"@type  mean_in: C{ndarray}\n"
 	"@param mean_in: a column vector which will be subtracted from the input ($\\mathbf{m}_x$)\n"
 	"\n"
-	"@type  mean_out: ndarray\n"
+	"@type  mean_out: C{ndarray}\n"
 	"@param mean_out: a column vector which will be subtracted from the output ($\\mathbf{m}_y$)\n"
 	"\n"
-	"@type  pre_in: ndarray\n"
+	"@type  pre_in: C{ndarray}\n"
 	"@param pre_in: a preconditioner for the input ($\\mathbf{P}_x$)\n"
 	"\n"
-	"@type  pre_out: ndarray\n"
+	"@type  pre_out: C{ndarray}\n"
 	"@param pre_out: a preconditioner for the output ($\\mathbf{P}_y$)\n"
 	"\n"
-	"@type  predictor: ndarray\n"
+	"@type  predictor: C{ndarray}\n"
 	"@param predictor: a linear predictor of the output ($\\mathbf{A}$)";
 
 int AffinePreconditioner_init(AffinePreconditionerObject* self, PyObject* args, PyObject* kwds) {
@@ -403,13 +415,13 @@ const char* AffineTransform_doc =
 	"Unlike L{AffinePreconditioner}, this class does not touch the output and can thus\n"
 	"be used with discrete data, for example.\n"
 	"\n"
-	"@type  mean_in: ndarray\n"
+	"@type  mean_in: C{ndarray}\n"
 	"@param mean_in: a column vector which will be subtracted from the input ($\\mathbf{m}_x$)\n"
 	"\n"
-	"@type  pre_in: ndarray\n"
+	"@type  pre_in: C{ndarray}\n"
 	"@param pre_in: a preconditioner for the input ($\\mathbf{P}_x$)\n"
 	"\n"
-	"@type  dim_out: integer\n"
+	"@type  dim_out: C{int}\n"
 	"@param dim_out: dimensionality of the output (default: 1)";
 
 int AffineTransform_init(AffineTransformObject* self, PyObject* args, PyObject* kwds) {
@@ -592,10 +604,10 @@ PyObject* AffineTransform_reduce(AffineTransformObject* self, PyObject*) {
 const char* WhiteningPreconditioner_doc =
 	"Decorrelates inputs and outputs.\n"
 	"\n"
-	"@type  input: ndarray\n"
+	"@type  input: C{ndarray}\n"
 	"@param input: inputs stored in columns\n"
 	"\n"
-	"@type  output: ndarray\n"
+	"@type  output: C{ndarray}\n"
 	"@param output: outputs stored in columns";
 
 int WhiteningPreconditioner_init(WhiteningPreconditionerObject* self, PyObject* args, PyObject* kwds) {
@@ -704,13 +716,13 @@ int WhiteningPreconditioner_init(WhiteningPreconditionerObject* self, PyObject* 
 const char* WhiteningTransform_doc =
 	"Decorrelates inputs.\n"
 	"\n"
-	"@type  input: ndarray\n"
+	"@type  input: C{ndarray}\n"
 	"@param input: inputs stored in columns\n"
 	"\n"
-	"@type  output: ndarray\n"
+	"@type  output: C{ndarray}\n"
 	"@param output: outputs stored in columns (optional)\n"
 	"\n"
-	"@type  dim_out: integer\n"
+	"@type  dim_out: C{int}\n"
 	"@param dim_out: dimensionality of the output (default: 1)";
 
 int WhiteningTransform_init(WhiteningTransformObject* self, PyObject* args, PyObject* kwds) {
@@ -829,16 +841,16 @@ const char* PCAPreconditioner_doc =
 	"\n"
 	"\t>>> input, output = preconditioner.inverse(input, output)\n"
 	"\n"
-	"@type  input: ndarray\n"
+	"@type  input: C{ndarray}\n"
 	"@param input: inputs stored in columns\n"
 	"\n"
-	"@type  output: ndarray\n"
+	"@type  output: C{ndarray}\n"
 	"@param output: outputs stored in columns\n"
 	"\n"
-	"@type  var_explained: double\n"
+	"@type  var_explained: C{double}\n"
 	"@param var_explained: the amount of variance retained after dimensionality reduction\n"
 	"\n"
-	"@type  num_pcs: integer\n"
+	"@type  num_pcs: C{int}\n"
 	"@param num_pcs: the number of principal components of the input kept";
 
 int PCAPreconditioner_init(PCAPreconditionerObject* self, PyObject* args, PyObject* kwds) {
@@ -961,19 +973,19 @@ int PCAPreconditioner_init(PCAPreconditionerObject* self, PyObject* args, PyObje
 const char* PCATransform_doc =
 	"This class behaves like L{PCAPreconditioner}, but does not change the output.\n"
 	"\n"
-	"@type  input: ndarray\n"
+	"@type  input: C{ndarray}\n"
 	"@param input: inputs stored in columns\n"
 	"\n"
-	"@type  output: ndarray\n"
+	"@type  output: C{ndarray}\n"
 	"@param output: outputs stored in columns\n"
 	"\n"
-	"@type  dim_out: integer\n"
+	"@type  dim_out: C{int}\n"
 	"@param dim_out: number of outputs (default: 1)\n"
 	"\n"
-	"@type  var_explained: double\n"
+	"@type  var_explained: C{double}\n"
 	"@param var_explained: the amount of variance retained after dimensionality reduction\n"
 	"\n"
-	"@type  num_pcs: integer\n"
+	"@type  num_pcs: C{int}\n"
 	"@param num_pcs: the number of principal components of the input kept";
 
 int PCATransform_init(PCATransformObject* self, PyObject* args, PyObject* kwds) {
@@ -1152,6 +1164,64 @@ PyObject* PCATransform_reduce(PCATransformObject* self, PyObject*) {
 	Py_DECREF(preInInv);
 	Py_DECREF(args);
 	Py_DECREF(state);
+
+	return result;
+}
+
+
+
+const char* BinningTransform_doc =
+	"Sums up neighboring dimensions of input vectors.\n"
+	"\n"
+	"@type  binning: C{int}\n"
+	"@param binning: bin width\n"
+	"\n"
+	"@type  dim_in: C{int}\n"
+	"@param dim_in: dimensionality of inputs\n"
+	"\n"
+	"@type  dim_out: C{int}\n"
+	"@param dim_out: dimensionality of outputs (default: 1)\n";
+
+int BinningTransform_init(BinningTransformObject* self, PyObject* args, PyObject* kwds) {
+	// test if this call to __init__ is the result of unpickling
+	const char* kwlist[] = {"binning", "dim_in", "dim_out", 0};
+
+	int binning;
+	int dim_in;
+	int dim_out = 1;
+
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "ii|i", const_cast<char**>(kwlist),
+		&binning, &dim_in, &dim_out))
+	{
+		return -1;
+	}
+
+	try {
+		self->preconditioner = new BinningTransform(binning, dim_in, dim_out);
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+
+	return 0;
+}
+
+
+
+PyObject* BinningTransform_binning(BinningTransformObject* self, void*) {
+	return PyInt_FromLong(self->preconditioner->binning());
+}
+
+
+
+PyObject* BinningTransform_reduce(BinningTransformObject* self, PyObject*) {
+	PyObject* args = Py_BuildValue("(iii)",
+		self->preconditioner->binning(),
+		self->preconditioner->dimIn(),
+		self->preconditioner->dimOut());
+	PyObject* state = Py_BuildValue("()");
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
 
 	return result;
 }

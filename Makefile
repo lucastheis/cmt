@@ -37,6 +37,7 @@ PYTHONPATH = \
 SOURCES = \
 	$(SRCDIR)/affinepreconditioner.cpp \
 	$(SRCDIR)/affinetransform.cpp \
+	$(SRCDIR)/binningtransform.cpp \
 	$(PYSDIR)/callbackinterface.cpp \
 	$(SRCDIR)/conditionaldistribution.cpp \
 	$(PYSDIR)/conditionaldistributioninterface.cpp \

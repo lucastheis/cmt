@@ -80,6 +80,7 @@ modules = [
 			'code/cmt/python/src/univariatedistributionsinterface.cpp',
 			'code/cmt/src/affinepreconditioner.cpp',
 			'code/cmt/src/affinetransform.cpp',
+			'code/cmt/src/binningtransform.cpp',
 			'code/cmt/src/conditionaldistribution.cpp',
 			'code/cmt/src/distribution.cpp',
 			'code/cmt/src/glm.cpp',

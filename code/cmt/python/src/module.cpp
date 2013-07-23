@@ -1318,7 +1318,9 @@ PyTypeObject Poisson_type = {
 
 static PyGetSetDef Preconditioner_getset[] = {
 	{"dim_in", (getter)Preconditioner_dim_in, 0, 0},
+	{"dim_in_pre", (getter)Preconditioner_dim_in_pre, 0, 0},
 	{"dim_out", (getter)Preconditioner_dim_out, 0, 0},
+	{"dim_out_pre", (getter)Preconditioner_dim_out_pre, 0, 0},
 	{0}
 };
 
@@ -1663,6 +1665,58 @@ PyTypeObject PCATransform_type = {
 	Preconditioner_new,                 /*tp_new*/
 };
 
+static PyGetSetDef BinningTransform_getset[] = {
+	{"binning", (getter)BinningTransform_binning, 0, "Binning width."},
+	{0}
+};
+
+static PyMethodDef BinningTransform_methods[] = {
+	{"__reduce__", (PyCFunction)BinningTransform_reduce, METH_NOARGS, 0},
+	{0}
+};
+
+PyTypeObject BinningTransform_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                  /*ob_size*/
+	"cmt.BinningTransform",             /*tp_name*/
+	sizeof(BinningTransformObject),     /*tp_basicsize*/
+	0,                                  /*tp_itemsize*/
+	(destructor)Preconditioner_dealloc, /*tp_dealloc*/
+	0,                                  /*tp_print*/
+	0,                                  /*tp_getattr*/
+	0,                                  /*tp_setattr*/
+	0,                                  /*tp_compare*/
+	0,                                  /*tp_repr*/
+	0,                                  /*tp_as_number*/
+	0,                                  /*tp_as_sequence*/
+	0,                                  /*tp_as_mapping*/
+	0,                                  /*tp_hash */
+	0,                                  /*tp_call*/
+	0,                                  /*tp_str*/
+	0,                                  /*tp_getattro*/
+	0,                                  /*tp_setattro*/
+	0,                                  /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                 /*tp_flags*/
+	BinningTransform_doc,               /*tp_doc*/
+	0,                                  /*tp_traverse*/
+	0,                                  /*tp_clear*/
+	0,                                  /*tp_richcompare*/
+	0,                                  /*tp_weaklistoffset*/
+	0,                                  /*tp_iter*/
+	0,                                  /*tp_iternext*/
+	BinningTransform_methods,           /*tp_methods*/
+	0,                                  /*tp_members*/
+	BinningTransform_getset,            /*tp_getset*/
+	&AffineTransform_type,              /*tp_base*/
+	0,                                  /*tp_dict*/
+	0,                                  /*tp_descr_get*/
+	0,                                  /*tp_descr_set*/
+	0,                                  /*tp_dictoffset*/
+	(initproc)BinningTransform_init,    /*tp_init*/
+	0,                                  /*tp_alloc*/
+	Preconditioner_new,                 /*tp_new*/
+};
+
 static const char* cmt_doc =
 	"This module provides fast implementations of different probabilistic models.";
 
@@ -1710,6 +1764,8 @@ PyMODINIT_FUNC init_cmt() {
 	if(PyType_Ready(&AffineTransform_type) < 0)
 		return;
 	if(PyType_Ready(&Bernoulli_type) < 0)
+		return;
+	if(PyType_Ready(&BinningTransform_type) < 0)
 		return;
 	if(PyType_Ready(&CD_type) < 0)
 		return;
@@ -1766,6 +1822,7 @@ PyMODINIT_FUNC init_cmt() {
 	// add types to module
 	Py_INCREF(&AffinePreconditioner_type);
 	Py_INCREF(&AffineTransform_type);
+	Py_INCREF(&BinningTransform_type);
 	Py_INCREF(&Bernoulli_type);
 	Py_INCREF(&CD_type);
 	Py_INCREF(&Distribution_type);
@@ -1795,6 +1852,7 @@ PyMODINIT_FUNC init_cmt() {
 	PyModule_AddObject(module, "AffinePreconditioner", reinterpret_cast<PyObject*>(&AffinePreconditioner_type));
 	PyModule_AddObject(module, "AffineTransform", reinterpret_cast<PyObject*>(&AffineTransform_type));
 	PyModule_AddObject(module, "Bernoulli", reinterpret_cast<PyObject*>(&Bernoulli_type));
+	PyModule_AddObject(module, "BinningTransform", reinterpret_cast<PyObject*>(&BinningTransform_type));
 	PyModule_AddObject(module, "ConditionalDistribution", reinterpret_cast<PyObject*>(&CD_type));
 	PyModule_AddObject(module, "Distribution", reinterpret_cast<PyObject*>(&Distribution_type));
 	PyModule_AddObject(module, "ExponentialFunction", reinterpret_cast<PyObject*>(&ExponentialFunction_type));

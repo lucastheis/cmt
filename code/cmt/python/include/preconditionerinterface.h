@@ -27,6 +27,9 @@ using CMT::PCAPreconditioner;
 #include "pcatransform.h"
 using CMT::PCATransform;
 
+#include "binningtransform.h"
+using CMT::BinningTransform;
+
 struct PreconditionerObject {
 	PyObject_HEAD
 	Preconditioner* preconditioner;
@@ -69,6 +72,12 @@ struct PCATransformObject {
 	bool owner;
 };
 
+struct BinningTransformObject {
+	PyObject_HEAD
+	BinningTransform* preconditioner;
+	bool owner;
+};
+
 extern const char* Preconditioner_doc;
 extern const char* Preconditioner_inverse_doc;
 extern const char* Preconditioner_logjacobian_doc;
@@ -78,6 +87,7 @@ extern const char* WhiteningPreconditioner_doc;
 extern const char* WhiteningTransform_doc;
 extern const char* PCAPreconditioner_doc;
 extern const char* PCATransform_doc;
+extern const char* BinningTransform_doc;
 
 int Preconditioner_init(WhiteningPreconditionerObject*, PyObject*, PyObject*);
 
@@ -90,7 +100,9 @@ PyObject* Preconditioner_new(PyTypeObject*, PyObject*, PyObject*);
 void Preconditioner_dealloc(PreconditionerObject*);
 
 PyObject* Preconditioner_dim_in(PreconditionerObject*, void*);
+PyObject* Preconditioner_dim_in_pre(PreconditionerObject*, void*);
 PyObject* Preconditioner_dim_out(PreconditionerObject*, void*);
+PyObject* Preconditioner_dim_out_pre(PreconditionerObject*, void*);
 
 int AffinePreconditioner_init(AffinePreconditionerObject*, PyObject*, PyObject*);
 int AffineTransform_init(AffineTransformObject*, PyObject*, PyObject*);
@@ -117,5 +129,9 @@ PyObject* PCATransform_eigenvalues(PCATransformObject*, void*);
 
 PyObject* PCAPreconditioner_reduce(PCAPreconditionerObject*, PyObject*);
 PyObject* PCATransform_reduce(PCATransformObject*, PyObject*);
+
+int BinningTransform_init(BinningTransformObject*, PyObject*, PyObject*);
+PyObject* BinningTransform_binning(BinningTransformObject*, void*);
+PyObject* BinningTransform_reduce(BinningTransformObject*, PyObject*);
 
 #endif
