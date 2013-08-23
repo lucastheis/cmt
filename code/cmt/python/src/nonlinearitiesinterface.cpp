@@ -18,7 +18,7 @@ PyObject* Nonlinearity_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 
 
 const char* Nonlinearity_doc =
-	"Abstract base class for nonlinear functions used, for example, by L{GLM}.";
+	"Abstract base class for nonlinear functions used, for example, by L{GLM<models.GLM>}.";
 
 int Nonlinearity_init(
 	NonlinearityObject* self,
@@ -128,7 +128,7 @@ int ExponentialFunction_init(ExponentialFunctionObject* self, PyObject*, PyObjec
 const char* HistogramNonlinearity_doc =
 	"Histogram nonlinearity with $N$ bins.\n"
 	"\n"
-	"$$f(x) = \\begin{cases} h_0 & \\text{ if } x < b_0 \\ h_n & \\text{ if } b_n \\leq x < b_{n + 1} \\ h_N & \\text{ if } b_N \\leq x \\end{cases}$$";
+	"$$f(x) = \\begin{cases} h_0 & \\text{ if } x < b_0 \\\\ h_n & \\text{ if } b_n \\leq x < b_{n + 1} \\\\ h_N & \\text{ if } b_N \\leq x \\end{cases}$$";
 
 int HistogramNonlinearity_init(HistogramNonlinearityObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {

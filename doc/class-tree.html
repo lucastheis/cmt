@@ -46,7 +46,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >Conditional Modeling Toolkit</th>
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -75,79 +75,114 @@
     <li> <strong class="uidlink">object</strong>:
       <em class="summary">The most base type</em>
     <ul>
-    <li> <strong class="uidlink"><a href="cmt.ConditionalDistribution-class.html">cmt.ConditionalDistribution</a></strong>:
+    <li> <strong class="uidlink"><a href="cmt.models.ConditionalDistribution-class.html">cmt.models.ConditionalDistribution</a></strong>:
       <em class="summary">Abstract base class for conditional models.</em>
     <ul>
-    <li> <strong class="uidlink"><a href="cmt.GLM-class.html">cmt.GLM</a></strong>:
+    <li> <strong class="uidlink"><a href="cmt.models.GLM-class.html">cmt.models.GLM</a></strong>:
       <em class="summary">An implementation of generalized linear models.</em>
     </li>
-    <li> <strong class="uidlink"><a href="cmt.MCBM-class.html">cmt.MCBM</a></strong>:
+    <li> <strong class="uidlink"><a href="cmt.models.MCBM-class.html">cmt.models.MCBM</a></strong>:
       <em class="summary">An implementation of a mixture of conditional Boltzmann machines.</em>
     </li>
-    <li> <strong class="uidlink"><a href="cmt.MCGSM-class.html">cmt.MCGSM</a></strong>:
+    <li> <strong class="uidlink"><a href="cmt.models.MCGSM-class.html">cmt.models.MCGSM</a></strong>:
       <em class="summary">An implementation of a mixture of conditional Gaussian scale 
         mixtures.</em>
     </li>
+    <li> <strong class="uidlink"><a href="cmt.models.STM-class.html">cmt.models.STM</a></strong>:
+      <em class="summary">An implementation of the spike-triggered mixture model.</em>
+    </li>
     </ul>
     </li>
-    <li> <strong class="uidlink"><a href="cmt.Distribution-class.html">cmt.Distribution</a></strong>:
+    <li> <strong class="uidlink"><a href="cmt.models.Distribution-class.html">cmt.models.Distribution</a></strong>:
       <em class="summary">Abstract base class for distributions.</em>
     <ul>
-    <li> <strong class="uidlink"><a href="cmt.PatchModel-class.html">cmt.PatchModel</a></strong>:
+    <li> <strong class="uidlink"><a href="cmt.models.Mixture-class.html">cmt.models.Mixture</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="cmt.models.MoGSM-class.html">cmt.models.MoGSM</a></strong>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="cmt.models.MixtureComponent-class.html">cmt.models.MixtureComponent</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="cmt.models.GSM-class.html">cmt.models.GSM</a></strong>:
+      <em class="summary">An implementation of a finite Gaussian scale mixture.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="cmt.models.PatchModel-class.html">cmt.models.PatchModel</a></strong>:
       <em class="summary">Abstract base class for models of image patches.</em>
     <ul>
-    <li> <strong class="uidlink"><a href="cmt.FVBN-class.html">cmt.FVBN</a></strong>:
+    <li> <strong class="uidlink"><a href="cmt.models.FVBN-class.html">cmt.models.FVBN</a></strong>:
       <em class="summary">Model image patches using a GLM for each conditional distribution.</em>
     </li>
-    <li> <strong class="uidlink"><a href="cmt.PatchMCBM-class.html">cmt.PatchMCBM</a></strong>:
-      <em class="summary">Model image patches by using an <a href="cmt.MCBM-class.html" 
-        class="link">MCBM</a> for each conditional distribution.</em>
+    <li> <strong class="uidlink"><a href="cmt.models.PatchMCBM-class.html">cmt.models.PatchMCBM</a></strong>:
+      <em class="summary">Model image patches by using an <a 
+        href="cmt.models.MCBM-class.html" class="link">MCBM</a> for each 
+        conditional distribution.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="cmt.models.PatchMCGSM-class.html">cmt.models.PatchMCGSM</a></strong>:
+      <em class="summary">Model image patches by using an <a 
+        href="cmt.models.MCGSM-class.html" class="link">MCGSM</a> for each 
+        conditional distribution.</em>
     </li>
     </ul>
     </li>
-    <li> <strong class="uidlink"><a href="cmt.UnivariateDistribution-class.html">cmt.UnivariateDistribution</a></strong>:
-      <em class="summary">Abstract base class for univariate distributions usable by <a 
-        href="cmt.GLM-class.html" class="link">GLM</a>.</em>
+    <li> <strong class="uidlink"><a href="cmt.models.UnivariateDistribution-class.html">cmt.models.UnivariateDistribution</a></strong>:
+      <em class="summary">Abstract base class for univariate distributions used, for example,
+        by <a href="cmt.models.GLM-class.html" class="link">GLM</a>.</em>
     <ul>
-    <li> <strong class="uidlink"><a href="cmt.Bernoulli-class.html">cmt.Bernoulli</a></strong>:
+    <li> <strong class="uidlink"><a href="cmt.models.Bernoulli-class.html">cmt.models.Bernoulli</a></strong>:
       <em class="summary">The Bernoulli distribution.</em>
     </li>
-    </ul>
+    <li> <strong class="uidlink"><a href="cmt.models.Poisson-class.html">cmt.models.Poisson</a></strong>:
+      <em class="summary">The Poisson distribution.</em>
     </li>
     </ul>
     </li>
-    <li> <strong class="uidlink"><a href="cmt.Nonlinearity-class.html">cmt.Nonlinearity</a></strong>:
-      <em class="summary">Abstract base class for nonlinear functions usable by <a 
-        href="cmt.GLM-class.html" class="link">GLM</a>.</em>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="cmt.nonlinear.Nonlinearity-class.html">cmt.nonlinear.Nonlinearity</a></strong>:
+      <em class="summary">Abstract base class for nonlinear functions used, for example, by 
+        <code class="link">GLM</code>.</em>
     <ul>
-    <li> <strong class="uidlink"><a href="cmt.LogisticFunction-class.html">cmt.LogisticFunction</a></strong>:
+    <li> <strong class="uidlink"><a href="cmt.nonlinear.ExponentialFunction-class.html">cmt.nonlinear.ExponentialFunction</a></strong>:
+      <em class="summary">The exponential function.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="cmt.nonlinear.HistogramNonlinearity-class.html">cmt.nonlinear.HistogramNonlinearity</a></strong>:
+      <em class="summary">Histogram nonlinearity with $N$ bins.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="cmt.nonlinear.LogisticFunction-class.html">cmt.nonlinear.LogisticFunction</a></strong>:
       <em class="summary">The sigmoidal logistic function.</em>
     </li>
     </ul>
     </li>
-    <li> <strong class="uidlink"><a href="cmt.Preconditioner-class.html">cmt.Preconditioner</a></strong>:
+    <li> <strong class="uidlink"><a href="cmt.transforms.Preconditioner-class.html">cmt.transforms.Preconditioner</a></strong>:
       <em class="summary">Abstract base class for preconditioners of inputs and outputs.</em>
     <ul>
-    <li> <strong class="uidlink"><a href="cmt.AffinePreconditioner-class.html">cmt.AffinePreconditioner</a></strong>:
+    <li> <strong class="uidlink"><a href="cmt.transforms.AffinePreconditioner-class.html">cmt.transforms.AffinePreconditioner</a></strong>:
       <em class="summary">Performs affine transformations on the input and the output.</em>
     <ul>
-    <li> <strong class="uidlink"><a href="cmt.AffineTransform-class.html">cmt.AffineTransform</a></strong>:
+    <li> <strong class="uidlink"><a href="cmt.transforms.AffineTransform-class.html">cmt.transforms.AffineTransform</a></strong>:
       <em class="summary">Performs an affine transformation on inputs.</em>
     <ul>
-    <li> <strong class="uidlink"><a href="cmt.PCATransform-class.html">cmt.PCATransform</a></strong>:
-      <em class="summary">This class behaves like <a href="cmt.PCAPreconditioner-class.html" 
+    <li> <strong class="uidlink"><a href="cmt.transforms.BinningTransform-class.html">cmt.transforms.BinningTransform</a></strong>:
+      <em class="summary">Sums up neighboring dimensions of input vectors.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="cmt.transforms.PCATransform-class.html">cmt.transforms.PCATransform</a></strong>:
+      <em class="summary">This class behaves like <a 
+        href="cmt.transforms.PCAPreconditioner-class.html" 
         class="link">PCAPreconditioner</a>, but does not change the output.</em>
     </li>
-    <li> <strong class="uidlink"><a href="cmt.WhiteningTransform-class.html">cmt.WhiteningTransform</a></strong>:
+    <li> <strong class="uidlink"><a href="cmt.transforms.WhiteningTransform-class.html">cmt.transforms.WhiteningTransform</a></strong>:
       <em class="summary">Decorrelates inputs.</em>
     </li>
     </ul>
     </li>
-    <li> <strong class="uidlink"><a href="cmt.PCAPreconditioner-class.html">cmt.PCAPreconditioner</a></strong>:
+    <li> <strong class="uidlink"><a href="cmt.transforms.PCAPreconditioner-class.html">cmt.transforms.PCAPreconditioner</a></strong>:
       <em class="summary">This preconditioner can be used to reduce the dimensionality of the
         input.</em>
     </li>
-    <li> <strong class="uidlink"><a href="cmt.WhiteningPreconditioner-class.html">cmt.WhiteningPreconditioner</a></strong>:
+    <li> <strong class="uidlink"><a href="cmt.transforms.WhiteningPreconditioner-class.html">cmt.transforms.WhiteningPreconditioner</a></strong>:
       <em class="summary">Decorrelates inputs and outputs.</em>
     </li>
     </ul>
@@ -181,14 +216,14 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >Conditional Modeling Toolkit</th>
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri May 31 19:54:02 2013
+    Generated by Epydoc 3.0.1 on Fri Aug 23 19:40:09 2013
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

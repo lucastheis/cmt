@@ -1141,7 +1141,7 @@ PyObject* PatchMCGSM_initialize(PatchMCGSMObject* self, PyObject* args, PyObject
 
 
 const char* PatchMCGSM_train_doc =
-	"train(self, data, dat_val=None, parameters=None)\n"
+	"train(self, data, data_val=None, parameters=None)\n"
 	"\n"
 	"Trains the model to the given image patches by fitting each conditional\n"
 	"distribution in turn.\n"

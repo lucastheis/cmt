@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>cmt</title>
+  <title>cmt.transforms</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 
@@ -27,8 +27,8 @@
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
   <!-- Home link -->
-      <th bgcolor="#70b0f0" class="navbar-select"
-          >&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="cmt-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -54,7 +54,8 @@
   <tr valign="top">
     <td width="100%">
       <span class="breadcrumbs">
-        Package&nbsp;cmt
+        <a href="cmt-module.html">Package&nbsp;cmt</a> ::
+        Package&nbsp;transforms
       </span>
     </td>
     <td>
@@ -64,42 +65,99 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="cmt-module.html"
+            >]&nbsp;|&nbsp;<a href="cmt.transforms-module.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== PACKAGE DESCRIPTION ==================== -->
-<h1 class="epydoc">Package cmt</h1><p class="nomargin-top"><span class="codelink"><a href="cmt-pysrc.html">source&nbsp;code</a></span></p>
-<!-- ==================== SUBMODULES ==================== -->
-<a name="section-Submodules"></a>
+<h1 class="epydoc">Package transforms</h1><p class="nomargin-top"><span class="codelink"><a href="cmt.transforms-pysrc.html">source&nbsp;code</a></span></p>
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
 <table class="summary" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr bgcolor="#70b0f0" class="table-header">
   <td colspan="2" class="table-header">
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr valign="top">
-        <td align="left"><span class="table-header">Submodules</span></td>
+        <td align="left"><span class="table-header">Classes</span></td>
         <td align="right" valign="top"
-         ><span class="options">[<a href="#section-Submodules"
+         ><span class="options">[<a href="#section-Classes"
          class="privatelink" onclick="toggle_private();"
          >hide private</a>]</span></td>
       </tr>
     </table>
   </td>
 </tr>
-  <tr><td class="summary">
-  <ul class="nomargin">
-    <li> <strong class="uidlink"><a href="cmt.models-module.html">cmt.models</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="cmt.nonlinear-module.html">cmt.nonlinear</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="cmt.tools-module.html">cmt.tools</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="cmt.transforms-module.html">cmt.transforms</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="cmt.utils-module.html">cmt.utils</a></strong>    </li>
-  </ul></td></tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.transforms.AffinePreconditioner-class.html" class="summary-name">AffinePreconditioner</a><br />
+      Performs affine transformations on the input and the output.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.transforms.AffineTransform-class.html" class="summary-name">AffineTransform</a><br />
+      Performs an affine transformation on inputs.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.transforms.BinningTransform-class.html" class="summary-name">BinningTransform</a><br />
+      Sums up neighboring dimensions of input vectors.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.transforms.PCAPreconditioner-class.html" class="summary-name">PCAPreconditioner</a><br />
+      This preconditioner can be used to reduce the dimensionality of the
+        input.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.transforms.PCATransform-class.html" class="summary-name">PCATransform</a><br />
+      This class behaves like <a 
+        href="cmt.transforms.PCAPreconditioner-class.html" 
+        class="link">PCAPreconditioner</a>, but does not change the output.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.transforms.Preconditioner-class.html" class="summary-name">Preconditioner</a><br />
+      Abstract base class for preconditioners of inputs and outputs.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.transforms.WhiteningPreconditioner-class.html" class="summary-name">WhiteningPreconditioner</a><br />
+      Decorrelates inputs and outputs.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.transforms.WhiteningTransform-class.html" class="summary-name">WhiteningTransform</a><br />
+      Decorrelates inputs.
+    </td>
+  </tr>
 </table>
-
-<br />
 <!-- ==================== VARIABLES ==================== -->
 <a name="section-Variables"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -121,7 +179,7 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="None">None</code>
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'cmt.transforms'"><code class="variable-quote">'</code><code class="variable-string">cmt.transforms</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 </table>
@@ -130,8 +188,8 @@
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
   <!-- Home link -->
-      <th bgcolor="#70b0f0" class="navbar-select"
-          >&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="cmt-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a

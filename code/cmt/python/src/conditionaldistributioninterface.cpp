@@ -162,7 +162,7 @@ const char* CD_evaluate_doc =
 	"@type  output: ndarray\n"
 	"@param output: outputs stored in columns\n"
 	"\n"
-	"@type  preconditioner: L{Preconditioner}\n"
+	"@type  preconditioner: L{Preconditioner<transforms.Preconditioner>}\n"
 	"@param preconditioner: preconditioner that is used to transform the data\n"
 	"\n"
 	"@rtype: double\n"

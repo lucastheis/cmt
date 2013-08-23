@@ -369,7 +369,7 @@ PyObject* Mixture_train(MixtureObject* self, PyObject* args, PyObject* kwds) {
 
 
 const char* Mixture_initialize_doc =
-	"train(self, data, data_valid=None, parameters=None)\n"
+	"train(self, data, parameters=None, component_parameters=None)\n"
 	"\n"
 	"Calls L{initialize()} on all mixture components and resets all prior weights.\n"
 	"\n"
@@ -389,7 +389,7 @@ PyObject* Mixture_initialize(MixtureObject* self, PyObject* args, PyObject* kwds
 	PyObject* parameters = 0;
 	PyObject* component_parameters = 0;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|OOO", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|OO", const_cast<char**>(kwlist),
 		&data, &parameters, &component_parameters))
 		return 0;
 

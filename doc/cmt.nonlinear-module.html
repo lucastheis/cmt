@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>cmt</title>
+  <title>cmt.nonlinear</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 
@@ -27,8 +27,8 @@
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
   <!-- Home link -->
-      <th bgcolor="#70b0f0" class="navbar-select"
-          >&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="cmt-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -54,7 +54,8 @@
   <tr valign="top">
     <td width="100%">
       <span class="breadcrumbs">
-        Package&nbsp;cmt
+        <a href="cmt-module.html">Package&nbsp;cmt</a> ::
+        Package&nbsp;nonlinear
       </span>
     </td>
     <td>
@@ -64,42 +65,65 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="cmt-module.html"
+            >]&nbsp;|&nbsp;<a href="cmt.nonlinear-module.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== PACKAGE DESCRIPTION ==================== -->
-<h1 class="epydoc">Package cmt</h1><p class="nomargin-top"><span class="codelink"><a href="cmt-pysrc.html">source&nbsp;code</a></span></p>
-<!-- ==================== SUBMODULES ==================== -->
-<a name="section-Submodules"></a>
+<h1 class="epydoc">Package nonlinear</h1><p class="nomargin-top"><span class="codelink"><a href="cmt.nonlinear-pysrc.html">source&nbsp;code</a></span></p>
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
 <table class="summary" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr bgcolor="#70b0f0" class="table-header">
   <td colspan="2" class="table-header">
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr valign="top">
-        <td align="left"><span class="table-header">Submodules</span></td>
+        <td align="left"><span class="table-header">Classes</span></td>
         <td align="right" valign="top"
-         ><span class="options">[<a href="#section-Submodules"
+         ><span class="options">[<a href="#section-Classes"
          class="privatelink" onclick="toggle_private();"
          >hide private</a>]</span></td>
       </tr>
     </table>
   </td>
 </tr>
-  <tr><td class="summary">
-  <ul class="nomargin">
-    <li> <strong class="uidlink"><a href="cmt.models-module.html">cmt.models</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="cmt.nonlinear-module.html">cmt.nonlinear</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="cmt.tools-module.html">cmt.tools</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="cmt.transforms-module.html">cmt.transforms</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="cmt.utils-module.html">cmt.utils</a></strong>    </li>
-  </ul></td></tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.nonlinear.Nonlinearity-class.html" class="summary-name">Nonlinearity</a><br />
+      Abstract base class for nonlinear functions used, for example, by 
+        <code class="link">GLM</code>.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.nonlinear.LogisticFunction-class.html" class="summary-name">LogisticFunction</a><br />
+      The sigmoidal logistic function.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.nonlinear.ExponentialFunction-class.html" class="summary-name">ExponentialFunction</a><br />
+      The exponential function.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.nonlinear.HistogramNonlinearity-class.html" class="summary-name">HistogramNonlinearity</a><br />
+      Histogram nonlinearity with $N$ bins.
+    </td>
+  </tr>
 </table>
-
-<br />
 <!-- ==================== VARIABLES ==================== -->
 <a name="section-Variables"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -121,7 +145,7 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="None">None</code>
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'cmt.nonlinear'"><code class="variable-quote">'</code><code class="variable-string">cmt.nonlinear</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 </table>
@@ -130,8 +154,8 @@
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
   <!-- Home link -->
-      <th bgcolor="#70b0f0" class="navbar-select"
-          >&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="cmt-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a

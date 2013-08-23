@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>cmt.PatchMCBM</title>
+  <title>cmt.models.Mixture</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 
@@ -46,7 +46,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >Conditional Modeling Toolkit</th>
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -54,8 +54,9 @@
   <tr valign="top">
     <td width="100%">
       <span class="breadcrumbs">
-        <a href="cmt-module.html">Module&nbsp;cmt</a> ::
-        Class&nbsp;PatchMCBM
+        <a href="cmt-module.html">Package&nbsp;cmt</a> ::
+        <a href="cmt.models-module.html">Package&nbsp;models</a> ::
+        Class&nbsp;Mixture
       </span>
     </td>
     <td>
@@ -65,28 +66,29 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="cmt.PatchMCBM-class.html"
+            >]&nbsp;|&nbsp;<a href="cmt.models.Mixture-class.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class PatchMCBM</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Class Mixture</h1><p class="nomargin-top"><span class="codelink"><a href="cmt-pysrc.html#models.Mixture">source&nbsp;code</a></span></p>
 <pre class="base-tree">
-  object --+        
-           |        
-<a href="cmt.Distribution-class.html">Distribution</a> --+    
-               |    
-      <a href="cmt.PatchModel-class.html">PatchModel</a> --+
-                   |
-                  <strong class="uidshort">PatchMCBM</strong>
+         object --+    
+                  |    
+<a href="cmt.models.Distribution-class.html">models.Distribution</a> --+
+                      |
+                     <strong class="uidshort">models.Mixture</strong>
 </pre>
 
-<hr />
-<p>Model image patches by using an <a href="cmt.MCBM-class.html" 
-  class="link">MCBM</a> for each conditional distribution.</p>
+<dl><dt>Known Subclasses:</dt>
+<dd>
+      <ul class="subclass-list">
+<li><a href="cmt.models.MoGSM-class.html">MoGSM</a></li>  </ul>
+</dd></dl>
 
+<hr />
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -110,29 +112,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="__delitem__"></a><span class="summary-sig-name">__delitem__</span>(<span class="summary-sig-arg">x</span>,
-        <span class="summary-sig-arg">y</span>)</span><br />
-      del x[y]</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a name="__getitem__"></a><span class="summary-sig-name">__getitem__</span>(<span class="summary-sig-arg">x</span>,
         <span class="summary-sig-arg">y</span>)</span><br />
       x[y]</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.Mixture.__getitem__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -146,10 +130,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.PatchMCBM-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.models.Mixture-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.Mixture.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -163,11 +147,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.PatchMCBM-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
+          <td><span class="summary-sig"><a href="cmt.models.Mixture-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
         <span class="summary-sig-arg">S</span>,
         <span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.Mixture.__new__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -181,10 +165,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.PatchMCBM-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Method used by Pickle.</td>
+          <td><span class="summary-sig"><a href="cmt.models.Mixture-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+      helper for pickle</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.Mixture.__reduce__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -198,12 +182,9 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="__setitem__"></a><span class="summary-sig-name">__setitem__</span>(<span class="summary-sig-arg">x</span>,
-        <span class="summary-sig-arg">i</span>,
-        <span class="summary-sig-arg">y</span>)</span><br />
-      x[i]=y</td>
+          <td><span class="summary-sig"><a name="__setstate__"></a><span class="summary-sig-name">__setstate__</span>(<span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.Mixture.__setstate__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -217,10 +198,9 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="__setstate__"></a><span class="summary-sig-name">__setstate__</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Method used by Pickle.</td>
+          <td><span class="summary-sig"><a name="add_component"></a><span class="summary-sig-name">add_component</span>(<span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.Mixture.add_component">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -234,28 +214,15 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.PatchMCBM-class.html#initialize" class="summary-sig-name">initialize</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="cmt.models.Mixture-class.html#initialize" class="summary-sig-name">initialize</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">data</span>,
-        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Trains the model assuming shift-invariance of the patch statistics.</td>
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">component_parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Calls <a href="cmt.models.Mixture-class.html#initialize" 
+      class="link">initialize()</a> on all mixture components and resets 
+      all prior weights.</td>
           <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="preconditioner"></a><span class="summary-sig-name">preconditioner</span>(<span class="summary-sig-arg">...</span>)</span></td>
-          <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.Mixture.initialize">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -269,14 +236,15 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.PatchMCBM-class.html#train" class="summary-sig-name">train</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="cmt.models.Mixture-class.html#train" class="summary-sig-name">train</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">data</span>,
-        <span class="summary-sig-arg">dat_val</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Trains the model to the given image patches by fitting each 
-      conditional distribution in turn.</td>
+        <span class="summary-sig-arg">data_valid</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">component_parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Fits the parameters of the mixture distribution to the given data 
+      using expectation maximization (EM).</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.Mixture.train">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -286,15 +254,10 @@
   </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.PatchModel-class.html">PatchModel</a></code></b>:
-      <code><a href="cmt.PatchModel-class.html#input_indices">input_indices</a></code>,
-      <code><a href="cmt.PatchModel-class.html#input_mask">input_mask</a></code>,
-      <code><a href="cmt.PatchModel-class.html#loglikelihood">loglikelihood</a></code>,
-      <code><a href="cmt.PatchModel-class.html#output_mask">output_mask</a></code>
-      </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.Distribution-class.html">Distribution</a></code></b>:
-      <code><a href="cmt.Distribution-class.html#evaluate">evaluate</a></code>,
-      <code><a href="cmt.Distribution-class.html#sample">sample</a></code>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.Distribution-class.html">Distribution</a></code></b>:
+      <code><a href="cmt.models.Distribution-class.html#evaluate">evaluate</a></code>,
+      <code><a href="cmt.models.Distribution-class.html#loglikelihood">loglikelihood</a></code>,
+      <code><a href="cmt.models.Distribution-class.html#sample">sample</a></code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__delattr__</code>,
@@ -332,19 +295,22 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="preconditioners"></a><span class="summary-name">preconditioners</span><br />
-      A dictionary containing all preconditioners.
+        <a name="num_components"></a><span class="summary-name">num_components</span><br />
+      Number of mixture components.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="priors"></a><span class="summary-name">priors</span><br />
+      Prior probabilities of mixture components, $\pi_k$.
     </td>
   </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.PatchModel-class.html">PatchModel</a></code></b>:
-      <code><a href="cmt.PatchModel-class.html#cols">cols</a></code>,
-      <code><a href="cmt.PatchModel-class.html#order">order</a></code>,
-      <code><a href="cmt.PatchModel-class.html#rows">rows</a></code>
-      </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.Distribution-class.html">Distribution</a></code></b>:
-      <code><a href="cmt.Distribution-class.html#dim">dim</a></code>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.Distribution-class.html">Distribution</a></code></b>:
+      <code><a href="cmt.models.Distribution-class.html#dim">dim</a></code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__class__</code>
@@ -381,24 +347,12 @@
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.Mixture.__init__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
   <p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
   <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>rows</code></strong> (<code>int</code>) - number of rows of the image patch</li>
-        <li><strong class="pname"><code>cols</code></strong> (<code>int</code>) - number of columns of the image patch</li>
-        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
-        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
-        <li><strong class="pname"><code>order</code></strong> (<code>list</code>) - list of tuples indicating order of pixels</li>
-        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.MCBM-class.html" class="link">MCBM</a>) - model used as a template to initialize all conditional 
-          distributions</li>
-        <li><strong class="pname"><code>max_pcs</code></strong> (<code>int</code>) - can be used to reduce dimensionality of inputs to conditional 
-          models</li>
-    </ul></dd>
     <dt>Overrides:
         object.__init__
     </dt>
@@ -417,7 +371,7 @@
         <span class="sig-arg">...</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.Mixture.__new__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -437,17 +391,18 @@
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__reduce__</span>(<span class="sig-arg">self</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__reduce__</span>(<span class="sig-arg">...</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.Mixture.__reduce__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Method used by Pickle.</p>
+  <p>helper for pickle</p>
   <dl class="fields">
     <dt>Overrides:
         object.__reduce__
+        <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
 </td></tr></table>
@@ -461,24 +416,23 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">initialize</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">data</span>,
-        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
+        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">component_parameters</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.Mixture.initialize">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Trains the model assuming shift-invariance of the patch 
-  statistics.</p>
-  <p>A single conditional distribution is fitted to the given data and all 
-  models with a <i>complete</i> neighborhood are initialized with this one 
-  set of parameters.</p>
-  <p>It is assumed that the patches are stored in row-order ('C') in the 
-  columns of <code class="link">data</code>.</p>
+  <p>Calls <a href="cmt.models.Mixture-class.html#initialize" 
+  class="link">initialize()</a> on all mixture components and resets all 
+  prior weights.</p>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>data</code></strong> (<code>ndarray</code>) - image patches stored column-wise</li>
+        <li><strong class="pname"><code>data</code></strong> (<code>ndarray</code>) - data points stored in columns</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - hyperparameters controlling optimization and regularization</li>
+        <li><strong class="pname"><code>component_parameters</code></strong> (<code>dict</code>) - hyperparameters passed down to mixture components</li>
     </ul></dd>
   </dl>
 </td></tr></table>
@@ -492,28 +446,54 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">train</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">data</span>,
-        <span class="sig-arg">dat_val</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
+        <span class="sig-arg">data_valid</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">component_parameters</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.Mixture.train">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Trains the model to the given image patches by fitting each 
-  conditional distribution in turn.</p>
-  <p>It is assumed that the patches are stored in row-order ('C') in the 
-  columns of <code class="link">data</code>. If hyperparameters are given, 
-  they are passed on to each conditional distribution.</p>
+  <p>Fits the parameters of the mixture distribution to the given data 
+  using expectation maximization (EM).</p>
+  <p>The following example demonstrates possible parameters and default 
+  settings.</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>model.train(data, data_valid, 
+<span class="py-prompt">&gt;&gt;&gt; </span>    parameters={
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'verbosity'</span>: 1,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'max_iter'</span>: 20,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'val_iter'</span>: 2,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'val_look_ahead'</span>: 5,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'initialize'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'train_priors'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'train_components'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'regularize_priors'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>    },
+<span class="py-prompt">&gt;&gt;&gt; </span>    component_parameters={
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'verbosity'</span>: 0,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'max_iter'</span>: 10,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'train_priors'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'train_mean'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'train_covariance'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'train_scales'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'regularize_priors'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'regularize_mean'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'regularize_covariance'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'regularize_scales'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>    },
+<span class="py-prompt">&gt;&gt;&gt; </span>})</pre>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>data</code></strong> (<code>ndarray</code>) - image patches stored column-wise</li>
-        <li><strong class="pname"><code>data_val</code></strong> (<code>ndarray</code>) - image patches used for early stopping based on validation error</li>
-        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
+        <li><strong class="pname"><code>data</code></strong> (<code>ndarray</code>) - data points stored in columns</li>
+        <li><strong class="pname"><code>data_valid</code></strong> (<code>ndarray</code>) - validation data used for early stopping</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - hyperparameters controlling optimization and regularization</li>
+        <li><strong class="pname"><code>component_parameters</code></strong> (<code>dict</code>) - hyperparameters passed down to components during M-step</li>
     </ul></dd>
     <dt>Returns: <code>bool</code></dt>
-        <dd><code>True</code> if training of all models converged, otherwise 
+        <dd><code>True</code> if training converged, otherwise 
           <code>False</code></dd>
   </dl>
 </td></tr></table>
@@ -543,14 +523,14 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >Conditional Modeling Toolkit</th>
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri May 31 19:54:02 2013
+    Generated by Epydoc 3.0.1 on Fri Aug 23 19:40:09 2013
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

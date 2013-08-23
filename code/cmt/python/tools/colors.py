@@ -68,7 +68,7 @@ def ycc2rgb(img):
 
 def rgb2gray(img):
 	"""
-	Returns the luma component of a YCbCr encoded image.
+	Converts the image to YCbCr and returns its luma component.
 
 	@type  img: C{ndarray}
 	@param img: an RGB or RGBA image

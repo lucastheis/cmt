@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>cmt.Distribution</title>
+  <title>cmt.models.GSM</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 
@@ -46,7 +46,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >Conditional Modeling Toolkit</th>
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -54,8 +54,9 @@
   <tr valign="top">
     <td width="100%">
       <span class="breadcrumbs">
-        <a href="cmt-module.html">Module&nbsp;cmt</a> ::
-        Class&nbsp;Distribution
+        <a href="cmt-module.html">Package&nbsp;cmt</a> ::
+        <a href="cmt.models-module.html">Package&nbsp;models</a> ::
+        Class&nbsp;GSM
       </span>
     </td>
     <td>
@@ -65,28 +66,32 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="cmt.Distribution-class.html"
+            >]&nbsp;|&nbsp;<a href="cmt.models.GSM-class.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class Distribution</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Class GSM</h1><p class="nomargin-top"><span class="codelink"><a href="cmt-pysrc.html#models.GSM">source&nbsp;code</a></span></p>
 <pre class="base-tree">
-object --+
-         |
-        <strong class="uidshort">Distribution</strong>
+         object --+        
+                  |        
+<a href="cmt.models.Distribution-class.html">models.Distribution</a> --+    
+                      |    
+<a href="cmt.models.MixtureComponent-class.html">models.MixtureComponent</a> --+
+                          |
+                         <strong class="uidshort">models.GSM</strong>
 </pre>
 
-<dl><dt>Known Subclasses:</dt>
-<dd>
-      <ul class="subclass-list">
-<li><a href="cmt.UnivariateDistribution-class.html">UnivariateDistribution</a></li><li>, <a href="cmt.PatchModel-class.html">PatchModel</a></li>  </ul>
-</dd></dl>
-
 <hr />
-<p>Abstract base class for distributions.</p>
+<p>An implementation of a finite Gaussian scale mixture.</p>
+  <p>$$p(\mathbf{x}) = \sum_k \pi_k \mathcal{N}(\mathbf{x}; \mu_k, 
+  \lambda_k^{-1} \boldsymbol{\Sigma}$$</p>
+  <p>This is a mixture of Gaussians which all share the same basic 
+  covariance structure $\boldsymbol{\Sigma}$ scaled by the precision 
+  variables $\lambda_k$. The prior probability of selecting component $k$ 
+  for generating samples is $\pi_k$.</p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -111,10 +116,10 @@ object --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.Distribution-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.models.GSM-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.GSM.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -128,30 +133,11 @@ object --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.Distribution-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
+          <td><span class="summary-sig"><a href="cmt.models.GSM-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
         <span class="summary-sig-arg">S</span>,
         <span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">double</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt.Distribution-class.html#evaluate" class="summary-sig-name">evaluate</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">data</span>)</span><br />
-      Computes the average negative log-likelihood for the given data 
-      points in bits per component (smaller is better).</td>
-          <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.GSM.__new__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -161,15 +147,14 @@ object --+
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">ndarray</span>
+      <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.Distribution-class.html#loglikelihood" class="summary-sig-name">loglikelihood</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">data</span>)</span><br />
-      Computes the log-likelihood for the given data points in nats.</td>
+          <td><span class="summary-sig"><a href="cmt.models.GSM-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+      helper for pickle</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.GSM.__reduce__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -179,15 +164,13 @@ object --+
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">ndarray</span>
+      <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.Distribution-class.html#sample" class="summary-sig-name">sample</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">num_samples</span>)</span><br />
-      Generates samples from the distribution.</td>
+          <td><span class="summary-sig"><a name="__setstate__"></a><span class="summary-sig-name">__setstate__</span>(<span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.GSM.__setstate__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -197,12 +180,20 @@ object --+
   </tr>
   <tr>
     <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.MixtureComponent-class.html">MixtureComponent</a></code></b>:
+      <code><a href="cmt.models.MixtureComponent-class.html#initialize">initialize</a></code>,
+      <code><a href="cmt.models.MixtureComponent-class.html#train">train</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.Distribution-class.html">Distribution</a></code></b>:
+      <code><a href="cmt.models.Distribution-class.html#evaluate">evaluate</a></code>,
+      <code><a href="cmt.models.Distribution-class.html#loglikelihood">loglikelihood</a></code>,
+      <code><a href="cmt.models.Distribution-class.html#sample">sample</a></code>
+      </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__delattr__</code>,
       <code>__format__</code>,
       <code>__getattribute__</code>,
       <code>__hash__</code>,
-      <code>__reduce__</code>,
       <code>__reduce_ex__</code>,
       <code>__repr__</code>,
       <code>__setattr__</code>,
@@ -234,12 +225,47 @@ object --+
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="dim"></a><span class="summary-name">dim</span><br />
-      Dimensionality of the distribution.
+        <a name="covariance"></a><span class="summary-name">covariance</span><br />
+      Covariance matrix of the GSM, $\boldsymbol{\Sigma}$.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="mean"></a><span class="summary-name">mean</span><br />
+      Mean of the distribution, $\boldsymbol{\mu}$.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="num_scales"></a><span class="summary-name">num_scales</span><br />
+      Number of precision scale variables.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="priors"></a><span class="summary-name">priors</span><br />
+      Prior probabilities of scales, $\pi_k$.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="scales"></a><span class="summary-name">scales</span><br />
+      Precision scale variables of the GSM, $\lambda_k$.
     </td>
   </tr>
   <tr>
     <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.Distribution-class.html">Distribution</a></code></b>:
+      <code><a href="cmt.models.Distribution-class.html#dim">dim</a></code>
+      </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__class__</code>
       </p>
@@ -275,12 +301,17 @@ object --+
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.GSM.__init__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
   <p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
   <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>dim</code></strong> (<code>int</code>) - dimensionality of the distribution</li>
+        <li><strong class="pname"><code>num_scales</code></strong> (<code>int</code>) - number of precision scale variables</li>
+    </ul></dd>
     <dt>Overrides:
         object.__init__
     </dt>
@@ -299,7 +330,7 @@ object --+
         <span class="sig-arg">...</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.GSM.__new__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -312,82 +343,26 @@ object --+
   </dl>
 </td></tr></table>
 </div>
-<a name="evaluate"></a>
+<a name="__reduce__"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">evaluate</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">data</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__reduce__</span>(<span class="sig-arg">...</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.GSM.__reduce__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Computes the average negative log-likelihood for the given data points
-  in bits per component (smaller is better).</p>
+  <p>helper for pickle</p>
   <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>data</code></strong> (ndarray) - data stored in columns</li>
-    </ul></dd>
-    <dt>Returns: double</dt>
-        <dd>performance in bits per component</dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="loglikelihood"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">loglikelihood</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">data</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Computes the log-likelihood for the given data points in nats.</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>data</code></strong> (ndarray) - data stored in columns</li>
-    </ul></dd>
-    <dt>Returns: ndarray</dt>
-        <dd>log-likelihood of the model evaluated for each data point</dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="sample"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">sample</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">num_samples</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Generates samples from the distribution.</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>num_samples</code></strong> (int) - the number of samples drawn from the distribution</li>
-    </ul></dd>
-    <dt>Returns: ndarray</dt>
-        <dd>samples</dd>
+    <dt>Overrides:
+        object.__reduce__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
   </dl>
 </td></tr></table>
 </div>
@@ -416,14 +391,14 @@ object --+
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >Conditional Modeling Toolkit</th>
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri May 31 19:54:02 2013
+    Generated by Epydoc 3.0.1 on Fri Aug 23 19:40:09 2013
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

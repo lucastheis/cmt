@@ -5,8 +5,6 @@
 using CMT::Exception;
 
 const char* GSM_doc =
-	"GSM(dim=1, num_scales=6)\n"
-	"\n"
 	"An implementation of a finite Gaussian scale mixture.\n"
 	"\n"
 	"$$p(\\mathbf{x}) = \\sum_k \\pi_k \\mathcal{N}(\\mathbf{x}; \\mu_k, \\lambda_k^{-1} \\boldsymbol{\\Sigma}$$\n"

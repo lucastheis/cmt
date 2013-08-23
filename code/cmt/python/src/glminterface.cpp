@@ -14,8 +14,8 @@ const char* GLM_doc =
 	"where $q$ is typically from the exponential family and $g$ is some nonlinearity\n"
 	"(inverse link function) which has to be specified.\n"
 	"\n"
-	"To perform logistic regression, for example, define a GLM with L{LogisticFunction}\n"
-	"and L{Bernoulli} distribution,\n"
+	"To perform logistic regression, for example, define a GLM with L{LogisticFunction<nonlinear.LogisticFunction>}\n"
+	"and L{Bernoulli<models.Bernoulli>} distribution,\n"
 	"\n"
 	"\t>>> glm = GLM(inputs.shape[0], LogisticFunction, Bernoulli)\n"
 	"\t>>> glm.train(inputs, outputs)\n"
@@ -31,11 +31,11 @@ const char* GLM_doc =
 	"@type  dim_in: C{int}\n"
 	"@param dim_in: dimensionality of input\n"
 	"\n"
-	"@type  nonlinearity: L{Nonlinearity}/C{type}\n"
-	"@param nonlinearity: nonlinearity applied to output of linear filter, $g$ (default: L{LogisticFunction})\n"
+	"@type  nonlinearity: L{Nonlinearity<nonlinear.Nonlinearity>}/C{type}\n"
+	"@param nonlinearity: nonlinearity applied to output of linear filter, $g$ (default: L{LogisticFunction<nonlinear.LogisticFunction>})\n"
 	"\n"
-	"@type  distribution: L{UnivariateDistribution}/C{type}\n"
-	"@param distribution: distribution of outputs, $q$ (default: L{Bernoulli})";
+	"@type  distribution: L{UnivariateDistribution<models.UnivariateDistribution>}/C{type}\n"
+	"@param distribution: distribution of outputs, $q$ (default: L{Bernoulli<models.Bernoulli>})";
 
 int GLM_init(GLMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"dim_in", "nonlinearity", "distribution", 0};

@@ -157,11 +157,11 @@ const char* STM_doc =
 	"@type  num_features: C{int}\n"
 	"@param num_features: number of quadratic features"
 	"\n"
-	"@type  nonlinearity: L{Nonlinearity}/C{type}\n"
-	"@param nonlinearity: nonlinearity applied to log-sum-exp, $g$ (default: L{LogisticFunction})\n"
+	"@type  nonlinearity: L{Nonlinearity<nonlinear.Nonlinearity>}/C{type}\n"
+	"@param nonlinearity: nonlinearity applied to log-sum-exp, $g$ (default: L{LogisticFunction<nonlinear.LogisticFunction>})\n"
 	"\n"
-	"@type  distribution: L{UnivariateDistribution}/C{type}\n"
-	"@param distribution: distribution of outputs, $q$ (default: L{Bernoulli})";
+	"@type  distribution: L{UnivariateDistribution<models.UnivariateDistribution>}/C{type}\n"
+	"@param distribution: distribution of outputs, $q$ (default: L{Bernoulli<models.Bernoulli>})";
 
 int STM_init(STMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {

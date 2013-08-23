@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>cmt.PCATransform</title>
+  <title>cmt.models.MixtureComponent</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 
@@ -46,7 +46,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >Conditional Modeling Toolkit</th>
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -54,8 +54,9 @@
   <tr valign="top">
     <td width="100%">
       <span class="breadcrumbs">
-        <a href="cmt-module.html">Module&nbsp;cmt</a> ::
-        Class&nbsp;PCATransform
+        <a href="cmt-module.html">Package&nbsp;cmt</a> ::
+        <a href="cmt.models-module.html">Package&nbsp;models</a> ::
+        Class&nbsp;MixtureComponent
       </span>
     </td>
     <td>
@@ -65,30 +66,29 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="cmt.PCATransform-class.html"
+            >]&nbsp;|&nbsp;<a href="cmt.models.MixtureComponent-class.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class PCATransform</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Class MixtureComponent</h1><p class="nomargin-top"><span class="codelink"><a href="cmt-pysrc.html#models.MixtureComponent">source&nbsp;code</a></span></p>
 <pre class="base-tree">
-      object --+            
-               |            
-  <a href="cmt.Preconditioner-class.html">Preconditioner</a> --+        
-                   |        
-<a href="cmt.AffinePreconditioner-class.html">AffinePreconditioner</a> --+    
-                       |    
-         <a href="cmt.AffineTransform-class.html">AffineTransform</a> --+
-                           |
-                          <strong class="uidshort">PCATransform</strong>
+         object --+    
+                  |    
+<a href="cmt.models.Distribution-class.html">models.Distribution</a> --+
+                      |
+                     <strong class="uidshort">models.MixtureComponent</strong>
 </pre>
 
-<hr />
-<p>This class behaves like <a href="cmt.PCAPreconditioner-class.html" 
-  class="link">PCAPreconditioner</a>, but does not change the output.</p>
+<dl><dt>Known Subclasses:</dt>
+<dd>
+      <ul class="subclass-list">
+<li><a href="cmt.models.GSM-class.html">GSM</a></li>  </ul>
+</dd></dl>
 
+<hr />
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -112,10 +112,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.PCATransform-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.models.MixtureComponent-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.MixtureComponent.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -129,11 +129,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.PCATransform-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
+          <td><span class="summary-sig"><a href="cmt.models.MixtureComponent-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
         <span class="summary-sig-arg">S</span>,
         <span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.MixtureComponent.__new__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -147,10 +147,33 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.PCATransform-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">...</span>)</span><br />
-      helper for pickle</td>
+          <td><span class="summary-sig"><a href="cmt.models.MixtureComponent-class.html#initialize" class="summary-sig-name">initialize</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">data</span>,
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Tries to guess reasonable parameters based on the data.</td>
           <td align="right" valign="top">
+            <span class="codelink"><a href="cmt-pysrc.html#models.MixtureComponent.initialize">source&nbsp;code</a></span>
             
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>bool</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.models.MixtureComponent-class.html#train" class="summary-sig-name">train</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">data</span>,
+        <span class="summary-sig-arg">weights</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Trains the parameters of the distribution, possibly weighting data 
+      points.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="cmt-pysrc.html#models.MixtureComponent.train">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -160,19 +183,17 @@
   </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.AffinePreconditioner-class.html">AffinePreconditioner</a></code></b>:
-      <code><a href="cmt.AffinePreconditioner-class.html#__setstate__">__setstate__</a></code>
-      </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.Preconditioner-class.html">Preconditioner</a></code></b>:
-      <code><a href="cmt.Preconditioner-class.html#__call__">__call__</a></code>,
-      <code><a href="cmt.Preconditioner-class.html#inverse">inverse</a></code>,
-      <code><a href="cmt.Preconditioner-class.html#logjacobian">logjacobian</a></code>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.Distribution-class.html">Distribution</a></code></b>:
+      <code><a href="cmt.models.Distribution-class.html#evaluate">evaluate</a></code>,
+      <code><a href="cmt.models.Distribution-class.html#loglikelihood">loglikelihood</a></code>,
+      <code><a href="cmt.models.Distribution-class.html#sample">sample</a></code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__delattr__</code>,
       <code>__format__</code>,
       <code>__getattribute__</code>,
       <code>__hash__</code>,
+      <code>__reduce__</code>,
       <code>__reduce_ex__</code>,
       <code>__repr__</code>,
       <code>__setattr__</code>,
@@ -200,26 +221,10 @@
     </table>
   </td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="eigenvalues"></a><span class="summary-name">eigenvalues</span><br />
-      Eigenvalues of the covariance of the input.
-    </td>
-  </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.AffinePreconditioner-class.html">AffinePreconditioner</a></code></b>:
-      <code><a href="cmt.AffinePreconditioner-class.html#mean_in">mean_in</a></code>,
-      <code><a href="cmt.AffinePreconditioner-class.html#mean_out">mean_out</a></code>,
-      <code><a href="cmt.AffinePreconditioner-class.html#pre_in">pre_in</a></code>,
-      <code><a href="cmt.AffinePreconditioner-class.html#pre_out">pre_out</a></code>,
-      <code><a href="cmt.AffinePreconditioner-class.html#predictor">predictor</a></code>
-      </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.Preconditioner-class.html">Preconditioner</a></code></b>:
-      <code><a href="cmt.Preconditioner-class.html#dim_in">dim_in</a></code>,
-      <code><a href="cmt.Preconditioner-class.html#dim_out">dim_out</a></code>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.Distribution-class.html">Distribution</a></code></b>:
+      <code><a href="cmt.models.Distribution-class.html#dim">dim</a></code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__class__</code>
@@ -256,20 +261,12 @@
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.MixtureComponent.__init__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
   <p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
   <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>input</code></strong> (ndarray) - inputs stored in columns</li>
-        <li><strong class="pname"><code>output</code></strong> (ndarray) - outputs stored in columns</li>
-        <li><strong class="pname"><code>dim_out</code></strong> (integer) - number of outputs (default: 1)</li>
-        <li><strong class="pname"><code>var_explained</code></strong> (double) - the amount of variance retained after dimensionality reduction</li>
-        <li><strong class="pname"><code>num_pcs</code></strong> (integer) - the number of principal components of the input kept</li>
-    </ul></dd>
     <dt>Overrides:
         object.__init__
     </dt>
@@ -288,7 +285,7 @@
         <span class="sig-arg">...</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.MixtureComponent.__new__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -301,26 +298,61 @@
   </dl>
 </td></tr></table>
 </div>
-<a name="__reduce__"></a>
+<a name="initialize"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__reduce__</span>(<span class="sig-arg">...</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">initialize</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">data</span>,
+        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.MixtureComponent.initialize">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>helper for pickle</p>
+  <p>Tries to guess reasonable parameters based on the data.</p>
   <dl class="fields">
-    <dt>Overrides:
-        object.__reduce__
-        <dd><em class="note">(inherited documentation)</em></dd>
-    </dt>
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>data</code></strong> (<code>ndarray</code>) - data points stored in columns</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - hyperparameters controlling optimization and regularization</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="train"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">train</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">data</span>,
+        <span class="sig-arg">weights</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="cmt-pysrc.html#models.MixtureComponent.train">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Trains the parameters of the distribution, possibly weighting data 
+  points.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>data</code></strong> (<code>ndarray</code>) - data points stored in columns</li>
+        <li><strong class="pname"><code>weights</code></strong> (<code>ndarray</code>) - weights which sum to one</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - hyperparameters controlling optimization and regularization</li>
+    </ul></dd>
+    <dt>Returns: <code>bool</code></dt>
+        <dd><code>True</code> if training converged, otherwise 
+          <code>False</code></dd>
   </dl>
 </td></tr></table>
 </div>
@@ -349,14 +381,14 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >Conditional Modeling Toolkit</th>
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri May 31 19:54:02 2013
+    Generated by Epydoc 3.0.1 on Fri Aug 23 19:40:09 2013
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

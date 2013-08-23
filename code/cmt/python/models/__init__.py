@@ -1,3 +1,22 @@
+__all__ = [
+	"Bernoulli",
+	"ConditionalDistribution",
+	"Distribution",
+	"FVBN",
+	"GLM",
+	"GSM",
+	"MCBM",
+	"MCGSM",
+	"Mixture",
+	"MixtureComponent",
+	"MoGSM",
+	"PatchMCBM",
+	"PatchMCGSM",
+	"PatchModel",
+	"Poisson",
+	"STM",
+	"UnivariateDistribution"]
+
 from _cmt import Bernoulli
 from _cmt import ConditionalDistribution
 from _cmt import Distribution
