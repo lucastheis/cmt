@@ -12,6 +12,7 @@
 using CMT::Nonlinearity;
 using CMT::LogisticFunction;
 using CMT::ExponentialFunction;
+using CMT::HistogramNonlinearity;
 
 struct NonlinearityObject {
 	PyObject_HEAD
@@ -31,12 +32,19 @@ struct ExponentialFunctionObject {
 	bool owner;
 };
 
+struct HistogramNonlinearityObject {
+	PyObject_HEAD
+	HistogramNonlinearity* nonlinearity;
+	bool owner;
+};
+
 extern PyTypeObject Nonlinearity_type;
 
 extern const char* Nonlinearity_doc;
 extern const char* Nonlinearity_reduce_doc;
 extern const char* LogisticFunction_doc;
 extern const char* ExponentialFunction_doc;
+extern const char* HistogramNonlinearity_doc;
 
 PyObject* Nonlinearity_new(PyTypeObject* type, PyObject* args, PyObject* kwds);
 int Nonlinearity_init(NonlinearityObject*, PyObject*, PyObject*);
@@ -46,5 +54,6 @@ PyObject* Nonlinearity_reduce(NonlinearityObject*, PyObject*);
 
 int LogisticFunction_init(LogisticFunctionObject*, PyObject*, PyObject*);
 int ExponentialFunction_init(ExponentialFunctionObject*, PyObject*, PyObject*);
+int HistogramNonlinearity_init(HistogramNonlinearityObject*, PyObject*, PyObject*);
 
 #endif

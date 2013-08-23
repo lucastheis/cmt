@@ -122,3 +122,100 @@ int ExponentialFunction_init(ExponentialFunctionObject* self, PyObject*, PyObjec
 
 	return -1;
 }
+
+
+
+const char* HistogramNonlinearity_doc =
+	"Histogram nonlinearity with $N$ bins.\n"
+	"\n"
+	"$$f(x) = \\begin{cases} h_0 & \\text{ if } x < b_0 \\ h_n & \\text{ if } b_n \\leq x < b_{n + 1} \\ h_N & \\text{ if } b_N \\leq x \\end{cases}$$";
+
+int HistogramNonlinearity_init(HistogramNonlinearityObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {
+		"inputs",
+		"outputs",
+		"num_bins",
+		"bin_edges",
+		"epsilon"
+	};
+
+	PyObject* inputs = 0;
+	PyObject* outputs = 0;
+	int num_bins = 0;
+	PyObject* bin_edges = 0;
+	double epsilon = 1e-12;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|iOd", const_cast<char**>(kwlist),
+		&inputs, &outputs, &num_bins, &bin_edges, &epsilon))
+		return -1;
+
+	if(num_bins <= 0 && bin_edges == 0) {
+		PyErr_SetString(PyExc_TypeError, "Please specify either `num_bins` or `bin_edges`.");
+		return -1;
+	}
+
+	if(inputs || outputs) {
+		inputs = PyArray_FROM_OTF(inputs, NPY_DOUBLE, NPY_IN_ARRAY);
+		outputs = PyArray_FROM_OTF(outputs, NPY_DOUBLE, NPY_IN_ARRAY);
+
+		if(!inputs || !outputs) {
+			PyErr_SetString(PyExc_TypeError, "Inputs and outputs should be of type `ndarray`.");
+			return -1;
+		}
+	}
+
+	if(bin_edges && !PySequence_Check(bin_edges)) {
+		PyErr_SetString(PyExc_TypeError, "`bin_edges` should be of type `list` or similar.");
+		return -1;
+	}
+
+	if(!bin_edges && (!inputs || !outputs)) {
+		PyErr_SetString(PyExc_TypeError, "Please specify `bin_edges`.");
+		return -1;
+	}
+
+	vector<double> binEdges;
+
+	if(bin_edges) {
+		// convert Python list/tuple/array into C++ vector
+		binEdges = vector<double>(PySequence_Size(bin_edges));
+
+		for(int i = 0; i < PySequence_Size(bin_edges); ++i) {
+			PyObject* entry = PySequence_GetItem(bin_edges, i);
+			double value = PyFloat_AsDouble(entry);
+
+			if(PyErr_Occurred())
+				return -1;
+
+			binEdges.push_back(value);
+		}
+	}
+
+	try {
+		if(inputs && outputs) {
+			if(bin_edges)
+				self->nonlinearity = new HistogramNonlinearity(
+					PyArray_ToMatrixXd(inputs),
+					PyArray_ToMatrixXd(outputs),
+					binEdges,
+					epsilon);
+			else
+				self->nonlinearity = new HistogramNonlinearity(
+					PyArray_ToMatrixXd(inputs),
+					PyArray_ToMatrixXd(outputs),
+					num_bins,
+					epsilon);
+		} else {
+			self->nonlinearity = new HistogramNonlinearity(
+				binEdges,
+				epsilon);
+		}
+
+		return 0;
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+
+	return -1;
+}
