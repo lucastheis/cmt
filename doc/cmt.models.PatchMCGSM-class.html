@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>cmt.FVBN</title>
+  <title>cmt.models.PatchMCGSM</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 
@@ -46,7 +46,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >Conditional Modeling Toolkit</th>
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -54,8 +54,9 @@
   <tr valign="top">
     <td width="100%">
       <span class="breadcrumbs">
-        <a href="cmt-module.html">Module&nbsp;cmt</a> ::
-        Class&nbsp;FVBN
+        <a href="cmt-module.html">Package&nbsp;cmt</a> ::
+        <a href="cmt.models-module.html">Package&nbsp;models</a> ::
+        Class&nbsp;PatchMCGSM
       </span>
     </td>
     <td>
@@ -65,26 +66,27 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="cmt.FVBN-class.html"
+            >]&nbsp;|&nbsp;<a href="cmt.models.PatchMCGSM-class.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class FVBN</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Class PatchMCGSM</h1><p class="nomargin-top"><span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM">source&nbsp;code</a></span></p>
 <pre class="base-tree">
-  object --+        
-           |        
-<a href="cmt.Distribution-class.html">Distribution</a> --+    
-               |    
-      <a href="cmt.PatchModel-class.html">PatchModel</a> --+
-                   |
-                  <strong class="uidshort">FVBN</strong>
+         object --+        
+                  |        
+<a href="cmt.models.Distribution-class.html">models.Distribution</a> --+    
+                      |    
+      <a href="cmt.models.PatchModel-class.html">models.PatchModel</a> --+
+                          |
+                         <strong class="uidshort">models.PatchMCGSM</strong>
 </pre>
 
 <hr />
-<p>Model image patches using a GLM for each conditional distribution.</p>
+<p>Model image patches by using an <a href="cmt.models.MCGSM-class.html" 
+  class="link">MCGSM</a> for each conditional distribution.</p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -113,7 +115,7 @@
         <span class="summary-sig-arg">y</span>)</span><br />
       del x[y]</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM.__delitem__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -131,7 +133,7 @@
         <span class="summary-sig-arg">y</span>)</span><br />
       x[y]</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM.__getitem__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -145,10 +147,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.FVBN-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.models.PatchMCGSM-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -162,11 +164,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.FVBN-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
+          <td><span class="summary-sig"><a href="cmt.models.PatchMCGSM-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
         <span class="summary-sig-arg">S</span>,
         <span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM.__new__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -180,10 +182,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.FVBN-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.models.PatchMCGSM-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Method used by Pickle.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM.__reduce__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -202,7 +204,7 @@
         <span class="summary-sig-arg">y</span>)</span><br />
       x[i]=y</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM.__setitem__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -219,7 +221,7 @@
           <td><span class="summary-sig"><a name="__setstate__"></a><span class="summary-sig-name">__setstate__</span>(<span class="summary-sig-arg">self</span>)</span><br />
       Method used by Pickle.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM.__setstate__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -233,12 +235,13 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.FVBN-class.html#initialize" class="summary-sig-name">initialize</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="cmt.models.PatchMCGSM-class.html#initialize" class="summary-sig-name">initialize</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">data</span>,
         <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Trains the model assuming shift-invariance of the patch statistics.</td>
+      Tries to guess reasonable parameters for all conditional 
+      distributions based on the data.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM.initialize">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -254,7 +257,7 @@
         <tr>
           <td><span class="summary-sig"><a name="preconditioner"></a><span class="summary-sig-name">preconditioner</span>(<span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM.preconditioner">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -264,18 +267,18 @@
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">bool</span>
+      <span class="summary-type"><code>bool</code></span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.FVBN-class.html#train" class="summary-sig-name">train</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="cmt.models.PatchMCGSM-class.html#train" class="summary-sig-name">train</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">data</span>,
-        <span class="summary-sig-arg">dat_val</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">data_val</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
       Trains the model to the given image patches by fitting each 
       conditional distribution in turn.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM.train">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -285,15 +288,15 @@
   </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.PatchModel-class.html">PatchModel</a></code></b>:
-      <code><a href="cmt.PatchModel-class.html#input_indices">input_indices</a></code>,
-      <code><a href="cmt.PatchModel-class.html#input_mask">input_mask</a></code>,
-      <code><a href="cmt.PatchModel-class.html#loglikelihood">loglikelihood</a></code>,
-      <code><a href="cmt.PatchModel-class.html#output_mask">output_mask</a></code>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.PatchModel-class.html">PatchModel</a></code></b>:
+      <code><a href="cmt.models.PatchModel-class.html#input_indices">input_indices</a></code>,
+      <code><a href="cmt.models.PatchModel-class.html#input_mask">input_mask</a></code>,
+      <code><a href="cmt.models.PatchModel-class.html#loglikelihood">loglikelihood</a></code>,
+      <code><a href="cmt.models.PatchModel-class.html#output_mask">output_mask</a></code>
       </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.Distribution-class.html">Distribution</a></code></b>:
-      <code><a href="cmt.Distribution-class.html#evaluate">evaluate</a></code>,
-      <code><a href="cmt.Distribution-class.html#sample">sample</a></code>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.Distribution-class.html">Distribution</a></code></b>:
+      <code><a href="cmt.models.Distribution-class.html#evaluate">evaluate</a></code>,
+      <code><a href="cmt.models.Distribution-class.html#sample">sample</a></code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__delattr__</code>,
@@ -337,13 +340,13 @@
   </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.PatchModel-class.html">PatchModel</a></code></b>:
-      <code><a href="cmt.PatchModel-class.html#cols">cols</a></code>,
-      <code><a href="cmt.PatchModel-class.html#order">order</a></code>,
-      <code><a href="cmt.PatchModel-class.html#rows">rows</a></code>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.PatchModel-class.html">PatchModel</a></code></b>:
+      <code><a href="cmt.models.PatchModel-class.html#cols">cols</a></code>,
+      <code><a href="cmt.models.PatchModel-class.html#order">order</a></code>,
+      <code><a href="cmt.models.PatchModel-class.html#rows">rows</a></code>
       </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.Distribution-class.html">Distribution</a></code></b>:
-      <code><a href="cmt.Distribution-class.html#dim">dim</a></code>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.Distribution-class.html">Distribution</a></code></b>:
+      <code><a href="cmt.models.Distribution-class.html#dim">dim</a></code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__class__</code>
@@ -380,7 +383,7 @@
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM.__init__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -388,13 +391,14 @@
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>rows</code></strong> (integer) - number of rows of the image patch</li>
-        <li><strong class="pname"><code>cols</code></strong> (integer) - number of columns of the image patch</li>
+        <li><strong class="pname"><code>rows</code></strong> (<code>int</code>) - number of rows of the image patch</li>
+        <li><strong class="pname"><code>cols</code></strong> (<code>int</code>) - number of columns of the image patch</li>
         <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
         <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
         <li><strong class="pname"><code>order</code></strong> (<code>list</code>) - list of tuples indicating order of pixels</li>
-        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.GLM-class.html" class="link">GLM</a>) - model used as a template to initialize conditional distributions</li>
-        <li><strong class="pname"><code>max_pcs</code></strong> (integer) - can be used to reduce dimensionality of inputs to conditional 
+        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.models.MCGSM-class.html" class="link">MCGSM</a>) - model used as a template to initialize all conditional 
+          distributions</li>
+        <li><strong class="pname"><code>max_pcs</code></strong> (<code>int</code>) - can be used to reduce dimensionality of inputs to conditional 
           models</li>
     </ul></dd>
     <dt>Overrides:
@@ -415,7 +419,7 @@
         <span class="sig-arg">...</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM.__new__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -438,7 +442,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__reduce__</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM.__reduce__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -462,21 +466,18 @@
         <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM.initialize">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Trains the model assuming shift-invariance of the patch 
-  statistics.</p>
-  <p>A single conditional distribution is fitted to the given data and all 
-  models with a <i>complete</i> neighborhood are initialized with this one 
-  set of parameters.</p>
+  <p>Tries to guess reasonable parameters for all conditional distributions
+  based on the data.</p>
   <p>It is assumed that the patches are stored in row-order ('C') in the 
   columns of <code class="link">data</code>.</p>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>data</code></strong> (ndarray) - image patches stored column-wise</li>
+        <li><strong class="pname"><code>data</code></strong> (<code>ndarray</code>) - image patches stored column-wise</li>
     </ul></dd>
   </dl>
 </td></tr></table>
@@ -490,11 +491,11 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">train</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">data</span>,
-        <span class="sig-arg">dat_val</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">data_val</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.PatchMCGSM.train">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -506,11 +507,11 @@
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>data</code></strong> (ndarray) - image patches stored column-wise</li>
-        <li><strong class="pname"><code>data_val</code></strong> (ndarray) - image patches used for early stopping based on validation error</li>
-        <li><strong class="pname"><code>parameters</code></strong> (dict) - a dictionary containing hyperparameters</li>
+        <li><strong class="pname"><code>data</code></strong> (<code>ndarray</code>) - image patches stored column-wise</li>
+        <li><strong class="pname"><code>data_val</code></strong> (<code>ndarray</code>) - image patches used for early stopping based on validation error</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
     </ul></dd>
-    <dt>Returns: bool</dt>
+    <dt>Returns: <code>bool</code></dt>
         <dd><code>True</code> if training of all models converged, otherwise 
           <code>False</code></dd>
   </dl>
@@ -541,14 +542,14 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >Conditional Modeling Toolkit</th>
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri May 31 19:54:02 2013
+    Generated by Epydoc 3.0.1 on Fri Aug 23 19:40:09 2013
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

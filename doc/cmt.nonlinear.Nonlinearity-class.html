@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>cmt.Preconditioner</title>
+  <title>cmt.nonlinear.Nonlinearity</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 
@@ -46,7 +46,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >Conditional Modeling Toolkit</th>
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -54,8 +54,9 @@
   <tr valign="top">
     <td width="100%">
       <span class="breadcrumbs">
-        <a href="cmt-module.html">Module&nbsp;cmt</a> ::
-        Class&nbsp;Preconditioner
+        <a href="cmt-module.html">Package&nbsp;cmt</a> ::
+        <a href="cmt.nonlinear-module.html">Package&nbsp;nonlinear</a> ::
+        Class&nbsp;Nonlinearity
       </span>
     </td>
     <td>
@@ -65,28 +66,29 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="cmt.Preconditioner-class.html"
+            >]&nbsp;|&nbsp;<a href="cmt.nonlinear.Nonlinearity-class.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class Preconditioner</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Class Nonlinearity</h1><p class="nomargin-top"><span class="codelink"><a href="cmt-pysrc.html#nonlinear.Nonlinearity">source&nbsp;code</a></span></p>
 <pre class="base-tree">
 object --+
          |
-        <strong class="uidshort">Preconditioner</strong>
+        <strong class="uidshort">nonlinear.Nonlinearity</strong>
 </pre>
 
 <dl><dt>Known Subclasses:</dt>
 <dd>
       <ul class="subclass-list">
-<li><a href="cmt.AffinePreconditioner-class.html">AffinePreconditioner</a></li>  </ul>
+<li><a href="cmt.nonlinear.ExponentialFunction-class.html">ExponentialFunction</a></li><li>, <a href="cmt.nonlinear.HistogramNonlinearity-class.html">HistogramNonlinearity</a></li><li>, <a href="cmt.nonlinear.LogisticFunction-class.html">LogisticFunction</a></li>  </ul>
 </dd></dl>
 
 <hr />
-<p>Abstract base class for preconditioners of inputs and outputs.</p>
+<p>Abstract base class for nonlinear functions used, for example, by 
+  <code class="link">GLM</code>.</p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -115,7 +117,7 @@ object --+
         <span class="summary-sig-arg">...</span>)</span><br />
       x(...)</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#nonlinear.Nonlinearity.__call__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -129,10 +131,10 @@ object --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.Preconditioner-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.nonlinear.Nonlinearity-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#nonlinear.Nonlinearity.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -146,31 +148,11 @@ object --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.Preconditioner-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
+          <td><span class="summary-sig"><a href="cmt.nonlinear.Nonlinearity-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
         <span class="summary-sig-arg">S</span>,
         <span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">tuple/ndarray</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt.Preconditioner-class.html#inverse" class="summary-sig-name">inverse</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">input</span>,
-        <span class="summary-sig-arg">output</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Computes original inputs and outputs from transformed inputs and 
-      outputs.</td>
-          <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#nonlinear.Nonlinearity.__new__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -180,17 +162,14 @@ object --+
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">ndarray</span>
+      <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.Preconditioner-class.html#logjacobian" class="summary-sig-name">logjacobian</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">input</span>,
-        <span class="summary-sig-arg">output</span>)</span><br />
-      Computes the conditional log-Jacobian determinant for the given data 
-      points (using the natural logarithm).</td>
+          <td><span class="summary-sig"><a href="cmt.nonlinear.Nonlinearity-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Method used by Pickle.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="cmt-pysrc.html#nonlinear.Nonlinearity.__reduce__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -205,7 +184,6 @@ object --+
       <code>__format__</code>,
       <code>__getattribute__</code>,
       <code>__hash__</code>,
-      <code>__reduce__</code>,
       <code>__reduce_ex__</code>,
       <code>__repr__</code>,
       <code>__setattr__</code>,
@@ -233,20 +211,6 @@ object --+
     </table>
   </td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="dim_in"></a><span class="summary-name">dim_in</span>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="dim_out"></a><span class="summary-name">dim_out</span>
-    </td>
-  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -284,7 +248,7 @@ object --+
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#nonlinear.Nonlinearity.__init__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -308,7 +272,7 @@ object --+
         <span class="sig-arg">...</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#nonlinear.Nonlinearity.__new__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -321,62 +285,25 @@ object --+
   </dl>
 </td></tr></table>
 </div>
-<a name="inverse"></a>
+<a name="__reduce__"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">inverse</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">input</span>,
-        <span class="sig-arg">output</span>=<span class="sig-default">None</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__reduce__</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#nonlinear.Nonlinearity.__reduce__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Computes original inputs and outputs from transformed inputs and 
-  outputs.</p>
+  <p>Method used by Pickle.</p>
   <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>input</code></strong> (ndarray) - preconditioned inputs stored in columns</li>
-        <li><strong class="pname"><code>output</code></strong> (ndarray) - preconditioned outputs stored in columns</li>
-    </ul></dd>
-    <dt>Returns: tuple/ndarray</dt>
-        <dd>tuple or array containing inputs or inputs and outputs, 
-          respectively</dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="logjacobian"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">logjacobian</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">input</span>,
-        <span class="sig-arg">output</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Computes the conditional log-Jacobian determinant for the given data 
-  points (using the natural logarithm).</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>input</code></strong> (ndarray) - inputs stored in columns</li>
-        <li><strong class="pname"><code>output</code></strong> (ndarray) - outputs stored in columns</li>
-    </ul></dd>
-    <dt>Returns: ndarray</dt>
-        <dd>log-Jacobian of the transformation for each data point</dd>
+    <dt>Overrides:
+        object.__reduce__
+    </dt>
   </dl>
 </td></tr></table>
 </div>
@@ -405,14 +332,14 @@ object --+
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >Conditional Modeling Toolkit</th>
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri May 31 19:54:02 2013
+    Generated by Epydoc 3.0.1 on Fri Aug 23 19:40:10 2013
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
