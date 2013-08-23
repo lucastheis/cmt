@@ -26,9 +26,6 @@ using CMT::LogisticFunction;
 using CMT::UnivariateDistribution;
 using CMT::Bernoulli;
 
-#include <typeinfo>
-using std::bad_cast;
-
 #include <utility>
 using std::pair;
 using std::make_pair;
@@ -471,13 +468,10 @@ double CMT::STM::parameterGradient(
 	const Trainable::Parameters& params_) const
 {
  	// check if nonlinearity is differentiable
- 	DifferentiableNonlinearity* nonlinearity;
+ 	DifferentiableNonlinearity* nonlinearity = dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
 
- 	try {
- 		nonlinearity = dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
-	} catch(const bad_cast&) {
-		throw Exception("Cannot train with non-differentiable nonlinearity.");
-	}
+	if(!nonlinearity)
+		throw Exception("Nonlinearity has to be differentiable for training.");
 
 	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 
@@ -707,13 +701,10 @@ bool CMT::STM::train(
 {
 	if(!dimIn()) {
 		// STM reduces to univariate distribution
-		InvertibleNonlinearity* nonlinearity;
+		InvertibleNonlinearity* nonlinearity = dynamic_cast<InvertibleNonlinearity*>(mNonlinearity);
 
-		try {
-			nonlinearity = dynamic_cast<InvertibleNonlinearity*>(mNonlinearity);
-		} catch(const bad_cast&) {
-			throw Exception("Need invertible nonlinearity to train.");
-		}
+		if(!nonlinearity)
+			throw Exception("Nonlinearity has to be invertible for training.");
 
 		double mean = output.array().mean();
 		if(mean >= 0. && mean < 1e-50)
@@ -722,6 +713,7 @@ bool CMT::STM::train(
 		mBiases.setConstant(nonlinearity->inverse(mean) - log(numComponents()));
 
 		return true;
+
 	} else if(!dimInNonlinear()) {
 		if(dimInLinear() != input.rows())
 			throw Exception("Input has wrong dimensionality.");
@@ -740,6 +732,7 @@ bool CMT::STM::train(
 		mBiases.setConstant(glm.bias() - log(numComponents()));
 
 		return converged;
+
 	} else {
 		return Trainable::train(input, output, inputVal, outputVal, params);
 	}

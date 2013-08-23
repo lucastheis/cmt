@@ -19,9 +19,6 @@ using std::min;
 using std::pair;
 using std::make_pair;
 
-#include <typeinfo>
-using std::bad_cast;
-
 #include "Eigen/Core"
 using Eigen::Dynamic;
 using Eigen::Array;
@@ -157,13 +154,10 @@ double CMT::GLM::parameterGradient(
  	double bias = x[mDimIn];
 
  	// check if nonlinearity is differentiable
- 	DifferentiableNonlinearity* nonlinearity;
+ 	DifferentiableNonlinearity* nonlinearity = dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
 
- 	try {
- 		nonlinearity = dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
-	} catch(const bad_cast&) {
-		throw Exception("Cannot train with non-differentiable nonlinearity.");
-	}
+	if(!nonlinearity)
+		throw Exception("Nonlinearity has to be differentiable for training.");
  
  	// initialize gradient and log-likelihood
  	if(g) {
