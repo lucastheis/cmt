@@ -30,6 +30,7 @@ extern PyTypeObject UnivariateDistribution_type;
 extern PyTypeObject Bernoulli_type;
 
 extern const char* GLM_doc;
+extern const char* GLM_train_doc;
 extern const char* GLM_reduce_doc;
 extern const char* GLM_setstate_doc;
 
@@ -50,8 +51,11 @@ int GLM_set_distribution(GLMObject*, PyObject*, void*);
 
 PyObject* GLM_train(GLMObject*, PyObject*, PyObject*);
 
+PyObject* GLM_parameters(GLMObject*, PyObject*, PyObject*);
+PyObject* GLM_set_parameters(GLMObject*, PyObject*, PyObject*);
 PyObject* GLM_parameter_gradient(GLMObject*, PyObject*, PyObject*);
 PyObject* GLM_check_gradient(GLMObject*, PyObject*, PyObject*);
+PyObject* GLM_check_performance(GLMObject* self, PyObject* args, PyObject* kwds);
 
 PyObject* GLM_reduce(GLMObject*, PyObject*);
 PyObject* GLM_setstate(GLMObject*, PyObject*);

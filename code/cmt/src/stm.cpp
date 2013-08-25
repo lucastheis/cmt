@@ -51,7 +51,7 @@ CMT::STM::Parameters::Parameters() :
 	regularizeFeatures(0.),
 	regularizePredictors(0.),
 	regularizeLinearPredictor(0.),
-	regularizer(L1)
+	regularizer(L2)
 {
 }
 
@@ -478,9 +478,7 @@ double CMT::STM::parameterGradient(
 	// average log-likelihood
 	double logLik = 0.;
 
-	// interpret memory for parameters and gradients
 	lbfgsfloatval_t* y = const_cast<lbfgsfloatval_t*>(x);
-
 	int offset = 0;
 
 	VectorLBFGS biases(params.trainBiases ? y : const_cast<double*>(mBiases.data()), mNumComponents);

@@ -11,6 +11,7 @@
 #include "exception.h"
 #include "conditionaldistribution.h"
 #include "pcapreconditioner.h"
+#include "trainable.h"
 #include "tools.h"
 
 namespace CMT {
@@ -107,24 +108,28 @@ namespace CMT {
 			const PC& preconditioner(int i, int j) const;
 			void setPreconditioner(int i, int j, const PC& preconditioner);
 
-			void initialize(const MatrixXd& data, const Parameters& params = Parameters());
+			void initialize(
+				const MatrixXd& data,
+				const Trainable::Parameters& params = Parameters());
 
-			bool train(const MatrixXd& data, const Parameters& params = Parameters());
+			bool train(
+				const MatrixXd& data,
+				const Trainable::Parameters& params = Parameters());
 			bool train(
 				const MatrixXd& data,
 				const MatrixXd& dataVal,
-				const Parameters& params = Parameters());
+				const Trainable::Parameters& params = Parameters());
 			bool train(
 				int i,
 				int j,
 				const MatrixXd& data,
-				const Parameters& params = Parameters());
+				const Trainable::Parameters& params = Parameters());
 			bool train(
 				int i,
 				int j,
 				const MatrixXd& data,
 				const MatrixXd& dataVal,
-				const Parameters& params = Parameters());
+				const Trainable::Parameters& params = Parameters());
 
 			Array<double, 1, Dynamic> logLikelihood(const MatrixXd& data) const;
 			Array<double, 1, Dynamic> logLikelihood(int i, int j, const MatrixXd& data) const;
@@ -588,7 +593,7 @@ void CMT::PatchModel<CD, PC>::setPreconditioner(int i, int j, const PC& precondi
 
 
 template <class CD, class PC>
-void CMT::PatchModel<CD, PC>::initialize(const MatrixXd& data, const Parameters& params) {
+void CMT::PatchModel<CD, PC>::initialize(const MatrixXd& data, const Trainable::Parameters& params) {
 	for(int i = 0; i < mRows * mCols; ++i) {
 		int m = mOutputIndices[i].first;
 		int n = mOutputIndices[i].second;
@@ -624,7 +629,7 @@ void CMT::PatchModel<CD, PC>::initialize(const MatrixXd& data, const Parameters&
 
 
 template <class CD, class PC>
-bool CMT::PatchModel<CD, PC>::train(const MatrixXd& data, const Parameters& params) {
+bool CMT::PatchModel<CD, PC>::train(const MatrixXd& data, const Trainable::Parameters& params) {
 	bool converged = true;
 
 	for(int i = 0; i < mRows * mCols; ++i) {
@@ -669,7 +674,7 @@ template <class CD, class PC>
 bool CMT::PatchModel<CD, PC>::train(
 	const MatrixXd& data,
 	const MatrixXd& dataVal,
-	const Parameters& params)
+	const Trainable::Parameters& params)
 {
 	bool converged = true;
 
@@ -718,7 +723,7 @@ bool CMT::PatchModel<CD, PC>::train(
 
 
 template <class CD, class PC>
-bool CMT::PatchModel<CD, PC>::train(int i, int j, const MatrixXd& data, const Parameters& params) {
+bool CMT::PatchModel<CD, PC>::train(int i, int j, const MatrixXd& data, const Trainable::Parameters& params) {
 	int k = findIndex(i, j);
 
 	MatrixXd output = data.row(i * mCols + j);
@@ -753,7 +758,7 @@ bool CMT::PatchModel<CD, PC>::train(
 	int j,
 	const MatrixXd& data,
 	const MatrixXd& dataVal,
-	const Parameters& params)
+	const Trainable::Parameters& params)
 {
 	int k = findIndex(i, j);
 

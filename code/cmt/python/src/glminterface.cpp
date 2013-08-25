@@ -6,6 +6,71 @@
 #include "cmt/utils"
 using CMT::Exception;
 
+Trainable::Parameters* PyObject_ToGLMParameters(PyObject* parameters) {
+	GLM::Parameters* params = dynamic_cast<GLM::Parameters*>(
+		PyObject_ToParameters(parameters, new GLM::Parameters));
+
+	// read parameters from dictionary
+	if(parameters && parameters != Py_None) {
+		PyObject* callback = PyDict_GetItemString(parameters, "callback");
+		if(callback)
+			if(PyCallable_Check(callback))
+				params->callback = new CallbackInterface(&GLM_type, callback);
+			else if(callback != Py_None)
+				throw Exception("callback should be a function or callable object.");
+
+		PyObject* train_weights = PyDict_GetItemString(parameters, "train_weights");
+		if(train_weights)
+			if(PyBool_Check(train_weights))
+				params->trainWeights = (train_weights == Py_True);
+			else
+				throw Exception("train_weights should be of type `bool`.");
+
+		PyObject* train_bias = PyDict_GetItemString(parameters, "train_bias");
+		if(train_bias)
+			if(PyBool_Check(train_bias))
+				params->trainBias = (train_bias == Py_True);
+			else
+				throw Exception("train_bias should be of type `bool`.");
+
+		PyObject* regularize_weights = PyDict_GetItemString(parameters, "regularize_weights");
+		if(regularize_weights)
+			if(PyFloat_Check(regularize_weights))
+				params->regularizeWeights = PyFloat_AsDouble(regularize_weights);
+			else if(PyInt_Check(regularize_weights))
+				params->regularizeWeights = static_cast<double>(PyFloat_AsDouble(regularize_weights));
+			else
+				throw Exception("regularize_weights should be of type `float`.");
+
+		PyObject* regularize_bias = PyDict_GetItemString(parameters, "regularize_bias");
+		if(regularize_bias)
+			if(PyFloat_Check(regularize_bias))
+				params->regularizeBias = PyFloat_AsDouble(regularize_bias);
+			else if(PyInt_Check(regularize_bias))
+				params->regularizeBias = static_cast<double>(PyFloat_AsDouble(regularize_bias));
+			else
+				throw Exception("regularize_bias should be of type `float`.");
+
+		PyObject* regularizer = PyDict_GetItemString(parameters, "regularizer");
+		if(regularizer)
+			if(PyString_Check(regularizer)) {
+				if(PyString_Size(regularizer) != 2)
+					throw Exception("Regularizer should be 'L1' or 'L2'.");
+
+				if(PyString_AsString(regularizer)[1] == '1')
+					params->regularizer = GLM::Parameters::L1;
+				else
+					params->regularizer = GLM::Parameters::L2;
+			} else {
+				throw Exception("regularizer should be of type `str`.");
+			}
+	}
+
+	return params;
+}
+
+
+
 const char* GLM_doc =
 	"An implementation of generalized linear models.\n"
 	"\n"
@@ -255,19 +320,89 @@ int GLM_set_distribution(GLMObject* self, PyObject* distribution, void*) {
 
 
 
-Trainable::Parameters* PyObject_ToGLMParameters(PyObject* parameters) {
-	Trainable::Parameters* params = PyObject_ToParameters(parameters);
+const char* GLM_train_doc =
+	"train(self, input, output, input_val=None, output_val=None, parameters=None)\n"
+	"\n"
+	"Fits model parameters to given data using L-BFGS.\n"
+	"\n"
+	"The following example demonstrates possible parameters and default settings.\n"
+	"\n"
+	"\t>>> model.train(input, output, parameters={\n"
+	"\t>>> \t'verbosity': 0,\n"
+	"\t>>> \t'max_iter': 1000,\n"
+	"\t>>> \t'threshold': 1e-9,\n"
+	"\t>>> \t'num_grad': 20,\n"
+	"\t>>> \t'batch_size': 2000,\n"
+	"\t>>> \t'callback': None,\n"
+	"\t>>> \t'cb_iter': 25,\n"
+	"\t>>> \t'val_iter': 5,\n"
+	"\t>>> \t'val_look_ahead': 20,\n"
+	"\t>>> \t'train_weights': True,\n"
+	"\t>>> \t'train_bias': True,\n"
+	"\t>>> \t'regularizer': 'L2',\n"
+	"\t>>> \t'regularize_weights': 0.,\n"
+	"\t>>> \t'regularize_bias': 0.,\n"
+	"\t>>> })\n"
+	"\n"
+	"The optimization stops after C{max_iter} iterations or if the difference in\n"
+	"(penalized) log-likelihood is sufficiently small enough, as specified by\n"
+	"C{threshold}. C{num_grad} is the number of gradients used by L-BFGS to approximate\n"
+	"the inverse Hessian matrix.\n"
+	"\n"
+	"The parameter C{batch_size} has no effect on the solution of the optimization but\n"
+	"can affect speed by reducing the number of cache misses.\n"
+	"\n"
+	"If a callback function is given, it will be called every C{cb_iter} iterations. The first\n"
+	"argument to callback will be the current iteration, the second argument will be a I{copy} of\n"
+	"the model.\n"
+	"\n"
+	"\t>>> def callback(i, glm):\n"
+	"\t>>> \tprint i\n"
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: C{ndarray}\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@type  input_val: C{ndarray}\n"
+	"@param input_val: inputs used for early stopping based on validation error\n"
+	"\n"
+	"@type  output_val: C{ndarray}\n"
+	"@param output_val: outputs used for early stopping based on validation error\n"
+	"\n"
+	"@type  parameters: C{dict}\n"
+	"@param parameters: a dictionary containing hyperparameters\n"
+	"\n"
+	"@rtype: C{bool}\n"
+	"@return: C{True} if training converged, otherwise C{False}";
 
-	if(parameters && parameters != Py_None) {
-		PyObject* callback = PyDict_GetItemString(parameters, "callback");
-		if(callback)
-			if(PyCallable_Check(callback))
-				params->callback = new CallbackInterface(&GLM_type, callback);
-			else if(callback != Py_None)
-				throw Exception("callback should be a function or callable object.");
-	}
+PyObject* GLM_train(GLMObject* self, PyObject* args, PyObject* kwds) {
+	return Trainable_train(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToGLMParameters);
+}
 
-	return params;
+
+
+PyObject* GLM_parameters(GLMObject* self, PyObject* args, PyObject* kwds) {
+	return Trainable_parameters(
+		reinterpret_cast<TrainableObject*>(self),
+		args,
+		kwds,
+		&PyObject_ToGLMParameters);
+}
+
+
+
+PyObject* GLM_set_parameters(GLMObject* self, PyObject* args, PyObject* kwds) {
+	return Trainable_set_parameters(
+		reinterpret_cast<TrainableObject*>(self),
+		args,
+		kwds,
+		&PyObject_ToGLMParameters);
 }
 
 
@@ -292,10 +427,10 @@ PyObject* GLM_check_gradient(GLMObject* self, PyObject* args, PyObject* kwds) {
 
 
 
-PyObject* GLM_train(GLMObject* self, PyObject* args, PyObject* kwds) {
-	return Trainable_train(
-		reinterpret_cast<TrainableObject*>(self), 
-		args, 
+PyObject* GLM_check_performance(GLMObject* self, PyObject* args, PyObject* kwds) {
+	return Trainable_check_performance(
+		reinterpret_cast<TrainableObject*>(self),
+		args,
 		kwds,
 		&PyObject_ToGLMParameters);
 }

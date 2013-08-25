@@ -17,6 +17,22 @@ namespace CMT {
 	 */
 	class GLM : public Trainable {
 		public:
+			struct Parameters : public Trainable::Parameters {
+				public:
+					enum Regularizer { L1, L2 };
+
+					bool trainWeights;
+					bool trainBias;
+					bool trainNonlinearity;
+					double regularizeWeights;
+					double regularizeBias;
+					Regularizer regularizer;
+
+					Parameters();
+					Parameters(const Parameters& params);
+					virtual Parameters& operator=(const Parameters& params);
+			};
+
 			using Trainable::logLikelihood;
 
 			GLM(
@@ -52,19 +68,19 @@ namespace CMT {
 				const MatrixXd& input,
 				const MatrixXd& output) const;
 
-			virtual int numParameters(const Parameters& params = Parameters()) const;
+			virtual int numParameters(
+				const Trainable::Parameters& params = Parameters()) const;
 			virtual lbfgsfloatval_t* parameters(
-				const Parameters& params = Parameters()) const;
+				const Trainable::Parameters& params = Parameters()) const;
 			virtual void setParameters(
 				const lbfgsfloatval_t* x,
-				const Parameters& params = Parameters());
-
+				const Trainable::Parameters& params = Parameters());
 			virtual double parameterGradient(
 				const MatrixXd& input,
 				const MatrixXd& output,
 				const lbfgsfloatval_t* x,
 				lbfgsfloatval_t* g,
-				const Parameters& params) const;
+				const Trainable::Parameters& params) const;
 
 		protected:
 			static Nonlinearity* const defaultNonlinearity;

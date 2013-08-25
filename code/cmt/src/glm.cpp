@@ -1,4 +1,5 @@
 #include "exception.h"
+#include "utils.h"
 
 #include "glm.h"
 using CMT::GLM;
@@ -27,6 +28,47 @@ using Eigen::MatrixXd;
 
 Nonlinearity* const GLM::defaultNonlinearity = new LogisticFunction;
 UnivariateDistribution* const GLM::defaultDistribution = new Bernoulli;
+
+CMT::GLM::Parameters::Parameters() :
+	Trainable::Parameters::Parameters(),
+	trainWeights(true),
+	trainBias(true),
+	trainNonlinearity(false),
+	regularizeWeights(0.),
+	regularizeBias(0.),
+	regularizer(L2)
+{
+}
+
+
+
+CMT::GLM::Parameters::Parameters(const Parameters& params) :
+	Trainable::Parameters::Parameters(params),
+	trainWeights(params.trainWeights),
+	trainBias(params.trainBias),
+	trainNonlinearity(params.trainNonlinearity),
+	regularizeWeights(params.regularizeWeights),
+	regularizeBias(params.regularizeBias),
+	regularizer(params.regularizer)
+{
+}
+
+
+
+CMT::GLM::Parameters& CMT::GLM::Parameters::operator=(const Parameters& params) {
+	Trainable::Parameters::operator=(params);
+
+	trainWeights = params.trainWeights;
+	trainBias = params.trainBias;
+	trainNonlinearity = params.trainNonlinearity;
+	regularizeWeights = params.regularizeWeights;
+	regularizeBias = params.regularizeBias;
+	regularizer = params.regularizer;
+
+	return *this;
+}
+
+
 
 CMT::GLM::GLM(
 	int dimIn,
@@ -113,28 +155,85 @@ MatrixXd CMT::GLM::sample(const MatrixXd& input) const {
 
 
 
-int CMT::GLM::numParameters(const Parameters& params) const {
-	return mDimIn + 1;
+int CMT::GLM::numParameters(const Trainable::Parameters& params_) const {
+	const Parameters& params = dynamic_cast<const Parameters&>(params_);
+	
+	int numParams = 0;
+
+	if(params.trainWeights)
+		numParams += mDimIn;
+	if(params.trainBias)
+		numParams += 1;
+	if(params.trainNonlinearity) {
+		// test if nonlinearity is trainable
+		TrainableNonlinearity* nonlinearity =
+			dynamic_cast<TrainableNonlinearity*>(mNonlinearity);
+		if(!nonlinearity)
+			throw Exception("Nonlinearity has to be trainable.");
+		numParams += nonlinearity->numParameters();
+	}
+
+	return numParams;
 }
 
 
 
-lbfgsfloatval_t* CMT::GLM::parameters(const Parameters& params) const {
-	lbfgsfloatval_t* x = lbfgs_malloc(mDimIn + 1);
+lbfgsfloatval_t* CMT::GLM::parameters(const Trainable::Parameters& params_) const {
+	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 
-	for(int i = 0; i < mDimIn; ++i)
-		x[i] = mWeights.data()[i];
-	x[mDimIn] = mBias;
+	lbfgsfloatval_t* x = lbfgs_malloc(numParameters(params));
+
+	int k = 0;
+
+	if(params.trainWeights)
+		for(int i = 0; i < mDimIn; ++i, ++k)
+			x[k] = mWeights[i];
+	if(params.trainBias)
+		x[k++] = mBias;
+	if(params.trainNonlinearity) {
+		// test if nonlinearity is trainable
+		TrainableNonlinearity* nonlinearity =
+			dynamic_cast<TrainableNonlinearity*>(mNonlinearity);
+		if(!nonlinearity)
+			throw Exception("Nonlinearity has to be trainable.");
+
+		ArrayXd nonlParams = nonlinearity->parameters();
+
+		for(int i = 0; i < nonlParams.size(); ++i, ++k)
+			x[k] = nonlParams[i];
+	}
 
 	return x;
 }
 
 
 
-void CMT::GLM::setParameters(const lbfgsfloatval_t* x, const Parameters& params) {
-	for(int i = 0; i < mDimIn; ++i)
-		mWeights.data()[i] = x[i];
-	mBias = x[mDimIn];
+void CMT::GLM::setParameters(
+	const lbfgsfloatval_t* x,
+	const Trainable::Parameters& params_)
+{
+	const Parameters& params = dynamic_cast<const Parameters&>(params_);
+
+	int k = 0;
+
+	if(params.trainWeights)
+		for(int i = 0; i < mDimIn; ++i, ++k)
+			mWeights[i] = x[k];
+	if(params.trainBias)
+		mBias = x[k++];
+	if(params.trainNonlinearity) {
+		// test if nonlinearity is trainable
+		TrainableNonlinearity* nonlinearity =
+			dynamic_cast<TrainableNonlinearity*>(mNonlinearity);
+		if(!nonlinearity)
+			throw Exception("Nonlinearity has to be trainable.");
+
+		ArrayXd nonlParams(nonlinearity->numParameters());
+		for(int i = 0; i < nonlParams.size(); ++i, ++k)
+			nonlParams[i] = x[k];
+
+		nonlinearity->setParameters(nonlParams);
+	}
 }
 
 
@@ -144,25 +243,53 @@ double CMT::GLM::parameterGradient(
 	const MatrixXd& outputCompl,
 	const lbfgsfloatval_t* x,
 	lbfgsfloatval_t* g,
-	const Parameters& params) const
+	const Trainable::Parameters& params_) const
 {
+	const Parameters& params = dynamic_cast<const Parameters&>(params_);
+
+ 	// check if nonlinearity is trainable and/or differentiable
+ 	TrainableNonlinearity* trainableNonlinearity = 
+ 		dynamic_cast<TrainableNonlinearity*>(mNonlinearity);
+ 	DifferentiableNonlinearity* differentiableNonlinearity =
+ 		dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
+
+	if((params.trainWeights || params.trainBias) && !differentiableNonlinearity)
+		throw Exception("Nonlinearity has to be differentiable.");
+	if(params.trainNonlinearity && !trainableNonlinearity)
+		throw Exception("Nonlinearity is not trainable.");
+
   	int numData = static_cast<int>(inputCompl.cols());
  	int batchSize = min(params.batchSize, numData);
+
+	lbfgsfloatval_t* y = const_cast<lbfgsfloatval_t*>(x);
+	int offset = 0;
  
- 	VectorLBFGS weights(const_cast<lbfgsfloatval_t*>(x), mDimIn);
+ 	VectorLBFGS weights(params.trainWeights ? y : const_cast<double*>(mWeights.data()), mDimIn);
  	VectorLBFGS weightsGrad(g, mDimIn);
- 	double bias = x[mDimIn];
+ 	if(params.trainWeights)
+ 		offset += weights.size();
 
- 	// check if nonlinearity is differentiable
- 	DifferentiableNonlinearity* nonlinearity = dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
+ 	double bias = params.trainBias ? y[offset] : mBias;
+ 	double* biasGrad = g + offset;
+ 	if(params.trainBias)
+ 		offset += 1;
 
-	if(!nonlinearity)
-		throw Exception("Nonlinearity has to be differentiable for training.");
+ 	VectorLBFGS nonlinearityGrad(g + offset,
+ 		trainableNonlinearity ? trainableNonlinearity->numParameters() : 0);
+ 	if(params.trainNonlinearity) {
+		VectorLBFGS nonlParams(y + offset, trainableNonlinearity->numParameters());
+		trainableNonlinearity->setParameters(nonlParams);
+ 		offset += trainableNonlinearity->numParameters();
+	}
  
  	// initialize gradient and log-likelihood
  	if(g) {
- 		weightsGrad.setZero();
- 		g[mDimIn] = 0.;
+ 		if(params.trainWeights)
+			weightsGrad.setZero();
+ 		if(params.trainBias)
+			*biasGrad = 0.;
+		if(params.trainNonlinearity)
+			nonlinearityGrad.setZero();
 	}
 
  	double logLik = 0.;
@@ -181,37 +308,91 @@ double CMT::GLM::parameterGradient(
  			responses = Array<double, 1, Dynamic>::Constant(output.cols(), bias);
  
  		// nonlinear responses
- 		Array<double, 1, Dynamic> means = (*mNonlinearity)(responses);
+ 		Array<double, 1, Dynamic> means = mNonlinearity->operator()(responses);
  
  		if(g) {
  			Array<double, 1, Dynamic> tmp1 = mDistribution->gradient(output, means);
- 			Array<double, 1, Dynamic> tmp2 = nonlinearity->derivative(responses);
- 			Array<double, 1, Dynamic> tmp3 = tmp1 * tmp2;
- 
- 			// weights gradient
- 			if(mDimIn) {
- 				VectorXd weightsGrad_ = (input.array().rowwise() * tmp3).rowwise().sum();
- 
- 				#pragma omp critical
- 				weightsGrad += weightsGrad_;
- 			}
- 
- 			// bias gradient
- 			#pragma omp critical
- 			g[mDimIn] += tmp3.sum();
+ 			
+ 			if(params.trainWeights || params.trainBias) {
+				Array<double, 1, Dynamic> tmp2 = differentiableNonlinearity->derivative(responses);
+				Array<double, 1, Dynamic> tmp3 = tmp1 * tmp2;
+	 
+				// weights gradient
+				if(params.trainWeights && mDimIn) {
+					VectorXd weightsGrad_ = (input.array().rowwise() * tmp3).rowwise().sum();
+	 
+					#pragma omp critical
+					weightsGrad += weightsGrad_;
+				}
+	 
+				// bias gradient
+				if(params.trainBias)
+					#pragma omp critical
+					*biasGrad += tmp3.sum();
+			}
+
+			if(params.trainNonlinearity)
+				#pragma omp critical
+				nonlinearityGrad += (tmp1 * trainableNonlinearity->gradient(responses)).matrix();
  		}
  
  		#pragma omp critical
- 		logLik -= mDistribution->logLikelihood(output, means).sum();
+ 		logLik += mDistribution->logLikelihood(output, means).sum();
  	}
 
  	double normConst = outputCompl.cols() * log(2.);
 
- 	if(g)
-		for(int i = 0; i <= mDimIn; ++i)
+ 	if(g) {
+		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
+
+		switch(params.regularizer) {
+			case Parameters::L1:
+				if(params.trainWeights && params.regularizeWeights > 0.)
+					weightsGrad += params.regularizeWeights * signum(weights);
+
+				if(params.trainBias && params.regularizeBias > 0.)
+					if(bias > 0.)
+						*biasGrad += params.regularizeBias;
+					else if(bias < 0.)
+						*biasGrad -= params.regularizeBias;
+
+				break;
+
+			case Parameters::L2:
+				if(params.trainWeights && params.regularizeWeights > 0.)
+					weightsGrad += params.regularizeWeights * 2. * weights;
+
+				if(params.trainBias && params.regularizeBias > 0.)
+					*biasGrad += params.regularizeBias * 2. * bias;
+
+				break;
+		}
+	}
+
+  double value = -logLik / normConst;
+
+	switch(params.regularizer) {
+		case Parameters::L1:
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				value += params.regularizeWeights * weights.array().abs().sum();
+
+			if(params.trainBias && params.regularizeBias > 0.)
+				value += params.regularizeBias * abs(bias);
+
+			break;
+
+		case Parameters::L2:
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				value += params.regularizeWeights * weights.array().square().sum();
+
+			if(params.trainBias && params.regularizeBias > 0.)
+				value += params.regularizeBias * bias * bias;
+			
+			break;
+	}
  	
- 	return logLik / normConst;
+ 	return value;
 }
 
 

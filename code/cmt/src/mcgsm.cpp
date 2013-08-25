@@ -33,7 +33,7 @@ CMT::MCGSM::Parameters::Parameters() :
 	regularizeFeatures(0.),
 	regularizePredictors(0.),
 	regularizeWeights(0.),
-	regularizer(L1)
+	regularizer(L2)
 {
 }
 

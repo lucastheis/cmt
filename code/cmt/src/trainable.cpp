@@ -296,6 +296,9 @@ bool CMT::Trainable::train(
 	if(input.cols() < 1)
 		return true;
 
+	if(numParameters(params) < 1)
+		return true;
+
 	// create copy of model parameters for L-BFGS
 	lbfgsfloatval_t* x = parameters(params);
 

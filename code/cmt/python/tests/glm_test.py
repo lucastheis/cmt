@@ -53,13 +53,46 @@ class Tests(unittest.TestCase):
 
 		glm = GLM(4, LogisticFunction, Bernoulli)
 
+		# test gradient
+		err = glm._check_gradient(x, y, 1e-5, parameters={
+			'train_weights': False,
+			'train_bias': True})
+		self.assertLess(err, 1e-8)
+
+		err = glm._check_gradient(x, y, 1e-5, parameters={
+			'train_weights': True,
+			'train_bias': False})
+		self.assertLess(err, 1e-8)
+
 		err = glm._check_gradient(x, y, 1e-5)
 		self.assertLess(err, 1e-8)
 
+		err = glm._check_gradient(x, y, 1e-5, parameters={
+			'regularize_weights': 10.,
+			'regularize_bias': 10.})
+		self.assertLess(err, 1e-8)
+
+		# test training
 		glm.train(x, y, parameters={'verbosity': 0})
 
 		self.assertLess(max(abs(glm.weights - w)), 0.1)
 		self.assertLess(max(abs(glm.bias - b)), 0.1)
+
+		glm.weights = w
+		glm.bias = -1.
+
+		glm.train(x, y, parameters={'verbosity': 0, 'train_weights': False})
+
+		self.assertLess(max(abs(glm.weights - w)), 1e-12)
+		self.assertLess(max(abs(glm.bias - b)), 0.1)
+
+		glm.weights = randn(*glm.weights.shape)
+		glm.bias = b
+
+		glm.train(x, y, parameters={'verbosity': 0, 'train_bias': False})
+
+		self.assertLess(max(abs(glm.weights - w)), 0.1)
+		self.assertLess(max(abs(glm.bias - b)), 1e-12)
 
 
 

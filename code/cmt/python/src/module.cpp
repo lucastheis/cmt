@@ -929,7 +929,15 @@ static PyGetSetDef GLM_getset[] = {
 };
 
 static PyMethodDef GLM_methods[] = {
-	{"train", (PyCFunction)GLM_train, METH_VARARGS | METH_KEYWORDS, 0},
+	{"train", (PyCFunction)GLM_train, METH_VARARGS | METH_KEYWORDS, GLM_train_doc},
+	{"_parameters",
+		(PyCFunction)GLM_parameters,
+		METH_VARARGS | METH_KEYWORDS,
+		Trainable_parameters_doc},
+	{"_set_parameters",
+		(PyCFunction)GLM_set_parameters,
+		METH_VARARGS | METH_KEYWORDS,
+		Trainable_set_parameters_doc},
 	{"_parameter_gradient",
 		(PyCFunction)GLM_parameter_gradient,
 		METH_VARARGS | METH_KEYWORDS, 0},
@@ -937,6 +945,10 @@ static PyMethodDef GLM_methods[] = {
 		(PyCFunction)GLM_check_gradient,
 		METH_VARARGS | METH_KEYWORDS,
 		Trainable_check_gradient_doc},
+	{"_check_performance",
+		(PyCFunction)STM_check_performance,
+		METH_VARARGS | METH_KEYWORDS,
+		Trainable_check_performance_doc},
 	{"__reduce__", (PyCFunction)GLM_reduce, METH_NOARGS, GLM_reduce_doc},
 	{"__setstate__", (PyCFunction)GLM_setstate, METH_VARARGS, GLM_setstate_doc},
 	{0}

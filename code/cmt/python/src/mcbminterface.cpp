@@ -417,7 +417,7 @@ const char* MCBM_train_doc =
 	"\t>>> \t'train_predictors': True,\n"
 	"\t>>> \t'train_input_bias': True,\n"
 	"\t>>> \t'train_output_bias': True,\n"
-	"\t>>> \t'regularizer': 'L1',\n"
+	"\t>>> \t'regularizer': 'L2',\n"
 	"\t>>> \t'regularize_features': 0.,\n"
 	"\t>>> \t'regularize_weights': 0.,\n"
 	"\t>>> \t'regularize_predictors': 0.\n"

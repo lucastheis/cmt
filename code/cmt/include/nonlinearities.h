@@ -6,7 +6,7 @@
 
 namespace CMT {
 	using Eigen::ArrayXXd;
-	using Eigen::VectorXd;
+	using Eigen::ArrayXd;
 	using std::vector;
 
 	class Nonlinearity {
@@ -30,11 +30,11 @@ namespace CMT {
 
 	class TrainableNonlinearity : virtual public Nonlinearity {
 		public:
-			virtual VectorXd parameters() const = 0;
-			virtual void setParameters(const VectorXd& parameters) = 0;
+			virtual ArrayXd parameters() const = 0;
+			virtual void setParameters(const ArrayXd& parameters) = 0;
 
-			virtual int numParameters(const ArrayXXd& data) const = 0;
-			virtual ArrayXXd parameterGradient(const ArrayXXd& data) const = 0;
+			virtual int numParameters() const = 0;
+			virtual ArrayXXd gradient(const ArrayXXd& data) const = 0;
 	};
 
 	class LogisticFunction : public InvertibleNonlinearity, public DifferentiableNonlinearity {

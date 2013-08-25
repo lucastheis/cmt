@@ -485,7 +485,7 @@ const char* MCGSM_train_doc =
 	"\t>>> \t'train_features': True,\n"
 	"\t>>> \t'train_cholesky_factors': True,\n"
 	"\t>>> \t'train_predictors': True,\n"
-	"\t>>> \t'regularizer': 'L1',\n"
+	"\t>>> \t'regularizer': 'L2',\n"
 	"\t>>> \t'regularize_features': 0.,\n"
 	"\t>>> \t'regularize_weights': 0.,\n"
 	"\t>>> \t'regularize_predictors': 0.\n"
