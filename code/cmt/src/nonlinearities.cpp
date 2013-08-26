@@ -6,6 +6,7 @@ using std::exp;
 using std::log;
 
 #include "Eigen/Core"
+using Eigen::ArrayXd;
 using Eigen::ArrayXXd;
 
 CMT::Nonlinearity::~Nonlinearity() {
@@ -212,4 +213,47 @@ int CMT::HistogramNonlinearity::bin(double input) const {
 		if(input < mBinEdges[k + 1])
 			return k;
 	return mHistogram.size() - 1;
+}
+
+
+
+
+ArrayXd CMT::HistogramNonlinearity::parameters() const {
+	ArrayXd histogram(mHistogram.size());
+
+	for(int i = 0; i < mHistogram.size(); ++i)
+		histogram[i] = mHistogram[i];
+
+	return histogram;
+}
+
+
+
+void CMT::HistogramNonlinearity::setParameters(const ArrayXd& parameters) {
+	if(parameters.size() != mHistogram.size())
+		throw Exception("Wrong number of parameters.");
+
+	for(int i = 0; i < mHistogram.size(); ++i)
+		mHistogram[i] = parameters[i];
+}
+
+
+
+int CMT::HistogramNonlinearity::numParameters() const {
+	return mHistogram.size();
+}
+
+
+
+ArrayXXd CMT::HistogramNonlinearity::gradient(const ArrayXXd& data) const {
+	if(data.rows() != 1)
+		throw Exception("Data has to be stored in one row.");
+
+	ArrayXXd gradient = ArrayXXd::Zero(mHistogram.size(), data.cols());
+
+	for(int i = 0; i < data.rows(); ++i)
+		for(int j = 0; j < data.rows(); ++j)
+			gradient(bin(data(i, j)), j) = 1;
+
+	return gradient;
 }

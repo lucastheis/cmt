@@ -128,7 +128,22 @@ int ExponentialFunction_init(ExponentialFunctionObject* self, PyObject*, PyObjec
 const char* HistogramNonlinearity_doc =
 	"Histogram nonlinearity with $N$ bins.\n"
 	"\n"
-	"$$f(x) = \\begin{cases} h_0 & \\text{ if } x < b_0 \\\\ h_n & \\text{ if } b_n \\leq x < b_{n + 1} \\\\ h_N & \\text{ if } b_N \\leq x \\end{cases}$$";
+	"$$f(x) = \\varepsilon + \\begin{cases} h_0 & \\text{ if } x < b_0 \\\\ h_n & \\text{ if } b_n \\leq x < b_{n + 1} \\\\ h_N & \\text{ if } b_N \\leq x \\end{cases}$$\n"
+	"\n"
+	"@type  inputs: C{ndarray}\n"
+	"@param inputs: example inputs to the nonlinearity\n"
+	"\n"
+	"@type  outputs: C{ndarray}\n"
+	"@param outputs: example outputs to the nonlinearity\n"
+	"\n"
+	"@type  num_bins: C{int}\n"
+	"@param num_bins: number of bins used to bin the data\n"
+	"\n"
+	"@type  bin_edges: C{list}\n"
+	"@param bin_edges: ascending list of $N + 1$ bin edges\n"
+	"\n"
+	"@type  epsilon: C{float}\n"
+	"@param epsilon: small offset for numerical stability, $\\varepsilon$";
 
 int HistogramNonlinearity_init(HistogramNonlinearityObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {
@@ -145,7 +160,7 @@ int HistogramNonlinearity_init(HistogramNonlinearityObject* self, PyObject* args
 	PyObject* bin_edges = 0;
 	double epsilon = 1e-12;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|iOd", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|OOiOd", const_cast<char**>(kwlist),
 		&inputs, &outputs, &num_bins, &bin_edges, &epsilon))
 		return -1;
 

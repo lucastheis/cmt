@@ -69,7 +69,7 @@ namespace CMT {
 			double mEpsilon;
 	};
 
-	class HistogramNonlinearity : public Nonlinearity {
+	class HistogramNonlinearity : public TrainableNonlinearity {
 		public:
 			HistogramNonlinearity(
 				const ArrayXXd& inputs,
@@ -99,6 +99,12 @@ namespace CMT {
 
 			virtual ArrayXXd operator()(const ArrayXXd& inputs) const;
 			virtual double operator()(double input) const;
+
+			virtual ArrayXd parameters() const;
+			virtual void setParameters(const ArrayXd& parameters);
+
+			virtual int numParameters() const;
+			virtual ArrayXXd gradient(const ArrayXXd& data) const;
 
 		protected:
 			double mEpsilon;

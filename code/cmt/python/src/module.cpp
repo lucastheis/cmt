@@ -1108,6 +1108,132 @@ PyTypeObject Nonlinearity_type = {
 	Nonlinearity_new,                 /*tp_new*/
 };
 
+PyTypeObject DifferentiableNonlinearity_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                        /*ob_size*/
+	"cmt.DifferentiableNonlinearity",         /*tp_name*/
+	sizeof(DifferentiableNonlinearityObject), /*tp_basicsize*/
+	0,                                        /*tp_itemsize*/
+	(destructor)Nonlinearity_dealloc,         /*tp_dealloc*/
+	0,                                        /*tp_print*/
+	0,                                        /*tp_getattr*/
+	0,                                        /*tp_setattr*/
+	0,                                        /*tp_compare*/
+	0,                                        /*tp_repr*/
+	0,                                        /*tp_as_number*/
+	0,                                        /*tp_as_sequence*/
+	0,                                        /*tp_as_mapping*/
+	0,                                        /*tp_hash */
+	0,                                        /*tp_call*/
+	0,                                        /*tp_str*/
+	0,                                        /*tp_getattro*/
+	0,                                        /*tp_setattro*/
+	0,                                        /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                       /*tp_flags*/
+	Nonlinearity_doc,                         /*tp_doc*/
+	0,                                        /*tp_traverse*/
+	0,                                        /*tp_clear*/
+	0,                                        /*tp_richcompare*/
+	0,                                        /*tp_weaklistoffset*/
+	0,                                        /*tp_iter*/
+	0,                                        /*tp_iternext*/
+	0,                                        /*tp_methods*/
+	0,                                        /*tp_members*/
+	0,                                        /*tp_getset*/
+	&Nonlinearity_type,                       /*tp_base*/
+	0,                                        /*tp_dict*/
+	0,                                        /*tp_descr_get*/
+	0,                                        /*tp_descr_set*/
+	0,                                        /*tp_dictoffset*/
+	(initproc)Nonlinearity_init,              /*tp_init*/
+	0,                                        /*tp_alloc*/
+	Nonlinearity_new,                         /*tp_new*/
+};
+
+PyTypeObject InvertibleNonlinearity_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                    /*ob_size*/
+	"cmt.InvertibleNonlinearity",         /*tp_name*/
+	sizeof(InvertibleNonlinearityObject), /*tp_basicsize*/
+	0,                                    /*tp_itemsize*/
+	(destructor)Nonlinearity_dealloc,     /*tp_dealloc*/
+	0,                                    /*tp_print*/
+	0,                                    /*tp_getattr*/
+	0,                                    /*tp_setattr*/
+	0,                                    /*tp_compare*/
+	0,                                    /*tp_repr*/
+	0,                                    /*tp_as_number*/
+	0,                                    /*tp_as_sequence*/
+	0,                                    /*tp_as_mapping*/
+	0,                                    /*tp_hash */
+	0,                                    /*tp_call*/
+	0,                                    /*tp_str*/
+	0,                                    /*tp_getattro*/
+	0,                                    /*tp_setattro*/
+	0,                                    /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                   /*tp_flags*/
+	Nonlinearity_doc,                     /*tp_doc*/
+	0,                                    /*tp_traverse*/
+	0,                                    /*tp_clear*/
+	0,                                    /*tp_richcompare*/
+	0,                                    /*tp_weaklistoffset*/
+	0,                                    /*tp_iter*/
+	0,                                    /*tp_iternext*/
+	0,                                    /*tp_methods*/
+	0,                                    /*tp_members*/
+	0,                                    /*tp_getset*/
+	&Nonlinearity_type,                   /*tp_base*/
+	0,                                    /*tp_dict*/
+	0,                                    /*tp_descr_get*/
+	0,                                    /*tp_descr_set*/
+	0,                                    /*tp_dictoffset*/
+	(initproc)Nonlinearity_init,          /*tp_init*/
+	0,                                    /*tp_alloc*/
+	Nonlinearity_new,                     /*tp_new*/
+};
+
+PyTypeObject TrainableNonlinearity_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                   /*ob_size*/
+	"cmt.TrainableNonlinearity",         /*tp_name*/
+	sizeof(TrainableNonlinearityObject), /*tp_basicsize*/
+	0,                                   /*tp_itemsize*/
+	(destructor)Nonlinearity_dealloc,    /*tp_dealloc*/
+	0,                                   /*tp_print*/
+	0,                                   /*tp_getattr*/
+	0,                                   /*tp_setattr*/
+	0,                                   /*tp_compare*/
+	0,                                   /*tp_repr*/
+	0,                                   /*tp_as_number*/
+	0,                                   /*tp_as_sequence*/
+	0,                                   /*tp_as_mapping*/
+	0,                                   /*tp_hash */
+	0,                                   /*tp_call*/
+	0,                                   /*tp_str*/
+	0,                                   /*tp_getattro*/
+	0,                                   /*tp_setattro*/
+	0,                                   /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                  /*tp_flags*/
+	Nonlinearity_doc,                    /*tp_doc*/
+	0,                                   /*tp_traverse*/
+	0,                                   /*tp_clear*/
+	0,                                   /*tp_richcompare*/
+	0,                                   /*tp_weaklistoffset*/
+	0,                                   /*tp_iter*/
+	0,                                   /*tp_iternext*/
+	0,                                   /*tp_methods*/
+	0,                                   /*tp_members*/
+	0,                                   /*tp_getset*/
+	&Nonlinearity_type,                  /*tp_base*/
+	0,                                   /*tp_dict*/
+	0,                                   /*tp_descr_get*/
+	0,                                   /*tp_descr_set*/
+	0,                                   /*tp_dictoffset*/
+	(initproc)Nonlinearity_init,         /*tp_init*/
+	0,                                   /*tp_alloc*/
+	Nonlinearity_new,                    /*tp_new*/
+};
+
 PyTypeObject LogisticFunction_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
@@ -1140,7 +1266,7 @@ PyTypeObject LogisticFunction_type = {
 	0,                                /*tp_methods*/
 	0,                                /*tp_members*/
 	0,                                /*tp_getset*/
-	&Nonlinearity_type,               /*tp_base*/
+	&DifferentiableNonlinearity_type, /*tp_base*/
 	0,                                /*tp_dict*/
 	0,                                /*tp_descr_get*/
 	0,                                /*tp_descr_set*/
@@ -1154,7 +1280,7 @@ PyTypeObject ExponentialFunction_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                  /*ob_size*/
 	"cmt.ExponentialFunction",          /*tp_name*/
-	sizeof(ExponentialFunctionObject),     /*tp_basicsize*/
+	sizeof(ExponentialFunctionObject),  /*tp_basicsize*/
 	0,                                  /*tp_itemsize*/
 	(destructor)Nonlinearity_dealloc,   /*tp_dealloc*/
 	0,                                  /*tp_print*/
@@ -1182,7 +1308,7 @@ PyTypeObject ExponentialFunction_type = {
 	0,                                  /*tp_methods*/
 	0,                                  /*tp_members*/
 	0,                                  /*tp_getset*/
-	&Nonlinearity_type,                 /*tp_base*/
+	&DifferentiableNonlinearity_type,   /*tp_base*/
 	0,                                  /*tp_dict*/
 	0,                                  /*tp_descr_get*/
 	0,                                  /*tp_descr_set*/
@@ -1224,7 +1350,7 @@ PyTypeObject HistogramNonlinearity_type = {
 	0,                                    /*tp_methods*/
 	0,                                    /*tp_members*/
 	0,                                    /*tp_getset*/
-	&Nonlinearity_type,                   /*tp_base*/
+	&TrainableNonlinearity_type,          /*tp_base*/
 	0,                                    /*tp_dict*/
 	0,                                    /*tp_descr_get*/
 	0,                                    /*tp_descr_set*/
@@ -1823,6 +1949,8 @@ PyMODINIT_FUNC init_cmt() {
 		return;
 	if(PyType_Ready(&CD_type) < 0)
 		return;
+	if(PyType_Ready(&DifferentiableNonlinearity_type) < 0)
+		return;
 	if(PyType_Ready(&Distribution_type) < 0)
 		return;
 	if(PyType_Ready(&ExponentialFunction_type) < 0)
@@ -1832,6 +1960,8 @@ PyMODINIT_FUNC init_cmt() {
 	if(PyType_Ready(&GLM_type) < 0)
 		return;
 	if(PyType_Ready(&GSM_type) < 0)
+		return;
+	if(PyType_Ready(&InvertibleNonlinearity_type) < 0)
 		return;
 	if(PyType_Ready(&HistogramNonlinearity_type) < 0)
 		return;
@@ -1865,6 +1995,8 @@ PyMODINIT_FUNC init_cmt() {
 		return;
 	if(PyType_Ready(&STM_type) < 0)
 		return;
+	if(PyType_Ready(&TrainableNonlinearity_type) < 0)
+		return;
 	if(PyType_Ready(&UnivariateDistribution_type) < 0)
 		return;
 	if(PyType_Ready(&WhiteningPreconditioner_type) < 0)
@@ -1881,11 +2013,13 @@ PyMODINIT_FUNC init_cmt() {
 	Py_INCREF(&BinningTransform_type);
 	Py_INCREF(&Bernoulli_type);
 	Py_INCREF(&CD_type);
+	Py_INCREF(&DifferentiableNonlinearity_type);
 	Py_INCREF(&Distribution_type);
 	Py_INCREF(&ExponentialFunction_type);
 	Py_INCREF(&FVBN_type);
 	Py_INCREF(&GLM_type);
 	Py_INCREF(&GSM_type);
+	Py_INCREF(&InvertibleNonlinearity_type);
 	Py_INCREF(&HistogramNonlinearity_type);
 	Py_INCREF(&LogisticFunction_type);
 	Py_INCREF(&MCBM_type);
@@ -1902,6 +2036,7 @@ PyMODINIT_FUNC init_cmt() {
 	Py_INCREF(&Poisson_type);
 	Py_INCREF(&Preconditioner_type);
 	Py_INCREF(&STM_type);
+	Py_INCREF(&TrainableNonlinearity_type);
 	Py_INCREF(&UnivariateDistribution_type);
 	Py_INCREF(&WhiteningPreconditioner_type);
 	Py_INCREF(&WhiteningTransform_type);
@@ -1911,12 +2046,14 @@ PyMODINIT_FUNC init_cmt() {
 	PyModule_AddObject(module, "Bernoulli", reinterpret_cast<PyObject*>(&Bernoulli_type));
 	PyModule_AddObject(module, "BinningTransform", reinterpret_cast<PyObject*>(&BinningTransform_type));
 	PyModule_AddObject(module, "ConditionalDistribution", reinterpret_cast<PyObject*>(&CD_type));
+	PyModule_AddObject(module, "DifferentiableNonlinearity", reinterpret_cast<PyObject*>(&DifferentiableNonlinearity_type));
 	PyModule_AddObject(module, "Distribution", reinterpret_cast<PyObject*>(&Distribution_type));
 	PyModule_AddObject(module, "ExponentialFunction", reinterpret_cast<PyObject*>(&ExponentialFunction_type));
 	PyModule_AddObject(module, "FVBN", reinterpret_cast<PyObject*>(&FVBN_type));
 	PyModule_AddObject(module, "GLM", reinterpret_cast<PyObject*>(&GLM_type));
 	PyModule_AddObject(module, "GSM", reinterpret_cast<PyObject*>(&GSM_type));
 	PyModule_AddObject(module, "HistogramNonlinearity", reinterpret_cast<PyObject*>(&HistogramNonlinearity_type));
+	PyModule_AddObject(module, "InvertibleNonlinearity", reinterpret_cast<PyObject*>(&InvertibleNonlinearity_type));
 	PyModule_AddObject(module, "LogisticFunction", reinterpret_cast<PyObject*>(&LogisticFunction_type));
 	PyModule_AddObject(module, "MCBM", reinterpret_cast<PyObject*>(&MCBM_type));
 	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));
@@ -1932,6 +2069,7 @@ PyMODINIT_FUNC init_cmt() {
 	PyModule_AddObject(module, "Poisson", reinterpret_cast<PyObject*>(&Poisson_type));
 	PyModule_AddObject(module, "Preconditioner", reinterpret_cast<PyObject*>(&Preconditioner_type));
 	PyModule_AddObject(module, "STM", reinterpret_cast<PyObject*>(&STM_type));
+	PyModule_AddObject(module, "TrainableNonlinearity", reinterpret_cast<PyObject*>(&TrainableNonlinearity_type));
 	PyModule_AddObject(module, "UnivariateDistribution", reinterpret_cast<PyObject*>(&UnivariateDistribution_type));
 	PyModule_AddObject(module, "WhiteningPreconditioner", reinterpret_cast<PyObject*>(&WhiteningPreconditioner_type));
 	PyModule_AddObject(module, "WhiteningTransform", reinterpret_cast<PyObject*>(&WhiteningTransform_type));

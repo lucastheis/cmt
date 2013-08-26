@@ -10,6 +10,9 @@
 
 #include "cmt/nonlinear"
 using CMT::Nonlinearity;
+using CMT::DifferentiableNonlinearity;
+using CMT::InvertibleNonlinearity;
+using CMT::TrainableNonlinearity;
 using CMT::LogisticFunction;
 using CMT::ExponentialFunction;
 using CMT::HistogramNonlinearity;
@@ -17,6 +20,24 @@ using CMT::HistogramNonlinearity;
 struct NonlinearityObject {
 	PyObject_HEAD
 	Nonlinearity* nonlinearity;
+	bool owner;
+};
+
+struct InvertibleNonlinearityObject {
+	PyObject_HEAD
+	InvertibleNonlinearity* nonlinearity;
+	bool owner;
+};
+
+struct DifferentiableNonlinearityObject {
+	PyObject_HEAD
+	DifferentiableNonlinearity* nonlinearity;
+	bool owner;
+};
+
+struct TrainableNonlinearityObject {
+	PyObject_HEAD
+	TrainableNonlinearity* nonlinearity;
 	bool owner;
 };
 

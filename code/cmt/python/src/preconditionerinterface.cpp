@@ -822,7 +822,7 @@ int WhiteningTransform_init(WhiteningTransformObject* self, PyObject* args, PyOb
 const char* PCAPreconditioner_doc =
 	"This preconditioner can be used to reduce the dimensionality of the input.\n"
 	"\n"
-	"Additionally, the data is decorrelated as by L{WhiteningPreconditioner}.\n"
+	"Similar to L{WhiteningPreconditioner}, the transformed data will be decorrelated.\n"
 	"\n"
 	"To create a preconditioner which retains (at least) 98.5% of the input variance, use:\n"
 	"\n"
