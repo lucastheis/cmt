@@ -113,6 +113,27 @@ namespace CMT {
 
 			int bin(double input) const;
 	};
+
+	class BlobNonlinearity : public TrainableNonlinearity {
+		public:
+			BlobNonlinearity(
+				int numComponents,
+				double epsilon = 1e-12);
+
+			virtual ArrayXXd operator()(const ArrayXXd& inputs) const;
+			virtual double operator()(double input) const;
+
+			virtual ArrayXd parameters() const;
+			virtual void setParameters(const ArrayXd& parameters);
+
+			virtual int numParameters() const;
+			virtual ArrayXXd gradient(const ArrayXXd& data) const;
+
+		protected:
+			ArrayXd mMeans;
+			ArrayXd mLogPrecisions;
+			ArrayXd mLogWeights;
+	};
 }
 
 #endif

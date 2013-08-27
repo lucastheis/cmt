@@ -257,3 +257,83 @@ ArrayXXd CMT::HistogramNonlinearity::gradient(const ArrayXXd& data) const {
 
 	return gradient;
 }
+
+
+
+BlobNonlinearity::BlobNonlinearity(int numComponents, double epsilon = 1e-12) {
+}
+
+
+
+
+ArrayXXd BlobNonlinearity::operator()(const ArrayXXd& inputs) const {
+	if(data.rows() != 1)
+		throw Exception("Data has to be stored in one row.");
+
+	ArrayXXd diff(mNumComponents, inputs.cols());
+	diff.rowwise() += inputs;
+	diff.colwise() -= mMeans;
+
+	ArrayXXd energy = mLogPrecisions.exp() / 2. * diff.square();
+	return mLogWeights.exp().transpose().matrix() * energy.matrix();
+}
+
+
+
+double BlobNonlinearity::operator()(double input) const {
+	ArrayXd energy = mLogPrecisions.exp() / 2. * (mMeans - input).square();
+	return mLogWeights.exp().matrix().dot(energy.matrix());
+}
+
+
+
+ArrayXd BlobNonlinearity::parameters() const {
+	ArrayXd parameters(3 * mNumComponents);
+	parameters << mMeans, mLogPrecisions, mLogWeights;
+	return parameters;
+}
+
+
+
+void BlobNonlinearity::setParameters(const ArrayXd& parameters) {
+	mMeans = parameters.topRows(mNumComponents);
+	mLogPrecisions = parameters.middleRows(mNumComponents, mNumComponents);
+	mLogWeights = parameters.bottomRows(mNumComponents);
+}
+
+
+
+int BlobNonlinearity::numParameters() const {
+	return 3 * mNumComponents;
+}
+
+
+
+ArrayXXd BlobNonlinearity::gradient(const ArrayXXd& data) const {
+	if(data.rows() != 1)
+		throw Exception("Data has to be stored in one row.");
+	
+	ArrayXXd diff(mNumComponents, inputs.cols());
+	diff.rowwise() += inputs;
+	diff.colwise() -= mMeans;
+
+	ArrayXXd diffSq = diff.square() / 2.;
+	ArrayXd precisions = mLogPrecisions.exp();
+	ArrayXd weights = mLogWeights.exp();
+
+	ArrayXXd energy = precisions.transpose().matrix() * diffSq.matrix();
+	ArrayXXd energyExp = (-precisions).exp();
+
+	ArrayXXd gradient(3 * mNumComponents, data.cols());
+
+	// gradient of mean
+	gradient.topRows(mNumComponents) = (diff * energyExp).colwise() * weights * precisions;
+
+	// gradient of log-precisions
+	gradient.middleRows(mNumComponents, mNumComponents) = (diffSq * energyExp).colwise() * (-weights);
+
+	// gradient of log-weights
+	gradient.bottomRows(mNumComponents) = energyExp;
+
+	return gradient;
+}
