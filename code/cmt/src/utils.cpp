@@ -18,6 +18,9 @@ using Eigen::ComputeThinV;
 using std::exp;
 using std::log;
 using std::floor;
+using std::tanh;
+using std::sinh;
+using std::cosh;
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
 using std::lgamma;
 using std::tgamma;
@@ -249,6 +252,54 @@ ArrayXXd CMT::lnGamma(const ArrayXXd& arr) {
 	return result;
 }
 #endif
+
+
+
+ArrayXXd CMT::tanh(const ArrayXXd& arr) {
+	ArrayXXd result(arr.rows(), arr.cols());
+
+	#pragma omp parallel for
+	for(int i = 0; i < arr.size(); ++i)
+		result(i) = std::tanh(arr(i));
+
+	return result;
+}
+
+
+
+ArrayXXd CMT::cosh(const ArrayXXd& arr) {
+	ArrayXXd result(arr.rows(), arr.cols());
+
+	#pragma omp parallel for
+	for(int i = 0; i < arr.size(); ++i)
+		result(i) = std::cosh(arr(i));
+
+	return result;
+}
+
+
+
+ArrayXXd CMT::sinh(const ArrayXXd& arr) {
+	ArrayXXd result(arr.rows(), arr.cols());
+
+	#pragma omp parallel for
+	for(int i = 0; i < arr.size(); ++i)
+		result(i) = std::sinh(arr(i));
+
+	return result;
+}
+
+
+
+ArrayXXd CMT::sech(const ArrayXXd& arr) {
+	ArrayXXd result(arr.rows(), arr.cols());
+
+	#pragma omp parallel for
+	for(int i = 0; i < arr.size(); ++i)
+		result(i) = 1. / std::cosh(arr(i));
+
+	return result;
+}
 
 
 

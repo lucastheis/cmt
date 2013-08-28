@@ -348,3 +348,71 @@ PyObject* BlobNonlinearity_setstate(BlobNonlinearityObject* self, PyObject* stat
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+
+
+
+const char* TanhBlobNonlinearity_doc =
+	"Hyperbolic tangent applied to Gaussian blob nonlinearity.\n"
+	"\n"
+	"$$f(x) = \\tanh\\left(\\varepsilon + \\sum_k \\alpha_k \\exp\\left(\\frac{\\lambda_k}{2} (x - \\mu_k)^2\\right)\\right)$$\n"
+	"\n"
+	"@type  num_components: C{int}\n"
+	"@param num_components: number of Gaussian blobs\n"
+	"\n"
+	"@type  epsilon: C{float}\n"
+	"@param epsilon: small offset for numerical stability, $\\varepsilon$";
+
+int TanhBlobNonlinearity_init(TanhBlobNonlinearityObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"num_components", "epsilon", 0};
+
+	int num_components = 3;
+	double epsilon = 1e-12;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|id", const_cast<char**>(kwlist),
+		&num_components, &epsilon))
+		return -1;
+
+	try {
+		self->nonlinearity = new TanhBlobNonlinearity(num_components, epsilon);
+		return 0;
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+
+	return -1;
+}
+
+
+
+PyObject* TanhBlobNonlinearity_reduce(TanhBlobNonlinearityObject* self, PyObject*) {
+	PyObject* parameters = PyArray_FromMatrixXd(self->nonlinearity->parameters());
+
+	PyObject* args = Py_BuildValue("(id)", self->nonlinearity->numComponents(), self->nonlinearity->epsilon());
+	PyObject* state = Py_BuildValue("(O)", parameters);
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
+
+	Py_DECREF(args);
+	Py_DECREF(state);
+
+	return result;
+}
+
+
+
+PyObject* TanhBlobNonlinearity_setstate(TanhBlobNonlinearityObject* self, PyObject* state) {
+	PyObject* parameters;
+
+	if(!PyArg_ParseTuple(state, "(O)", &parameters))
+		return 0;
+
+	try {
+		self->nonlinearity->setParameters(PyArray_ToMatrixXd(parameters));
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}

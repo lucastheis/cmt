@@ -145,6 +145,30 @@ namespace CMT {
 			ArrayXd mLogPrecisions;
 			ArrayXd mLogWeights;
 	};
+
+	class TanhBlobNonlinearity : public TrainableNonlinearity, public DifferentiableNonlinearity {
+		public:
+			TanhBlobNonlinearity(
+				int numComponents = 3,
+				double epsilon = 1e-12);
+
+			inline double epsilon() const;
+			inline int numComponents() const;
+
+			virtual ArrayXXd derivative(const ArrayXXd& data) const;
+
+			virtual ArrayXXd operator()(const ArrayXXd& inputs) const;
+			virtual double operator()(double input) const;
+
+			virtual ArrayXd parameters() const;
+			virtual void setParameters(const ArrayXd& parameters);
+
+			virtual int numParameters() const;
+			virtual ArrayXXd gradient(const ArrayXXd& inputs) const;
+
+		protected:
+			BlobNonlinearity mNonlinearity;
+	};
 }
 
 
@@ -175,6 +199,18 @@ double CMT::BlobNonlinearity::epsilon() const {
 
 int CMT::BlobNonlinearity::numComponents() const {
 	return mNumComponents;
+}
+
+
+
+double CMT::TanhBlobNonlinearity::epsilon() const {
+	return mNonlinearity.epsilon();
+}
+
+
+
+int CMT::TanhBlobNonlinearity::numComponents() const {
+	return mNonlinearity.numComponents();
 }
 
 #endif

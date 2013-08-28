@@ -1414,6 +1414,54 @@ PyTypeObject BlobNonlinearity_type = {
 	Nonlinearity_new,                 /*tp_new*/
 };
 
+static PyMethodDef TanhBlobNonlinearity_methods[] = {
+	{"__reduce__", (PyCFunction)TanhBlobNonlinearity_reduce, METH_NOARGS, Nonlinearity_reduce_doc},
+	{"__setstate__", (PyCFunction)TanhBlobNonlinearity_setstate, METH_VARARGS, 0},
+	{0}
+};
+
+PyTypeObject TanhBlobNonlinearity_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                    /*ob_size*/
+	"cmt.nonlinear.TanhBlobNonlinearity", /*tp_name*/
+	sizeof(TanhBlobNonlinearityObject),   /*tp_basicsize*/
+	0,                                    /*tp_itemsize*/
+	(destructor)Nonlinearity_dealloc,     /*tp_dealloc*/
+	0,                                    /*tp_print*/
+	0,                                    /*tp_getattr*/
+	0,                                    /*tp_setattr*/
+	0,                                    /*tp_compare*/
+	0,                                    /*tp_repr*/
+	0,                                    /*tp_as_number*/
+	0,                                    /*tp_as_sequence*/
+	0,                                    /*tp_as_mapping*/
+	0,                                    /*tp_hash */
+	0,                                    /*tp_call*/
+	0,                                    /*tp_str*/
+	0,                                    /*tp_getattro*/
+	0,                                    /*tp_setattro*/
+	0,                                    /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                   /*tp_flags*/
+	TanhBlobNonlinearity_doc,             /*tp_doc*/
+	0,                                    /*tp_traverse*/
+	0,                                    /*tp_clear*/
+	0,                                    /*tp_richcompare*/
+	0,                                    /*tp_weaklistoffset*/
+	0,                                    /*tp_iter*/
+	0,                                    /*tp_iternext*/
+	TanhBlobNonlinearity_methods,         /*tp_methods*/
+	0,                                    /*tp_members*/
+	0,                                    /*tp_getset*/
+	&TrainableNonlinearity_type,          /*tp_base*/
+	0,                                    /*tp_dict*/
+	0,                                    /*tp_descr_get*/
+	0,                                    /*tp_descr_set*/
+	0,                                    /*tp_dictoffset*/
+	(initproc)TanhBlobNonlinearity_init,  /*tp_init*/
+	0,                                    /*tp_alloc*/
+	Nonlinearity_new,                     /*tp_new*/
+};
+
 PyTypeObject UnivariateDistribution_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                     /*ob_size*/
@@ -2050,6 +2098,8 @@ PyMODINIT_FUNC init_cmt() {
 		return;
 	if(PyType_Ready(&STM_type) < 0)
 		return;
+	if(PyType_Ready(&TanhBlobNonlinearity_type) < 0)
+		return;
 	if(PyType_Ready(&TrainableNonlinearity_type) < 0)
 		return;
 	if(PyType_Ready(&UnivariateDistribution_type) < 0)
@@ -2065,8 +2115,9 @@ PyMODINIT_FUNC init_cmt() {
 	// add types to module
 	Py_INCREF(&AffinePreconditioner_type);
 	Py_INCREF(&AffineTransform_type);
-	Py_INCREF(&BinningTransform_type);
 	Py_INCREF(&Bernoulli_type);
+	Py_INCREF(&BinningTransform_type);
+	Py_INCREF(&BlobNonlinearity_type);
 	Py_INCREF(&CD_type);
 	Py_INCREF(&DifferentiableNonlinearity_type);
 	Py_INCREF(&Distribution_type);
@@ -2074,8 +2125,8 @@ PyMODINIT_FUNC init_cmt() {
 	Py_INCREF(&FVBN_type);
 	Py_INCREF(&GLM_type);
 	Py_INCREF(&GSM_type);
-	Py_INCREF(&InvertibleNonlinearity_type);
 	Py_INCREF(&HistogramNonlinearity_type);
+	Py_INCREF(&InvertibleNonlinearity_type);
 	Py_INCREF(&LogisticFunction_type);
 	Py_INCREF(&MCBM_type);
 	Py_INCREF(&MCGSM_type);
@@ -2091,6 +2142,7 @@ PyMODINIT_FUNC init_cmt() {
 	Py_INCREF(&Poisson_type);
 	Py_INCREF(&Preconditioner_type);
 	Py_INCREF(&STM_type);
+	Py_INCREF(&TanhBlobNonlinearity_type);
 	Py_INCREF(&TrainableNonlinearity_type);
 	Py_INCREF(&UnivariateDistribution_type);
 	Py_INCREF(&WhiteningPreconditioner_type);
@@ -2125,6 +2177,7 @@ PyMODINIT_FUNC init_cmt() {
 	PyModule_AddObject(module, "Poisson", reinterpret_cast<PyObject*>(&Poisson_type));
 	PyModule_AddObject(module, "Preconditioner", reinterpret_cast<PyObject*>(&Preconditioner_type));
 	PyModule_AddObject(module, "STM", reinterpret_cast<PyObject*>(&STM_type));
+	PyModule_AddObject(module, "TanhBlobNonlinearity", reinterpret_cast<PyObject*>(&TanhBlobNonlinearity_type));
 	PyModule_AddObject(module, "TrainableNonlinearity", reinterpret_cast<PyObject*>(&TrainableNonlinearity_type));
 	PyModule_AddObject(module, "UnivariateDistribution", reinterpret_cast<PyObject*>(&UnivariateDistribution_type));
 	PyModule_AddObject(module, "WhiteningPreconditioner", reinterpret_cast<PyObject*>(&WhiteningPreconditioner_type));

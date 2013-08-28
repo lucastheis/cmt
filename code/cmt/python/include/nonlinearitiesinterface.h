@@ -17,6 +17,7 @@ using CMT::LogisticFunction;
 using CMT::ExponentialFunction;
 using CMT::HistogramNonlinearity;
 using CMT::BlobNonlinearity;
+using CMT::TanhBlobNonlinearity;
 
 struct NonlinearityObject {
 	PyObject_HEAD
@@ -66,6 +67,12 @@ struct BlobNonlinearityObject {
 	bool owner;
 };
 
+struct TanhBlobNonlinearityObject {
+	PyObject_HEAD
+	TanhBlobNonlinearity* nonlinearity;
+	bool owner;
+};
+
 extern PyTypeObject Nonlinearity_type;
 
 extern const char* Nonlinearity_doc;
@@ -74,6 +81,7 @@ extern const char* LogisticFunction_doc;
 extern const char* ExponentialFunction_doc;
 extern const char* HistogramNonlinearity_doc;
 extern const char* BlobNonlinearity_doc;
+extern const char* TanhBlobNonlinearity_doc;
 
 PyObject* Nonlinearity_new(PyTypeObject* type, PyObject* args, PyObject* kwds);
 int Nonlinearity_init(NonlinearityObject*, PyObject*, PyObject*);
@@ -91,5 +99,9 @@ PyObject* HistogramNonlinearity_setstate(HistogramNonlinearityObject*, PyObject*
 int BlobNonlinearity_init(BlobNonlinearityObject*, PyObject*, PyObject*);
 PyObject* BlobNonlinearity_reduce(BlobNonlinearityObject*, PyObject*);
 PyObject* BlobNonlinearity_setstate(BlobNonlinearityObject*, PyObject*);
+
+int TanhBlobNonlinearity_init(TanhBlobNonlinearityObject*, PyObject*, PyObject*);
+PyObject* TanhBlobNonlinearity_reduce(TanhBlobNonlinearityObject*, PyObject*);
+PyObject* TanhBlobNonlinearity_setstate(TanhBlobNonlinearityObject*, PyObject*);
 
 #endif

@@ -5,6 +5,7 @@
 #include <cmath>
 using std::exp;
 using std::log;
+using std::tanh;
 
 #include "Eigen/Core"
 using Eigen::ArrayXd;
@@ -360,4 +361,54 @@ ArrayXXd CMT::BlobNonlinearity::derivative(const ArrayXXd& inputs) const {
 	ArrayXXd negEnergy = diff.square().colwise() * (-precisions / 2.);
 
 	return (mLogWeights.exp() * precisions).transpose().matrix() * (diff * negEnergy.exp()).matrix();
+}
+
+
+
+CMT::TanhBlobNonlinearity::TanhBlobNonlinearity(int numComponents, double epsilon) :
+	mNonlinearity(numComponents, epsilon)
+{
+}
+
+
+
+
+ArrayXXd CMT::TanhBlobNonlinearity::operator()(const ArrayXXd& inputs) const {
+	return tanh(mNonlinearity(inputs));
+}
+
+
+
+double CMT::TanhBlobNonlinearity::operator()(double input) const {
+	return std::tanh(mNonlinearity(input));
+}
+
+
+
+ArrayXd CMT::TanhBlobNonlinearity::parameters() const {
+	return mNonlinearity.parameters();
+}
+
+
+
+void CMT::TanhBlobNonlinearity::setParameters(const ArrayXd& parameters) {
+	mNonlinearity.setParameters(parameters);
+}
+
+
+
+int CMT::TanhBlobNonlinearity::numParameters() const {
+	return mNonlinearity.numParameters();
+}
+
+
+
+ArrayXXd CMT::TanhBlobNonlinearity::gradient(const ArrayXXd& inputs) const {
+	return mNonlinearity.gradient(inputs).rowwise() * sech(mNonlinearity(inputs)).square().row(0);
+}
+
+
+
+ArrayXXd CMT::TanhBlobNonlinearity::derivative(const ArrayXXd& inputs) const {
+	return mNonlinearity.derivative(inputs).rowwise() * sech(mNonlinearity(inputs)).square().row(0);
 }

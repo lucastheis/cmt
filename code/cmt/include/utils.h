@@ -31,6 +31,11 @@ namespace CMT {
 	ArrayXXd gamma(const ArrayXXd& arr);
 	ArrayXXd lnGamma(const ArrayXXd& arr);
 
+	ArrayXXd tanh(const ArrayXXd& arr);
+	ArrayXXd cosh(const ArrayXXd& arr);
+	ArrayXXd sinh(const ArrayXXd& arr);
+	ArrayXXd sech(const ArrayXXd& arr);
+
 	ArrayXXd sampleNormal(int m = 1, int n = 1);
 	ArrayXXd sampleGamma(int m = 1, int n = 1, int k = 1);
 	ArrayXXi samplePoisson(int m = 1, int n = 1, double lambda = 1.);
