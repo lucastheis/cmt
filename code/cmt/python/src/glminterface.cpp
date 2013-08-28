@@ -33,6 +33,13 @@ Trainable::Parameters* PyObject_ToGLMParameters(PyObject* parameters) {
 			else
 				throw Exception("train_bias should be of type `bool`.");
 
+		PyObject* train_nonlinearity = PyDict_GetItemString(parameters, "train_nonlinearity");
+		if(train_nonlinearity)
+			if(PyBool_Check(train_nonlinearity))
+				params->trainNonlinearity = (train_nonlinearity == Py_True);
+			else
+				throw Exception("train_nonlinearity should be of type `bool`.");
+
 		PyObject* regularize_weights = PyDict_GetItemString(parameters, "regularize_weights");
 		if(regularize_weights)
 			if(PyFloat_Check(regularize_weights))

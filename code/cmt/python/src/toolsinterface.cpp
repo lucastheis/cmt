@@ -770,7 +770,7 @@ const char* sample_spike_train_doc =
 	"before appending it to the stimulus.\n"
 	"\n"
 	"@type  stimuli: C{ndarray}\n"
-	"@param stimuli: each column represents (possibly preprocessed) stimulus window\n"
+	"@param stimuli: each column represents a (possibly preprocessed) stimulus window\n"
 	"\n"
 	"@type  model: L{ConditionalDistribution<models.ConditionalDistribution>}\n"
 	"@param model: a conditional distribution such as an L{STM<models.STM>}\n"

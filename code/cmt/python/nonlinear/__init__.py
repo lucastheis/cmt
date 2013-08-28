@@ -11,3 +11,4 @@ from _cmt import InvertibleNonlinearity
 from _cmt import LogisticFunction
 from _cmt import ExponentialFunction
 from _cmt import HistogramNonlinearity
+from _cmt import BlobNonlinearity

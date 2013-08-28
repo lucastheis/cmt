@@ -43,44 +43,44 @@ static PyMethodDef Distribution_methods[] = {
 
 PyTypeObject Distribution_type = {
 	PyObject_HEAD_INIT(0)
-	0,                                /*ob_size*/
-	"cmt.ConditionalDistribution",    /*tp_name*/
-	sizeof(DistributionObject),       /*tp_basicsize*/
-	0,                                /*tp_itemsize*/
-	(destructor)Distribution_dealloc, /*tp_dealloc*/
-	0,                                /*tp_print*/
-	0,                                /*tp_getattr*/
-	0,                                /*tp_setattr*/
-	0,                                /*tp_compare*/
-	0,                                /*tp_repr*/
-	0,                                /*tp_as_number*/
-	0,                                /*tp_as_sequence*/
-	0,                                /*tp_as_mapping*/
-	0,                                /*tp_hash */
-	0,                                /*tp_call*/
-	0,                                /*tp_str*/
-	0,                                /*tp_getattro*/
-	0,                                /*tp_setattro*/
-	0,                                /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
-	Distribution_doc,                 /*tp_doc*/
-	0,                                /*tp_traverse*/
-	0,                                /*tp_clear*/
-	0,                                /*tp_richcompare*/
-	0,                                /*tp_weaklistoffset*/
-	0,                                /*tp_iter*/
-	0,                                /*tp_iternext*/
-	Distribution_methods,             /*tp_methods*/
-	0,                                /*tp_members*/
-	Distribution_getset,              /*tp_getset*/
-	0,                                /*tp_base*/
-	0,                                /*tp_dict*/
-	0,                                /*tp_descr_get*/
-	0,                                /*tp_descr_set*/
-	0,                                /*tp_dictoffset*/
-	(initproc)Distribution_init,      /*tp_init*/
-	0,                                /*tp_alloc*/
-	Distribution_new,                 /*tp_new*/
+	0,                                    /*ob_size*/
+	"cmt.models.ConditionalDistribution", /*tp_name*/
+	sizeof(DistributionObject),           /*tp_basicsize*/
+	0,                                    /*tp_itemsize*/
+	(destructor)Distribution_dealloc,     /*tp_dealloc*/
+	0,                                    /*tp_print*/
+	0,                                    /*tp_getattr*/
+	0,                                    /*tp_setattr*/
+	0,                                    /*tp_compare*/
+	0,                                    /*tp_repr*/
+	0,                                    /*tp_as_number*/
+	0,                                    /*tp_as_sequence*/
+	0,                                    /*tp_as_mapping*/
+	0,                                    /*tp_hash */
+	0,                                    /*tp_call*/
+	0,                                    /*tp_str*/
+	0,                                    /*tp_getattro*/
+	0,                                    /*tp_setattro*/
+	0,                                    /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                   /*tp_flags*/
+	Distribution_doc,                     /*tp_doc*/
+	0,                                    /*tp_traverse*/
+	0,                                    /*tp_clear*/
+	0,                                    /*tp_richcompare*/
+	0,                                    /*tp_weaklistoffset*/
+	0,                                    /*tp_iter*/
+	0,                                    /*tp_iternext*/
+	Distribution_methods,                 /*tp_methods*/
+	0,                                    /*tp_members*/
+	Distribution_getset,                  /*tp_getset*/
+	0,                                    /*tp_base*/
+	0,                                    /*tp_dict*/
+	0,                                    /*tp_descr_get*/
+	0,                                    /*tp_descr_set*/
+	0,                                    /*tp_dictoffset*/
+	(initproc)Distribution_init,          /*tp_init*/
+	0,                                    /*tp_alloc*/
+	Distribution_new,                     /*tp_new*/
 };
 
 static PyGetSetDef CD_getset[] = {
@@ -104,44 +104,44 @@ static PyMethodDef CD_methods[] = {
 
 PyTypeObject CD_type = {
 	PyObject_HEAD_INIT(0)
-	0,                             /*ob_size*/
-	"cmt.ConditionalDistribution", /*tp_name*/
-	sizeof(CDObject),              /*tp_basicsize*/
-	0,                             /*tp_itemsize*/
-	(destructor)CD_dealloc,        /*tp_dealloc*/
-	0,                             /*tp_print*/
-	0,                             /*tp_getattr*/
-	0,                             /*tp_setattr*/
-	0,                             /*tp_compare*/
-	0,                             /*tp_repr*/
-	0,                             /*tp_as_number*/
-	0,                             /*tp_as_sequence*/
-	0,                             /*tp_as_mapping*/
-	0,                             /*tp_hash */
-	0,                             /*tp_call*/
-	0,                             /*tp_str*/
-	0,                             /*tp_getattro*/
-	0,                             /*tp_setattro*/
-	0,                             /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,            /*tp_flags*/
-	CD_doc,                        /*tp_doc*/
-	0,                             /*tp_traverse*/
-	0,                             /*tp_clear*/
-	0,                             /*tp_richcompare*/
-	0,                             /*tp_weaklistoffset*/
-	0,                             /*tp_iter*/
-	0,                             /*tp_iternext*/
-	CD_methods,                    /*tp_methods*/
-	0,                             /*tp_members*/
-	CD_getset,                     /*tp_getset*/
-	0,                             /*tp_base*/
-	0,                             /*tp_dict*/
-	0,                             /*tp_descr_get*/
-	0,                             /*tp_descr_set*/
-	0,                             /*tp_dictoffset*/
-	(initproc)CD_init,             /*tp_init*/
-	0,                             /*tp_alloc*/
-	CD_new,                        /*tp_new*/
+	0,                                    /*ob_size*/
+	"cmt.models.ConditionalDistribution", /*tp_name*/
+	sizeof(CDObject),                     /*tp_basicsize*/
+	0,                                    /*tp_itemsize*/
+	(destructor)CD_dealloc,               /*tp_dealloc*/
+	0,                                    /*tp_print*/
+	0,                                    /*tp_getattr*/
+	0,                                    /*tp_setattr*/
+	0,                                    /*tp_compare*/
+	0,                                    /*tp_repr*/
+	0,                                    /*tp_as_number*/
+	0,                                    /*tp_as_sequence*/
+	0,                                    /*tp_as_mapping*/
+	0,                                    /*tp_hash */
+	0,                                    /*tp_call*/
+	0,                                    /*tp_str*/
+	0,                                    /*tp_getattro*/
+	0,                                    /*tp_setattro*/
+	0,                                    /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                   /*tp_flags*/
+	CD_doc,                               /*tp_doc*/
+	0,                                    /*tp_traverse*/
+	0,                                    /*tp_clear*/
+	0,                                    /*tp_richcompare*/
+	0,                                    /*tp_weaklistoffset*/
+	0,                                    /*tp_iter*/
+	0,                                    /*tp_iternext*/
+	CD_methods,                           /*tp_methods*/
+	0,                                    /*tp_members*/
+	CD_getset,                            /*tp_getset*/
+	0,                                    /*tp_base*/
+	0,                                    /*tp_dict*/
+	0,                                    /*tp_descr_get*/
+	0,                                    /*tp_descr_set*/
+	0,                                    /*tp_dictoffset*/
+	(initproc)CD_init,                    /*tp_init*/
+	0,                                    /*tp_alloc*/
+	CD_new,                               /*tp_new*/
 };
 
 static PyGetSetDef MCGSM_getset[] = {
@@ -222,7 +222,7 @@ static PyMethodDef MCGSM_methods[] = {
 PyTypeObject MCGSM_type = {
 	PyObject_HEAD_INIT(0)
 	0,                      /*ob_size*/
-	"cmt.MCGSM",            /*tp_name*/
+	"cmt.models.MCGSM",     /*tp_name*/
 	sizeof(MCGSMObject),    /*tp_basicsize*/
 	0,                      /*tp_itemsize*/
 	(destructor)CD_dealloc, /*tp_dealloc*/
@@ -327,7 +327,7 @@ static PyMethodDef MCBM_methods[] = {
 PyTypeObject MCBM_type = {
 	PyObject_HEAD_INIT(0)
 	0,                      /*ob_size*/
-	"cmt.MCBM",             /*tp_name*/
+	"cmt.models.MCBM",      /*tp_name*/
 	sizeof(MCBMObject),     /*tp_basicsize*/
 	0,                      /*tp_itemsize*/
 	(destructor)CD_dealloc, /*tp_dealloc*/
@@ -438,7 +438,7 @@ static PyMethodDef STM_methods[] = {
 PyTypeObject STM_type = {
 	PyObject_HEAD_INIT(0)
 	0,                      /*ob_size*/
-	"cmt.STM",              /*tp_name*/
+	"cmt.models.STM",       /*tp_name*/
 	sizeof(STMObject),      /*tp_basicsize*/
 	0,                      /*tp_itemsize*/
 	(destructor)CD_dealloc, /*tp_dealloc*/
@@ -507,7 +507,7 @@ static PyMethodDef Mixture_methods[] = {
 PyTypeObject Mixture_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
-	"cmt.Mixture",                    /*tp_name*/
+	"cmt.models.Mixture",             /*tp_name*/
 	sizeof(MixtureObject),            /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
 	(destructor)Distribution_dealloc, /*tp_dealloc*/
@@ -562,7 +562,7 @@ static PyMethodDef MoGSM_methods[] = {
 PyTypeObject MoGSM_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
-	"cmt.MoGSM",                      /*tp_name*/
+	"cmt.models.MoGSM",               /*tp_name*/
 	sizeof(MoGSMObject),              /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
 	(destructor)Distribution_dealloc, /*tp_dealloc*/
@@ -610,7 +610,7 @@ static PyMethodDef MixtureComponent_methods[] = {
 PyTypeObject MixtureComponent_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
-	"cmt.MixtureComponent",           /*tp_name*/
+	"cmt.models.MixtureComponent",    /*tp_name*/
 	sizeof(MixtureComponentObject),   /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
 	(destructor)Distribution_dealloc, /*tp_dealloc*/
@@ -682,7 +682,7 @@ static PyMethodDef GSM_methods[] = {
 PyTypeObject GSM_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
-	"cmt.GSM",                        /*tp_name*/
+	"cmt.models.GSM",                 /*tp_name*/
 	sizeof(GSMObject),                /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
 	(destructor)Distribution_dealloc, /*tp_dealloc*/
@@ -739,7 +739,7 @@ static PyMethodDef PatchModel_methods[] = {
 PyTypeObject PatchModel_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
-	"cmt.PatchModel",                 /*tp_name*/
+	"cmt.models.PatchModel",          /*tp_name*/
 	sizeof(PatchModelObject),         /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
 	(destructor)Distribution_dealloc, /*tp_dealloc*/
@@ -804,7 +804,7 @@ static PyMethodDef PatchMCBM_methods[] = {
 PyTypeObject PatchMCBM_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
-	"cmt.PatchMCBM",                  /*tp_name*/
+	"cmt.models.PatchMCBM",           /*tp_name*/
 	sizeof(PatchMCBMObject),          /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
 	(destructor)Distribution_dealloc, /*tp_dealloc*/
@@ -869,8 +869,8 @@ static PyMethodDef PatchMCGSM_methods[] = {
 PyTypeObject PatchMCGSM_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
-	"cmt.PatchMCGSM",                  /*tp_name*/
-	sizeof(PatchMCGSMObject),          /*tp_basicsize*/
+	"cmt.models.PatchMCGSM",          /*tp_name*/
+	sizeof(PatchMCGSMObject),         /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
 	(destructor)Distribution_dealloc, /*tp_dealloc*/
 	0,                                /*tp_print*/
@@ -880,7 +880,7 @@ PyTypeObject PatchMCGSM_type = {
 	0,                                /*tp_repr*/
 	0,                                /*tp_as_number*/
 	0,                                /*tp_as_sequence*/
-	&PatchMCGSM_as_mapping,            /*tp_as_mapping*/
+	&PatchMCGSM_as_mapping,           /*tp_as_mapping*/
 	0,                                /*tp_hash */
 	0,                                /*tp_call*/
 	0,                                /*tp_str*/
@@ -888,22 +888,22 @@ PyTypeObject PatchMCGSM_type = {
 	0,                                /*tp_setattro*/
 	0,                                /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
-	PatchMCGSM_doc,                    /*tp_doc*/
+	PatchMCGSM_doc,                   /*tp_doc*/
 	0,                                /*tp_traverse*/
 	0,                                /*tp_clear*/
 	0,                                /*tp_richcompare*/
 	0,                                /*tp_weaklistoffset*/
 	0,                                /*tp_iter*/
 	0,                                /*tp_iternext*/
-	PatchMCGSM_methods,                /*tp_methods*/
+	PatchMCGSM_methods,               /*tp_methods*/
 	0,                                /*tp_members*/
-	PatchMCGSM_getset,                 /*tp_getset*/
+	PatchMCGSM_getset,                /*tp_getset*/
 	&PatchModel_type,                 /*tp_base*/
 	0,                                /*tp_dict*/
 	0,                                /*tp_descr_get*/
 	0,                                /*tp_descr_set*/
 	0,                                /*tp_dictoffset*/
-	(initproc)PatchMCGSM_init,         /*tp_init*/
+	(initproc)PatchMCGSM_init,        /*tp_init*/
 	0,                                /*tp_alloc*/
 	Distribution_new,                 /*tp_new*/
 };
@@ -957,7 +957,7 @@ static PyMethodDef GLM_methods[] = {
 PyTypeObject GLM_type = {
 	PyObject_HEAD_INIT(0)
 	0,                       /*ob_size*/
-	"cmt.GLM",               /*tp_name*/
+	"cmt.models.GLM",        /*tp_name*/
 	sizeof(GLMObject),       /*tp_basicsize*/
 	0,                       /*tp_itemsize*/
 	(destructor)GLM_dealloc, /*tp_dealloc*/
@@ -1022,7 +1022,7 @@ static PyMethodDef FVBN_methods[] = {
 PyTypeObject FVBN_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
-	"cmt.FVBN",                       /*tp_name*/
+	"cmt.models.FVBN",                /*tp_name*/
 	sizeof(FVBNObject),               /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
 	(destructor)Distribution_dealloc, /*tp_dealloc*/
@@ -1069,7 +1069,7 @@ static PyMethodDef Nonlinearity_methods[] = {
 PyTypeObject Nonlinearity_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
-	"cmt.Nonlinearity",               /*tp_name*/
+	"cmt.nonlinear.Nonlinearity",     /*tp_name*/
 	sizeof(NonlinearityObject),       /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
 	(destructor)Nonlinearity_dealloc, /*tp_dealloc*/
@@ -1110,134 +1110,134 @@ PyTypeObject Nonlinearity_type = {
 
 PyTypeObject DifferentiableNonlinearity_type = {
 	PyObject_HEAD_INIT(0)
-	0,                                        /*ob_size*/
-	"cmt.DifferentiableNonlinearity",         /*tp_name*/
-	sizeof(DifferentiableNonlinearityObject), /*tp_basicsize*/
-	0,                                        /*tp_itemsize*/
-	(destructor)Nonlinearity_dealloc,         /*tp_dealloc*/
-	0,                                        /*tp_print*/
-	0,                                        /*tp_getattr*/
-	0,                                        /*tp_setattr*/
-	0,                                        /*tp_compare*/
-	0,                                        /*tp_repr*/
-	0,                                        /*tp_as_number*/
-	0,                                        /*tp_as_sequence*/
-	0,                                        /*tp_as_mapping*/
-	0,                                        /*tp_hash */
-	0,                                        /*tp_call*/
-	0,                                        /*tp_str*/
-	0,                                        /*tp_getattro*/
-	0,                                        /*tp_setattro*/
-	0,                                        /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,                       /*tp_flags*/
-	Nonlinearity_doc,                         /*tp_doc*/
-	0,                                        /*tp_traverse*/
-	0,                                        /*tp_clear*/
-	0,                                        /*tp_richcompare*/
-	0,                                        /*tp_weaklistoffset*/
-	0,                                        /*tp_iter*/
-	0,                                        /*tp_iternext*/
-	0,                                        /*tp_methods*/
-	0,                                        /*tp_members*/
-	0,                                        /*tp_getset*/
-	&Nonlinearity_type,                       /*tp_base*/
-	0,                                        /*tp_dict*/
-	0,                                        /*tp_descr_get*/
-	0,                                        /*tp_descr_set*/
-	0,                                        /*tp_dictoffset*/
-	(initproc)Nonlinearity_init,              /*tp_init*/
-	0,                                        /*tp_alloc*/
-	Nonlinearity_new,                         /*tp_new*/
+	0,                                          /*ob_size*/
+	"cmt.nonlinear.DifferentiableNonlinearity", /*tp_name*/
+	sizeof(DifferentiableNonlinearityObject),   /*tp_basicsize*/
+	0,                                          /*tp_itemsize*/
+	(destructor)Nonlinearity_dealloc,           /*tp_dealloc*/
+	0,                                          /*tp_print*/
+	0,                                          /*tp_getattr*/
+	0,                                          /*tp_setattr*/
+	0,                                          /*tp_compare*/
+	0,                                          /*tp_repr*/
+	0,                                          /*tp_as_number*/
+	0,                                          /*tp_as_sequence*/
+	0,                                          /*tp_as_mapping*/
+	0,                                          /*tp_hash */
+	0,                                          /*tp_call*/
+	0,                                          /*tp_str*/
+	0,                                          /*tp_getattro*/
+	0,                                          /*tp_setattro*/
+	0,                                          /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                         /*tp_flags*/
+	Nonlinearity_doc,                           /*tp_doc*/
+	0,                                          /*tp_traverse*/
+	0,                                          /*tp_clear*/
+	0,                                          /*tp_richcompare*/
+	0,                                          /*tp_weaklistoffset*/
+	0,                                          /*tp_iter*/
+	0,                                          /*tp_iternext*/
+	0,                                          /*tp_methods*/
+	0,                                          /*tp_members*/
+	0,                                          /*tp_getset*/
+	&Nonlinearity_type,                         /*tp_base*/
+	0,                                          /*tp_dict*/
+	0,                                          /*tp_descr_get*/
+	0,                                          /*tp_descr_set*/
+	0,                                          /*tp_dictoffset*/
+	(initproc)Nonlinearity_init,                /*tp_init*/
+	0,                                          /*tp_alloc*/
+	Nonlinearity_new,                           /*tp_new*/
 };
 
 PyTypeObject InvertibleNonlinearity_type = {
 	PyObject_HEAD_INIT(0)
-	0,                                    /*ob_size*/
-	"cmt.InvertibleNonlinearity",         /*tp_name*/
-	sizeof(InvertibleNonlinearityObject), /*tp_basicsize*/
-	0,                                    /*tp_itemsize*/
-	(destructor)Nonlinearity_dealloc,     /*tp_dealloc*/
-	0,                                    /*tp_print*/
-	0,                                    /*tp_getattr*/
-	0,                                    /*tp_setattr*/
-	0,                                    /*tp_compare*/
-	0,                                    /*tp_repr*/
-	0,                                    /*tp_as_number*/
-	0,                                    /*tp_as_sequence*/
-	0,                                    /*tp_as_mapping*/
-	0,                                    /*tp_hash */
-	0,                                    /*tp_call*/
-	0,                                    /*tp_str*/
-	0,                                    /*tp_getattro*/
-	0,                                    /*tp_setattro*/
-	0,                                    /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,                   /*tp_flags*/
-	Nonlinearity_doc,                     /*tp_doc*/
-	0,                                    /*tp_traverse*/
-	0,                                    /*tp_clear*/
-	0,                                    /*tp_richcompare*/
-	0,                                    /*tp_weaklistoffset*/
-	0,                                    /*tp_iter*/
-	0,                                    /*tp_iternext*/
-	0,                                    /*tp_methods*/
-	0,                                    /*tp_members*/
-	0,                                    /*tp_getset*/
-	&Nonlinearity_type,                   /*tp_base*/
-	0,                                    /*tp_dict*/
-	0,                                    /*tp_descr_get*/
-	0,                                    /*tp_descr_set*/
-	0,                                    /*tp_dictoffset*/
-	(initproc)Nonlinearity_init,          /*tp_init*/
-	0,                                    /*tp_alloc*/
-	Nonlinearity_new,                     /*tp_new*/
+	0,                                      /*ob_size*/
+	"cmt.nonlinear.InvertibleNonlinearity", /*tp_name*/
+	sizeof(InvertibleNonlinearityObject),   /*tp_basicsize*/
+	0,                                      /*tp_itemsize*/
+	(destructor)Nonlinearity_dealloc,       /*tp_dealloc*/
+	0,                                      /*tp_print*/
+	0,                                      /*tp_getattr*/
+	0,                                      /*tp_setattr*/
+	0,                                      /*tp_compare*/
+	0,                                      /*tp_repr*/
+	0,                                      /*tp_as_number*/
+	0,                                      /*tp_as_sequence*/
+	0,                                      /*tp_as_mapping*/
+	0,                                      /*tp_hash */
+	0,                                      /*tp_call*/
+	0,                                      /*tp_str*/
+	0,                                      /*tp_getattro*/
+	0,                                      /*tp_setattro*/
+	0,                                      /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                     /*tp_flags*/
+	Nonlinearity_doc,                       /*tp_doc*/
+	0,                                      /*tp_traverse*/
+	0,                                      /*tp_clear*/
+	0,                                      /*tp_richcompare*/
+	0,                                      /*tp_weaklistoffset*/
+	0,                                      /*tp_iter*/
+	0,                                      /*tp_iternext*/
+	0,                                      /*tp_methods*/
+	0,                                      /*tp_members*/
+	0,                                      /*tp_getset*/
+	&Nonlinearity_type,                     /*tp_base*/
+	0,                                      /*tp_dict*/
+	0,                                      /*tp_descr_get*/
+	0,                                      /*tp_descr_set*/
+	0,                                      /*tp_dictoffset*/
+	(initproc)Nonlinearity_init,            /*tp_init*/
+	0,                                      /*tp_alloc*/
+	Nonlinearity_new,                       /*tp_new*/
 };
 
 PyTypeObject TrainableNonlinearity_type = {
 	PyObject_HEAD_INIT(0)
-	0,                                   /*ob_size*/
-	"cmt.TrainableNonlinearity",         /*tp_name*/
-	sizeof(TrainableNonlinearityObject), /*tp_basicsize*/
-	0,                                   /*tp_itemsize*/
-	(destructor)Nonlinearity_dealloc,    /*tp_dealloc*/
-	0,                                   /*tp_print*/
-	0,                                   /*tp_getattr*/
-	0,                                   /*tp_setattr*/
-	0,                                   /*tp_compare*/
-	0,                                   /*tp_repr*/
-	0,                                   /*tp_as_number*/
-	0,                                   /*tp_as_sequence*/
-	0,                                   /*tp_as_mapping*/
-	0,                                   /*tp_hash */
-	0,                                   /*tp_call*/
-	0,                                   /*tp_str*/
-	0,                                   /*tp_getattro*/
-	0,                                   /*tp_setattro*/
-	0,                                   /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,                  /*tp_flags*/
-	Nonlinearity_doc,                    /*tp_doc*/
-	0,                                   /*tp_traverse*/
-	0,                                   /*tp_clear*/
-	0,                                   /*tp_richcompare*/
-	0,                                   /*tp_weaklistoffset*/
-	0,                                   /*tp_iter*/
-	0,                                   /*tp_iternext*/
-	0,                                   /*tp_methods*/
-	0,                                   /*tp_members*/
-	0,                                   /*tp_getset*/
-	&Nonlinearity_type,                  /*tp_base*/
-	0,                                   /*tp_dict*/
-	0,                                   /*tp_descr_get*/
-	0,                                   /*tp_descr_set*/
-	0,                                   /*tp_dictoffset*/
-	(initproc)Nonlinearity_init,         /*tp_init*/
-	0,                                   /*tp_alloc*/
-	Nonlinearity_new,                    /*tp_new*/
+	0,                                     /*ob_size*/
+	"cmt.nonlinear.TrainableNonlinearity", /*tp_name*/
+	sizeof(TrainableNonlinearityObject),   /*tp_basicsize*/
+	0,                                     /*tp_itemsize*/
+	(destructor)Nonlinearity_dealloc,      /*tp_dealloc*/
+	0,                                     /*tp_print*/
+	0,                                     /*tp_getattr*/
+	0,                                     /*tp_setattr*/
+	0,                                     /*tp_compare*/
+	0,                                     /*tp_repr*/
+	0,                                     /*tp_as_number*/
+	0,                                     /*tp_as_sequence*/
+	0,                                     /*tp_as_mapping*/
+	0,                                     /*tp_hash */
+	0,                                     /*tp_call*/
+	0,                                     /*tp_str*/
+	0,                                     /*tp_getattro*/
+	0,                                     /*tp_setattro*/
+	0,                                     /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                    /*tp_flags*/
+	Nonlinearity_doc,                      /*tp_doc*/
+	0,                                     /*tp_traverse*/
+	0,                                     /*tp_clear*/
+	0,                                     /*tp_richcompare*/
+	0,                                     /*tp_weaklistoffset*/
+	0,                                     /*tp_iter*/
+	0,                                     /*tp_iternext*/
+	0,                                     /*tp_methods*/
+	0,                                     /*tp_members*/
+	0,                                     /*tp_getset*/
+	&Nonlinearity_type,                    /*tp_base*/
+	0,                                     /*tp_dict*/
+	0,                                     /*tp_descr_get*/
+	0,                                     /*tp_descr_set*/
+	0,                                     /*tp_dictoffset*/
+	(initproc)Nonlinearity_init,           /*tp_init*/
+	0,                                     /*tp_alloc*/
+	Nonlinearity_new,                      /*tp_new*/
 };
 
 PyTypeObject LogisticFunction_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
-	"cmt.LogisticFunction",           /*tp_name*/
+	"cmt.nonlinear.LogisticFunction", /*tp_name*/
 	sizeof(LogisticFunctionObject),   /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
 	(destructor)Nonlinearity_dealloc, /*tp_dealloc*/
@@ -1278,92 +1278,146 @@ PyTypeObject LogisticFunction_type = {
 
 PyTypeObject ExponentialFunction_type = {
 	PyObject_HEAD_INIT(0)
-	0,                                  /*ob_size*/
-	"cmt.ExponentialFunction",          /*tp_name*/
-	sizeof(ExponentialFunctionObject),  /*tp_basicsize*/
-	0,                                  /*tp_itemsize*/
-	(destructor)Nonlinearity_dealloc,   /*tp_dealloc*/
-	0,                                  /*tp_print*/
-	0,                                  /*tp_getattr*/
-	0,                                  /*tp_setattr*/
-	0,                                  /*tp_compare*/
-	0,                                  /*tp_repr*/
-	0,                                  /*tp_as_number*/
-	0,                                  /*tp_as_sequence*/
-	0,                                  /*tp_as_mapping*/
-	0,                                  /*tp_hash */
-	0,                                  /*tp_call*/
-	0,                                  /*tp_str*/
-	0,                                  /*tp_getattro*/
-	0,                                  /*tp_setattro*/
-	0,                                  /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,                 /*tp_flags*/
-	ExponentialFunction_doc,            /*tp_doc*/
-	0,                                  /*tp_traverse*/
-	0,                                  /*tp_clear*/
-	0,                                  /*tp_richcompare*/
-	0,                                  /*tp_weaklistoffset*/
-	0,                                  /*tp_iter*/
-	0,                                  /*tp_iternext*/
-	0,                                  /*tp_methods*/
-	0,                                  /*tp_members*/
-	0,                                  /*tp_getset*/
-	&DifferentiableNonlinearity_type,   /*tp_base*/
-	0,                                  /*tp_dict*/
-	0,                                  /*tp_descr_get*/
-	0,                                  /*tp_descr_set*/
-	0,                                  /*tp_dictoffset*/
-	(initproc)ExponentialFunction_init, /*tp_init*/
-	0,                                  /*tp_alloc*/
-	Nonlinearity_new,                   /*tp_new*/
+	0,                                   /*ob_size*/
+	"cmt.nonlinear.ExponentialFunction", /*tp_name*/
+	sizeof(ExponentialFunctionObject),   /*tp_basicsize*/
+	0,                                   /*tp_itemsize*/
+	(destructor)Nonlinearity_dealloc,    /*tp_dealloc*/
+	0,                                   /*tp_print*/
+	0,                                   /*tp_getattr*/
+	0,                                   /*tp_setattr*/
+	0,                                   /*tp_compare*/
+	0,                                   /*tp_repr*/
+	0,                                   /*tp_as_number*/
+	0,                                   /*tp_as_sequence*/
+	0,                                   /*tp_as_mapping*/
+	0,                                   /*tp_hash */
+	0,                                   /*tp_call*/
+	0,                                   /*tp_str*/
+	0,                                   /*tp_getattro*/
+	0,                                   /*tp_setattro*/
+	0,                                   /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                  /*tp_flags*/
+	ExponentialFunction_doc,             /*tp_doc*/
+	0,                                   /*tp_traverse*/
+	0,                                   /*tp_clear*/
+	0,                                   /*tp_richcompare*/
+	0,                                   /*tp_weaklistoffset*/
+	0,                                   /*tp_iter*/
+	0,                                   /*tp_iternext*/
+	0,                                   /*tp_methods*/
+	0,                                   /*tp_members*/
+	0,                                   /*tp_getset*/
+	&DifferentiableNonlinearity_type,    /*tp_base*/
+	0,                                   /*tp_dict*/
+	0,                                   /*tp_descr_get*/
+	0,                                   /*tp_descr_set*/
+	0,                                   /*tp_dictoffset*/
+	(initproc)ExponentialFunction_init,  /*tp_init*/
+	0,                                   /*tp_alloc*/
+	Nonlinearity_new,                    /*tp_new*/
+};
+
+static PyMethodDef HistogramNonlinearity_methods[] = {
+	{"__reduce__", (PyCFunction)HistogramNonlinearity_reduce, METH_NOARGS, Nonlinearity_reduce_doc},
+	{"__setstate__", (PyCFunction)HistogramNonlinearity_setstate, METH_VARARGS, 0},
+	{0}
 };
 
 PyTypeObject HistogramNonlinearity_type = {
 	PyObject_HEAD_INIT(0)
-	0,                                    /*ob_size*/
-	"cmt.HistogramNonlinearity",          /*tp_name*/
-	sizeof(HistogramNonlinearityObject),  /*tp_basicsize*/
-	0,                                    /*tp_itemsize*/
-	(destructor)Nonlinearity_dealloc,     /*tp_dealloc*/
-	0,                                    /*tp_print*/
-	0,                                    /*tp_getattr*/
-	0,                                    /*tp_setattr*/
-	0,                                    /*tp_compare*/
-	0,                                    /*tp_repr*/
-	0,                                    /*tp_as_number*/
-	0,                                    /*tp_as_sequence*/
-	0,                                    /*tp_as_mapping*/
-	0,                                    /*tp_hash */
-	0,                                    /*tp_call*/
-	0,                                    /*tp_str*/
-	0,                                    /*tp_getattro*/
-	0,                                    /*tp_setattro*/
-	0,                                    /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,                   /*tp_flags*/
-	HistogramNonlinearity_doc,            /*tp_doc*/
-	0,                                    /*tp_traverse*/
-	0,                                    /*tp_clear*/
-	0,                                    /*tp_richcompare*/
-	0,                                    /*tp_weaklistoffset*/
-	0,                                    /*tp_iter*/
-	0,                                    /*tp_iternext*/
-	0,                                    /*tp_methods*/
-	0,                                    /*tp_members*/
-	0,                                    /*tp_getset*/
-	&TrainableNonlinearity_type,          /*tp_base*/
-	0,                                    /*tp_dict*/
-	0,                                    /*tp_descr_get*/
-	0,                                    /*tp_descr_set*/
-	0,                                    /*tp_dictoffset*/
-	(initproc)HistogramNonlinearity_init, /*tp_init*/
-	0,                                    /*tp_alloc*/
-	Nonlinearity_new,                     /*tp_new*/
+	0,                                     /*ob_size*/
+	"cmt.nonlinear.HistogramNonlinearity", /*tp_name*/
+	sizeof(HistogramNonlinearityObject),   /*tp_basicsize*/
+	0,                                     /*tp_itemsize*/
+	(destructor)Nonlinearity_dealloc,      /*tp_dealloc*/
+	0,                                     /*tp_print*/
+	0,                                     /*tp_getattr*/
+	0,                                     /*tp_setattr*/
+	0,                                     /*tp_compare*/
+	0,                                     /*tp_repr*/
+	0,                                     /*tp_as_number*/
+	0,                                     /*tp_as_sequence*/
+	0,                                     /*tp_as_mapping*/
+	0,                                     /*tp_hash */
+	0,                                     /*tp_call*/
+	0,                                     /*tp_str*/
+	0,                                     /*tp_getattro*/
+	0,                                     /*tp_setattro*/
+	0,                                     /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                    /*tp_flags*/
+	HistogramNonlinearity_doc,             /*tp_doc*/
+	0,                                     /*tp_traverse*/
+	0,                                     /*tp_clear*/
+	0,                                     /*tp_richcompare*/
+	0,                                     /*tp_weaklistoffset*/
+	0,                                     /*tp_iter*/
+	0,                                     /*tp_iternext*/
+	HistogramNonlinearity_methods,         /*tp_methods*/
+	0,                                     /*tp_members*/
+	0,                                     /*tp_getset*/
+	&TrainableNonlinearity_type,           /*tp_base*/
+	0,                                     /*tp_dict*/
+	0,                                     /*tp_descr_get*/
+	0,                                     /*tp_descr_set*/
+	0,                                     /*tp_dictoffset*/
+	(initproc)HistogramNonlinearity_init,  /*tp_init*/
+	0,                                     /*tp_alloc*/
+	Nonlinearity_new,                      /*tp_new*/
+};
+
+static PyMethodDef BlobNonlinearity_methods[] = {
+	{"__reduce__", (PyCFunction)BlobNonlinearity_reduce, METH_NOARGS, Nonlinearity_reduce_doc},
+	{"__setstate__", (PyCFunction)BlobNonlinearity_setstate, METH_VARARGS, 0},
+	{0}
+};
+
+PyTypeObject BlobNonlinearity_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                /*ob_size*/
+	"cmt.nonlinear.BlobNonlinearity", /*tp_name*/
+	sizeof(BlobNonlinearityObject),   /*tp_basicsize*/
+	0,                                /*tp_itemsize*/
+	(destructor)Nonlinearity_dealloc, /*tp_dealloc*/
+	0,                                /*tp_print*/
+	0,                                /*tp_getattr*/
+	0,                                /*tp_setattr*/
+	0,                                /*tp_compare*/
+	0,                                /*tp_repr*/
+	0,                                /*tp_as_number*/
+	0,                                /*tp_as_sequence*/
+	0,                                /*tp_as_mapping*/
+	0,                                /*tp_hash */
+	0,                                /*tp_call*/
+	0,                                /*tp_str*/
+	0,                                /*tp_getattro*/
+	0,                                /*tp_setattro*/
+	0,                                /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
+	BlobNonlinearity_doc,             /*tp_doc*/
+	0,                                /*tp_traverse*/
+	0,                                /*tp_clear*/
+	0,                                /*tp_richcompare*/
+	0,                                /*tp_weaklistoffset*/
+	0,                                /*tp_iter*/
+	0,                                /*tp_iternext*/
+	BlobNonlinearity_methods,         /*tp_methods*/
+	0,                                /*tp_members*/
+	0,                                /*tp_getset*/
+	&TrainableNonlinearity_type,      /*tp_base*/
+	0,                                /*tp_dict*/
+	0,                                /*tp_descr_get*/
+	0,                                /*tp_descr_set*/
+	0,                                /*tp_dictoffset*/
+	(initproc)BlobNonlinearity_init,  /*tp_init*/
+	0,                                /*tp_alloc*/
+	Nonlinearity_new,                 /*tp_new*/
 };
 
 PyTypeObject UnivariateDistribution_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                     /*ob_size*/
-	"cmt.UnivariateDistribution",          /*tp_name*/
+	"cmt.models.UnivariateDistribution",   /*tp_name*/
 	sizeof(UnivariateDistributionObject),  /*tp_basicsize*/
 	0,                                     /*tp_itemsize*/
 	(destructor)Distribution_dealloc,      /*tp_dealloc*/
@@ -1410,7 +1464,7 @@ static PyMethodDef Bernoulli_methods[] = {
 PyTypeObject Bernoulli_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
-	"cmt.Bernoulli",                  /*tp_name*/
+	"cmt.models.Bernoulli",           /*tp_name*/
 	sizeof(BernoulliObject),          /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
 	(destructor)Distribution_dealloc, /*tp_dealloc*/
@@ -1457,8 +1511,8 @@ static PyMethodDef Poisson_methods[] = {
 PyTypeObject Poisson_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                /*ob_size*/
-	"cmt.Poisson",                  /*tp_name*/
-	sizeof(PoissonObject),          /*tp_basicsize*/
+	"cmt.models.Poisson",             /*tp_name*/
+	sizeof(PoissonObject),            /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
 	(destructor)Distribution_dealloc, /*tp_dealloc*/
 	0,                                /*tp_print*/
@@ -1476,14 +1530,14 @@ PyTypeObject Poisson_type = {
 	0,                                /*tp_setattro*/
 	0,                                /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
-	Poisson_doc,                    /*tp_doc*/
+	Poisson_doc,                      /*tp_doc*/
 	0,                                /*tp_traverse*/
 	0,                                /*tp_clear*/
 	0,                                /*tp_richcompare*/
 	0,                                /*tp_weaklistoffset*/
 	0,                                /*tp_iter*/
 	0,                                /*tp_iternext*/
-	Poisson_methods,                /*tp_methods*/
+	Poisson_methods,                  /*tp_methods*/
 	0,                                /*tp_members*/
 	0,                                /*tp_getset*/
 	&UnivariateDistribution_type,     /*tp_base*/
@@ -1491,7 +1545,7 @@ PyTypeObject Poisson_type = {
 	0,                                /*tp_descr_get*/
 	0,                                /*tp_descr_set*/
 	0,                                /*tp_dictoffset*/
-	(initproc)Poisson_init,         /*tp_init*/
+	(initproc)Poisson_init,           /*tp_init*/
 	0,                                /*tp_alloc*/
 	Distribution_new,                 /*tp_new*/
 };
@@ -1513,7 +1567,7 @@ static PyMethodDef Preconditioner_methods[] = {
 PyTypeObject Preconditioner_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                  /*ob_size*/
-	"cmt.Preconditioner",               /*tp_name*/
+	"cmt.transforms.Preconditioner",    /*tp_name*/
 	sizeof(PreconditionerObject),       /*tp_basicsize*/
 	0,                                  /*tp_itemsize*/
 	(destructor)Preconditioner_dealloc, /*tp_dealloc*/
@@ -1569,44 +1623,44 @@ static PyMethodDef AffinePreconditioner_methods[] = {
 
 PyTypeObject AffinePreconditioner_type = {
 	PyObject_HEAD_INIT(0)
-	0,                                   /*ob_size*/
-	"cmt.AffinePreconditioner",          /*tp_name*/
-	sizeof(AffinePreconditionerObject),  /*tp_basicsize*/
-	0,                                   /*tp_itemsize*/
-	(destructor)Preconditioner_dealloc,  /*tp_dealloc*/
-	0,                                   /*tp_print*/
-	0,                                   /*tp_getattr*/
-	0,                                   /*tp_setattr*/
-	0,                                   /*tp_compare*/
-	0,                                   /*tp_repr*/
-	0,                                   /*tp_as_number*/
-	0,                                   /*tp_as_sequence*/
-	0,                                   /*tp_as_mapping*/
-	0,                                   /*tp_hash */
-	0,                                   /*tp_call*/
-	0,                                   /*tp_str*/
-	0,                                   /*tp_getattro*/
-	0,                                   /*tp_setattro*/
-	0,                                   /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,                  /*tp_flags*/
-	AffinePreconditioner_doc,            /*tp_doc*/
-	0,                                   /*tp_traverse*/
-	0,                                   /*tp_clear*/
-	0,                                   /*tp_richcompare*/
-	0,                                   /*tp_weaklistoffset*/
-	0,                                   /*tp_iter*/
-	0,                                   /*tp_iternext*/
-	AffinePreconditioner_methods,        /*tp_methods*/
-	0,                                   /*tp_members*/
-	AffinePreconditioner_getset,         /*tp_getset*/
-	&Preconditioner_type,                /*tp_base*/
-	0,                                   /*tp_dict*/
-	0,                                   /*tp_descr_get*/
-	0,                                   /*tp_descr_set*/
-	0,                                   /*tp_dictoffset*/
-	(initproc)AffinePreconditioner_init, /*tp_init*/
-	0,                                   /*tp_alloc*/
-	Preconditioner_new,                  /*tp_new*/
+	0,                                     /*ob_size*/
+	"cmt.transforms.AffinePreconditioner", /*tp_name*/
+	sizeof(AffinePreconditionerObject),    /*tp_basicsize*/
+	0,                                     /*tp_itemsize*/
+	(destructor)Preconditioner_dealloc,    /*tp_dealloc*/
+	0,                                     /*tp_print*/
+	0,                                     /*tp_getattr*/
+	0,                                     /*tp_setattr*/
+	0,                                     /*tp_compare*/
+	0,                                     /*tp_repr*/
+	0,                                     /*tp_as_number*/
+	0,                                     /*tp_as_sequence*/
+	0,                                     /*tp_as_mapping*/
+	0,                                     /*tp_hash */
+	0,                                     /*tp_call*/
+	0,                                     /*tp_str*/
+	0,                                     /*tp_getattro*/
+	0,                                     /*tp_setattro*/
+	0,                                     /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                    /*tp_flags*/
+	AffinePreconditioner_doc,              /*tp_doc*/
+	0,                                     /*tp_traverse*/
+	0,                                     /*tp_clear*/
+	0,                                     /*tp_richcompare*/
+	0,                                     /*tp_weaklistoffset*/
+	0,                                     /*tp_iter*/
+	0,                                     /*tp_iternext*/
+	AffinePreconditioner_methods,          /*tp_methods*/
+	0,                                     /*tp_members*/
+	AffinePreconditioner_getset,           /*tp_getset*/
+	&Preconditioner_type,                  /*tp_base*/
+	0,                                     /*tp_dict*/
+	0,                                     /*tp_descr_get*/
+	0,                                     /*tp_descr_set*/
+	0,                                     /*tp_dictoffset*/
+	(initproc)AffinePreconditioner_init,   /*tp_init*/
+	0,                                     /*tp_alloc*/
+	Preconditioner_new,                    /*tp_new*/
 };
 
 static PyMethodDef AffineTransform_methods[] = {
@@ -1614,11 +1668,10 @@ static PyMethodDef AffineTransform_methods[] = {
 	{0}
 };
 
-
 PyTypeObject AffineTransform_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                  /*ob_size*/
-	"cmt.AffineTransform",              /*tp_name*/
+	"cmt.transforms.AffineTransform",   /*tp_name*/
 	sizeof(AffineTransformObject),      /*tp_basicsize*/
 	0,                                  /*tp_itemsize*/
 	(destructor)Preconditioner_dealloc, /*tp_dealloc*/
@@ -1659,86 +1712,86 @@ PyTypeObject AffineTransform_type = {
 
 PyTypeObject WhiteningPreconditioner_type = {
 	PyObject_HEAD_INIT(0)
-	0,                                      /*ob_size*/
-	"cmt.WhiteningPreconditioner",          /*tp_name*/
-	sizeof(WhiteningPreconditionerObject),  /*tp_basicsize*/
-	0,                                      /*tp_itemsize*/
-	(destructor)Preconditioner_dealloc,     /*tp_dealloc*/
-	0,                                      /*tp_print*/
-	0,                                      /*tp_getattr*/
-	0,                                      /*tp_setattr*/
-	0,                                      /*tp_compare*/
-	0,                                      /*tp_repr*/
-	0,                                      /*tp_as_number*/
-	0,                                      /*tp_as_sequence*/
-	0,                                      /*tp_as_mapping*/
-	0,                                      /*tp_hash */
-	0,                                      /*tp_call*/
-	0,                                      /*tp_str*/
-	0,                                      /*tp_getattro*/
-	0,                                      /*tp_setattro*/
-	0,                                      /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,                     /*tp_flags*/
-	WhiteningPreconditioner_doc,            /*tp_doc*/
-	0,                                      /*tp_traverse*/
-	0,                                      /*tp_clear*/
-	0,                                      /*tp_richcompare*/
-	0,                                      /*tp_weaklistoffset*/
-	0,                                      /*tp_iter*/
-	0,                                      /*tp_iternext*/
-	0,                                      /*tp_methods*/
-	0,                                      /*tp_members*/
-	0,                                      /*tp_getset*/
-	&AffinePreconditioner_type,             /*tp_base*/
-	0,                                      /*tp_dict*/
-	0,                                      /*tp_descr_get*/
-	0,                                      /*tp_descr_set*/
-	0,                                      /*tp_dictoffset*/
-	(initproc)WhiteningPreconditioner_init, /*tp_init*/
-	0,                                      /*tp_alloc*/
-	Preconditioner_new,                     /*tp_new*/
+	0,                                        /*ob_size*/
+	"cmt.transforms.WhiteningPreconditioner", /*tp_name*/
+	sizeof(WhiteningPreconditionerObject),    /*tp_basicsize*/
+	0,                                        /*tp_itemsize*/
+	(destructor)Preconditioner_dealloc,       /*tp_dealloc*/
+	0,                                        /*tp_print*/
+	0,                                        /*tp_getattr*/
+	0,                                        /*tp_setattr*/
+	0,                                        /*tp_compare*/
+	0,                                        /*tp_repr*/
+	0,                                        /*tp_as_number*/
+	0,                                        /*tp_as_sequence*/
+	0,                                        /*tp_as_mapping*/
+	0,                                        /*tp_hash */
+	0,                                        /*tp_call*/
+	0,                                        /*tp_str*/
+	0,                                        /*tp_getattro*/
+	0,                                        /*tp_setattro*/
+	0,                                        /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                       /*tp_flags*/
+	WhiteningPreconditioner_doc,              /*tp_doc*/
+	0,                                        /*tp_traverse*/
+	0,                                        /*tp_clear*/
+	0,                                        /*tp_richcompare*/
+	0,                                        /*tp_weaklistoffset*/
+	0,                                        /*tp_iter*/
+	0,                                        /*tp_iternext*/
+	0,                                        /*tp_methods*/
+	0,                                        /*tp_members*/
+	0,                                        /*tp_getset*/
+	&AffinePreconditioner_type,               /*tp_base*/
+	0,                                        /*tp_dict*/
+	0,                                        /*tp_descr_get*/
+	0,                                        /*tp_descr_set*/
+	0,                                        /*tp_dictoffset*/
+	(initproc)WhiteningPreconditioner_init,   /*tp_init*/
+	0,                                        /*tp_alloc*/
+	Preconditioner_new,                       /*tp_new*/
 };
 
 PyTypeObject WhiteningTransform_type = {
 	PyObject_HEAD_INIT(0)
-	0,                                  /*ob_size*/
-	"cmt.WhiteningTransform",           /*tp_name*/
-	sizeof(WhiteningTransformObject),   /*tp_basicsize*/
-	0,                                  /*tp_itemsize*/
-	(destructor)Preconditioner_dealloc, /*tp_dealloc*/
-	0,                                  /*tp_print*/
-	0,                                  /*tp_getattr*/
-	0,                                  /*tp_setattr*/
-	0,                                  /*tp_compare*/
-	0,                                  /*tp_repr*/
-	0,                                  /*tp_as_number*/
-	0,                                  /*tp_as_sequence*/
-	0,                                  /*tp_as_mapping*/
-	0,                                  /*tp_hash */
-	0,                                  /*tp_call*/
-	0,                                  /*tp_str*/
-	0,                                  /*tp_getattro*/
-	0,                                  /*tp_setattro*/
-	0,                                  /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,                 /*tp_flags*/
-	WhiteningTransform_doc,             /*tp_doc*/
-	0,                                  /*tp_traverse*/
-	0,                                  /*tp_clear*/
-	0,                                  /*tp_richcompare*/
-	0,                                  /*tp_weaklistoffset*/
-	0,                                  /*tp_iter*/
-	0,                                  /*tp_iternext*/
-	0,                                  /*tp_methods*/
-	0,                                  /*tp_members*/
-	0,                                  /*tp_getset*/
-	&AffineTransform_type,              /*tp_base*/
-	0,                                  /*tp_dict*/
-	0,                                  /*tp_descr_get*/
-	0,                                  /*tp_descr_set*/
-	0,                                  /*tp_dictoffset*/
-	(initproc)WhiteningTransform_init,  /*tp_init*/
-	0,                                  /*tp_alloc*/
-	Preconditioner_new,                 /*tp_new*/
+	0,                                   /*ob_size*/
+	"cmt.transforms.WhiteningTransform", /*tp_name*/
+	sizeof(WhiteningTransformObject),    /*tp_basicsize*/
+	0,                                   /*tp_itemsize*/
+	(destructor)Preconditioner_dealloc,  /*tp_dealloc*/
+	0,                                   /*tp_print*/
+	0,                                   /*tp_getattr*/
+	0,                                   /*tp_setattr*/
+	0,                                   /*tp_compare*/
+	0,                                   /*tp_repr*/
+	0,                                   /*tp_as_number*/
+	0,                                   /*tp_as_sequence*/
+	0,                                   /*tp_as_mapping*/
+	0,                                   /*tp_hash */
+	0,                                   /*tp_call*/
+	0,                                   /*tp_str*/
+	0,                                   /*tp_getattro*/
+	0,                                   /*tp_setattro*/
+	0,                                   /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,                  /*tp_flags*/
+	WhiteningTransform_doc,              /*tp_doc*/
+	0,                                   /*tp_traverse*/
+	0,                                   /*tp_clear*/
+	0,                                   /*tp_richcompare*/
+	0,                                   /*tp_weaklistoffset*/
+	0,                                   /*tp_iter*/
+	0,                                   /*tp_iternext*/
+	0,                                   /*tp_methods*/
+	0,                                   /*tp_members*/
+	0,                                   /*tp_getset*/
+	&AffineTransform_type,               /*tp_base*/
+	0,                                   /*tp_dict*/
+	0,                                   /*tp_descr_get*/
+	0,                                   /*tp_descr_set*/
+	0,                                   /*tp_dictoffset*/
+	(initproc)WhiteningTransform_init,   /*tp_init*/
+	0,                                   /*tp_alloc*/
+	Preconditioner_new,                  /*tp_new*/
 };
 
 static PyGetSetDef PCAPreconditioner_getset[] = {
@@ -1754,7 +1807,7 @@ static PyMethodDef PCAPreconditioner_methods[] = {
 PyTypeObject PCAPreconditioner_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                  /*ob_size*/
-	"cmt.PCAPreconditioner",            /*tp_name*/
+	"cmt.transforms.PCAPreconditioner", /*tp_name*/
 	sizeof(PCAPreconditionerObject),    /*tp_basicsize*/
 	0,                                  /*tp_itemsize*/
 	(destructor)Preconditioner_dealloc, /*tp_dealloc*/
@@ -1806,7 +1859,7 @@ static PyMethodDef PCATransform_methods[] = {
 PyTypeObject PCATransform_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                  /*ob_size*/
-	"cmt.PCATransform",                 /*tp_name*/
+	"cmt.transforms.PCATransform",      /*tp_name*/
 	sizeof(PCATransformObject),         /*tp_basicsize*/
 	0,                                  /*tp_itemsize*/
 	(destructor)Preconditioner_dealloc, /*tp_dealloc*/
@@ -1858,7 +1911,7 @@ static PyMethodDef BinningTransform_methods[] = {
 PyTypeObject BinningTransform_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                  /*ob_size*/
-	"cmt.BinningTransform",             /*tp_name*/
+	"cmt.transforms.BinningTransform",  /*tp_name*/
 	sizeof(BinningTransformObject),     /*tp_basicsize*/
 	0,                                  /*tp_itemsize*/
 	(destructor)Preconditioner_dealloc, /*tp_dealloc*/
@@ -1946,6 +1999,8 @@ PyMODINIT_FUNC init_cmt() {
 	if(PyType_Ready(&Bernoulli_type) < 0)
 		return;
 	if(PyType_Ready(&BinningTransform_type) < 0)
+		return;
+	if(PyType_Ready(&BlobNonlinearity_type) < 0)
 		return;
 	if(PyType_Ready(&CD_type) < 0)
 		return;
@@ -2045,6 +2100,7 @@ PyMODINIT_FUNC init_cmt() {
 	PyModule_AddObject(module, "AffineTransform", reinterpret_cast<PyObject*>(&AffineTransform_type));
 	PyModule_AddObject(module, "Bernoulli", reinterpret_cast<PyObject*>(&Bernoulli_type));
 	PyModule_AddObject(module, "BinningTransform", reinterpret_cast<PyObject*>(&BinningTransform_type));
+	PyModule_AddObject(module, "BlobNonlinearity", reinterpret_cast<PyObject*>(&BlobNonlinearity_type));
 	PyModule_AddObject(module, "ConditionalDistribution", reinterpret_cast<PyObject*>(&CD_type));
 	PyModule_AddObject(module, "DifferentiableNonlinearity", reinterpret_cast<PyObject*>(&DifferentiableNonlinearity_type));
 	PyModule_AddObject(module, "Distribution", reinterpret_cast<PyObject*>(&Distribution_type));

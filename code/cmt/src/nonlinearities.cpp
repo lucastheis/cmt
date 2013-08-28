@@ -1,5 +1,6 @@
 #include "nonlinearities.h"
 #include "exception.h"
+#include "utils.h"
 
 #include <cmath>
 using std::exp;
@@ -245,49 +246,55 @@ int CMT::HistogramNonlinearity::numParameters() const {
 
 
 
-ArrayXXd CMT::HistogramNonlinearity::gradient(const ArrayXXd& data) const {
-	if(data.rows() != 1)
+ArrayXXd CMT::HistogramNonlinearity::gradient(const ArrayXXd& inputs) const {
+	if(inputs.rows() != 1)
 		throw Exception("Data has to be stored in one row.");
 
-	ArrayXXd gradient = ArrayXXd::Zero(mHistogram.size(), data.cols());
+	ArrayXXd gradient = ArrayXXd::Zero(mHistogram.size(), inputs.cols());
 
-	for(int i = 0; i < data.rows(); ++i)
-		for(int j = 0; j < data.rows(); ++j)
-			gradient(bin(data(i, j)), j) = 1;
+	for(int i = 0; i < inputs.rows(); ++i)
+		for(int j = 0; j < inputs.rows(); ++j)
+			gradient(bin(inputs(i, j)), j) = 1;
 
 	return gradient;
 }
 
 
 
-BlobNonlinearity::BlobNonlinearity(int numComponents, double epsilon = 1e-12) {
+CMT::BlobNonlinearity::BlobNonlinearity(int numComponents, double epsilon) :
+	mEpsilon(epsilon),
+	mNumComponents(numComponents),
+	mMeans(sampleNormal(numComponents, 1)),
+	mLogPrecisions((ArrayXd::Random(numComponents).abs() + 0.5).log()),
+	mLogWeights(((ArrayXd::Random(numComponents).abs() * 0.4 + 0.1) / numComponents).log())
+{
 }
 
 
 
 
-ArrayXXd BlobNonlinearity::operator()(const ArrayXXd& inputs) const {
-	if(data.rows() != 1)
+ArrayXXd CMT::BlobNonlinearity::operator()(const ArrayXXd& inputs) const {
+	if(inputs.rows() != 1)
 		throw Exception("Data has to be stored in one row.");
 
-	ArrayXXd diff(mNumComponents, inputs.cols());
-	diff.rowwise() += inputs;
+	ArrayXXd diff = ArrayXXd::Zero(mNumComponents, inputs.cols());
+	diff.rowwise() += inputs.row(0);
 	diff.colwise() -= mMeans;
 
-	ArrayXXd energy = mLogPrecisions.exp() / 2. * diff.square();
-	return mLogWeights.exp().transpose().matrix() * energy.matrix();
+	ArrayXXd negEnergy = diff.square().colwise() * (-mLogPrecisions.exp() / 2.);
+	return (mLogWeights.exp().transpose().matrix() * negEnergy.exp().matrix()).array() + mEpsilon;
 }
 
 
 
-double BlobNonlinearity::operator()(double input) const {
-	ArrayXd energy = mLogPrecisions.exp() / 2. * (mMeans - input).square();
-	return mLogWeights.exp().matrix().dot(energy.matrix());
+double CMT::BlobNonlinearity::operator()(double input) const {
+	ArrayXd negEnergy = -mLogPrecisions.exp() / 2. * (mMeans - input).square();
+	return mLogWeights.exp().matrix().dot(negEnergy.exp().matrix()) + mEpsilon;
 }
 
 
 
-ArrayXd BlobNonlinearity::parameters() const {
+ArrayXd CMT::BlobNonlinearity::parameters() const {
 	ArrayXd parameters(3 * mNumComponents);
 	parameters << mMeans, mLogPrecisions, mLogWeights;
 	return parameters;
@@ -295,7 +302,7 @@ ArrayXd BlobNonlinearity::parameters() const {
 
 
 
-void BlobNonlinearity::setParameters(const ArrayXd& parameters) {
+void CMT::BlobNonlinearity::setParameters(const ArrayXd& parameters) {
 	mMeans = parameters.topRows(mNumComponents);
 	mLogPrecisions = parameters.middleRows(mNumComponents, mNumComponents);
 	mLogWeights = parameters.bottomRows(mNumComponents);
@@ -303,37 +310,54 @@ void BlobNonlinearity::setParameters(const ArrayXd& parameters) {
 
 
 
-int BlobNonlinearity::numParameters() const {
+int CMT::BlobNonlinearity::numParameters() const {
 	return 3 * mNumComponents;
 }
 
 
 
-ArrayXXd BlobNonlinearity::gradient(const ArrayXXd& data) const {
-	if(data.rows() != 1)
+ArrayXXd CMT::BlobNonlinearity::gradient(const ArrayXXd& inputs) const {
+	if(inputs.rows() != 1)
 		throw Exception("Data has to be stored in one row.");
 	
-	ArrayXXd diff(mNumComponents, inputs.cols());
-	diff.rowwise() += inputs;
+	ArrayXXd diff = ArrayXXd::Zero(mNumComponents, inputs.cols());
+	diff.rowwise() += inputs.row(0);
 	diff.colwise() -= mMeans;
 
-	ArrayXXd diffSq = diff.square() / 2.;
+	ArrayXXd diffSq = diff.square();
 	ArrayXd precisions = mLogPrecisions.exp();
 	ArrayXd weights = mLogWeights.exp();
 
-	ArrayXXd energy = precisions.transpose().matrix() * diffSq.matrix();
-	ArrayXXd energyExp = (-precisions).exp();
+	ArrayXXd negEnergy = diffSq.colwise() * (-precisions / 2.);
+	ArrayXXd negEnergyExp = negEnergy.exp();
 
-	ArrayXXd gradient(3 * mNumComponents, data.cols());
+	ArrayXXd gradient(3 * mNumComponents, inputs.cols());
 
 	// gradient of mean
-	gradient.topRows(mNumComponents) = (diff * energyExp).colwise() * weights * precisions;
+	gradient.topRows(mNumComponents) = (diff * negEnergyExp).colwise() * (weights * precisions);
 
 	// gradient of log-precisions
-	gradient.middleRows(mNumComponents, mNumComponents) = (diffSq * energyExp).colwise() * (-weights);
+	gradient.middleRows(mNumComponents, mNumComponents) = (diffSq / 2. * negEnergyExp).colwise() * (-weights * precisions);
 
 	// gradient of log-weights
-	gradient.bottomRows(mNumComponents) = energyExp;
+	gradient.bottomRows(mNumComponents) = negEnergyExp.colwise() * weights;
 
 	return gradient;
+}
+
+
+
+ArrayXXd CMT::BlobNonlinearity::derivative(const ArrayXXd& inputs) const {
+	if(inputs.rows() != 1)
+		throw Exception("Data has to be stored in one row.");
+
+	ArrayXXd diff = ArrayXXd::Zero(mNumComponents, inputs.cols());
+	diff.rowwise() -= inputs.row(0);
+	diff.colwise() += mMeans;
+
+	ArrayXd precisions = mLogPrecisions.exp();
+
+	ArrayXXd negEnergy = diff.square().colwise() * (-precisions / 2.);
+
+	return (mLogWeights.exp() * precisions).transpose().matrix() * (diff * negEnergy.exp()).matrix();
 }

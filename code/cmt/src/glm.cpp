@@ -247,102 +247,105 @@ double CMT::GLM::parameterGradient(
 {
 	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 
- 	// check if nonlinearity is trainable and/or differentiable
- 	TrainableNonlinearity* trainableNonlinearity = 
- 		dynamic_cast<TrainableNonlinearity*>(mNonlinearity);
- 	DifferentiableNonlinearity* differentiableNonlinearity =
- 		dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
+	// check if nonlinearity is trainable and/or differentiable
+	TrainableNonlinearity* trainableNonlinearity = 
+		dynamic_cast<TrainableNonlinearity*>(mNonlinearity);
+	DifferentiableNonlinearity* differentiableNonlinearity =
+		dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
 
 	if((params.trainWeights || params.trainBias) && !differentiableNonlinearity)
 		throw Exception("Nonlinearity has to be differentiable.");
 	if(params.trainNonlinearity && !trainableNonlinearity)
 		throw Exception("Nonlinearity is not trainable.");
 
-  	int numData = static_cast<int>(inputCompl.cols());
- 	int batchSize = min(params.batchSize, numData);
+	int numData = static_cast<int>(inputCompl.cols());
+	int batchSize = min(params.batchSize, numData);
 
 	lbfgsfloatval_t* y = const_cast<lbfgsfloatval_t*>(x);
 	int offset = 0;
- 
- 	VectorLBFGS weights(params.trainWeights ? y : const_cast<double*>(mWeights.data()), mDimIn);
- 	VectorLBFGS weightsGrad(g, mDimIn);
- 	if(params.trainWeights)
- 		offset += weights.size();
 
- 	double bias = params.trainBias ? y[offset] : mBias;
- 	double* biasGrad = g + offset;
- 	if(params.trainBias)
- 		offset += 1;
+	VectorLBFGS weights(params.trainWeights ? y : const_cast<double*>(mWeights.data()), mDimIn);
+	VectorLBFGS weightsGrad(g, mDimIn);
+	if(params.trainWeights)
+		offset += weights.size();
 
- 	VectorLBFGS nonlinearityGrad(g + offset,
- 		trainableNonlinearity ? trainableNonlinearity->numParameters() : 0);
- 	if(params.trainNonlinearity) {
+	double bias = params.trainBias ? y[offset] : mBias;
+	double* biasGrad = g + offset;
+	if(params.trainBias)
+		offset += 1;
+
+	VectorLBFGS nonlinearityGrad(g + offset,
+		trainableNonlinearity ? trainableNonlinearity->numParameters() : 0);
+	if(params.trainNonlinearity) {
 		VectorLBFGS nonlParams(y + offset, trainableNonlinearity->numParameters());
 		trainableNonlinearity->setParameters(nonlParams);
- 		offset += trainableNonlinearity->numParameters();
+		offset += trainableNonlinearity->numParameters();
 	}
- 
- 	// initialize gradient and log-likelihood
- 	if(g) {
- 		if(params.trainWeights)
+
+	// initialize gradient and log-likelihood
+	if(g) {
+		if(params.trainWeights)
 			weightsGrad.setZero();
- 		if(params.trainBias)
+		if(params.trainBias)
 			*biasGrad = 0.;
 		if(params.trainNonlinearity)
 			nonlinearityGrad.setZero();
 	}
 
- 	double logLik = 0.;
- 
- 	#pragma omp parallel for
- 	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
- 		const MatrixXd& input = inputCompl.middleCols(b, min(batchSize, numData - b));
- 		const MatrixXd& output = outputCompl.middleCols(b, min(batchSize, numData - b));
- 
- 		// linear responses
- 		Array<double, 1, Dynamic> responses;
- 
- 		if(mDimIn)
- 			responses = (weights.transpose() * input).array() + bias;
- 		else
- 			responses = Array<double, 1, Dynamic>::Constant(output.cols(), bias);
- 
- 		// nonlinear responses
- 		Array<double, 1, Dynamic> means = mNonlinearity->operator()(responses);
- 
- 		if(g) {
- 			Array<double, 1, Dynamic> tmp1 = mDistribution->gradient(output, means);
- 			
- 			if(params.trainWeights || params.trainBias) {
+	double logLik = 0.;
+
+	#pragma omp parallel for
+	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
+		const MatrixXd& input = inputCompl.middleCols(b, min(batchSize, numData - b));
+		const MatrixXd& output = outputCompl.middleCols(b, min(batchSize, numData - b));
+
+		// linear responses
+		Array<double, 1, Dynamic> responses;
+
+		if(mDimIn)
+			responses = (weights.transpose() * input).array() + bias;
+		else
+			responses = Array<double, 1, Dynamic>::Constant(output.cols(), bias);
+
+		// nonlinear responses
+		Array<double, 1, Dynamic> means = mNonlinearity->operator()(responses);
+
+		if(g) {
+			Array<double, 1, Dynamic> tmp1 = mDistribution->gradient(output, means);
+			
+			if(params.trainWeights || params.trainBias) {
 				Array<double, 1, Dynamic> tmp2 = differentiableNonlinearity->derivative(responses);
 				Array<double, 1, Dynamic> tmp3 = tmp1 * tmp2;
-	 
+
 				// weights gradient
 				if(params.trainWeights && mDimIn) {
 					VectorXd weightsGrad_ = (input.array().rowwise() * tmp3).rowwise().sum();
-	 
+
 					#pragma omp critical
 					weightsGrad += weightsGrad_;
 				}
-	 
+
 				// bias gradient
 				if(params.trainBias)
 					#pragma omp critical
 					*biasGrad += tmp3.sum();
 			}
 
-			if(params.trainNonlinearity)
+			if(params.trainNonlinearity) {
+				VectorXd nonlinearityGrad_ = (trainableNonlinearity->gradient(responses).rowwise() * tmp1).rowwise().sum();
+
 				#pragma omp critical
-				nonlinearityGrad += (tmp1 * trainableNonlinearity->gradient(responses)).matrix();
- 		}
- 
- 		#pragma omp critical
- 		logLik += mDistribution->logLikelihood(output, means).sum();
- 	}
+				nonlinearityGrad += nonlinearityGrad_;
+			}
+		}
 
- 	double normConst = outputCompl.cols() * log(2.);
+		#pragma omp critical
+		logLik += mDistribution->logLikelihood(output, means).sum();
+	}
 
- 	if(g) {
+	double normConst = outputCompl.cols() * log(2.);
+
+	if(g) {
 		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
 
@@ -370,7 +373,7 @@ double CMT::GLM::parameterGradient(
 		}
 	}
 
-  double value = -logLik / normConst;
+	double value = -logLik / normConst;
 
 	switch(params.regularizer) {
 		case Parameters::L1:

@@ -151,7 +151,8 @@ int HistogramNonlinearity_init(HistogramNonlinearityObject* self, PyObject* args
 		"outputs",
 		"num_bins",
 		"bin_edges",
-		"epsilon"
+		"epsilon",
+		0
 	};
 
 	PyObject* inputs = 0;
@@ -193,8 +194,6 @@ int HistogramNonlinearity_init(HistogramNonlinearityObject* self, PyObject* args
 
 	if(bin_edges) {
 		// convert Python list/tuple/array into C++ vector
-		binEdges = vector<double>(PySequence_Size(bin_edges));
-
 		for(int i = 0; i < PySequence_Size(bin_edges); ++i) {
 			PyObject* entry = PySequence_GetItem(bin_edges, i);
 			double value = PyFloat_AsDouble(entry);
@@ -233,4 +232,119 @@ int HistogramNonlinearity_init(HistogramNonlinearityObject* self, PyObject* args
 	}
 
 	return -1;
+}
+
+
+
+PyObject* HistogramNonlinearity_reduce(HistogramNonlinearityObject* self, PyObject*) {
+	vector<double> binEdges = self->nonlinearity->binEdges();
+
+	PyObject* bin_edges = PyList_New(binEdges.size());
+	for(int i = 0; i < binEdges.size(); ++i)
+		PyList_SetItem(bin_edges, i, PyFloat_FromDouble(binEdges[i]));
+
+	PyObject* parameters = PyArray_FromMatrixXd(self->nonlinearity->parameters());
+
+	// dummy inputs and outputs
+	npy_intp dims[2] = {1, 1};
+	PyObject* inputs = PyArray_Zeros(2, dims, PyArray_DescrFromType(NPY_DOUBLE), 1);
+	PyObject* outputs = PyArray_Zeros(2, dims, PyArray_DescrFromType(NPY_DOUBLE), 1);
+
+	double epsilon = self->nonlinearity->epsilon();
+
+	PyObject* args = Py_BuildValue("(OOiOd)", inputs, outputs, 0, bin_edges, epsilon);
+	PyObject* state = Py_BuildValue("(O)", parameters);
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
+
+	Py_DECREF(args);
+	Py_DECREF(state);
+
+	return result;
+}
+
+
+
+PyObject* HistogramNonlinearity_setstate(HistogramNonlinearityObject* self, PyObject* state) {
+	PyObject* parameters;
+
+	if(!PyArg_ParseTuple(state, "(O)", &parameters))
+		return 0;
+
+	try {
+		self->nonlinearity->setParameters(PyArray_ToMatrixXd(parameters));
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
+
+const char* BlobNonlinearity_doc =
+	"Mixture of Gaussian blobs.\n"
+	"\n"
+	"$$f(x) = \\varepsilon + \\sum_k \\alpha_k \\exp\\left(\\frac{\\lambda_k}{2} (x - \\mu_k)^2\\right)$$\n"
+	"\n"
+	"@type  num_components: C{int}\n"
+	"@param num_components: number of Gaussian blobs\n"
+	"\n"
+	"@type  epsilon: C{float}\n"
+	"@param epsilon: small offset for numerical stability, $\\varepsilon$";
+
+int BlobNonlinearity_init(BlobNonlinearityObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"num_components", "epsilon", 0};
+
+	int num_components = 3;
+	double epsilon = 1e-12;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|id", const_cast<char**>(kwlist),
+		&num_components, &epsilon))
+		return -1;
+
+	try {
+		self->nonlinearity = new BlobNonlinearity(num_components, epsilon);
+		return 0;
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+
+	return -1;
+}
+
+
+
+PyObject* BlobNonlinearity_reduce(BlobNonlinearityObject* self, PyObject*) {
+	PyObject* parameters = PyArray_FromMatrixXd(self->nonlinearity->parameters());
+
+	PyObject* args = Py_BuildValue("(id)", self->nonlinearity->numComponents(), self->nonlinearity->epsilon());
+	PyObject* state = Py_BuildValue("(O)", parameters);
+	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
+
+	Py_DECREF(args);
+	Py_DECREF(state);
+
+	return result;
+}
+
+
+
+PyObject* BlobNonlinearity_setstate(BlobNonlinearityObject* self, PyObject* state) {
+	PyObject* parameters;
+
+	if(!PyArg_ParseTuple(state, "(O)", &parameters))
+		return 0;
+
+	try {
+		self->nonlinearity->setParameters(PyArray_ToMatrixXd(parameters));
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
 }

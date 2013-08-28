@@ -85,6 +85,10 @@ namespace CMT {
 				const vector<double>& binEdges,
 				double epsilon = 1e-12);
 
+			inline double epsilon() const;
+			inline vector<double> binEdges() const;
+			inline vector<double> histogram() const;
+
 			virtual void initialize(
 				const ArrayXXd& inputs,
 				const ArrayXXd& outputs);
@@ -104,7 +108,7 @@ namespace CMT {
 			virtual void setParameters(const ArrayXd& parameters);
 
 			virtual int numParameters() const;
-			virtual ArrayXXd gradient(const ArrayXXd& data) const;
+			virtual ArrayXXd gradient(const ArrayXXd& inputs) const;
 
 		protected:
 			double mEpsilon;
@@ -114,11 +118,16 @@ namespace CMT {
 			int bin(double input) const;
 	};
 
-	class BlobNonlinearity : public TrainableNonlinearity {
+	class BlobNonlinearity : public TrainableNonlinearity, public DifferentiableNonlinearity {
 		public:
 			BlobNonlinearity(
-				int numComponents,
+				int numComponents = 3,
 				double epsilon = 1e-12);
+
+			inline double epsilon() const;
+			inline int numComponents() const;
+
+			virtual ArrayXXd derivative(const ArrayXXd& data) const;
 
 			virtual ArrayXXd operator()(const ArrayXXd& inputs) const;
 			virtual double operator()(double input) const;
@@ -127,13 +136,45 @@ namespace CMT {
 			virtual void setParameters(const ArrayXd& parameters);
 
 			virtual int numParameters() const;
-			virtual ArrayXXd gradient(const ArrayXXd& data) const;
+			virtual ArrayXXd gradient(const ArrayXXd& inputs) const;
 
 		protected:
+			double mEpsilon;
+			int mNumComponents;
 			ArrayXd mMeans;
 			ArrayXd mLogPrecisions;
 			ArrayXd mLogWeights;
 	};
+}
+
+
+
+double CMT::HistogramNonlinearity::epsilon() const {
+	return mEpsilon;
+}
+
+
+
+std::vector<double> CMT::HistogramNonlinearity::binEdges() const {
+	return mBinEdges;
+}
+
+
+
+std::vector<double> CMT::HistogramNonlinearity::histogram() const {
+	return mHistogram;
+}
+
+
+
+double CMT::BlobNonlinearity::epsilon() const {
+	return mEpsilon;
+}
+
+
+
+int CMT::BlobNonlinearity::numComponents() const {
+	return mNumComponents;
 }
 
 #endif
