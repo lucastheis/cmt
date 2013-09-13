@@ -346,6 +346,7 @@ const char* GLM_train_doc =
 	"\t>>> \t'val_look_ahead': 20,\n"
 	"\t>>> \t'train_weights': True,\n"
 	"\t>>> \t'train_bias': True,\n"
+	"\t>>> \t'train_nonlinearity': False,\n"
 	"\t>>> \t'regularizer': 'L2',\n"
 	"\t>>> \t'regularize_weights': 0.,\n"
 	"\t>>> \t'regularize_bias': 0.,\n"
