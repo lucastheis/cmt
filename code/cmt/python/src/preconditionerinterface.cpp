@@ -4,6 +4,9 @@
 using std::pair;
 using std::make_pair;
 
+#include <new>
+using std::bad_alloc;
+
 #include "cmt/utils"
 using CMT::Exception;
 
@@ -696,12 +699,18 @@ int WhiteningPreconditioner_init(WhiteningPreconditionerObject* self, PyObject* 
 			self->preconditioner = new WhiteningPreconditioner(
 				PyArray_ToMatrixXd(input),
 				PyArray_ToMatrixXd(output));
-		} catch(Exception exception) {
+		} catch(Exception& exception) {
 			Py_DECREF(input);
 			Py_DECREF(output);
 			PyErr_SetString(PyExc_RuntimeError, exception.message());
 			return -1;
+		} catch(bad_alloc&) {
+			Py_DECREF(input);
+			Py_DECREF(output);
+			PyErr_SetString(PyExc_RuntimeError, "Could not allocate memory.");
+			return -1;
 		}
+
 
 		Py_DECREF(input);
 		Py_DECREF(output);
@@ -953,10 +962,15 @@ int PCAPreconditioner_init(PCAPreconditionerObject* self, PyObject* args, PyObje
 				PyArray_ToMatrixXd(output),
 				var_explained,
 				num_pcs);
-		} catch(Exception exception) {
+		} catch(Exception& exception) {
 			Py_DECREF(input);
 			Py_DECREF(output);
 			PyErr_SetString(PyExc_RuntimeError, exception.message());
+			return -1;
+		} catch(bad_alloc&) {
+			Py_DECREF(input);
+			Py_DECREF(output);
+			PyErr_SetString(PyExc_RuntimeError, "Could not allocate memory.");
 			return -1;
 		}
 
@@ -1076,10 +1090,15 @@ int PCATransform_init(PCATransformObject* self, PyObject* args, PyObject* kwds) 
 					var_explained,
 					num_pcs,
 					dimOut);
-		} catch(Exception exception) {
+		} catch(Exception& exception) {
 			Py_DECREF(input);
 			Py_XDECREF(output);
 			PyErr_SetString(PyExc_RuntimeError, exception.message());
+			return -1;
+		} catch(bad_alloc&) {
+			Py_DECREF(input);
+			Py_XDECREF(output);
+			PyErr_SetString(PyExc_RuntimeError, "Could not allocate memory.");
 			return -1;
 		}
 

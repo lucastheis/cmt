@@ -492,6 +492,9 @@ MatrixXd CMT::normalize(const MatrixXd& matrix) {
 
 
 MatrixXd CMT::pInverse(const MatrixXd& matrix) {
+	if(matrix.size() == 0)
+		return matrix.transpose();
+
 	JacobiSVD<MatrixXd> svd(matrix, ComputeThinU | ComputeThinV);
 
 	VectorXd svInv = svd.singularValues();

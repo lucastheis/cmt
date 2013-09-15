@@ -27,6 +27,9 @@ using std::make_pair;
 #include <set>
 using std::set;
 
+#include <new>
+using std::bad_alloc;
+
 const char* random_select_doc =
 	"random_select(k, n)\n"
 	"\n"
@@ -61,7 +64,7 @@ PyObject* random_select(PyObject* self, PyObject* args, PyObject* kwds) {
 			PyList_SetItem(list, i, PyInt_FromLong(*iter));
 
 		return list;
-	} catch(Exception exception) {
+	} catch(Exception& exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}
@@ -165,13 +168,23 @@ PyObject* generate_data_from_image(PyObject* self, PyObject* args, PyObject* kwd
 
 		return data;
 
-	} catch(Exception exception) {
+	} catch(Exception& exception) {
 		Py_DECREF(img);
 		Py_DECREF(input_mask);
 		Py_DECREF(output_mask);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
+	} catch(bad_alloc&) {
+		Py_DECREF(img);
+		Py_DECREF(input_mask);
+		Py_DECREF(output_mask);
+		PyErr_SetString(PyExc_RuntimeError, "Could not allocate memory.");
+		return 0;
 	}
+
+	Py_DECREF(img);
+	Py_DECREF(input_mask);
+	Py_DECREF(output_mask);
 
 	return 0;
 }
@@ -255,14 +268,23 @@ PyObject* generate_data_from_video(PyObject* self, PyObject* args, PyObject* kwd
 
 		return data;
 
-	} catch(Exception exception) {
+	} catch(Exception& exception) {
 		Py_DECREF(video);
 		Py_DECREF(input_mask);
 		Py_DECREF(output_mask);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
+	} catch(bad_alloc&) {
+		Py_DECREF(video);
+		Py_DECREF(input_mask);
+		Py_DECREF(output_mask);
+		PyErr_SetString(PyExc_RuntimeError, "Could not allocate memory.");
+		return 0;
 	}
 
+	Py_DECREF(video);
+	Py_DECREF(input_mask);
+	Py_DECREF(output_mask);
 	return 0;
 }
 
@@ -372,14 +394,23 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 
 		return imgSample;
 
-	} catch(Exception exception) {
+	} catch(Exception& exception) {
 		Py_DECREF(img);
 		Py_DECREF(input_mask);
 		Py_DECREF(output_mask);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
+	} catch(bad_alloc&) {
+		Py_DECREF(img);
+		Py_DECREF(input_mask);
+		Py_DECREF(output_mask);
+		PyErr_SetString(PyExc_RuntimeError, "Could not allocate memory.");
+		return 0;
 	}
 
+	Py_DECREF(img);
+	Py_DECREF(input_mask);
+	Py_DECREF(output_mask);
 	return 0;
 }
 
@@ -465,13 +496,23 @@ PyObject* sample_video(PyObject* self, PyObject* args, PyObject* kwds) {
 
 		return videoSample;
 
-	} catch(Exception exception) {
+	} catch(Exception& exception) {
 		Py_DECREF(video);
 		Py_DECREF(input_mask);
 		Py_DECREF(output_mask);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
+	} catch(bad_alloc&) {
+		Py_DECREF(video);
+		Py_DECREF(input_mask);
+		Py_DECREF(output_mask);
+		PyErr_SetString(PyExc_RuntimeError, "Could not allocate memory.");
+		return 0;
 	}
+
+	Py_DECREF(video);
+	Py_DECREF(input_mask);
+	Py_DECREF(output_mask);
 
 	return 0;
 }
@@ -584,15 +625,24 @@ PyObject* fill_in_image(PyObject* self, PyObject* args, PyObject* kwds) {
 		Py_DECREF(fmask);
 
 		return imgSample;
-	} catch(Exception exception) {
+	} catch(Exception& exception) {
 		Py_DECREF(img);
 		Py_DECREF(input_mask);
 		Py_DECREF(output_mask);
 		Py_DECREF(fmask);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
+	} catch(bad_alloc&) {
+		Py_DECREF(img);
+		Py_DECREF(input_mask);
+		Py_DECREF(output_mask);
+		PyErr_SetString(PyExc_RuntimeError, "Could not allocate memory.");
+		return 0;
 	}
 
+	Py_DECREF(img);
+	Py_DECREF(input_mask);
+	Py_DECREF(output_mask);
 	return 0;
 }
 
@@ -672,7 +722,8 @@ PyObject* fill_in_image_map(PyObject* self, PyObject* args, PyObject* kwds) {
 		Py_DECREF(fmask);
 
 		return imgMAP;
-	} catch(Exception exception) {
+
+	} catch(Exception& exception) {
 		Py_DECREF(img);
 		Py_DECREF(input_mask);
 		Py_DECREF(output_mask);
@@ -741,11 +792,16 @@ PyObject* extract_windows(PyObject* self, PyObject* args, PyObject* kwds) {
 		Py_DECREF(time_series);
 
 		return result;
-	} catch(Exception exception) {
+	} catch(Exception& exception) {
 		Py_DECREF(time_series);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
+	} catch(bad_alloc&) {
+		Py_DECREF(time_series);
+		PyErr_SetString(PyExc_RuntimeError, "Could not allocate memory.");
+		return 0;
 	}
+
 
 	Py_DECREF(time_series);
 
@@ -825,9 +881,13 @@ PyObject* sample_spike_train(PyObject* self, PyObject* args, PyObject* kwds) {
 		Py_DECREF(stimulus);
 		
 		return PyArray_FromMatrixXd(spikeTrain);
-	} catch(Exception exception) {
+	} catch(Exception& exception) {
 		Py_DECREF(stimulus);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	} catch(bad_alloc&) {
+		Py_DECREF(stimulus);
+		PyErr_SetString(PyExc_RuntimeError, "Could not allocate memory.");
 		return 0;
 	}
 
