@@ -1,6 +1,14 @@
 # Conditional Modeling Toolkit
 
-A C++ implementation of conditional models such as the MCGSM and MCBM.
+![samples](https://raw.github.com/lucastheis/cmt/develop/media/samples.jpg)
+
+Fast implementations of several probabilistic models. Examples:
+
+* MCGSM (mixture of conditional Gaussian scale mixtures; Theis et al., 2012)
+* MCBM (mixture of conditional Boltzmann machines)
+* FVBN (fully-visible belief network; Neal, 1992)
+* GLM (generalized linear model; Nelder & Wedderburn, 1972)
+* STM (spike-triggered mixture model; Theis et al., 2013)
 
 ## Requirements
 
@@ -9,34 +17,33 @@ A C++ implementation of conditional models such as the MCGSM and MCBM.
 * automake >= 1.11.0
 * libtool >= 2.4.0
 
-I have tested it with the above versions, but older versions might also work.
+I have tested the code with the above versions, but older versions might also work.
 
 ## Example
 
 ```python
-from cmt import MCGSM, WhiteningPreconditioner
+	from cmt import MCGSM, WhiteningPreconditioner
 
-# load data
-input, output = load('data')
+	# load data
+	input, output = load('data')
 
-# preprocess data
-wt = WhiteningPreconditioner(input, output)
-input, output = wt(input, output)
+	# preprocessing
+	wt = WhiteningPreconditioner(input, output)
 
-# fit a conditional model to predict outputs from inputs
-model = MCGSM(
-	dim_in=input.shape[0],
-	dim_out=output.shape[0],
-	num_components=8,
-	num_scales=6,
-	num_features=40)
-model.initialize(input, output)
-model.train(input, output, parameters={
-	'max_iter': 1000,
-	'threshold': 1e-5})
+	# fit a conditional model to predict outputs from inputs
+	model = MCGSM(
+		dim_in=input.shape[0],
+		dim_out=output.shape[0],
+		num_components=8,
+		num_scales=6,
+		num_features=40)
+	model.initialize(*wt(input, output))
+	model.train(*wt(input, output), parameters={
+		'max_iter': 1000,
+		'threshold': 1e-5})
 
-# evaluate log-likelihood [nats] on the training data
-loglik = model.loglikelihood(input, output) + wt.logjacobian(*wt.inverse(input, output))
+	# evaluate log-likelihood [nats] on the training data
+	loglik = model.loglikelihood(*wt(input, output)) + wt.logjacobian(input, output)
 ```
 
 ## Installation
