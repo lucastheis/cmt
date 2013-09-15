@@ -719,11 +719,21 @@ bool CMT::STM::train(
 		// STM reduces to GLM
 		GLM glm(dimInLinear(), mNonlinearity, mDistribution);
 
+		GLM::Parameters glmParams;
+		glmParams.Trainable::Parameters::operator=(params);
+
+		const Parameters& stmParams = dynamic_cast<const Parameters&>(params);
+
+		if(stmParams.trainLinearPredictor)
+			glmParams.trainWeights = true;
+		if(stmParams.trainBiases)
+			glmParams.trainBias = true;
+
 		bool converged;
 		if(inputVal && outputVal)
-			converged = glm.train(input, output, *inputVal, *outputVal, params);
+			converged = glm.train(input, output, *inputVal, *outputVal, glmParams);
 		else
-			converged = glm.train(input, output, params);
+			converged = glm.train(input, output, glmParams);
 
 		// copy parameters
 		mLinearPredictor = glm.weights();
