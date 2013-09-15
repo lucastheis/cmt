@@ -2,8 +2,8 @@
 
 ## 0.4.0
 
-– Added spike-triggered mixture model (STM).
-– Added simple univariate distributions such as Bernoulli and Poisson.
+- Added spike-triggered mixture model (STM).
+- Added simple univariate distributions such as Bernoulli and Poisson.
 - Added generalized linear model (GLM) and fully-visible belief network (FVBN).
 - Added mixture of Gaussian scale mixture (MoGSM).
 - Added *PatchMCGSM*.
