@@ -1,0 +1,6 @@
+#ifndef CMT_TOOLS_
+#define CMT_TOOLS_
+
+#include "include/tools.h"
+
+#endif

@@ -14,53 +14,65 @@ CMT::PCAPreconditioner::PCAPreconditioner(
 	if(input.cols() != output.cols())
 		throw Exception("Number of inputs and outputs must be the same."); 
 
-	mMeanIn = input.rowwise().mean();
-	mMeanOut = output.rowwise().mean();
+	if(input.rows() < 1) {
+		mMeanOut = output.rowwise().mean();
 
-	// concatenate input and output
-	ArrayXXd data(input.rows() + output.rows(), input.cols());
-	data << input.matrix().colwise() - mMeanIn, output.matrix().colwise() - mMeanOut;
+		MatrixXd covYY = covariance(output);
 
-	// compute covariances
-	MatrixXd cov = covariance(data);
-	MatrixXd covXX = cov.topLeftCorner(input.rows(), input.rows());
-	MatrixXd covYX = cov.bottomLeftCorner(output.rows(), input.rows());
-	MatrixXd covYY = cov.bottomRightCorner(output.rows(), output.rows());
+		SelfAdjointEigenSolver<MatrixXd> eigenSolver;
+		eigenSolver.compute(covYY);
+		mPreOut = eigenSolver.operatorInverseSqrt();
+		mPreOutInv = eigenSolver.operatorSqrt();
 
-	SelfAdjointEigenSolver<MatrixXd> eigenSolver;
-	eigenSolver.compute(covXX);
-	mEigenvalues = eigenSolver.eigenvalues();
+		mLogJacobian = mPreOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum();
+	} else {
+		mMeanIn = input.rowwise().mean();
+		mMeanOut = output.rowwise().mean();
 
-	if(numPCs < 0) {
-		double totalVariance = mEigenvalues.sum();
-		double varExplainedSoFar = 0.;
-		numPCs = 0;
+		// concatenate input and output
+		ArrayXXd data(input.rows() + output.rows(), input.cols());
+		data << input.matrix().colwise() - mMeanIn, output.matrix().colwise() - mMeanOut;
 
-		for(int i = mEigenvalues.size() - 1; i >= 0; --i, ++numPCs) {
-			varExplainedSoFar += mEigenvalues[i] / totalVariance * 100.;
-			if(varExplainedSoFar > varExplained)
-				break;
+		// compute covariances
+		MatrixXd cov = covariance(data);
+		MatrixXd covXX = cov.topLeftCorner(input.rows(), input.rows());
+		MatrixXd covYX = cov.bottomLeftCorner(output.rows(), input.rows());
+		MatrixXd covYY = cov.bottomRightCorner(output.rows(), output.rows());
+
+		SelfAdjointEigenSolver<MatrixXd> eigenSolver;
+		eigenSolver.compute(covXX);
+		mEigenvalues = eigenSolver.eigenvalues();
+
+		if(numPCs < 0) {
+			double totalVariance = mEigenvalues.sum();
+			double varExplainedSoFar = 0.;
+			numPCs = 0;
+
+			for(int i = mEigenvalues.size() - 1; i >= 0 && varExplainedSoFar < varExplained; --i) {
+				numPCs += 1;
+				varExplainedSoFar += mEigenvalues[i] / totalVariance * 100.;
+			}
+		} else if(numPCs > mEigenvalues.size()) {
+			numPCs = mEigenvalues.size();
 		}
-	} else if(numPCs > mEigenvalues.size()) {
-		numPCs = mEigenvalues.size();
+
+		// input whitening
+		mPreIn = mEigenvalues.tail(numPCs).cwiseSqrt().cwiseInverse().asDiagonal() *
+			eigenSolver.eigenvectors().rightCols(numPCs).transpose();
+		mPreInInv = eigenSolver.eigenvectors().rightCols(numPCs) *
+			mEigenvalues.tail(numPCs).cwiseSqrt().asDiagonal();
+
+		// optimal linear predictor
+		mPredictor = covYX * mPreIn.transpose();
+
+		// output whitening
+		eigenSolver.compute(covYY - mPredictor * mPredictor.transpose());
+		mPreOut = eigenSolver.operatorInverseSqrt();
+		mPreOutInv = eigenSolver.operatorSqrt();
+
+		// log-Jacobian determinant
+		mLogJacobian = mPreOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum();
 	}
-
-	// input whitening
-	mPreIn = mEigenvalues.tail(numPCs).cwiseSqrt().cwiseInverse().asDiagonal() *
-		eigenSolver.eigenvectors().rightCols(numPCs).transpose();
-	mPreInInv = eigenSolver.eigenvectors().rightCols(numPCs) *
-		mEigenvalues.tail(numPCs).cwiseSqrt().asDiagonal();
-
-	// optimal linear predictor
-	mPredictor = covYX * mPreIn.transpose();
-
-	// output whitening
-	eigenSolver.compute(covYY - mPredictor * mPredictor.transpose());
-	mPreOut = eigenSolver.operatorInverseSqrt();
-	mPreOutInv = eigenSolver.operatorSqrt();
-
-	// log-Jacobian determinant
-	mLogJacobian = mPreOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum();
 }
 
 

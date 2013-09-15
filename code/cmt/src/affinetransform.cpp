@@ -3,18 +3,25 @@
 #include "affinetransform.h"
 #include "Eigen/LU"
 
+#include "Eigen/Core"
+using Eigen::ArrayXXd;
+
+#include <utility>
+using std::pair;
+
+
 CMT::AffineTransform::AffineTransform(const VectorXd& meanIn, const MatrixXd& preIn, int dimOut) :
 	AffinePreconditioner(
 		meanIn,
 		VectorXd::Zero(dimOut),
 		preIn,
-		preIn.inverse(),
+		preIn.rows() == preIn.cols() ? preIn.inverse().eval() : pInverse(preIn),
 		MatrixXd::Identity(dimOut, dimOut),
 		MatrixXd::Identity(dimOut, dimOut),
 		MatrixXd::Zero(dimOut, preIn.rows()))
 {
 	mGradTransform = MatrixXd::Zero(dimOut, meanIn.size());
-	mLogJacobian = 1.;
+	mLogJacobian = 0.;
 }
 
 
@@ -34,12 +41,19 @@ CMT::AffineTransform::AffineTransform(
 		MatrixXd::Zero(dimOut, preIn.rows()))
 {
 	mGradTransform = MatrixXd::Zero(dimOut, meanIn.size());
-	mLogJacobian = 1.;
+	mLogJacobian = 0.;
 }
 
 
 
 CMT::AffineTransform::AffineTransform() {
+}
+
+
+
+CMT::AffineTransform::AffineTransform(const AffineTransform& transform) :
+	AffinePreconditioner(transform)
+{
 }
 
 

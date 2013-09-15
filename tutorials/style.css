@@ -1,0 +1,54 @@
+body {
+	background: #fdffff;
+	font-family: sans-serif;
+	font-size: 12pt;
+	line-height: 18pt;
+	color: #203050;
+	padding: 5pt 20pt;
+}
+
+h1 {
+	font-size: 16pt;
+	font-weight: normal;
+	padding: 4pt 0pt;
+}
+
+h2 {
+	font-size: 14pt;
+	font-weight: bold;
+}
+
+a {
+	text-decoration: none;
+	color: #2255bb;
+}
+
+ol li {
+	margin-bottom: 10pt;
+}
+
+ol ol {
+	font-size: 11pt;
+}
+
+ol ol li {
+	margin-bottom: 0pt;
+}
+
+pre code {
+	margin: 20pt 0pt;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.1);
+	background: #fafafa;
+}
+
+figcaption {
+	color: #aaa;
+	font-size: 10pt;
+}
+
+article {
+	max-width: 800px;
+	text-align: justify;
+}

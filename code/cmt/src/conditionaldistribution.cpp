@@ -1,69 +1,26 @@
-#include "conditionaldistribution.h"
-#include <cmath>
+#include "Eigen/Core"
+using Eigen::Dynamic;
+using Eigen::Array;
 
+#include "conditionaldistribution.h"
+
+#include <cmath>
 using std::log;
 
-ConditionalDistribution::Callback::~Callback() {
+CMT::ConditionalDistribution::~ConditionalDistribution() {
 }
 
 
 
-ConditionalDistribution::Parameters::Parameters() {
-	verbosity = 0;
-	maxIter = 1000;
-	threshold = 1e-5;
-	numGrad = 20;
-	batchSize = 2000;
-	callback = 0;
-	cbIter = 25;
-}
-
-
-
-ConditionalDistribution::Parameters::~Parameters() {
-	if(callback)
-		delete callback;
-}
-
-
-
-ConditionalDistribution::Parameters::Parameters(const Parameters& params) :
-	verbosity(params.verbosity),
-	maxIter(params.maxIter),
-	threshold(params.threshold),
-	numGrad(params.numGrad),
-	batchSize(params.batchSize),
-	callback(0),
-	cbIter(params.cbIter)
+Array<double, 1, Dynamic> CMT::ConditionalDistribution::logLikelihood(
+	const pair<ArrayXXd, ArrayXXd>& data) const
 {
-	if(params.callback)
-		callback = params.callback->copy();
+	return logLikelihood(data.first, data.second);
 }
 
 
 
-ConditionalDistribution::Parameters& ConditionalDistribution::Parameters::operator=(
-	const Parameters& params)
-{
-	verbosity = params.verbosity;
-	maxIter = params.maxIter;
-	threshold = params.threshold;
-	numGrad = params.numGrad;
-	batchSize = params.batchSize;
-	callback = params.callback ? params.callback->copy() : 0;
-	cbIter = params.cbIter;
-
-	return *this;
-}
-
-
-
-ConditionalDistribution::~ConditionalDistribution() {
-}
-
-
-
-double ConditionalDistribution::evaluate(
+double CMT::ConditionalDistribution::evaluate(
 	const MatrixXd& input,
 	const MatrixXd& output) const
 {
@@ -72,17 +29,29 @@ double ConditionalDistribution::evaluate(
 
 
 
-void ConditionalDistribution::initialize(
+double CMT::ConditionalDistribution::evaluate(
 	const MatrixXd& input,
-	const MatrixXd& output) const
+	const MatrixXd& output,
+	const Preconditioner& preconditioner) const
 {
+	return -logLikelihood(preconditioner(input, output)).mean() / log(2.) / dimOut()
+		- preconditioner.logJacobian(input, output).mean() / log(2.) / dimOut();
 }
 
 
 
-bool ConditionalDistribution::train(
-	const MatrixXd& input,
-	const MatrixXd& output) const
+double CMT::ConditionalDistribution::evaluate(
+	const pair<ArrayXXd, ArrayXXd>& data) const
 {
-	return true;
+	return -logLikelihood(data.first, data.second).mean() / log(2.) / dimOut();
+}
+
+
+
+double CMT::ConditionalDistribution::evaluate(
+	const pair<ArrayXXd, ArrayXXd>& data,
+	const Preconditioner& preconditioner) const
+{
+	return -logLikelihood(preconditioner(data.first, data.second)).mean() / log(2.) / dimOut()
+		- preconditioner.logJacobian(data).mean() / log(2.) / dimOut();
 }

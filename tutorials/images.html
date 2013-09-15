@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Conditional Modeling Toolkit Tutorials</title>
+		<meta charset="UTF-8">
+		<meta name="author" content="Lucas Theis">
+		<meta name="description" content="Conditional Modeling Toolkit Tutorials">
+		<link rel="stylesheet" href="http://yandex.st/highlightjs/7.3/styles/tomorrow.min.css">
+		<link rel="stylesheet" type="text/css" href="style.css">
+		<script src="http://yandex.st/highlightjs/7.3/highlight.min.js"></script>
+		<script type="text/x-mathjax-config">
+			MathJax.Hub.Config({
+				tex2jax: {
+					inlineMath: [['$','$']],
+					displayMath: [['$$','$$']],
+					skipTags: ["script","noscript","style","textarea","code"],
+					processEnvironments: true
+				}
+			});
+		</script>
+		<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+		<script>
+			hljs.tabReplace = '    ';
+			hljs.initHighlightingOnLoad();
+		</script>
+	</head>
+	<body>
+		<article>
+			<h1>Probabilistic modeling of grayscale images</h1>
+				<h2 id="introduction">Introduction</h2>
+				<figure>
+					<img src="media/newyork_grayscale.png" alt="New York">
+					<figcaption>&copy; Chris Isherwood, 2008</figcaption>
+				</figure>
+				
+				Around 50 million images are uploaded every month to Flickr alone.
+				Just like the throw of two dice, every image can can be thought of as
+				an instance of a random variable with a certain probability distribution.
+				Our goal here will be no less than to learn this distribution.<br>
+				<br>
+				While we may be able to use a histogram to estimate the distribution of dice
+				throws, $\mathbf{d}_i \in \{1, ..., 6\}^2$, even a black and white image
+				$\mathbf{I} \in \{0, 1\}^{640 \times 480}$ with only 640 by 480 pixels can
+				already take on $2^{640 \cdot 480}$ different values. Estimating its
+				distribution thus may seem like an impossible thing to do.<br>
+				<br>
+				Luckily, under certain assumptions, the full distribution of images can be
+				captured by just a single conditional distribution. Instead of learning a
+				distribution over many pixels, we are going to learn the distribution of
+				only a single pixel (yellow) given what we call a <i>causal neighborhood</i> of pixels (blue).
+
+				<figure>
+					<img src="media/causal_neighborhood.png" alt="Causal neighborhood" width=216 height=136>
+				</figure>
+
+				Importantly, the causal neighborhood is only allowed to contain pixels which are
+				above the pixel, or which are in the same row and left of it.<br>
+				<br>
+			
+				<h2 id="datasets">Generating datasets</h2>
+				Before we can start learning a conditional distribution, we need to generate a dataset
+				of input and output pairs, where the input size is determined by the size of the causal neighborhood.
+				For this, we use the function 
+				<a href="../doc/cmt-module.html#generate_data_from_image"><code >generate_data_from_image</code></a>.
+
+				<pre><code class="python">from cmt.tools import generate_data_from_image</code></pre>
+
+				The function expects an image, a mask describing the causal neighborhood and a
+				mask describing the output pixel relative to the causal neighborhood. The following code snippet
+				gives an example of a valid pair of masks.
+
+				<pre><code class="python">input_mask = [
+	[1, 1, 1, 1, 1, 1, 1],
+	[1, 1, 1, 1, 1, 1, 1],
+	[1, 1, 1, 1, 1, 1, 1],
+	[1, 1, 1, 0, 0, 0, 0]]
+output_mask = [
+	[0, 0, 0, 0, 0, 0, 0],
+	[0, 0, 0, 0, 0, 0, 0],
+	[0, 0, 0, 0, 0, 0, 0],
+	[0, 0, 0, 1, 0, 0, 0]]</pre></code>
+
+				For now, we are also going to focus on grayscale images.
+
+				<pre><code class="python">from cmt.tools import imread, rgb2gray
+
+img = rgb2gray(imread('newyork.png'))</code></pre>
+
+				The following command extracts 220,000 data points for us.
+
+				<pre><code class="python">inputs, outputs = generate_data_from_image(
+	img, input_mask, output_mask, 220000)</code></pre>
+
+				Depending on the application, we might want to extract data points from many
+				different images. Here, we only used a single image. We further split the data set into training,
+				validation, and test sets for later use.
+				
+				<pre><code class="python">from numpy import split
+
+inputs  = split(inputs,  [100000, 200000], 1)
+outputs = split(outputs, [100000, 200000], 1)
+
+data_train = inputs[0], outputs[0]
+data_test  = inputs[1], outputs[1]
+data_valid = inputs[2], outputs[2]</code></pre>
+				<br>
+
+				<h2 id="fitting">Fitting model parameters</h2>
+				To represent the conditional distribution, we are going to use a so called
+				<i>mixture of conditional Gaussian scale mixtures</i>, or
+				<a href="../doc/cmt.MCGSM-class.html"><code>MCGSM</code></a>.
+
+				<pre><code class="python">from cmt.models import MCGSM
+
+model = MCGSM(
+	dim_in=data_train[0].shape[0],
+	dim_out=data_train[1].shape[0],
+	num_components=8,
+	num_scales=4,
+	num_features=30)</code></pre>
+				The arguments <code>num_components</code>, <code>num_scales</code>, and
+				<code>num_features</code> control the number of parameters of the model. To
+				fit the parameters to the data, we call the function <code>train</code> on the
+				training and validation sets.
+				The validation set is used to prevent overfitting using
+				<a rel="external" href="http://en.wikipedia.org/wiki/Early_stopping">early stopping</a>.
+
+				<pre><code class="python">from itertools import chain
+
+model.train(*chain(data_train, data_valid))</code></pre>
+
+				However, the optimization will work better if we preprocess the data first. For this,
+				we can use either <a href="../doc/cmt.PCAPreconditioner-class.html"><code>PCAPreconditioner</code></a>
+				or <a href="../doc/cmt.WhiteningPreconditioner-class.html"><code>WhiteningPreconditioner</code></a>.
+
+				<pre><code class="python">from cmt.transforms import WhiteningPreconditioner
+
+pre = WhiteningPreconditioner(*data_train)</code></pre>
+
+				This object will center the data, normalize the variances, and decorrelate
+				inputs and outputs. Using <a href="../doc/cmt.PCAPreconditioner-class.html"><code>PCAPreconditioner</code></a>,
+				we could have additionally reduced the dimensionality of the inputs, in
+				which case we would have to change <code>dim_in</code> in the initialization of
+				the model.
+
+				<pre><code class="python">model.train(*chain(pre(*data_train), pre(*data_valid)))</code></pre>
+
+				Finally, the <code>parameters</code> argument expects a dictionary and allows us to control the
+				parameters of the optimization. See the <a href="../doc/cmt.MCGSM-class.html">documentation</a>
+				for a list of parameters available.
+
+				<pre><code class="python">model.train(*chain(pre(*data_train), pre(*data_valid)),
+	parameters={
+		'verbosity': 1,
+		'max_iter': 1000,
+		'threshold': 1e-7,
+		'val_iter': 5,
+		'val_look_ahead': 10
+	})</code></pre>
+
+				With the above parameters, the algorithm will stop after at most 1000 iterations. The validation
+				set is tested every 5 iterations. If the performance on the validation does not improve 10 times in a
+				row, the optimization is interrupted and the best set of model parameters found until then is
+				kept. Similarly, if the performance improvement on the training set is smaller than $10^{-7}$, the
+				optimization is stopped.<br>
+				<br>
+
+				<h2 id="evaluating">Evaluating image models</h2>
+				To test the model's performance, we evaluate its average log-likelihood on the test set. For an
+				unbiased estimate, we need to take into account the fact that we used a preconditioner to transform
+				the data. This is achieved by adding the output of
+				<a href="../doc/cmt.Preconditioner-class.html#logjacobian"><code>logjacobian</code></a> to the output
+				of <a href="../doc/cmt.ConditionalDistribution-class.html#loglikelihood"><code>loglikelihood</code></a>.
+
+				<pre><code class="python">from numpy import log
+
+loglik = mean(
+	model.loglikelihood(*pre(*data_test)) + \
+	pre.logjacobian(*data_test)) / log(2.)
+
+print 'Average log-likelihood: {0:.4f} [bit/px]'.format(loglik)</code></pre>
+
+				The division by $\log(2)$ changes the units of the loglikelihood from
+				<a href="http://en.wikipedia.org/wiki/Nat_(information)">nats</a> to bits. A higher likelihood means
+				the model assigns a higher probability to the unseen data than another model. Or, in other words, a
+				model with a higher likelihood is better able to predict one set of pixels from another set of other pixels.<br>
+				<br>
+				Alternatively, we can use <a href="../doc/cmt.ConditionalDistribution-class.html#evaluate"><code>evaluate</code></a>,
+				which computes the same as above except that it returns the <i>negative</i> average log-likelihood.
+
+				<pre><code class="python">print 'Average log-likelihood: {0:.4f} [bit/px]'.format(
+	-model.evaluate(data_test[0], data_test[1], pre))</code></pre>
+
+				Note that this method expects <i>untransformed</i> data when a preconditioner is
+				specified.<br/>
+				<br/>
+
+				<h2 id="sampling">Synthesizing images</h2>
+				To generate a new image using the trained model, we use the method
+				<a href="http://lucastheis.github.io/cmt/doc/cmt-module.html#sample_image"><code>sample_image</code></a>.
+
+				<pre><code class="python">from cmt.tools import sample_image
+
+img_sample = sample_image(
+	img,
+	model,
+	input_mask,
+	output_mask,
+	pre)</code></pre>
+
+				The first argument is an initialization of the image. In this case, we simply used
+				the image that we trained on, but we could have also used just random noise, for example.
+				The initialization is necessary because the model is only able to sample pixels for which the pixels
+				in the causal neighborhood are known. Hence, it cannot generate pixels which are near the boundary of the
+				image.<br>
+				<br>
+				All that is left to do is to save our results.
+
+				<pre><code class="python">from cmt.tools import imwrite
+from numpy import min, max
+from pickle import dump
+
+# save image
+imwrite('newyork_sample.png', img_sample,
+	cmap='gray',
+	vmin=min(img),
+	vmax=max(img))
+	
+# save model
+with open('image_model.pck', 'wb') as handle:
+	dump({
+		'model': model,
+		'input_mask': input_mask,
+		'output_mask': output_mask}, handle, 1)</code></pre>
+	</code></pre>
+
+				The sample approximately reproduces many statistics of the original image. If you look closely,
+				you can even see little windows and buildings occluding each other.
+
+				<figure>
+					<img src="media/newyork_grayscale_sample.png" alt="New York Sample">
+					<figcaption>A sample generated by an MCGSM.</figcaption>
+				</figure>
+
+				The complete example can be found here: <a href="images.py">images.py</a>.
+		</article>
+	</body>
+</html>

@@ -46,7 +46,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >Conditional Modeling Toolkit</th>
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -54,7 +54,7 @@
   <tr valign="top">
     <td width="100%">
       <span class="breadcrumbs">
-        Module&nbsp;cmt
+        Package&nbsp;cmt
       </span>
     </td>
     <td>
@@ -70,216 +70,36 @@
     </td>
   </tr>
 </table>
-<!-- ==================== MODULE DESCRIPTION ==================== -->
-<h1 class="epydoc">Module cmt</h1><p class="nomargin-top"></p>
-<p>This module provides C++ implementations of conditional models such as
-  the MCGSM, as well as tools for solving applications such as filling-in, 
-  denoising, or classification.</p>
+<!-- ==================== PACKAGE DESCRIPTION ==================== -->
+<h1 class="epydoc">Package cmt</h1><p class="nomargin-top"><span class="codelink"><a href="cmt-pysrc.html">source&nbsp;code</a></span></p>
+<!-- ==================== SUBMODULES ==================== -->
+<a name="section-Submodules"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Submodules</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Submodules"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr><td class="summary">
+  <ul class="nomargin">
+    <li> <strong class="uidlink"><a href="cmt.models-module.html">cmt.models</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="cmt.nonlinear-module.html">cmt.nonlinear</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="cmt.tools-module.html">cmt.tools</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="cmt.transforms-module.html">cmt.transforms</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="cmt.utils-module.html">cmt.utils</a></strong>    </li>
+  </ul></td></tr>
+</table>
 
-<!-- ==================== CLASSES ==================== -->
-<a name="section-Classes"></a>
-<table class="summary" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td colspan="2" class="table-header">
-    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-      <tr valign="top">
-        <td align="left"><span class="table-header">Classes</span></td>
-        <td align="right" valign="top"
-         ><span class="options">[<a href="#section-Classes"
-         class="privatelink" onclick="toggle_private();"
-         >hide private</a>]</span></td>
-      </tr>
-    </table>
-  </td>
-</tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="cmt.ConditionalDistribution-class.html" class="summary-name">ConditionalDistribution</a><br />
-      Abstract base class for conditional models.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="cmt.MCGSM-class.html" class="summary-name">MCGSM</a><br />
-      An implementation of a mixture of conditional Gaussian scale 
-        mixtures.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="cmt.PCAPreconditioner-class.html" class="summary-name">PCAPreconditioner</a><br />
-      This preconditioner can be used to reduce the dimensionality of the
-        input.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="cmt.Preconditioner-class.html" class="summary-name">Preconditioner</a><br />
-      Abstract base class for preconditioners of inputs and outputs.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="cmt.WhiteningPreconditioner-class.html" class="summary-name">WhiteningPreconditioner</a><br />
-      Decorrelates inputs and outputs.
-    </td>
-  </tr>
-</table>
-<!-- ==================== FUNCTIONS ==================== -->
-<a name="section-Functions"></a>
-<table class="summary" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td colspan="2" class="table-header">
-    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-      <tr valign="top">
-        <td align="left"><span class="table-header">Functions</span></td>
-        <td align="right" valign="top"
-         ><span class="options">[<a href="#section-Functions"
-         class="privatelink" onclick="toggle_private();"
-         >hide private</a>]</span></td>
-      </tr>
-    </table>
-  </td>
-</tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type"><code>ndarray</code></span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt-module.html#fill_in_image" class="summary-sig-name">fill_in_image</a>(<span class="summary-sig-arg">img</span>,
-        <span class="summary-sig-arg">model</span>,
-        <span class="summary-sig-arg">xmask</span>,
-        <span class="summary-sig-arg">ymask</span>,
-        <span class="summary-sig-arg">fmask</span>,
-        <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">num_iter</span>=<span class="summary-sig-default">10</span>,
-        <span class="summary-sig-arg">num_steps</span>=<span class="summary-sig-default">100</span>)</span><br />
-      Samples pixels of an image conditioned on all other pixels.</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type"><code>tuple</code></span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt-module.html#generate_data_from_image" class="summary-sig-name">generate_data_from_image</a>(<span class="summary-sig-arg">img</span>,
-        <span class="summary-sig-arg">xmask</span>,
-        <span class="summary-sig-arg">ymask</span>,
-        <span class="summary-sig-arg">num_samples</span>)</span><br />
-      Uniformly samples inputs and outputs for conditional models from 
-      images.</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type"><code>tuple</code></span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt-module.html#generate_data_from_video" class="summary-sig-name">generate_data_from_video</a>(<span class="summary-sig-arg">video</span>,
-        <span class="summary-sig-arg">xmask</span>,
-        <span class="summary-sig-arg">ymask</span>,
-        <span class="summary-sig-arg">num_samples</span>)</span><br />
-      Uniformly samples inputs and outputs for conditional models from 
-      videos.</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type"><code>list</code></span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt-module.html#random_select" class="summary-sig-name">random_select</a>(<span class="summary-sig-arg">k</span>,
-        <span class="summary-sig-arg">n</span>)</span><br />
-      Randomly selects $k$ out of $n$ elements.</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type"><code>ndarray</code></span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt-module.html#sample_image" class="summary-sig-name">sample_image</a>(<span class="summary-sig-arg">img</span>,
-        <span class="summary-sig-arg">model</span>,
-        <span class="summary-sig-arg">xmask</span>,
-        <span class="summary-sig-arg">ymask</span>,
-        <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Generates an image using a conditional distribution.</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type"><code>ndarray</code></span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt-module.html#sample_video" class="summary-sig-name">sample_video</a>(<span class="summary-sig-arg">video</span>,
-        <span class="summary-sig-arg">model</span>,
-        <span class="summary-sig-arg">xmask</span>,
-        <span class="summary-sig-arg">ymask</span>,
-        <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Generates a video using a conditional distribution.</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-</table>
+<br />
 <!-- ==================== VARIABLES ==================== -->
 <a name="section-Variables"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -297,7 +117,7 @@
     </table>
   </td>
 </tr>
-<tr>
+<tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
@@ -305,234 +125,6 @@
     </td>
   </tr>
 </table>
-<!-- ==================== FUNCTION DETAILS ==================== -->
-<a name="section-FunctionDetails"></a>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td colspan="2" class="table-header">
-    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-      <tr valign="top">
-        <td align="left"><span class="table-header">Function Details</span></td>
-        <td align="right" valign="top"
-         ><span class="options">[<a href="#section-FunctionDetails"
-         class="privatelink" onclick="toggle_private();"
-         >hide private</a>]</span></td>
-      </tr>
-    </table>
-  </td>
-</tr>
-</table>
-<a name="fill_in_image"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">fill_in_image</span>(<span class="sig-arg">img</span>,
-        <span class="sig-arg">model</span>,
-        <span class="sig-arg">xmask</span>,
-        <span class="sig-arg">ymask</span>,
-        <span class="sig-arg">fmask</span>,
-        <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">num_iter</span>=<span class="sig-default">10</span>,
-        <span class="sig-arg">num_steps</span>=<span class="sig-default">100</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Samples pixels of an image conditioned on all other pixels.</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>img</code></strong> (<code>ndarray</code>) - the image with the missing pixels initialized somehow</li>
-        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.ConditionalDistribution-class.html" 
-          class="link">ConditionalDistribution</a>) - a conditional distribution such as an <a 
-          href="cmt.MCGSM-class.html" class="link">MCGSM</a></li>
-        <li><strong class="pname"><code>xmask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
-        <li><strong class="pname"><code>ymask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
-        <li><strong class="pname"><code>fmask</code></strong> (<code>ndarray</code>) - a Boolean array describing the missing pixels</li>
-        <li><strong class="pname"><code>preconditioner</code></strong> (<a href="cmt.Preconditioner-class.html" 
-          class="link">Preconditioner</a>) - transforms the input before feeding it into the model</li>
-        <li><strong class="pname"><code>num_iter</code></strong> (<code>int</code>) - number of iterations of replacing all pixels</li>
-        <li><strong class="pname"><code>num_steps</code></strong> (<code>int</code>) - number of Metropolis steps per pixel and iteration</li>
-    </ul></dd>
-    <dt>Returns: <code>ndarray</code></dt>
-        <dd>an image with the missing pixels replaced</dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="generate_data_from_image"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">generate_data_from_image</span>(<span class="sig-arg">img</span>,
-        <span class="sig-arg">xmask</span>,
-        <span class="sig-arg">ymask</span>,
-        <span class="sig-arg">num_samples</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Uniformly samples inputs and outputs for conditional models from 
-  images.</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>img</code></strong> (<code>ndarray</code>) - an array representing a grayscale or color image</li>
-        <li><strong class="pname"><code>xmask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
-        <li><strong class="pname"><code>ymask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
-        <li><strong class="pname"><code>num_samples</code></strong> (<code>int</code>) - the number of generated input/output pairs</li>
-    </ul></dd>
-    <dt>Returns: <code>tuple</code></dt>
-        <dd>the input and output vectors stored in columns</dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="generate_data_from_video"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">generate_data_from_video</span>(<span class="sig-arg">video</span>,
-        <span class="sig-arg">xmask</span>,
-        <span class="sig-arg">ymask</span>,
-        <span class="sig-arg">num_samples</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Uniformly samples inputs and outputs for conditional models from 
-  videos.</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>video</code></strong> (<code>ndarray</code>) - a three-dimensional array representing the video</li>
-        <li><strong class="pname"><code>xmask</code></strong> (<code>ndarray</code>) - a three-dimensioal Boolean array describing the input pixels</li>
-        <li><strong class="pname"><code>ymask</code></strong> (<code>ndarray</code>) - a three-dimensioal Boolean array describing the output pixels</li>
-        <li><strong class="pname"><code>num_samples</code></strong> (<code>int</code>) - the number of generated input/output pairs</li>
-    </ul></dd>
-    <dt>Returns: <code>tuple</code></dt>
-        <dd>the input and output vectors stored in columns</dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="random_select"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">random_select</span>(<span class="sig-arg">k</span>,
-        <span class="sig-arg">n</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Randomly selects $k$ out of $n$ elements.</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>k</code></strong> (<code>int</code>) - the number of elements to pick</li>
-        <li><strong class="pname"><code>n</code></strong> (<code>int</code>) - the number of elements to pick from</li>
-    </ul></dd>
-    <dt>Returns: <code>list</code></dt>
-        <dd>a list of $k$ indices</dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="sample_image"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">sample_image</span>(<span class="sig-arg">img</span>,
-        <span class="sig-arg">model</span>,
-        <span class="sig-arg">xmask</span>,
-        <span class="sig-arg">ymask</span>,
-        <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Generates an image using a conditional distribution. The initial image
-  passed to this function is used to initialize the boundaries and is also 
-  used to determine the size and length of the image to be generated.</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>img</code></strong> (<code>ndarray</code>) - initialization of image</li>
-        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.ConditionalDistribution-class.html" 
-          class="link">ConditionalDistribution</a>) - a conditional distribution such as an <a 
-          href="cmt.MCGSM-class.html" class="link">MCGSM</a></li>
-        <li><strong class="pname"><code>xmask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
-        <li><strong class="pname"><code>ymask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
-        <li><strong class="pname"><code>preconditioner</code></strong> (<a href="cmt.Preconditioner-class.html" 
-          class="link">Preconditioner</a>) - transforms the input before feeding it into the model</li>
-    </ul></dd>
-    <dt>Returns: <code>ndarray</code></dt>
-        <dd>the sampled image</dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="sample_video"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">sample_video</span>(<span class="sig-arg">video</span>,
-        <span class="sig-arg">model</span>,
-        <span class="sig-arg">xmask</span>,
-        <span class="sig-arg">ymask</span>,
-        <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Generates a video using a conditional distribution. The initial video 
-  passed to this function is used to initialize the boundaries and is also 
-  used to determine the size and length of the video to be generated.</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>video</code></strong> (<code>ndarray</code>) - initialization of video</li>
-        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.ConditionalDistribution-class.html" 
-          class="link">ConditionalDistribution</a>) - a conditional distribution such as an <a 
-          href="cmt.MCGSM-class.html" class="link">MCGSM</a></li>
-        <li><strong class="pname"><code>xmask</code></strong> (<code>ndarray</code>) - a three-dimensional Boolean array describing the input pixels</li>
-        <li><strong class="pname"><code>ymask</code></strong> (<code>ndarray</code>) - a three-dimensional Boolean array describing the output pixels</li>
-        <li><strong class="pname"><code>preconditioner</code></strong> (<a href="cmt.Preconditioner-class.html" 
-          class="link">Preconditioner</a>) - transforms the input before feeding it into the model</li>
-    </ul></dd>
-    <dt>Returns: <code>ndarray</code></dt>
-        <dd>the sampled video</dd>
-  </dl>
-</td></tr></table>
-</div>
-<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
@@ -557,14 +149,14 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >Conditional Modeling Toolkit</th>
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Mar 11 18:25:48 2013
+    Generated by Epydoc 3.0.1 on Sun Sep 15 16:28:16 2013
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

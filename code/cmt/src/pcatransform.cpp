@@ -5,6 +5,10 @@
 #include "Eigen/Eigenvalues"
 using Eigen::SelfAdjointEigenSolver;
 
+#include <iostream>
+using std::cout;
+using std::endl;
+
 CMT::PCATransform::PCATransform(
 	const ArrayXXd& input,
 	const ArrayXXd& output,
@@ -27,12 +31,42 @@ CMT::PCATransform::PCATransform(
 
 
 
+CMT::PCATransform::PCATransform(
+	const VectorXd& eigenvalues,
+	const VectorXd& meanIn,
+	const MatrixXd& preIn,
+	const MatrixXd& preInInv,
+	int dimOut) :
+	AffineTransform(meanIn, preIn, preInInv, dimOut),
+	mEigenvalues(eigenvalues)
+{
+}
+
+
+
+CMT::PCATransform::PCATransform(const PCATransform& transform) :
+	AffineTransform(transform),
+	mEigenvalues(transform.mEigenvalues)
+{
+}
+
+
+
 void CMT::PCATransform::initialize(
 	const ArrayXXd& input,
 	double varExplained,
 	int numPCs,
 	int dimOut)
 {
+	mMeanOut = VectorXd::Zero(dimOut);
+	mPreOut = MatrixXd::Identity(dimOut, dimOut);
+	mPreOutInv = MatrixXd::Identity(dimOut, dimOut);
+	mGradTransform = MatrixXd::Zero(dimOut, input.rows());
+	mLogJacobian = 0.;
+
+	if(input.rows() < 1)
+		return;
+
 	mMeanIn = input.rowwise().mean();
 
 	// compute covariances
@@ -47,8 +81,10 @@ void CMT::PCATransform::initialize(
 		double varExplainedSoFar = 0.;
 		numPCs = 0;
 
-		for(int i = mEigenvalues.size() - 1; i >= 0; --i, ++numPCs) {
+		for(int i = mEigenvalues.size() - 1; i >= 0; --i) {
+			numPCs += 1;
 			varExplainedSoFar += mEigenvalues[i] / totalVariance * 100.;
+
 			if(varExplainedSoFar > varExplained)
 				break;
 		}
@@ -56,29 +92,17 @@ void CMT::PCATransform::initialize(
 		numPCs = mEigenvalues.size();
 	}
 
+	mPredictor = MatrixXd::Zero(dimOut, numPCs);
+
+	// make sure directions of zero variance aren't touched
+	VectorXd tmp = mEigenvalues;
+	for(int i = 0; i < tmp.size(); ++i)
+		if(tmp[i] < 1e-8)
+			tmp[i] = 1.;
+
 	// input whitening
-	mPreIn = mEigenvalues.tail(numPCs).cwiseSqrt().cwiseInverse().asDiagonal() *
+	mPreIn = tmp.tail(numPCs).cwiseSqrt().cwiseInverse().asDiagonal() *
 		eigenSolver.eigenvectors().rightCols(numPCs).transpose();
 	mPreInInv = eigenSolver.eigenvectors().rightCols(numPCs) *
-		mEigenvalues.tail(numPCs).cwiseSqrt().asDiagonal();
-
-	mMeanOut = VectorXd::Zero(dimOut);
-	mPreOut = MatrixXd::Identity(dimOut, dimOut);
-	mPreOutInv = MatrixXd::Identity(dimOut, dimOut);
-	mPredictor = MatrixXd::Zero(dimOut, numPCs);
-	mGradTransform = MatrixXd::Zero(dimOut, input.rows());
-	mLogJacobian = 1.;
-}
-
-
-
-CMT::PCATransform::PCATransform(
-	const VectorXd& eigenvalues,
-	const VectorXd& meanIn,
-	const MatrixXd& preIn,
-	const MatrixXd& preInInv,
-	int dimOut) :
-	AffineTransform(meanIn, preIn, preInInv, dimOut),
-	mEigenvalues(eigenvalues)
-{
+		tmp.tail(numPCs).cwiseSqrt().asDiagonal();
 }

@@ -1,0 +1,906 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>cmt.models.STM</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$','$']],
+        displayMath: [['$$','$$']],
+        skipTags: ["script","noscript","style","textarea","code"],
+        processEnvironments: true
+      }
+    });
+  </script>
+  <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  </head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="cmt-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="cmt-module.html">Package&nbsp;cmt</a> ::
+        <a href="cmt.models-module.html">Package&nbsp;models</a> ::
+        Class&nbsp;STM
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="cmt.models.STM-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class STM</h1><p class="nomargin-top"><span class="codelink"><a href="cmt.models-pysrc.html#STM">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+             object --+    
+                      |    
+<a href="cmt.models.ConditionalDistribution-class.html">ConditionalDistribution</a> --+
+                          |
+                         <strong class="uidshort">STM</strong>
+</pre>
+
+<hr />
+<p>An implementation of the spike-triggered mixture model.</p>
+  <p>The conditional distribution defined by the model is</p>
+  <p>$$p(y \mid \mathbf{x}, \mathbf{z}) = q(y \mid g(f(\mathbf{x}, 
+  \mathbf{z})))$$</p>
+  <p>where $y$ is a scalar, $\mathbf{x} \in \mathbb{R}^N$, $\mathbf{z} \in 
+  \mathbb{R}^M$, $q$ is a univariate distribution, $g$ is some 
+  nonlinearity, and</p>
+  <p>$$f(\mathbf{x}, \mathbf{z}) = \log \sum_k \exp\left( \sum_l \beta_{kl}
+  (\mathbf{u}_l^\top \mathbf{x})^2 + \mathbf{w}_k \mathbf{x} + a_k \right) 
+  + \mathbf{v}^\top \mathbf{z}.$$</p>
+  <p>As you can see from the equation above, part of the input is processed
+  nonlinearly and part of the input is processed linearly. To create an STM
+  with $N$-dimensional nonlinear inputs $\mathbf{x}$ and $M$-dimensional 
+  linear inputs $\mathbf{z}$ with, for example, 3 components and 20 
+  features $\mathbf{u}_l$, use</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>stm = STM(N, M, 3, 20, LogisticFunction, Bernoulli)</pre>
+  <p>To access the different parameters, you can use</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>stm.biases
+<span class="py-prompt">&gt;&gt;&gt; </span>stm.weights
+<span class="py-prompt">&gt;&gt;&gt; </span>stm.features
+<span class="py-prompt">&gt;&gt;&gt; </span>stm.predictors
+<span class="py-prompt">&gt;&gt;&gt; </span>stm.linear_predictor
+<span class="py-prompt">&gt;&gt;&gt; </span>stm.nonlinearity
+<span class="py-prompt">&gt;&gt;&gt; </span>stm.distribution</pre>
+  <p>which correspond to $a_k$, $\beta_{kl}$, $\mathbf{u}_l$, 
+  $\mathbf{w}_k$, $\mathbf{v}$, $g$, and $q$ respectively.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.models.STM-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+      x.__init__(...) initializes x; see help(type(x)) for signature</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="cmt.models-pysrc.html#STM.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">a new object with type S, a subtype of T</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.models.STM-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
+        <span class="summary-sig-arg">S</span>,
+        <span class="summary-sig-arg">...</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="cmt.models-pysrc.html#STM.__new__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.models.STM-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Method used by Pickle.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="cmt.models-pysrc.html#STM.__reduce__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__setstate__"></a><span class="summary-sig-name">__setstate__</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Method used by Pickle.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="cmt.models-pysrc.html#STM.__setstate__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>float</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.models.STM-class.html#_check_gradient" class="summary-sig-name" onclick="show_private();">_check_gradient</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">input</span>,
+        <span class="summary-sig-arg">output</span>,
+        <span class="summary-sig-arg">epsilon</span>=<span class="summary-sig-default">1e-5</span>,
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Compare the gradient to a numerical gradient.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="cmt.models-pysrc.html#STM._check_gradient">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>ndarray</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.models.STM-class.html#_check_performance" class="summary-sig-name" onclick="show_private();">_check_performance</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">input</span>,
+        <span class="summary-sig-arg">output</span>,
+        <span class="summary-sig-arg">repetitions</span>=<span class="summary-sig-default">2</span>,
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Measures the time it takes to evaluate the parameter gradient for the
+      given data points.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="cmt.models-pysrc.html#STM._check_performance">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>ndarray</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.models.STM-class.html#_parameter_gradient" class="summary-sig-name" onclick="show_private();">_parameter_gradient</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">input</span>,
+        <span class="summary-sig-arg">output</span>,
+        <span class="summary-sig-arg">x</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Computes the gradient of the parameters as returned by <a 
+      href="cmt.models.STM-class.html#_parameters" class="link" 
+      onclick="show_private();">_parameters()</a>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="cmt.models-pysrc.html#STM._parameter_gradient">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>ndarray</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.models.STM-class.html#_parameters" class="summary-sig-name" onclick="show_private();">_parameters</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Summarizes the parameters of the model in a long vector.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="cmt.models-pysrc.html#STM._parameters">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.models.STM-class.html#_set_parameters" class="summary-sig-name" onclick="show_private();">_set_parameters</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">x</span>,
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Loads all model parameters from a vector as produced by <code 
+      class="link">parameters()</code>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="cmt.models-pysrc.html#STM._set_parameters">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.models.STM-class.html#initialize" class="summary-sig-name">initialize</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">input</span>,
+        <span class="summary-sig-arg">output</span>)</span><br />
+      Tries to guess more sensible initial values for the model parameters 
+      from data.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="cmt.models-pysrc.html#STM.initialize">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>bool</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.models.STM-class.html#train" class="summary-sig-name">train</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">input</span>,
+        <span class="summary-sig-arg">output</span>,
+        <span class="summary-sig-arg">input_val</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">output_val</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Fits model parameters to given data using L-BFGS.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="cmt.models-pysrc.html#STM.train">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.ConditionalDistribution-class.html">ConditionalDistribution</a></code></b>:
+      <code><a href="cmt.models.ConditionalDistribution-class.html#evaluate">evaluate</a></code>,
+      <code><a href="cmt.models.ConditionalDistribution-class.html#loglikelihood">loglikelihood</a></code>,
+      <code><a href="cmt.models.ConditionalDistribution-class.html#sample">sample</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="biases"></a><span class="summary-name">biases</span><br />
+      Bias terms controlling strength of each mixture component, $a_k$.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="dim_in_linear"></a><span class="summary-name">dim_in_linear</span><br />
+      Dimensionality of linear inputs.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="dim_in_nonlinear"></a><span class="summary-name">dim_in_nonlinear</span><br />
+      Dimensionality of nonlinear inputs.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="distribution"></a><span class="summary-name">distribution</span><br />
+      Distribution whose average value is determined by output of 
+      nonlinearity.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="features"></a><span class="summary-name">features</span><br />
+      Features used for capturing structure in inputs, $\mathbf{u}_l$.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="linear_predictor"></a><span class="summary-name">linear_predictor</span><br />
+      Parameters relating inputs and outputs, $\mathbf{v}$.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="nonlinearity"></a><span class="summary-name">nonlinearity</span><br />
+      Nonlinearity applied to output of log-sum-exp, $g$.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="num_components"></a><span class="summary-name">num_components</span><br />
+      Numer of predictors.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="num_features"></a><span class="summary-name">num_features</span><br />
+      Number of features available to approximate input covariances.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="predictors"></a><span class="summary-name">predictors</span><br />
+      Parameters relating inputs and outputs, $\mathbf{w}_k$.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="weights"></a><span class="summary-name">weights</span><br />
+      Weights relating features and mixture components, $\beta_{kl}$.
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.ConditionalDistribution-class.html">ConditionalDistribution</a></code></b>:
+      <code><a href="cmt.models.ConditionalDistribution-class.html#dim_in">dim_in</a></code>,
+      <code><a href="cmt.models.ConditionalDistribution-class.html#dim_out">dim_out</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">...</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="cmt.models-pysrc.html#STM.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>dim_in_nonlinear</code></strong> (<code>int</code>) - dimensionality of nonlinear portion of input</li>
+        <li><strong class="pname"><code>dim_in_linear</code></strong> (<code>int</code>) - dimensionality of linear portion of input (default: 0)</li>
+        <li><strong class="pname"><code>num_components</code></strong> (<code>int</code>) - number of components (default: 3)</li>
+        <li><strong class="pname"><code>num_features</code></strong> (<code>int</code>) - number of quadratic features</li>
+        <li><strong class="pname"><code>nonlinearity</code></strong> (<a href="cmt.nonlinear.Nonlinearity-class.html" 
+          class="link">Nonlinearity</a>/<code>type</code>) - nonlinearity applied to log-sum-exp, $g$ (default: <a 
+          href="cmt.nonlinear.LogisticFunction-class.html" 
+          class="link">LogisticFunction</a>)</li>
+        <li><strong class="pname"><code>distribution</code></strong> (<a href="cmt.models.UnivariateDistribution-class.html" 
+          class="link">UnivariateDistribution</a>/<code>type</code>) - distribution of outputs, $q$ (default: <a 
+          href="cmt.models.Bernoulli-class.html" 
+          class="link">Bernoulli</a>)</li>
+    </ul></dd>
+    <dt>Overrides:
+        object.__init__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__new__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__new__</span>(<span class="sig-arg">T</span>,
+        <span class="sig-arg">S</span>,
+        <span class="sig-arg">...</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="cmt.models-pysrc.html#STM.__new__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Returns: a new object with type S, a subtype of T</dt>
+    <dt>Overrides:
+        object.__new__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__reduce__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__reduce__</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="cmt.models-pysrc.html#STM.__reduce__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Method used by Pickle.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__reduce__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_check_gradient"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_check_gradient</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">input</span>,
+        <span class="sig-arg">output</span>,
+        <span class="sig-arg">epsilon</span>=<span class="sig-default">1e-5</span>,
+        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="cmt.models-pysrc.html#STM._check_gradient">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Compare the gradient to a numerical gradient.</p>
+  <p>Numerically estimate the gradient using finite differences and return 
+  the norm of the difference between the numerical gradient and the 
+  gradient used during training. This method is used for testing 
+  purposes.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>input</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>output</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>epsilon</code></strong> (<code>float</code>) - a small change added to the current parameters</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
+    </ul></dd>
+    <dt>Returns: <code>float</code></dt>
+        <dd>difference between numerical and analytical gradient</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_check_performance"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_check_performance</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">input</span>,
+        <span class="sig-arg">output</span>,
+        <span class="sig-arg">repetitions</span>=<span class="sig-default">2</span>,
+        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="cmt.models-pysrc.html#STM._check_performance">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Measures the time it takes to evaluate the parameter gradient for the 
+  given data points.</p>
+  <p>This function can be used to tune the <code>batch_size</code> 
+  parameter.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>input</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>output</code></strong> (<code>ndarray</code>) - outputs stored in columns</li>
+        <li><strong class="pname"><code>repetitions</code></strong> (<code>int</code>) - number of times the gradient is evaluated before averaging</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>estimated time for one gradient evaluation</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_parameter_gradient"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_parameter_gradient</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">input</span>,
+        <span class="sig-arg">output</span>,
+        <span class="sig-arg">x</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="cmt.models-pysrc.html#STM._parameter_gradient">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Computes the gradient of the parameters as returned by <a 
+  href="cmt.models.STM-class.html#_parameters" class="link" 
+  onclick="show_private();">_parameters()</a>.</p>
+  <p>If <code>x</code> is not specified, the gradient will be evaluated for
+  the current parameters of the model.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>input</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>output</code></strong> (<code>ndarray</code>) - outputs stored in columns</li>
+        <li><strong class="pname"><code>x</code></strong> (<code>ndarray</code>) - set of parameters for which to evaluate gradient</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>gradient of model parameters</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_parameters"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_parameters</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="cmt.models-pysrc.html#STM._parameters">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Summarizes the parameters of the model in a long vector.</p>
+  <p>If <code>parameters</code> is given, only the parameters with 
+  <code>train_* = True</code> will be contained in the vector.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>model parameters vectorized and concatenated</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_set_parameters"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_set_parameters</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">x</span>,
+        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="cmt.models-pysrc.html#STM._set_parameters">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Loads all model parameters from a vector as produced by <code 
+  class="link">parameters()</code>.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>x</code></strong> (<code>ndarray</code>) - all model parameters concatenated to a vector</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="initialize"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">initialize</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">input</span>,
+        <span class="sig-arg">output</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="cmt.models-pysrc.html#STM.initialize">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Tries to guess more sensible initial values for the model parameters 
+  from data.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>input</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>output</code></strong> (<code>ndarray</code>) - outputs stored in columns</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="train"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">train</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">input</span>,
+        <span class="sig-arg">output</span>,
+        <span class="sig-arg">input_val</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">output_val</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="cmt.models-pysrc.html#STM.train">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Fits model parameters to given data using L-BFGS.</p>
+  <p>The following example demonstrates possible parameters and default 
+  settings.</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>model.train(input, output, parameters={
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'verbosity'</span>: 0,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'max_iter'</span>: 1000,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'threshold'</span>: 1e-9,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'num_grad'</span>: 20,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'batch_size'</span>: 2000,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'callback'</span>: None,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'cb_iter'</span>: 25,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'val_iter'</span>: 5,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'val_look_ahead'</span>: 20,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_biases'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_weights'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_features'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_predictors'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_linear_predictor'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularizer'</span>: <span class="py-string">'L2'</span>,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_features'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_weights'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_predictors'</span>: 0.
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_linear_predictor'</span>: 0.
+<span class="py-prompt">&gt;&gt;&gt; </span>})</pre>
+  <p>The parameters <code>train_biases</code>, <code>train_weights</code>, 
+  and so on can be used to control which parameters will be optimized. 
+  Optimization stops after <code>max_iter</code> iterations or if the 
+  difference in (penalized) log-likelihood is sufficiently small enough, as
+  specified by <code>threshold</code>. <code>num_grad</code> is the number 
+  of gradients used by L-BFGS to approximate the inverse Hessian 
+  matrix.</p>
+  <p>The parameter <code>batch_size</code> has no effect on the solution of
+  the optimization but can affect speed by reducing the number of cache 
+  misses.</p>
+  <p>If a callback function is given, it will be called every 
+  <code>cb_iter</code> iterations. The first argument to callback will be 
+  the current iteration, the second argument will be a <i>copy</i> of the 
+  model.</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">def</span> <span class="py-defname">callback</span>(i, stm):
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-keyword">print</span> i</pre>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>input</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
+        <li><strong class="pname"><code>output</code></strong> (<code>ndarray</code>) - outputs stored in columns</li>
+        <li><strong class="pname"><code>input_val</code></strong> (<code>ndarray</code>) - inputs used for early stopping based on validation error</li>
+        <li><strong class="pname"><code>output_val</code></strong> (<code>ndarray</code>) - outputs used for early stopping based on validation error</li>
+        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
+    </ul></dd>
+    <dt>Returns: <code>bool</code></dt>
+        <dd><code>True</code> if training converged, otherwise 
+          <code>False</code></dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="cmt-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Sun Sep 15 16:28:16 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
