@@ -124,7 +124,7 @@ const char* MCBM_doc =
 	"\n"
 	"The conditional distribution defined by the model is\n"
 	"\n"
-	"$$p(\\mathbf{y} \\mid \\mathbf{x}) \\propto \\sum_{c} \\exp\\left(\\eta_c + \\sum_i \\beta_{ci} \\left(\\mathbf{b}_i^\\top \\mathbf{x}\\right)^2 + \\mathbf{w}_c^\\top \\mathbf{x} + \\mathbf{y}_c^\\top \\mathbf{A}_c \\mathbf{x} + v_c y\\right),$$\n"
+	"$$p(y \\mid \\mathbf{x}) \\propto \\sum_{c} \\exp\\left(\\eta_c + \\sum_i \\beta_{ci} \\left(\\mathbf{b}_i^\\top \\mathbf{x}\\right)^2 + \\mathbf{w}_c^\\top \\mathbf{x} + \\mathbf{y}_c^\\top \\mathbf{A}_c \\mathbf{x} + v_c y\\right),$$\n"
 	"\n"
 	"where $y \\in \\{0, 1\\}$ and $\\mathbf{x} \\in \\mathbb{R}^N$ (although typically $\\mathbf{x} \\in \\{0, 1\\}^N$).\n"
 	"\n"
