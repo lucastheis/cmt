@@ -14,6 +14,7 @@
 #include "mcbminterface.h"
 #include "mcgsminterface.h"
 #include "mixtureinterface.h"
+#include "mlrinterface.h"
 #include "nonlinearitiesinterface.h"
 #include "patchmodelinterface.h"
 #include "preconditionerinterface.h"
@@ -912,7 +913,7 @@ static PyGetSetDef GLM_getset[] = {
 	{"weights",
 		(getter)GLM_weights,
 		(setter)GLM_set_weights,
-		"Linear filter, $w$."},
+		"Linear filter, $\\mathbf{w}$."},
 	{"bias",
 		(getter)GLM_bias,
 		(setter)GLM_set_bias,
@@ -992,6 +993,86 @@ PyTypeObject GLM_type = {
 	0,                       /*tp_descr_set*/
 	0,                       /*tp_dictoffset*/
 	(initproc)GLM_init,      /*tp_init*/
+	0,                       /*tp_alloc*/
+	CD_new,                  /*tp_new*/
+};
+
+static PyGetSetDef MLR_getset[] = {
+	{"weights",
+		(getter)MLR_weights,
+		(setter)MLR_set_weights,
+		"Linear filters, $\\mathbf{w}_i$, one per row."},
+	{"bias",
+		(getter)MLR_biases,
+		(setter)MLR_set_biases,
+		"Bias terms, $b_i$."},
+	{0}
+};
+
+static PyMethodDef MLR_methods[] = {
+	{"train", (PyCFunction)MLR_train, METH_VARARGS | METH_KEYWORDS, MLR_train_doc},
+	{"_parameters",
+		(PyCFunction)MLR_parameters,
+		METH_VARARGS | METH_KEYWORDS,
+		Trainable_parameters_doc},
+	{"_set_parameters",
+		(PyCFunction)MLR_set_parameters,
+		METH_VARARGS | METH_KEYWORDS,
+		Trainable_set_parameters_doc},
+	{"_parameter_gradient",
+		(PyCFunction)MLR_parameter_gradient,
+		METH_VARARGS | METH_KEYWORDS, 0},
+	{"_check_gradient",
+		(PyCFunction)MLR_check_gradient,
+		METH_VARARGS | METH_KEYWORDS,
+		Trainable_check_gradient_doc},
+	{"_check_performance",
+		(PyCFunction)STM_check_performance,
+		METH_VARARGS | METH_KEYWORDS,
+		Trainable_check_performance_doc},
+	{"__reduce__", (PyCFunction)MLR_reduce, METH_NOARGS, MLR_reduce_doc},
+	{"__setstate__", (PyCFunction)MLR_setstate, METH_VARARGS, MLR_setstate_doc},
+	{0}
+};
+
+PyTypeObject MLR_type = {
+	PyObject_HEAD_INIT(0)
+	0,                       /*ob_size*/
+	"cmt.models.MLR",        /*tp_name*/
+	sizeof(MLRObject),       /*tp_basicsize*/
+	0,                       /*tp_itemsize*/
+	(destructor)MLR_dealloc, /*tp_dealloc*/
+	0,                       /*tp_print*/
+	0,                       /*tp_getattr*/
+	0,                       /*tp_setattr*/
+	0,                       /*tp_compare*/
+	0,                       /*tp_repr*/
+	0,                       /*tp_as_number*/
+	0,                       /*tp_as_sequence*/
+	0,                       /*tp_as_mapping*/
+	0,                       /*tp_hash */
+	0,                       /*tp_call*/
+	0,                       /*tp_str*/
+	0,                       /*tp_getattro*/
+	0,                       /*tp_setattro*/
+	0,                       /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,      /*tp_flags*/
+	MLR_doc,                 /*tp_doc*/
+	0,                       /*tp_traverse*/
+	0,                       /*tp_clear*/
+	0,                       /*tp_richcompare*/
+	0,                       /*tp_weaklistoffset*/
+	0,                       /*tp_iter*/
+	0,                       /*tp_iternext*/
+	MLR_methods,             /*tp_methods*/
+	0,                       /*tp_members*/
+	MLR_getset,              /*tp_getset*/
+	&CD_type,                /*tp_base*/
+	0,                       /*tp_dict*/
+	0,                       /*tp_descr_get*/
+	0,                       /*tp_descr_set*/
+	0,                       /*tp_dictoffset*/
+	(initproc)MLR_init,      /*tp_init*/
 	0,                       /*tp_alloc*/
 	CD_new,                  /*tp_new*/
 };
@@ -2078,6 +2159,8 @@ PyMODINIT_FUNC init_cmt() {
 		return;
 	if(PyType_Ready(&MixtureComponent_type) < 0)
 		return;
+	if(PyType_Ready(&MLR_type) < 0)
+		return;
 	if(PyType_Ready(&MoGSM_type) < 0)
 		return;
 	if(PyType_Ready(&Nonlinearity_type) < 0)
@@ -2132,6 +2215,7 @@ PyMODINIT_FUNC init_cmt() {
 	Py_INCREF(&MCGSM_type);
 	Py_INCREF(&Mixture_type);
 	Py_INCREF(&MixtureComponent_type);
+	Py_INCREF(&MLR_type);
 	Py_INCREF(&MoGSM_type);
 	Py_INCREF(&Nonlinearity_type);
 	Py_INCREF(&PCAPreconditioner_type);
@@ -2167,6 +2251,7 @@ PyMODINIT_FUNC init_cmt() {
 	PyModule_AddObject(module, "MCGSM", reinterpret_cast<PyObject*>(&MCGSM_type));
 	PyModule_AddObject(module, "Mixture", reinterpret_cast<PyObject*>(&Mixture_type));
 	PyModule_AddObject(module, "MixtureComponent", reinterpret_cast<PyObject*>(&MixtureComponent_type));
+	PyModule_AddObject(module, "MLR", reinterpret_cast<PyObject*>(&MLR_type));
 	PyModule_AddObject(module, "MoGSM", reinterpret_cast<PyObject*>(&MoGSM_type));
 	PyModule_AddObject(module, "Nonlinearity", reinterpret_cast<PyObject*>(&Nonlinearity_type));
 	PyModule_AddObject(module, "PCAPreconditioner", reinterpret_cast<PyObject*>(&PCAPreconditioner_type));

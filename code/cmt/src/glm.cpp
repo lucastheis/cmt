@@ -264,6 +264,7 @@ double CMT::GLM::parameterGradient(
 	lbfgsfloatval_t* y = const_cast<lbfgsfloatval_t*>(x);
 	int offset = 0;
 
+	// interpret parameters
 	VectorLBFGS weights(params.trainWeights ? y : const_cast<double*>(mWeights.data()), mDimIn);
 	VectorLBFGS weightsGrad(g, mDimIn);
 	if(params.trainWeights)

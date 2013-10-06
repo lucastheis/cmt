@@ -9,6 +9,7 @@
 #include "include/mcgsm.h"
 #include "include/mcbm.h"
 #include "include/mixture.h"
+#include "include/mlr.h"
 #include "include/mogsm.h"
 #include "include/patchmodel.h"
 #include "include/trainable.h"

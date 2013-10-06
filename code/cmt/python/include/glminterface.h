@@ -14,7 +14,6 @@
 #include "cmt/models"
 using CMT::GLM;
 
-
 struct GLMObject {
 	PyObject_HEAD
 	GLM* glm;

@@ -54,6 +54,8 @@ SOURCES = \
 	$(PYSDIR)/mcbminterface.cpp \
 	$(SRCDIR)/mixture.cpp \
 	$(PYSDIR)/mixtureinterface.cpp \
+	$(SRCDIR)/mlr.cpp \
+	$(PYSDIR)/mlrinterface.cpp \
 	$(PYSDIR)/module.cpp \
 	$(SRCDIR)/nonlinearities.cpp \
 	$(PYSDIR)/nonlinearitiesinterface.cpp \

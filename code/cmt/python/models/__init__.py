@@ -9,6 +9,7 @@ __all__ = [
 	"MCGSM",
 	"Mixture",
 	"MixtureComponent",
+	"MLR",
 	"MoGSM",
 	"PatchMCBM",
 	"PatchMCGSM",
@@ -27,6 +28,7 @@ from _cmt import MCBM
 from _cmt import MCGSM
 from _cmt import Mixture
 from _cmt import MixtureComponent
+from _cmt import MLR
 from _cmt import MoGSM
 from _cmt import PatchMCBM
 from _cmt import PatchMCGSM
