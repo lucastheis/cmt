@@ -3,6 +3,7 @@
 
 #include "Eigen/Core"
 #include "trainable.h"
+#include "exception.h"
 
 namespace CMT {
 	using Eigen::Array;
@@ -98,6 +99,8 @@ inline Eigen::MatrixXd CMT::MLR::weights() const {
 
 
 inline void CMT::MLR::setWeights(const MatrixXd& weights) {
+	if(weights.rows() != mDimOut || weights.cols() != mDimIn)
+		throw Exception("Weight matrix has wrong dimensionality.");
 	mWeights = weights;
 }
 
@@ -110,6 +113,8 @@ inline Eigen::VectorXd CMT::MLR::biases() const {
 
 
 inline void CMT::MLR::setBiases(const VectorXd& biases) {
+	if(biases.size() != mDimOut)
+		throw Exception("Wrong number of biases.");
 	mBiases = biases;
 }
 

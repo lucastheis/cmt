@@ -6,6 +6,7 @@ using Eigen::Array;
 using Eigen::ArrayXXd;
 using Eigen::MatrixXd;
 using Eigen::Dynamic;
+using Eigen::RowMajor;
 
 #include <cstdlib>
 using std::rand;
@@ -16,6 +17,8 @@ using std::log;
 #include <map>
 using std::pair;
 using std::make_pair;
+
+#include <iostream>
 
 CMT::MLR::Parameters::Parameters() :
 	Trainable::Parameters::Parameters(),
@@ -203,36 +206,42 @@ double CMT::MLR::parameterGradient(
 {
 	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 
-	MatrixLBFGS weightsGrad(g, mDimOut - 1, mDimIn);
-	VectorLBFGS biasesGrad(params.trainWeights ? g + weightsGrad.size() : g, mDimOut - 1);
-
 	MatrixXd weights = mWeights;
 	VectorXd biases = mBiases;
 
 	// copy parameters
 	int k = 0;
 	if(params.trainWeights)
-		for(int i = 1; i < mWeights.rows(); ++i)
-			for(int j = 0; j < mWeights.cols(); ++j, ++k)
+		for(int i = 1; i < weights.rows(); ++i)
+			for(int j = 0; j < weights.cols(); ++j, ++k)
 				weights(i, j) = x[k];
 	if(params.trainBiases)
 		for(int i = 1; i < mBiases.rows(); ++i, ++k)
 			biases[i] = x[k];
 
 	// compute distribution over outputs
-	ArrayXXd logProb = (mWeights * input).colwise() + mBiases;
+	ArrayXXd logProb = (weights * input).colwise() + biases;
 	logProb.rowwise() -= logSumExp(logProb);
 
 	// difference between prediction and actual output
-	MatrixXd diff = (logProb.matrix() - output);
+	MatrixXd diff = (logProb.exp().matrix() - output);
 
 	// compute gradients
 	double normConst = output.cols() * log(2.);
+
 	if(g) {
-		if(params.trainWeights)
+		int offset = 0;
+
+		if(params.trainWeights) {
+			Map<Matrix<double, Dynamic, Dynamic, RowMajor> > weightsGrad(g, mDimOut - 1, mDimIn);
 			weightsGrad = (diff * input.transpose() / normConst).bottomRows(mDimOut - 1);
-		if(params.trainBiases)
-			biasesGrad = (diff.rowwise().sum() / normConst).bottomRows(mDimOut - 1);
+			offset += weightsGrad.size();
+		}
+
+		if(params.trainBiases) {
+			VectorLBFGS biasesGrad(g + offset, mDimOut - 1);
+			biasesGrad = diff.rowwise().sum().bottomRows(mDimOut - 1) / normConst;
+		}
 	}
 
 	// return negative average log-likelihood in bits

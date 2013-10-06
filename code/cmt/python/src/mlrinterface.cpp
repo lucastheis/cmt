@@ -319,7 +319,7 @@ const char* MLR_reduce_doc =
 
 PyObject* MLR_reduce(MLRObject* self, PyObject*) {
 	// constructor arguments
-	PyObject* args = Py_BuildValue("(iiO)", self->mlr->dimIn(), self->mlr->dimOut());
+	PyObject* args = Py_BuildValue("(ii)", self->mlr->dimIn(), self->mlr->dimOut());
 	PyObject* weights = MLR_weights(self, 0);
 	PyObject* biases = MLR_biases(self, 0);
 	PyObject* state = Py_BuildValue("(OO)", weights, biases);

@@ -1002,7 +1002,7 @@ static PyGetSetDef MLR_getset[] = {
 		(getter)MLR_weights,
 		(setter)MLR_set_weights,
 		"Linear filters, $\\mathbf{w}_i$, one per row."},
-	{"bias",
+	{"biases",
 		(getter)MLR_biases,
 		(setter)MLR_set_biases,
 		"Bias terms, $b_i$."},
