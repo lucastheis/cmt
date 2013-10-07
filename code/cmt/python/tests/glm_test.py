@@ -7,7 +7,7 @@ from numpy import *
 from numpy import max
 from numpy.random import randn, rand
 from cmt.models import Bernoulli, GLM
-from cmt.nonlinear import LogisticFunction
+from cmt.nonlinear import LogisticFunction, BlobNonlinearity
 
 class Tests(unittest.TestCase):
 	def test_glm_basics(self):
@@ -99,7 +99,7 @@ class Tests(unittest.TestCase):
 	def test_glm_pickle(self):
 		tmp_file = mkstemp()[1]
 
-		model0 = GLM(5, LogisticFunction, Bernoulli)
+		model0 = GLM(5, BlobNonlinearity, Bernoulli)
 		model0.weights = randn(*model0.weights.shape)
 		model0.bias = randn()
 
@@ -116,7 +116,10 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(model0.weights - model1.weights)), 1e-20)
 
 		x = randn(model0.dim_in, 100)
-		model1.evaluate(x, model1.sample(x))
+		y = model0.sample(x)
+		self.assertEqual(
+			model0.evaluate(x, y),
+			model1.evaluate(x, y))
 
 
 
