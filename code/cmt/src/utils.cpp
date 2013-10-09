@@ -412,8 +412,8 @@ ArrayXXi CMT::samplePoisson(const ArrayXXd& lambda) {
 set<int> CMT::randomSelect(int k, int n) {
 	if(k > n)
 		throw Exception("k must be smaller than n.");
-	if(k < 1 || n < 1)
-		throw Exception("n and k must be positive.");
+	if(k < 0 || n < 0)
+		throw Exception("n and k must be non-negative.");
 
 	// TODO: a hash map could be more efficient
 	set<int> indices;
