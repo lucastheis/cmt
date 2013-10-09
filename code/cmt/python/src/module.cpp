@@ -92,6 +92,7 @@ static PyGetSetDef CD_getset[] = {
 
 static PyMethodDef CD_methods[] = {
 	{"sample", (PyCFunction)CD_sample, METH_VARARGS | METH_KEYWORDS, CD_sample_doc},
+	{"predict", (PyCFunction)CD_predict, METH_VARARGS | METH_KEYWORDS, CD_predict_doc},
 	{"loglikelihood",
 		(PyCFunction)CD_loglikelihood,
 		METH_VARARGS | METH_KEYWORDS,

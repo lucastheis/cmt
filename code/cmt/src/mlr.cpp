@@ -101,12 +101,10 @@ MatrixXd CMT::MLR::sample(const MatrixXd& input) const {
 	if(input.rows() != mDimIn)
 		throw Exception("Inputs have wrong dimensionality.");
 
-	MatrixXd output = MatrixXd::Zero(mDimOut, input.cols());
-
 	// distribution over outputs
-	ArrayXXd prob = (mWeights * input).colwise() + mBiases;
-	prob.rowwise() -= logSumExp(prob);
-	prob = prob.exp();
+	ArrayXXd prob = predict(input);
+
+	MatrixXd output = MatrixXd::Zero(mDimOut, input.cols());
 
 	#pragma omp parallel for
 	for(int j = 0; j < input.cols(); ++j) {
@@ -124,6 +122,22 @@ MatrixXd CMT::MLR::sample(const MatrixXd& input) const {
 	}
 
 	return output;
+}
+
+
+
+MatrixXd CMT::MLR::predict(const MatrixXd& input) const {
+	if(input.rows() != mDimIn)
+		throw Exception("Inputs have wrong dimensionality.");
+
+	MatrixXd output = MatrixXd::Zero(mDimOut, input.cols());
+
+	// distribution over outputs
+	ArrayXXd prob = (mWeights * input).colwise() + mBiases;
+	prob.rowwise() -= logSumExp(prob);
+	prob = prob.exp();
+
+	return prob;
 }
 
 

@@ -1,8 +1,10 @@
 #include "Eigen/Core"
 using Eigen::Dynamic;
 using Eigen::Array;
+using Eigen::MatrixXd;
 
 #include "conditionaldistribution.h"
+#include "exception.h"
 
 #include <cmath>
 using std::log;
@@ -54,4 +56,13 @@ double CMT::ConditionalDistribution::evaluate(
 {
 	return -logLikelihood(preconditioner(data.first, data.second)).mean() / log(2.) / dimOut()
 		- preconditioner.logJacobian(data).mean() / log(2.) / dimOut();
+}
+
+
+
+/**
+ * Computes the expectation value of the output.
+ */
+MatrixXd CMT::ConditionalDistribution::predict(const MatrixXd& input) const {
+	throw Exception("This method is not yet implemented.");
 }
