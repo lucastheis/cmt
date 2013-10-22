@@ -95,6 +95,47 @@ PyObject* CD_sample(CDObject* self, PyObject* args, PyObject* kwds) {
 
 
 
+const char* CD_predict_doc =
+	"predict(self, input)\n"
+	"\n"
+	"Computes the expectation value of the output.\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@rtype: ndarray\n"
+	"@return: expected value of outputs";
+
+PyObject* CD_predict(CDObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", 0};
+
+	PyObject* input;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &input))
+		return 0;
+
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in a NumPy array.");
+		return 0;
+	}
+
+	try {
+		PyObject* result = PyArray_FromMatrixXd(self->cd->predict(PyArray_ToMatrixXd(input)));
+		Py_DECREF(input);
+		return result;
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		Py_DECREF(input);
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
 const char* CD_loglikelihood_doc =
 	"loglikelihood(self, input, output)\n"
 	"\n"

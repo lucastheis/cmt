@@ -8,6 +8,7 @@ Fast implementations of several probabilistic models. Examples:
 * MCBM (mixture of conditional Boltzmann machines)
 * FVBN (fully-visible belief network; Neal, 1992)
 * GLM (generalized linear model; Nelder & Wedderburn, 1972)
+* MLR (multinomial logistic regression)
 * STM (spike-triggered mixture model; Theis et al., 2013)
 
 ## Requirements

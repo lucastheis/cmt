@@ -50,6 +50,7 @@ namespace CMT {
 				const MatrixXd& output) const;
 
 			virtual MatrixXd sample(const MatrixXd& input) const;
+			virtual MatrixXd predict(const MatrixXd& input) const;
 
 			virtual int numParameters(
 				const Trainable::Parameters& params = Parameters()) const;

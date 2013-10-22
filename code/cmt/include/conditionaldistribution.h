@@ -20,6 +20,7 @@ namespace CMT {
 			virtual int dimIn() const = 0;
 			virtual int dimOut() const = 0;
 			virtual MatrixXd sample(const MatrixXd& input) const = 0;
+			virtual MatrixXd predict(const MatrixXd& input) const;
 			virtual Array<double, 1, Dynamic> logLikelihood(
 				const pair<ArrayXXd, ArrayXXd>& data) const;
 			virtual Array<double, 1, Dynamic> logLikelihood(
