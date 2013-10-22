@@ -425,6 +425,16 @@ PyObject* GLM_parameter_gradient(GLMObject* self, PyObject* args, PyObject* kwds
 
 
 
+PyObject* GLM_fisher_information(GLMObject* self, PyObject* args, PyObject* kwds) {
+	return Trainable_fisher_information(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToGLMParameters);
+}
+
+
+
 PyObject* GLM_check_gradient(GLMObject* self, PyObject* args, PyObject* kwds) {
 	return Trainable_check_gradient(
 		reinterpret_cast<TrainableObject*>(self), 

@@ -70,6 +70,7 @@ PyObject* STM_train(STMObject*, PyObject*, PyObject*);
 PyObject* STM_parameters(STMObject*, PyObject*, PyObject*);
 PyObject* STM_set_parameters(STMObject*, PyObject*, PyObject*);
 PyObject* STM_parameter_gradient(STMObject*, PyObject*, PyObject*);
+PyObject* STM_fisher_information(STMObject*, PyObject*, PyObject*);
 PyObject* STM_check_gradient(STMObject*, PyObject*, PyObject*);
 PyObject* STM_check_performance(STMObject* self, PyObject* args, PyObject* kwds);
 

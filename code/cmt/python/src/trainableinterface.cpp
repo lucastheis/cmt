@@ -587,6 +587,75 @@ PyObject* Trainable_parameter_gradient(
 
 
 
+const char* Trainable_fisher_information_doc =
+	"_parameter_gradient(self, input, output, x=None, parameters=None)\n"
+	"\n"
+	"Estimates the Fisher information matrix of the parameters as returned by L{_parameters()}.\n"
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: C{ndarray}\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@type  parameters: C{dict}\n"
+	"@param parameters: a dictionary containing hyperparameters\n"
+	"\n"
+	"@rtype: C{ndarray}\n"
+	"@return: the Fisher information matrix";
+
+PyObject* Trainable_fisher_information(
+	TrainableObject* self,
+	PyObject* args,
+	PyObject* kwds,
+	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*))
+{
+	const char* kwlist[] = {"input", "output", "parameters", 0};
+
+	PyObject* input;
+	PyObject* output;
+	PyObject* parameters = 0;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|O", const_cast<char**>(kwlist),
+		&input, &output, &parameters))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output) {
+		Py_XDECREF(input);
+		Py_XDECREF(output);
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		Trainable::Parameters* params = PyObject_ToParameters(parameters);
+
+		MatrixXd fisherInformation = self->distribution->fisherInformation(
+			PyArray_ToMatrixXd(input),
+			PyArray_ToMatrixXd(output),
+			*params);
+
+		delete params;
+
+		Py_DECREF(input);
+		Py_DECREF(output);
+
+		return PyArray_FromMatrixXd(fisherInformation);
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+}
+
+
+
 const char* Trainable_check_performance_doc =
 	"_check_performance(self, input, output, repetitions=2, parameters=None)\n"
 	"\n"

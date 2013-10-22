@@ -5,6 +5,7 @@ from pickle import dump, load
 from tempfile import mkstemp
 from numpy import *
 from numpy import max
+from numpy.linalg import inv
 from numpy.random import randn, rand
 from cmt.models import Bernoulli, GLM
 from cmt.nonlinear import LogisticFunction, BlobNonlinearity
@@ -93,6 +94,43 @@ class Tests(unittest.TestCase):
 
 		self.assertLess(max(abs(glm.weights - w)), 0.1)
 		self.assertLess(max(abs(glm.bias - b)), 1e-12)
+
+
+
+	def test_glm_fisher_information(self):
+		N = 2000
+		T = 1000
+
+		glm = GLM(4)
+		glm.weights = randn(glm.dim_in, 1)
+		glm.bias = -2.
+
+		inputs = randn(glm.dim_in, N)
+		outputs = glm.sample(inputs)
+
+		x = glm._parameters()
+		I = glm._fisher_information(inputs, outputs)
+
+		x_mle = []
+		
+		# repeated maximum likelihood estimation
+		for t in range(T):
+			inputs = randn(glm.dim_in, N)
+			outputs = glm.sample(inputs)
+
+			# initialize at true parameters for fast convergence
+			glm_ = GLM(glm.dim_in)
+			glm_.weights = glm.weights
+			glm_.bias = glm.bias
+			glm_.train(inputs, outputs)
+
+			x_mle.append(glm_._parameters())
+
+		C = cov(hstack(x_mle), ddof=1)
+
+		# inv(I) should be sufficiently close to C
+		self.assertLess(max(abs(inv(I) - C) / (abs(C) + .1)), max(abs(C) / (abs(C) + .1)) / 2.)
+		
 
 
 
