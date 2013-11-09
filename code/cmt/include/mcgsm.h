@@ -95,6 +95,10 @@ namespace CMT {
 			virtual Array<double, 1, Dynamic> logLikelihood(
 				const MatrixXd& input,
 				const MatrixXd& output) const;
+			virtual Array<double, 1, Dynamic> logLikelihood(
+				const MatrixXd& input,
+				const MatrixXd& output,
+				const Array<int, 1, Dynamic>& labels) const;
 
 			virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
 				const MatrixXd& input,

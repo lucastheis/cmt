@@ -28,11 +28,12 @@ struct PatchMCGSMObject {
 };
 
 extern PyTypeObject MCGSM_type;
-//extern PyTypeObject PatchMCGSM_type;
 extern PyTypeObject PCAPreconditioner_type;
 
 extern const char* MCGSM_doc;
 extern const char* MCGSM_train_doc;
+extern const char* MCGSM_loglikelihood_doc;
+extern const char* MCGSM_sample_doc;
 extern const char* MCGSM_sample_posterior_doc;
 extern const char* MCGSM_posterior_doc;
 extern const char* MCGSM_reduce_doc;
@@ -73,8 +74,11 @@ PyObject* MCGSM_train(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_check_gradient(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_check_performance(MCGSMObject*, PyObject*, PyObject*);
 
-PyObject* MCGSM_posterior(MCGSMObject*, PyObject*, PyObject*);
+PyObject* MCGSM_loglikelihood(MCGSMObject*, PyObject*, PyObject*);
+
+PyObject* MCGSM_sample(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_sample_posterior(MCGSMObject*, PyObject*, PyObject*);
+PyObject* MCGSM_posterior(MCGSMObject*, PyObject*, PyObject*);
 
 PyObject* MCGSM_parameters(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_set_parameters(MCGSMObject*, PyObject*, PyObject*);

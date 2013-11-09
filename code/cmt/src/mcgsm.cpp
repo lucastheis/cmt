@@ -266,7 +266,7 @@ MatrixXd CMT::MCGSM::sample(const MatrixXd& input) const {
 		pmf /= pmf.sum();
 
 		// sample component and scale
-		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double urand = static_cast<double>(rand()) / (RAND_MAX + 1.);
 		double cdf;
 		int l = 0;
 
@@ -323,7 +323,7 @@ MatrixXd CMT::MCGSM::sample(const MatrixXd& input, const Array<int, 1, Dynamic>&
 		pmf = (pmf - logSumExp(pmf)[0]).exp();
 
 		// sample scale
-		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double urand = static_cast<double>(rand()) / (RAND_MAX + 1.);
 		double cdf;
 		int j = 0;
 
@@ -363,7 +363,7 @@ Array<int, 1, Dynamic> CMT::MCGSM::samplePrior(const MatrixXd& input) const {
 	#pragma omp parallel for
 	for(int j = 0; j < input.cols(); ++j) {
 		int i = 0;
-		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double urand = static_cast<double>(rand()) / (RAND_MAX + 1.);
 		double cdf;
 
 		// compute index
@@ -390,7 +390,7 @@ Array<int, 1, Dynamic> CMT::MCGSM::samplePosterior(const MatrixXd& input, const 
 	#pragma omp parallel for
 	for(int j = 0; j < input.cols(); ++j) {
 		int i = 0;
-		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double urand = static_cast<double>(rand()) / (RAND_MAX + 1.);
 		double cdf;
 
 		// compute index
@@ -487,7 +487,10 @@ ArrayXXd CMT::MCGSM::posterior(const MatrixXd& input, const MatrixXd& output) co
 
 
 
-Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(const MatrixXd& input, const MatrixXd& output) const {
+Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(
+	const MatrixXd& input,
+	const MatrixXd& output) const 
+{
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
 	if(mDimIn && input.cols() != output.cols())
@@ -513,11 +516,9 @@ Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(const MatrixXd& input, const
 		if(mDimIn) {
 			negEnergy = -scalesExp.col(i) / 2. * weightsOutput.row(i);
 			negEnergy.colwise() += mPriors.row(i).transpose();
-
 			outputWhitened = mCholeskyFactors[i].transpose() * (output - mPredictors[i] * input);
 		} else {
 			negEnergy.colwise() = mPriors.row(i).transpose();
-
 			outputWhitened = mCholeskyFactors[i].transpose() * output;
 		}
 
@@ -539,6 +540,45 @@ Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(const MatrixXd& input, const
 
 	// marginalize out components
 	return logSumExp(logLikelihood) - logSumExp(normConsts);
+}
+
+
+
+Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(
+	const MatrixXd& input,
+	const MatrixXd& output,
+	const Array<int, 1, Dynamic>& labels) const 
+{
+	if(input.rows() != mDimIn || output.rows() != mDimOut)
+		throw Exception("Data has wrong dimensionality.");
+	if(mDimIn && input.cols() != output.cols())
+		throw Exception("The number of inputs and outputs should be the same.");
+	if(output.cols() != labels.cols())
+		throw Exception("The number of outputs and labels should be the same.");
+
+	ArrayXXd logLikelihood(mNumScales, output.cols());
+	ArrayXXd scalesExp = mScales.array().exp().transpose();
+	ArrayXd logPartf(mNumComponents);
+
+	#pragma omp parallel for
+	for(int k = 0; k < mNumComponents; ++k)
+		 logPartf[k] = mCholeskyFactors[k].diagonal().array().abs().log().sum()
+		 	 - mDimOut / 2. * log(2. * PI);
+
+	#pragma omp parallel for
+	for(int i = 0; i < output.cols(); ++i) {
+		int k = labels[i];
+
+		VectorXd outputWhitened =
+			mCholeskyFactors[k] * (output.col(i) - mPredictors[k] * input.col(i));
+
+		logLikelihood.col(i) = mDimOut / 2. * mScales.col(k)
+			- outputWhitened.squaredNorm() / 2. * scalesExp.col(k)
+			+ logPartf[k];
+	}
+
+	// marginalize out scales
+	return logSumExp(logLikelihood);
 }
 
 

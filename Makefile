@@ -11,17 +11,20 @@ ifeq ($(OS), Darwin)
 CXX = \
 	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CC')[0]);")
 CXXFLAGS = $(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);") \
-	-Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses# -fopenmp
+	-Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses
+LD = $(CXX)
+LDFLAGS = code/liblbfgs/lib/.libs/liblbfgs.a \
+	$(shell python -c "import sysconfig; print(' '.join(sysconfig.get_config_vars('LDSHARED')[0].split(' ')[1:]));")
 else
 CXX = \
 	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CXX')[0]);")
 CXXFLAGS = $(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);") \
 	-Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses -Wno-cpp -fPIC -fopenmp
-endif
-
 LD = $(CXX)
 LDFLAGS = code/liblbfgs/lib/.libs/liblbfgs.a -lgomp \
 	$(shell python -c "import sysconfig; print(' '.join(sysconfig.get_config_vars('LDSHARED')[0].split(' ')[1:]));")
+endif
+
 
 # include paths
 INCPYTHON = \

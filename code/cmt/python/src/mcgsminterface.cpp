@@ -555,6 +555,161 @@ PyObject* MCGSM_check_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds
 
 
 
+const char* MCGSM_loglikelihood_doc =
+	"loglikelihood(self, input, output, labels=None)\n"
+	"\n"
+	"Computes the conditional log-likelihood for the given data points in nats.\n"
+	"If labels are specified, the log-likelihood of the corresponding mixture\n"
+	"component is computed.\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: ndarray\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@type  labels: ndarray\n"
+	"@param labels: indices indicating mixture components\n"
+	"\n"
+	"@rtype: ndarray\n"
+	"@return: log-likelihood of the model evaluated for each data point";
+
+PyObject* MCGSM_loglikelihood(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", "output", "labels", 0};
+
+	PyObject* input;
+	PyObject* output;
+	PyObject* labels = 0;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|O",
+		const_cast<char**>(kwlist), &input, &output, &labels))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	if(labels == Py_None)
+		labels = 0;
+
+	if(labels) {
+		labels = PyArray_FROM_OTF(labels, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!labels) {
+			PyErr_SetString(PyExc_TypeError, "Labels have to be stored in NumPy arrays.");
+			return 0;
+		} else if(PyArray_DIM(labels, 1) > 1) {
+			PyErr_SetString(PyExc_TypeError, "Labels should be stored in one row.");
+			return 0;
+		}
+	}
+
+	try {
+		PyObject* result;
+		if(labels)
+			result = PyArray_FromMatrixXd(
+				self->mcgsm->logLikelihood(
+					PyArray_ToMatrixXd(input),
+					PyArray_ToMatrixXd(output),
+					PyArray_ToMatrixXi(labels)));
+		else
+			result = PyArray_FromMatrixXd(
+				self->mcgsm->logLikelihood(
+					PyArray_ToMatrixXd(input),
+					PyArray_ToMatrixXd(output)));
+		Py_DECREF(input);
+		Py_DECREF(output);
+		return result;
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+const char* MCGSM_sample_doc =
+	"sample(self, input, labels=None)\n"
+	"\n"
+	"Generates outputs for given inputs.\n"
+	"If labels are specified, uses the given mixture component to generate outputs.\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  labels: ndarray\n"
+	"@param labels: indices indicating mixture components\n"
+	"\n"
+	"@rtype: ndarray\n"
+	"@return: sampled outputs";
+
+PyObject* MCGSM_sample(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", "labels", 0};
+
+	PyObject* input;
+	PyObject* labels = 0;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", 
+		const_cast<char**>(kwlist), &input, &labels))
+		return 0;
+
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in a NumPy array.");
+		return 0;
+	}
+
+	if(labels == Py_None)
+		labels = 0;
+
+	if(labels) {
+		labels = PyArray_FROM_OTF(labels, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!labels) {
+			PyErr_SetString(PyExc_TypeError, "Labels have to be stored in a NumPy array.");
+			return 0;
+		}
+
+		if(PyArray_DIM(labels, 0) > 1) {
+			PyErr_SetString(PyExc_TypeError, "Labels have to be stored in one row.");
+			return 0;
+		}
+	}
+
+	try {
+		PyObject* result;
+		if(labels)
+			result = PyArray_FromMatrixXd(
+				self->mcgsm->sample(
+					PyArray_ToMatrixXd(input),
+					PyArray_ToMatrixXi(labels)));
+		else
+			result = PyArray_FromMatrixXd(
+				self->mcgsm->sample(PyArray_ToMatrixXd(input)));
+		Py_DECREF(input);
+		return result;
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		Py_DECREF(input);
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
 const char* MCGSM_posterior_doc =
 	"posterior(self, input, output)\n"
 	"\n"
