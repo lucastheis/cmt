@@ -612,6 +612,16 @@ PyObject* STM_parameter_gradient(STMObject* self, PyObject* args, PyObject* kwds
 
 
 
+PyObject* STM_fisher_information(STMObject* self, PyObject* args, PyObject* kwds) {
+	return Trainable_fisher_information(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToSTMParameters);
+}
+
+
+
 PyObject* STM_check_gradient(STMObject* self, PyObject* args, PyObject* kwds) {
 	return Trainable_check_gradient(
 		reinterpret_cast<TrainableObject*>(self),

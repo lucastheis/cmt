@@ -92,6 +92,11 @@ namespace CMT {
 				lbfgsfloatval_t* g,
 				const Parameters& params) const = 0;
 
+			virtual MatrixXd fisherInformation(
+				const MatrixXd& input,
+				const MatrixXd& output,
+				const Parameters& params = Parameters());
+
 		protected:
 			typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
 			typedef Map<Matrix<lbfgsfloatval_t, Dynamic, 1> > VectorLBFGS;

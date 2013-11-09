@@ -22,6 +22,7 @@ extern const char* Trainable_initialize_doc;
 extern const char* Trainable_parameters_doc;
 extern const char* Trainable_set_parameters_doc;
 extern const char* Trainable_parameter_gradient_doc;
+extern const char* Trainable_fisher_information_doc;
 extern const char* Trainable_check_gradient_doc;
 extern const char* Trainable_check_performance_doc;
 
@@ -57,6 +58,12 @@ PyObject* Trainable_check_gradient(
 	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*));
 
 PyObject* Trainable_parameter_gradient(
+	TrainableObject* self,
+	PyObject* args,
+	PyObject* kwds,
+	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*));
+
+PyObject* Trainable_fisher_information(
 	TrainableObject* self,
 	PyObject* args,
 	PyObject* kwds,

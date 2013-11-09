@@ -53,6 +53,7 @@ PyObject* GLM_train(GLMObject*, PyObject*, PyObject*);
 PyObject* GLM_parameters(GLMObject*, PyObject*, PyObject*);
 PyObject* GLM_set_parameters(GLMObject*, PyObject*, PyObject*);
 PyObject* GLM_parameter_gradient(GLMObject*, PyObject*, PyObject*);
+PyObject* GLM_fisher_information(GLMObject*, PyObject*, PyObject*);
 PyObject* GLM_check_gradient(GLMObject*, PyObject*, PyObject*);
 PyObject* GLM_check_performance(GLMObject* self, PyObject* args, PyObject* kwds);
 
