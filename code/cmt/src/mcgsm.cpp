@@ -271,7 +271,7 @@ MatrixXd CMT::MCGSM::sample(const MatrixXd& input) const {
 		int l = 0;
 
 		for(cdf = pmf(0, 0); cdf < urand; cdf += pmf(l / mNumScales, l % mNumScales))
-			l++;
+			++l;
 
 		// component and scale index
 		int i = l / mNumScales;
@@ -280,9 +280,10 @@ MatrixXd CMT::MCGSM::sample(const MatrixXd& input) const {
 		// apply precision matrix
 		mCholeskyFactors[i].transpose().triangularView<Eigen::Upper>().solveInPlace(output.col(k));
 
-		// apply scale and add mean
+		// apply scale
 		output.col(k) /= sqrt(scalesExp(i, j));
 
+		// add mean
 		if(mDimIn)
 			output.col(k) += mPredictors[i] * input.col(k);
 	}
@@ -292,7 +293,10 @@ MatrixXd CMT::MCGSM::sample(const MatrixXd& input) const {
 
 
 
-MatrixXd CMT::MCGSM::sample(const MatrixXd& input, const Array<int, 1, Dynamic>& labels) const {
+MatrixXd CMT::MCGSM::sample(
+	const MatrixXd& input,
+	const Array<int, 1, Dynamic>& labels) const 
+{
 	if(input.rows() != mDimIn)
 		throw Exception("Data has wrong dimensionality.");
 	if(input.cols() != labels.cols())
@@ -311,14 +315,16 @@ MatrixXd CMT::MCGSM::sample(const MatrixXd& input, const Array<int, 1, Dynamic>&
 
 	#pragma omp parallel for
 	for(int i = 0; i < input.cols(); ++i) {
-		// distribution over scales
+		int k = labels[i];
+
+		// compute distribution over scales
 		ArrayXd pmf;
 
 		if(mDimIn)
-			pmf = mPriors.row(labels[i]).matrix() - scalesExp.row(labels[i]) *
-				(weightsSqr.row(labels[i]) * featuresOutput.col(i).square().matrix()) / 2.;
+			pmf = mPriors.row(k).matrix() - scalesExp.row(k) *
+				(weightsSqr.row(k) * featuresOutput.col(i).square().matrix())[0] / 2.;
 		else
-			pmf = mPriors.row(labels[i]);
+			pmf = mPriors.row(k);
 
 		pmf = (pmf - logSumExp(pmf)[0]).exp();
 
@@ -331,14 +337,14 @@ MatrixXd CMT::MCGSM::sample(const MatrixXd& input, const Array<int, 1, Dynamic>&
 			++j;
 
 		// apply precision matrix
-		mCholeskyFactors[labels[i]].transpose().triangularView<Eigen::Upper>().solveInPlace(output.col(i));
+		mCholeskyFactors[k].transpose().triangularView<Eigen::Upper>().solveInPlace(output.col(i));
 
 		// apply scale
-		output.col(i) /= sqrt(scalesExp(labels[i], j));
+		output.col(i) /= sqrt(scalesExp(k, j));
 
 		// add predicted mean
 		if(mDimIn)
-			output.col(i) += mPredictors[labels[i]] * input.col(i);
+			output.col(i) += mPredictors[k] * input.col(i);
 	}
 
 	return output;
@@ -557,8 +563,15 @@ Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(
 		throw Exception("The number of outputs and labels should be the same.");
 
 	ArrayXXd logLikelihood(mNumScales, output.cols());
-	ArrayXXd scalesExp = mScales.array().exp().transpose();
+	ArrayXXd scalesExp = mScales.array().exp();
 	ArrayXd logPartf(mNumComponents);
+	ArrayXXd featuresOutput;
+	MatrixXd weightsSqr;
+
+	if(mDimIn) {
+		featuresOutput = mFeatures.transpose() * input;
+		weightsSqr = mWeights.square();
+	}
 
 	#pragma omp parallel for
 	for(int k = 0; k < mNumComponents; ++k)
@@ -569,11 +582,24 @@ Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(
 	for(int i = 0; i < output.cols(); ++i) {
 		int k = labels[i];
 
+		// compute distribution over scales
+		ArrayXd logPrior;
+
+		if(mDimIn)
+			logPrior = mPriors.row(k) - scalesExp.row(k) *
+				(weightsSqr.row(k) * featuresOutput.col(i).square().matrix())[0] / 2.;
+		else
+			logPrior = mPriors.row(k);
+
+		// normalize
+		logPrior = logPrior - logSumExp(logPrior)[0];
+
 		VectorXd outputWhitened =
 			mCholeskyFactors[k] * (output.col(i) - mPredictors[k] * input.col(i));
 
-		logLikelihood.col(i) = mDimOut / 2. * mScales.col(k)
-			- outputWhitened.squaredNorm() / 2. * scalesExp.col(k)
+		logLikelihood.col(i) = logPrior
+			+ mDimOut / 2. * mScales.row(k).transpose()
+			- outputWhitened.squaredNorm() / 2. * scalesExp.row(k).transpose()
 			+ logPartf[k];
 	}
 

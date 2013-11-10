@@ -192,6 +192,57 @@ class Tests(unittest.TestCase):
 
 
 
+	def test_sample_conditionally(self):
+		mcgsm = MCGSM(3, 2, 2, 2, 4)
+
+		# make sure there are differences between components
+		mcgsm.weights = -log(rand(*mcgsm.weights.shape)) * 10.
+		mcgsm.scales = square(mcgsm.scales * 3.)
+
+		inputs = randn(mcgsm.dim_in, 100000)
+
+		# sample directly
+		outputs0 = mcgsm.sample(inputs)
+
+		# sample indirectly
+		labels = mcgsm.sample_prior(inputs)
+		outputs1 = mcgsm.sample(inputs, labels)
+
+		p = ks_2samp(outputs0.ravel(), outputs1.ravel())[1]
+
+		self.assertGreater(p, 1e-5)
+
+
+
+	def test_conditional_loglikelihood(self):
+		mcgsm = MCGSM(3, 1, 2, 1, 4)
+
+		M = 100
+
+		inputs = randn(mcgsm.dim_in, M)
+		outputs = mcgsm.sample(inputs)
+
+		loglik0 = mcgsm.loglikelihood(inputs, outputs)
+		loglik1 = []
+
+		N = 1000
+
+		# estimate log-likelihood via sampling
+		for _ in range(N):
+			labels = mcgsm.sample_prior(inputs)
+			loglik1.append(mcgsm.loglikelihood(inputs, outputs, labels))
+
+		loglik1 = vstack(loglik1)
+
+		d = abs(logmeanexp(loglik1, 0) - loglik0).ravel()
+		s = std(loglik1, 0, ddof=1).ravel()
+
+		for i in range(M):
+			self.assertLess(d[i], 6. * s[i] / sqrt(N))
+
+
+
+
 	def test_gradient(self):
 		mcgsm = MCGSM(5, 2, 2, 4, 10)
 
@@ -398,6 +449,56 @@ class Tests(unittest.TestCase):
 		converged = model.train(data, parameters={'verbosity': 0, 'max_iter': 200, 'treshold': 1e-4})
 
 		self.assertTrue(converged)
+
+
+
+def logsumexp(x, ax=None):
+	"""
+	Computes the log of the sum of the exp of the entries in x in a numerically
+	stable way.
+
+	@type  x: array_like
+	@param x: a list, array or matrix of numbers
+
+	@type  ax: integer
+	@param ax: axis along which the sum is applied
+
+	@rtype: array
+	@return: an array containing the results
+	"""
+
+	if ax is None:
+		x_max = max(x, ax)
+		return x_max + log(sum(exp(x - x_max)))
+
+	else:
+		x_max_shape = list(x.shape)
+		x_max_shape[ax] = 1
+
+		x_max = asarray(max(x, ax))
+		return x_max + log(sum(exp(x - x_max.reshape(x_max_shape)), ax))
+
+
+
+def logmeanexp(x, ax=None):
+	"""
+	Computes the log of the mean of the exp of the entries in x in a numerically
+	stable way. Uses logsumexp.
+
+	@type  x: array_like
+	@param x: a list, array or matrix of numbers
+
+	@type  ax: integer
+	@param ax: axis along which the values are averaged
+
+	@rtype: array
+	@return: an array containing the results
+	"""
+
+	x = asarray(x)
+	n = x.size if ax is None else x.shape[ax]
+
+	return logsumexp(x, ax) - log(n)
 
 
 

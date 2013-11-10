@@ -599,12 +599,12 @@ PyObject* MCGSM_loglikelihood(MCGSMObject* self, PyObject* args, PyObject* kwds)
 		labels = 0;
 
 	if(labels) {
-		labels = PyArray_FROM_OTF(labels, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		labels = PyArray_FROM_OTF(labels, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 		if(!labels) {
 			PyErr_SetString(PyExc_TypeError, "Labels have to be stored in NumPy arrays.");
 			return 0;
-		} else if(PyArray_DIM(labels, 1) > 1) {
+		} else if(PyArray_DIM(labels, 0) > 1) {
 			PyErr_SetString(PyExc_TypeError, "Labels should be stored in one row.");
 			return 0;
 		}
@@ -674,7 +674,7 @@ PyObject* MCGSM_sample(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 		labels = 0;
 
 	if(labels) {
-		labels = PyArray_FROM_OTF(labels, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+		labels = PyArray_FROM_OTF(labels, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 		if(!labels) {
 			PyErr_SetString(PyExc_TypeError, "Labels have to be stored in a NumPy array.");
@@ -702,6 +702,50 @@ PyObject* MCGSM_sample(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		Py_DECREF(input);
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+const char* MCGSM_prior_doc =
+	"prior(self, input)\n"
+	"\n"
+	"Computes the prior distribution over component labels, $p(c \\mid \\mathbf{x})$\n"
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@rtype: C{ndarray}\n"
+	"@return: a distribution over labels for each given input";
+
+PyObject* MCGSM_prior(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", 0};
+
+	PyObject* input;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &input))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		PyObject* result = PyArray_FromMatrixXd(
+			self->mcgsm->prior(PyArray_ToMatrixXd(input)));
+		Py_DECREF(input);
+		return result;
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}
 
@@ -752,6 +796,51 @@ PyObject* MCGSM_posterior(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	} catch(Exception exception) {
 		Py_DECREF(input);
 		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+const char* MCGSM_sample_prior_doc =
+	"sample_prior(self, input)\n"
+	"\n"
+	"Samples component labels $c$ from the distribution $p(c \\mid \\mathbf{x})$.\n"
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@rtype: C{ndarray}\n"
+	"@return: an integer array containing a sampled index for each input and output pair";
+
+PyObject* MCGSM_sample_prior(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", 0};
+
+	PyObject* input;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &input))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input) {
+		Py_XDECREF(input);
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		PyObject* result = PyArray_FromMatrixXi(
+			self->mcgsm->samplePrior(PyArray_ToMatrixXd(input)));
+		Py_DECREF(input);
+		return result;
+	} catch(Exception exception) {
+		Py_DECREF(input);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}

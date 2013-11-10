@@ -34,7 +34,9 @@ extern const char* MCGSM_doc;
 extern const char* MCGSM_train_doc;
 extern const char* MCGSM_loglikelihood_doc;
 extern const char* MCGSM_sample_doc;
+extern const char* MCGSM_sample_prior_doc;
 extern const char* MCGSM_sample_posterior_doc;
+extern const char* MCGSM_prior_doc;
 extern const char* MCGSM_posterior_doc;
 extern const char* MCGSM_reduce_doc;
 extern const char* MCGSM_setstate_doc;
@@ -77,7 +79,9 @@ PyObject* MCGSM_check_performance(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_loglikelihood(MCGSMObject*, PyObject*, PyObject*);
 
 PyObject* MCGSM_sample(MCGSMObject*, PyObject*, PyObject*);
+PyObject* MCGSM_sample_prior(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_sample_posterior(MCGSMObject*, PyObject*, PyObject*);
+PyObject* MCGSM_prior(MCGSMObject*, PyObject*, PyObject*);
 PyObject* MCGSM_posterior(MCGSMObject*, PyObject*, PyObject*);
 
 PyObject* MCGSM_parameters(MCGSMObject*, PyObject*, PyObject*);
