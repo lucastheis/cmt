@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "conditionaldistribution.h"
+#include "mcgsm.h"
 #include "preconditioner.h"
 #include "Eigen/Core"
 
@@ -15,6 +16,7 @@ namespace CMT {
 	using std::pair;
 
 	using Eigen::ArrayXXb;
+	using Eigen::ArrayXXi;
 	using Eigen::VectorXd;
 	using Eigen::ArrayXXd;
 	using Eigen::Array;
@@ -28,6 +30,15 @@ namespace CMT {
 		const ArrayXXb& inputMask,
 		const ArrayXXb& outputMask);
 
+	/**
+	 * Extracts pixels from an image and returns them in a vector.
+	 * 
+	 * The order of the pixels in the vector corresponds to the order of the pixels
+	 * in the given list of indices. Function odes not test for validity of indices.
+	 * 
+	 * @param img image from which to extract pixels
+	 * @param indices list of pixel locations
+	 */
 	VectorXd extractFromImage(const ArrayXXd& img, const Tuples& indices);
 
 	pair<ArrayXXd, ArrayXXd> generateDataFromImage(
@@ -85,6 +96,22 @@ namespace CMT {
 		const ConditionalDistribution& model,
 		const vector<ArrayXXb>& inputMask,
 		const vector<ArrayXXb>& outputMask,
+		const Preconditioner* preconditioner = 0);
+
+	ArrayXXd sampleImageConditionally(
+		ArrayXXd img,
+		ArrayXXi labels,
+		const MCGSM& model,
+		const ArrayXXb& inputMask,
+		const ArrayXXb& outputMask,
+		const Preconditioner* preconditioner = 0,
+		int numIter = 10);
+
+	ArrayXXi sampleLabelsConditionally(
+		ArrayXXd img,
+		const MCGSM& model,
+		const ArrayXXb& inputMask,
+		const ArrayXXb& outputMask,
 		const Preconditioner* preconditioner = 0);
 
 	vector<ArrayXXd> sampleVideo(

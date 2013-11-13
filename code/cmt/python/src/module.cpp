@@ -2126,6 +2126,8 @@ static PyMethodDef cmt_methods[] = {
 	{"generate_data_from_image", (PyCFunction)generate_data_from_image, METH_VARARGS | METH_KEYWORDS, generate_data_from_image_doc},
 	{"generate_data_from_video", (PyCFunction)generate_data_from_video, METH_VARARGS | METH_KEYWORDS, generate_data_from_video_doc},
 	{"sample_image", (PyCFunction)sample_image, METH_VARARGS | METH_KEYWORDS, sample_image_doc},
+	{"sample_image_conditionally", (PyCFunction)sample_image_conditionally, METH_VARARGS | METH_KEYWORDS, sample_image_conditionally_doc},
+	{"sample_labels_conditionally", (PyCFunction)sample_labels_conditionally, METH_VARARGS | METH_KEYWORDS, sample_labels_conditionally_doc},
 	{"sample_video", (PyCFunction)sample_video, METH_VARARGS | METH_KEYWORDS, sample_video_doc},
 	{"fill_in_image", (PyCFunction)fill_in_image, METH_VARARGS | METH_KEYWORDS, fill_in_image_doc},
 	{"fill_in_image_map", (PyCFunction)fill_in_image_map, METH_VARARGS | METH_KEYWORDS, 0},

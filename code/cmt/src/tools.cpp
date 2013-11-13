@@ -11,6 +11,7 @@ using std::rand;
 
 #include <cmath>
 using std::exp;
+using std::log;
 
 #include <cstring>
 using std::memcpy;
@@ -24,6 +25,7 @@ using std::pair;
 using std::make_pair;
 
 #include <algorithm>
+using std::find;
 using std::copy;
 using std::random_shuffle;
 
@@ -41,6 +43,7 @@ using Eigen::Dynamic;
 using Eigen::Array;
 using Eigen::ArrayXd;
 using Eigen::ArrayXXd;
+using Eigen::ArrayXXi;
 using Eigen::VectorXd;
 using Eigen::Map;
 
@@ -877,6 +880,267 @@ vector<ArrayXXd> CMT::sampleImage(
 		}
 
 	return img;
+}
+
+
+
+ArrayXXd CMT::sampleImageConditionally(
+	ArrayXXd img,
+	ArrayXXi labels,
+	const MCGSM& model,
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask,
+	const Preconditioner* preconditioner,
+	int numIter)
+{
+	if(inputMask.cols() != outputMask.cols() || inputMask.rows() != outputMask.rows())
+		throw Exception("Input and output masks should be of the same size.");
+
+	Tuples inputIndices;
+	Tuples outputIndices;
+
+	// boundaries of output region
+	int iMin = outputMask.rows();
+	int iMax = 0;
+	int jMin = outputMask.cols();
+	int jMax = 0;
+
+	// precompute indices of active pixels in masks
+	for(int i = 0; i < inputMask.rows(); ++i)
+		for(int j = 0; j < inputMask.cols(); ++j) {
+			if(inputMask(i, j))
+				inputIndices.push_back(make_pair(i, j));
+			if(outputMask(i, j)) {
+				outputIndices.push_back(make_pair(i, j));
+
+				// update boundaries
+				iMax = max(iMax, i);
+				iMin = min(iMin, i);
+				jMax = max(jMax, j);
+				jMin = min(jMin, j);
+			}
+			if(inputMask(i, j) && outputMask(i, j))
+				throw Exception("Input and output mask should not overlap.");
+		}
+
+	// width and height of output region
+	int h = iMax - iMin + 1;
+	int w = jMax - jMin + 1;
+
+	if(w < 1)
+		throw Exception("There needs to be at least one active pixel in the output mask.");
+
+	if(outputIndices.size() != w * h)
+		throw Exception("Unsupported output mask.");
+
+	if(preconditioner) {
+		if(inputIndices.size() != preconditioner->dimIn() || outputIndices.size() != preconditioner->dimOut())
+			throw Exception("Preconditioner and masks are incompatible.");
+		if(preconditioner->dimInPre() != model.dimIn() || preconditioner->dimOutPre() != model.dimOut())
+			throw Exception("Model and preconditioner are incompatible.");
+	} else {
+		if(inputIndices.size() != model.dimIn() || outputIndices.size() != model.dimOut())
+			throw Exception("Model and masks are incompatible.");
+	}
+
+	// extract causal neighborhoods and corresponding output regions
+	vector<vector<VectorXd> > inputs;
+	vector<vector<VectorXd> > outputs;
+	vector<vector<double> > logLik;
+	vector<vector<double> > logPrb;
+
+	// TODO: only extract neighborhoods which are actually used
+	for(int i = 0; i + inputMask.rows() <= img.rows(); ++i) {
+		inputs.push_back(vector<VectorXd>());
+		outputs.push_back(vector<VectorXd>());
+		logLik.push_back(vector<double>());
+		logPrb.push_back(vector<double>());
+
+		for(int j = 0; j + inputMask.cols() <= img.cols(); ++j) {
+			ArrayXXd patch = img.block(i, j, inputMask.rows(), inputMask.cols());
+			inputs[i].push_back(extractFromImage(patch, inputIndices));
+			outputs[i].push_back(extractFromImage(patch, outputIndices));
+
+			Array<int, 1, Dynamic> label(1);
+			label[0] = labels(i / h, j / w);
+
+			logLik[i].push_back(model.logLikelihood(inputs[i][j], outputs[i][j], label)[0]);
+			logPrb[i].push_back(log(model.prior(inputs[i][j])(label[0], 0)));
+		}
+	}
+
+	// precompute which neighborhoods to consider in acceptance probability
+	Tuples offsets;
+	for(int m = 0; m < inputIndices.size(); ++m)
+		for(int n = 0; n < outputIndices.size(); ++n) {
+			int di = outputIndices[m].first - inputIndices[n].first;
+			int dj = outputIndices[m].second - inputIndices[n].second;
+
+			if(di % h == 0 && dj % w == 0) {
+				offsets.push_back(make_pair(di, dj));
+			}
+		}
+
+	// for each offset, compute indices of input pixels affected by Gibbs update
+	vector<vector<int> > idxIn;
+	vector<vector<int> > idxOut;
+
+	for(int k = 0; k < offsets.size(); ++k) {
+		// list of pixels in input at given offset which need to be updated
+		idxIn.push_back(vector<int>());
+		idxOut.push_back(vector<int>());
+
+		for(int l = 0; l < outputIndices.size(); ++l) {
+			// compute location of affected pixel in shifted input region
+			int i = outputIndices[l].first - offsets[k].first;
+			int j = outputIndices[l].second - offsets[k].second;
+
+			Tuples::iterator it = find(inputIndices.begin(), inputIndices.end(), make_pair(i, j));
+
+			if(it != inputIndices.end())
+				idxIn[k].push_back(distance(inputIndices.begin(), it));
+				idxOut[k].push_back(l);
+		}
+	}
+
+	for(int iter = 0; iter < numIter; ++iter)
+		// walk through image from top left to bottom right
+		for(int i = 0; i + inputMask.rows() <= img.rows(); i += h)
+			for(int j = 0; j + inputMask.cols() <= img.cols(); j += w) {
+				// propose output
+				VectorXd output;
+
+				if(preconditioner) {
+					VectorXd input = preconditioner->operator()(inputs[i][j]);
+					output = preconditioner->inverse(input, model.sample(input)).second;
+				} else {
+					output = model.sample(inputs[i][j]);
+				}
+
+				vector<VectorXd> inputsUpdated;
+				vector<double> logLikUpdated;
+				vector<double> logPrbUpdated;
+
+				// compute acceptance probability alpha
+				double logAlpha = 0.;
+
+				for(int k = 0; k < offsets.size(); ++k) {
+					int m = i + offsets[k].first;
+					int n = j + offsets[k].second;
+
+					inputsUpdated.push_back(inputs[m][n]);
+					
+					for(int l = 0; l < idxIn[k].size(); ++l)
+						inputsUpdated[k][idxIn[k][l]] = output[idxOut[k][l]];
+					
+					Array<int, 1, Dynamic> label(1);
+					label[0] = labels(i / h, j / w);
+
+					logLikUpdated.push_back(model.logLikelihood(inputsUpdated[k], outputs[m][n], label)[0]);
+					logAlpha += logLikUpdated[k] - logLik[m][n];
+
+					logPrbUpdated.push_back(log(model.prior(inputsUpdated[k])(label[0], 0)));
+					logAlpha += logPrbUpdated[k] - logPrb[m][n];
+				}
+
+				// accept/reject proposed output
+				if(log(rand() / static_cast<double>(RAND_MAX)) < logAlpha) {
+					// update inputs and outputs
+					outputs[i][j] = output;
+
+					for(int k = 0; k < offsets.size(); ++k) {
+						int m = i + offsets[k].first;
+						int n = j + offsets[k].second;
+
+						inputs[m][n] = inputsUpdated[k];
+						logLik[m][n] = logLikUpdated[k];
+						logPrb[m][n] = logPrbUpdated[k];
+					}
+				}
+			}
+
+	// replace pixels in image
+	for(int i = 0; i + inputMask.rows() <= img.rows(); i += h)
+		for(int j = 0; j + inputMask.cols() <= img.cols(); j += w)
+			for(int k = 0; k < outputIndices.size(); ++k)
+				img(i + outputIndices[k].first, j + outputIndices[k].second) = outputs[i][j][k];
+
+	return img;
+}
+
+
+
+ArrayXXi CMT::sampleLabelsConditionally(
+	ArrayXXd img,
+	const MCGSM& model,
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask,
+	const Preconditioner* preconditioner)
+{
+	if(inputMask.cols() != outputMask.cols() || inputMask.rows() != outputMask.rows())
+		throw Exception("Input and output masks should be of the same size.");
+
+	Tuples inputIndices;
+	Tuples outputIndices;
+
+	// boundaries of output region
+	int iMin = outputMask.rows();
+	int iMax = 0;
+	int jMin = outputMask.cols();
+	int jMax = 0;
+
+	// precompute indices of active pixels in masks
+	for(int i = 0; i < inputMask.rows(); ++i)
+		for(int j = 0; j < inputMask.cols(); ++j) {
+			if(inputMask(i, j))
+				inputIndices.push_back(make_pair(i, j));
+			if(outputMask(i, j)) {
+				outputIndices.push_back(make_pair(i, j));
+
+				// update boundaries
+				iMax = max(iMax, i);
+				iMin = min(iMin, i);
+				jMax = max(jMax, j);
+				jMin = min(jMin, j);
+			}
+			if(inputMask(i, j) && outputMask(i, j))
+				throw Exception("Input and output mask should not overlap.");
+		}
+
+	// width and height of output region
+	int h = iMax - iMin + 1;
+	int w = jMax - jMin + 1;
+
+	if(w < 1)
+		throw Exception("There needs to be at least one active pixel in the output mask.");
+
+	if(outputIndices.size() != w * h)
+		throw Exception("Unsupported output mask.");
+
+	if(preconditioner) {
+		if(inputIndices.size() != preconditioner->dimIn() || outputIndices.size() != preconditioner->dimOut())
+			throw Exception("Preconditioner and masks are incompatible.");
+		if(preconditioner->dimInPre() != model.dimIn() || preconditioner->dimOutPre() != model.dimOut())
+			throw Exception("Model and preconditioner are incompatible.");
+	} else {
+		if(inputIndices.size() != model.dimIn() || outputIndices.size() != model.dimOut())
+			throw Exception("Model and masks are incompatible.");
+	}
+
+	ArrayXXi labels(img.rows() / h, img.cols() / h);
+
+	for(int i = 0; i + inputMask.rows() <= img.rows(); i += h) {
+		for(int j = 0; j + inputMask.cols() <= img.cols(); j += w) {
+			ArrayXXd patch = img.block(i, j, inputMask.rows(), inputMask.cols());
+
+			ArrayXd input  = extractFromImage(patch, inputIndices);
+			ArrayXd output = extractFromImage(patch, outputIndices);
+
+			labels(i / h, j / w) = model.samplePosterior(input, output)[0];
+		}
+	}
+
+	return labels;
 }
 
 

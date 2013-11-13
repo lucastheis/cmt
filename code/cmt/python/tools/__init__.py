@@ -20,6 +20,8 @@ __all__ = [
 from _cmt import generate_data_from_image
 from _cmt import generate_data_from_video
 from _cmt import sample_image
+from _cmt import sample_image_conditionally
+from _cmt import sample_labels_conditionally
 from _cmt import sample_video
 from _cmt import fill_in_image
 from _cmt import fill_in_image_map
