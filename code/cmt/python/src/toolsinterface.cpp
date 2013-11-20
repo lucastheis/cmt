@@ -481,7 +481,7 @@ PyObject* sample_image_conditionally(PyObject* self, PyObject* args, PyObject* k
 
 	// make sure data is stored in NumPy array
 	img = PyArray_FROM_OTF(img, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
-	labels = PyArray_FROM_OTF(img, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	labels = PyArray_FROM_OTF(labels, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	input_mask = PyArray_FROM_OTF(input_mask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 	output_mask = PyArray_FROM_OTF(output_mask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
