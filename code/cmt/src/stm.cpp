@@ -266,6 +266,36 @@ Array<double, 1, Dynamic> CMT::STM::response(
 
 
 
+ArrayXXd CMT::STM::nonlinearResponses(const MatrixXd& input) const {
+	if(input.rows() != dimInNonlinear() && input.rows() != dimIn())
+		throw Exception("Input has wrong dimensionality.");
+
+	if(!dimInNonlinear())
+		// model has only linear inputs
+		return MatrixXd::Zero(numComponents(), input.cols()).colwise() + mBiases;
+
+	MatrixXd jointEnergy = mWeights * (mFeatures.transpose() * input.topRows(dimInNonlinear())).array().square().matrix();
+	jointEnergy += mPredictors * input.topRows(dimInNonlinear());
+	jointEnergy.colwise() += mBiases;
+
+	return jointEnergy;
+}
+
+
+
+ArrayXXd CMT::STM::linearResponse(const MatrixXd& input) const {
+	if(input.rows() != dimInLinear() && input.rows() != dimIn())
+		throw Exception("Input has wrong dimensionality.");
+
+	if(!dimInLinear())
+		// model has only linear inputs
+		return MatrixXd::Zero(1, input.cols());
+
+	return mLinearPredictor.transpose() * input.bottomRows(dimInLinear());
+}
+
+
+
 void CMT::STM::initialize(const MatrixXd& input, const MatrixXd& output) {
 	if(input.rows() != dimIn() || output.rows() != dimOut())
 		throw Exception("Data has wrong dimensionality.");

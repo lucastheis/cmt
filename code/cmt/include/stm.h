@@ -83,6 +83,16 @@ namespace CMT {
 
 			virtual void initialize(const MatrixXd& input, const MatrixXd& output);
 
+			virtual Array<double, 1, Dynamic> response(
+				const MatrixXd& input) const;
+			virtual Array<double, 1, Dynamic> response(
+				const MatrixXd& inputNonlinear,
+				const MatrixXd& inputLinear) const;
+			virtual ArrayXXd nonlinearResponses(
+				const MatrixXd& input) const;
+			virtual ArrayXXd linearResponse(
+				const MatrixXd& input) const;
+
 			virtual MatrixXd sample(const MatrixXd& input) const;
 			virtual MatrixXd sample(
 				const MatrixXd& inputNonlinear,
@@ -152,12 +162,6 @@ namespace CMT {
 				const MatrixXd* inputVal,
 				const MatrixXd* outputVal,
 				const Trainable::Parameters& params);
-
-			Array<double, 1, Dynamic> response(
-				const MatrixXd& input) const;
-			Array<double, 1, Dynamic> response(
-				const MatrixXd& inputNonlinear,
-				const MatrixXd& inputLinear) const;
 	};
 }
 
