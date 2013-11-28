@@ -105,7 +105,8 @@ namespace CMT {
 		const ArrayXXb& inputMask,
 		const ArrayXXb& outputMask,
 		const Preconditioner* preconditioner = 0,
-		int numIter = 10);
+		int numIter = 10,
+		bool initialize = false);
 
 	ArrayXXi sampleLabelsConditionally(
 		ArrayXXd img,
