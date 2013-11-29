@@ -602,10 +602,10 @@ PyObject* MCGSM_loglikelihood(MCGSMObject* self, PyObject* args, PyObject* kwds)
 		labels = PyArray_FROM_OTF(labels, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 		if(!labels) {
-			PyErr_SetString(PyExc_TypeError, "Labels have to be stored in NumPy arrays.");
+			PyErr_SetString(PyExc_TypeError, "Labels have to be stored in an integer NumPy array.");
 			return 0;
 		} else if(PyArray_DIM(labels, 0) > 1) {
-			PyErr_SetString(PyExc_TypeError, "Labels should be stored in one row.");
+			PyErr_SetString(PyExc_TypeError, "Labels have to be stored in one row.");
 			return 0;
 		}
 	}
@@ -677,7 +677,7 @@ PyObject* MCGSM_sample(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 		labels = PyArray_FROM_OTF(labels, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
 
 		if(!labels) {
-			PyErr_SetString(PyExc_TypeError, "Labels have to be stored in a NumPy array.");
+			PyErr_SetString(PyExc_TypeError, "Labels have to be stored in an integer NumPy array.");
 			return 0;
 		}
 

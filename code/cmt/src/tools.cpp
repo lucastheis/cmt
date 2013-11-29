@@ -49,6 +49,8 @@ using Eigen::Map;
 
 #include <iostream>
 #include <iomanip>
+using std::cout;
+using std::endl;
 
 Tuples CMT::maskToIndices(const ArrayXXb& mask) {
 	Tuples indices;
@@ -969,16 +971,15 @@ ArrayXXd CMT::sampleImageConditionally(
 		}
 	}
 
-	// precompute which neighborhoods to consider in acceptance probability
+	// precompute which neighborhoods have to be considered in acceptance probability
 	Tuples offsets;
 	for(int m = 0; m < inputIndices.size(); ++m)
 		for(int n = 0; n < outputIndices.size(); ++n) {
-			int di = outputIndices[m].first - inputIndices[n].first;
-			int dj = outputIndices[m].second - inputIndices[n].second;
+			int di = outputIndices[n].first  - inputIndices[m].first;
+			int dj = outputIndices[n].second - inputIndices[m].second;
 
-			if(di % h == 0 && dj % w == 0) {
+			if(di % h == 0 && dj % w == 0)
 				offsets.push_back(make_pair(di, dj));
-			}
 		}
 
 	// for each offset, compute indices of input pixels affected by Gibbs update
@@ -1007,34 +1008,45 @@ ArrayXXd CMT::sampleImageConditionally(
 		// walk through image from top left to bottom right
 		for(int i = 0; i + inputMask.rows() <= img.rows(); i += h)
 			for(int j = 0; j + inputMask.cols() <= img.cols(); j += w) {
+				Array<int, 1, Dynamic> label(1);
+				label[0] = labels(i / h, j / w);
+
 				// propose output
 				VectorXd output;
 
 				if(preconditioner) {
 					VectorXd input = preconditioner->operator()(inputs[i][j]);
-					output = preconditioner->inverse(input, model.sample(input)).second;
+					output = preconditioner->inverse(input, model.sample(input, label)).second;
 				} else {
-					output = model.sample(inputs[i][j]);
+					output = model.sample(inputs[i][j], label);
 				}
 
 				vector<VectorXd> inputsUpdated;
 				vector<double> logLikUpdated;
 				vector<double> logPrbUpdated;
 
-				// compute acceptance probability alpha
+				// compute acceptance probability
 				double logAlpha = 0.;
 
 				for(int k = 0; k < offsets.size(); ++k) {
 					int m = i + offsets[k].first;
 					int n = j + offsets[k].second;
 
+					if(m >= inputs.size() || n >= inputs[m].size()) {
+						inputsUpdated.push_back(VectorXd());
+						logLikUpdated.push_back(0.);
+						logPrbUpdated.push_back(0.);
+						continue;
+					}
+
+					// replace affected pixels in causal neighborhood
 					inputsUpdated.push_back(inputs[m][n]);
-					
 					for(int l = 0; l < idxIn[k].size(); ++l)
 						inputsUpdated[k][idxIn[k][l]] = output[idxOut[k][l]];
-					
+
+					// update likelihoods and probabilities needed for computing alpha
 					Array<int, 1, Dynamic> label(1);
-					label[0] = labels(i / h, j / w);
+					label[0] = labels(m / h, n / w);
 
 					logLikUpdated.push_back(model.logLikelihood(inputsUpdated[k], outputs[m][n], label)[0]);
 					logAlpha += logLikUpdated[k] - logLik[m][n];
@@ -1051,6 +1063,9 @@ ArrayXXd CMT::sampleImageConditionally(
 					for(int k = 0; k < offsets.size(); ++k) {
 						int m = i + offsets[k].first;
 						int n = j + offsets[k].second;
+
+						if(m >= inputs.size() || n >= inputs[m].size())
+							continue;
 
 						inputs[m][n] = inputsUpdated[k];
 						logLik[m][n] = logLikUpdated[k];
@@ -1127,7 +1142,11 @@ ArrayXXi CMT::sampleLabelsConditionally(
 			throw Exception("Model and masks are incompatible.");
 	}
 
-	ArrayXXi labels(img.rows() / h, img.cols() / h);
+	ArrayXXi labels(
+		(img.rows() - inputMask.rows()) / h + 1,
+		(img.cols() - inputMask.cols()) / w + 1);
+
+	labels.setConstant(-1);
 
 	for(int i = 0; i + inputMask.rows() <= img.rows(); i += h) {
 		for(int j = 0; j + inputMask.cols() <= img.cols(); j += w) {

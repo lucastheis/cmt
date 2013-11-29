@@ -509,6 +509,101 @@ int STM_set_distribution(STMObject* self, PyObject* distribution, void*) {
 
 
 
+const char* STM_linear_response_doc =
+	"linear_response(self, input)\n"
+	"\n"
+	"Computes the linear portion of the intenal response, $\\mathbf{v}^\\top \\mathbf{z}$. The input\n"
+	"can be the full input or just the linear part, that is, it can be of dimension C{dimIn()} or of\n"
+	"dimension C{dimInLinear()}.\n"
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@rtype: C{ndarray}\n"
+	"@return: the output of the linear filter";
+
+PyObject* STM_linear_response(STMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", 0};
+
+	PyObject* input;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &input))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input) {
+		PyErr_SetString(PyExc_TypeError, "Inputs have to be stored in a NumPy array.");
+		return 0;
+	}
+
+	try {
+		PyObject* result = PyArray_FromMatrixXd(
+			self->stm->linearResponse(PyArray_ToMatrixXd(input)));
+		Py_DECREF(input);
+		return result;
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+const char* STM_nonlinear_responses_doc =
+	"nonlinear_responses(self, input)\n"
+	"\n"
+	"Computes the nonlinear response of each component,\n"
+	"\n"
+	"$$\\sum_l \\beta_{kl} (\\mathbf{u}_l^\\top \\mathbf{x})^2 + \\mathbf{w}_k \\mathbf{x} + a_k.$$\n"
+	"\n"
+	"The input can be the full input or just the nonlinear part, that is, it can be of dimension C{dimIn()} or\n"
+	"of dimension C{dimInNonlinear()}.\n"
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@rtype: C{ndarray}\n"
+	"@return: one response for each component and each input";
+
+PyObject* STM_nonlinear_responses(STMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", 0};
+
+	PyObject* input;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &input))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input) {
+		PyErr_SetString(PyExc_TypeError, "Inputs have to be stored in a NumPy array.");
+		return 0;
+	}
+
+	try {
+		PyObject* result = PyArray_FromMatrixXd(
+			self->stm->nonlinearResponses(PyArray_ToMatrixXd(input)));
+		Py_DECREF(input);
+		return result;
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
 const char* STM_train_doc =
 	"train(self, input, output, input_val=None, output_val=None, parameters=None)\n"
 	"\n"

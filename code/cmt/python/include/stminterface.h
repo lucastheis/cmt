@@ -32,6 +32,8 @@ extern PyTypeObject UnivariateDistribution_type;
 extern PyTypeObject Bernoulli_type;
 
 extern const char* STM_doc;
+extern const char* STM_nonlinear_responses_doc;
+extern const char* STM_linear_response_doc;
 extern const char* STM_train_doc;
 extern const char* STM_sample_posterior_doc;
 extern const char* STM_reduce_doc;
@@ -64,6 +66,9 @@ int STM_set_nonlinearity(STMObject*, PyObject*, void*);
 
 PyObject* STM_distribution(STMObject*, void*);
 int STM_set_distribution(STMObject*, PyObject*, void*);
+
+PyObject* STM_linear_response(STMObject*, PyObject*, PyObject*);
+PyObject* STM_nonlinear_responses(STMObject*, PyObject*, PyObject*);
 
 PyObject* STM_train(STMObject*, PyObject*, PyObject*);
 
