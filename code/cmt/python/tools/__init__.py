@@ -2,6 +2,8 @@ __all__ = [
 	"generate_data_from_image",
 	"generate_data_from_video",
 	"sample_image",
+	"sample_image_conditionally",
+	"sample_labels_conditionally",
 	"sample_video",
 	"fill_in_image",
 	"fill_in_image_map",
