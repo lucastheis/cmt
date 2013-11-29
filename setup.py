@@ -37,24 +37,27 @@ if any(['intel' in arg for arg in sys.argv]) or 'intel' in get_default_compiler(
 	for path in ['/opt/intel/mkl/lib/intel64', '/opt/intel/lib/intel64']:
 		if os.path.exists(path):
 			library_dirs += [path]
+
+elif sys.platform == 'darwin':
+	# clang-specific options
+	include_dirs = []
+	library_dirs = []
+	libraries = []
+	extra_compile_args = ['-stdlib=libc++']
+	extra_link_args = []
+
+	os.environ['CC'] = 'clang++'
+	os.environ['CXX'] = 'clang++'
+	os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.7'
+
 else:
 	# gcc-specific options
 	include_dirs = []
 	library_dirs = []
-	libraries = []
-	extra_compile_args = []
+	libraries = ['gomp']
+	extra_compile_args = ['-std=c++0x', '-Wno-cpp', '-fopenmp']
 	extra_link_args = []
 
-	if sys.platform != 'darwin':
-		libraries += [
-			'gomp']
-		extra_compile_args += [
-			'-Wno-cpp',
-			'-fopenmp']
-
-if sys.platform != 'darwin':
-	extra_compile_args += [
-		'-std=c++0x']
 
 modules = [
 	Extension('_cmt',
