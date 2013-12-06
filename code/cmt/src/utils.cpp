@@ -153,7 +153,8 @@ Array<double, 1, Dynamic> CMT::logMeanExp(const ArrayXXd& array) {
 
 
 ArrayXXd CMT::sampleNormal(int m, int n) {
-	mt19937 gen(rand());
+ 	static mt19937 gen(rand());
+
 	normal_distribution<double> normal;
 	ArrayXXd samples(m, n);
 
