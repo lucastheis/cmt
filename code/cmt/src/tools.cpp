@@ -893,7 +893,8 @@ ArrayXXd CMT::sampleImageConditionally(
 	const ArrayXXb& inputMask,
 	const ArrayXXb& outputMask,
 	const Preconditioner* preconditioner,
-	int numIter)
+	int numIter,
+	bool initialize)
 {
 	if(inputMask.cols() != outputMask.cols() || inputMask.rows() != outputMask.rows())
 		throw Exception("Input and output masks should be of the same size.");
@@ -932,6 +933,7 @@ ArrayXXd CMT::sampleImageConditionally(
 	if(w < 1)
 		throw Exception("There needs to be at least one active pixel in the output mask.");
 
+	// at the moment, only rectangular output regions are supported
 	if(outputIndices.size() != w * h)
 		throw Exception("Unsupported output mask.");
 
@@ -951,14 +953,25 @@ ArrayXXd CMT::sampleImageConditionally(
 	vector<vector<double> > logLik;
 	vector<vector<double> > logPrb;
 
-	// TODO: only extract neighborhoods which are actually used
 	for(int i = 0; i + inputMask.rows() <= img.rows(); ++i) {
 		inputs.push_back(vector<VectorXd>());
 		outputs.push_back(vector<VectorXd>());
 		logLik.push_back(vector<double>());
 		logPrb.push_back(vector<double>());
+ 
+ 		if(i % h != 0)
+ 			continue;
 
 		for(int j = 0; j + inputMask.cols() <= img.cols(); ++j) {
+ 			if(j % w != 0) {
+ 				// create dummy variables
+ 				inputs[i].push_back(VectorXd());
+ 				outputs[i].push_back(VectorXd());
+ 				logLik[i].push_back(0.);
+ 				logPrb[i].push_back(0.);
+ 				continue;
+ 			}
+
 			ArrayXXd patch = img.block(i, j, inputMask.rows(), inputMask.cols());
 			inputs[i].push_back(extractFromImage(patch, inputIndices));
 			outputs[i].push_back(extractFromImage(patch, outputIndices));
@@ -966,8 +979,14 @@ ArrayXXd CMT::sampleImageConditionally(
 			Array<int, 1, Dynamic> label(1);
 			label[0] = labels(i / h, j / w);
 
-			logLik[i].push_back(model.logLikelihood(inputs[i][j], outputs[i][j], label)[0]);
-			logPrb[i].push_back(log(model.prior(inputs[i][j])(label[0], 0)));
+			if(preconditioner) {
+				pair<ArrayXXd, ArrayXXd> data = preconditioner->operator()(inputs[i][j], outputs[i][j]);
+				logLik[i].push_back(model.logLikelihood(data.first, data.second, label)[0]);
+				logPrb[i].push_back(log(model.prior(data.first)(label[0], 0)));
+			} else {
+				logLik[i].push_back(model.logLikelihood(inputs[i][j], outputs[i][j], label)[0]);
+				logPrb[i].push_back(log(model.prior(inputs[i][j])(label[0], 0)));
+			}
 		}
 	}
 
@@ -1048,15 +1067,25 @@ ArrayXXd CMT::sampleImageConditionally(
 					Array<int, 1, Dynamic> label(1);
 					label[0] = labels(m / h, n / w);
 
-					logLikUpdated.push_back(model.logLikelihood(inputsUpdated[k], outputs[m][n], label)[0]);
-					logAlpha += logLikUpdated[k] - logLik[m][n];
+					if(preconditioner) {
+						pair<ArrayXXd, ArrayXXd> data = preconditioner->operator()(inputsUpdated[k], outputs[m][n]);
 
-					logPrbUpdated.push_back(log(model.prior(inputsUpdated[k])(label[0], 0)));
-					logAlpha += logPrbUpdated[k] - logPrb[m][n];
+						logLikUpdated.push_back(model.logLikelihood(data.first, data.second, label)[0]);
+						logAlpha += logLikUpdated[k] - logLik[m][n];
+
+						logPrbUpdated.push_back(log(model.prior(data.first)(label[0], 0)));
+						logAlpha += logPrbUpdated[k] - logPrb[m][n];
+					} else {
+						logLikUpdated.push_back(model.logLikelihood(inputsUpdated[k], outputs[m][n], label)[0]);
+						logAlpha += logLikUpdated[k] - logLik[m][n];
+
+						logPrbUpdated.push_back(log(model.prior(inputsUpdated[k])(label[0], 0)));
+						logAlpha += logPrbUpdated[k] - logPrb[m][n];
+					}
 				}
 
 				// accept/reject proposed output
-				if(log(rand() / static_cast<double>(RAND_MAX)) < logAlpha) {
+				if((iter == 0 && initialize) || log(rand() / static_cast<double>(RAND_MAX)) < logAlpha) {
 					// update inputs and outputs
 					outputs[i][j] = output;
 
@@ -1074,7 +1103,7 @@ ArrayXXd CMT::sampleImageConditionally(
 				}
 			}
 
-	// replace pixels in image
+	// replace pixels by sampled pixels
 	for(int i = 0; i + inputMask.rows() <= img.rows(); i += h)
 		for(int j = 0; j + inputMask.cols() <= img.cols(); j += w)
 			for(int k = 0; k < outputIndices.size(); ++k)
