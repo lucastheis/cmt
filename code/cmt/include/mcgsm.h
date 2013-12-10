@@ -29,9 +29,13 @@ namespace CMT {
 					bool trainFeatures;
 					bool trainCholeskyFactors;
 					bool trainPredictors;
+					bool trainLinearFeatures;
+					bool trainMeans;
 					double regularizeFeatures;
 					double regularizePredictors;
 					double regularizeWeights;
+					double regularizeLinearFeatures;
+					double regularizeMeans;
 					Regularizer regularizer;
 
 					Parameters();
@@ -76,6 +80,12 @@ namespace CMT {
 
 			inline vector<MatrixXd> predictors() const;
 			inline void setPredictors(const vector<MatrixXd>& predictors);
+
+			inline MatrixXd linearFeatures() const;
+			inline void setLinearFeatures(const MatrixXd& linearFeatures);
+
+			inline MatrixXd means() const;
+			inline void setMeans(const MatrixXd& means);
 
 			virtual void initialize(const MatrixXd& input, const MatrixXd& output);
 
@@ -129,6 +139,8 @@ namespace CMT {
 			MatrixXd mFeatures;
 			vector<MatrixXd> mCholeskyFactors;
 			vector<MatrixXd> mPredictors;
+			MatrixXd mLinearFeatures;
+			MatrixXd mMeans;
 
 			virtual bool train(
 				const MatrixXd& input,
@@ -273,6 +285,34 @@ inline void CMT::MCGSM::setPredictors(const vector<MatrixXd>& predictors) {
 			throw Exception("Predictor has wrong dimensionality.");
 
 	mPredictors = predictors;
+}
+
+
+
+inline Eigen::MatrixXd CMT::MCGSM::linearFeatures() const {
+	return mLinearFeatures;
+}
+
+
+
+inline void CMT::MCGSM::setLinearFeatures(const MatrixXd& linearFeatures) {
+	if(linearFeatures.rows() != mNumComponents || linearFeatures.cols() != mDimIn)
+		throw Exception("Linear features have wrong dimensionality.");
+	mLinearFeatures = linearFeatures;
+}
+
+
+
+inline Eigen::MatrixXd CMT::MCGSM::means() const {
+	return mMeans;
+}
+
+
+
+inline void CMT::MCGSM::setMeans(const MatrixXd& means) {
+	if(means.cols() != mNumComponents || means.rows() != mDimOut)
+		throw Exception("Means have wrong dimensionality.");
+	mMeans = means;
 }
 
 #endif

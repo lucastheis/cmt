@@ -176,6 +176,14 @@ static PyGetSetDef MCGSM_getset[] = {
 		(getter)MCGSM_predictors,
 		(setter)MCGSM_set_predictors,
 		"A list of linear predictors, $\\mathbf{A}_c$."},
+	{"linear_features",
+		(getter)MCGSM_linear_features,
+		(setter)MCGSM_set_linear_features,
+		"Linear features, $\\mathbf{w}_c$."},
+	{"means",
+		(getter)MCGSM_means,
+		(setter)MCGSM_set_means,
+		"Means of outputs, $\\{u}_c$."},
 	{0}
 };
 
