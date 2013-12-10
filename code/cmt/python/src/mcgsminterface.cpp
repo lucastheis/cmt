@@ -1110,14 +1110,18 @@ PyObject* MCGSM_reduce(MCGSMObject* self, PyObject*, PyObject*) {
 	PyObject* features = MCGSM_features(self, 0, 0);
 	PyObject* cholesky_factors = MCGSM_cholesky_factors(self, 0, 0);
 	PyObject* predictors = MCGSM_predictors(self, 0, 0);
-	PyObject* state = Py_BuildValue("(OOOOOO)", 
-		priors, scales, weights, features, cholesky_factors, predictors);
+	PyObject* linear_features = MCGSM_linear_features(self, 0, 0);
+	PyObject* means = MCGSM_means(self, 0, 0);
+	PyObject* state = Py_BuildValue("(OOOOOOOO)", 
+		priors, scales, weights, features, cholesky_factors, predictors, linear_features, means);
 	Py_DECREF(priors);
 	Py_DECREF(scales);
 	Py_DECREF(weights);
 	Py_DECREF(features);
 	Py_DECREF(cholesky_factors);
 	Py_DECREF(predictors);
+	Py_DECREF(linear_features);
+	Py_DECREF(means);
 
 	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
 	Py_DECREF(args);
@@ -1140,9 +1144,11 @@ PyObject* MCGSM_setstate(MCGSMObject* self, PyObject* state, PyObject*) {
 	PyObject* features;
 	PyObject* cholesky_factors;
 	PyObject* predictors;
+	PyObject* linear_features;
+	PyObject* means;
 
-	if(!PyArg_ParseTuple(state, "(OOOOOO)",
-		&priors, &scales, &weights, &features, &cholesky_factors, &predictors))
+	if(!PyArg_ParseTuple(state, "(OOOOOOOO)",
+		&priors, &scales, &weights, &features, &cholesky_factors, &predictors, &linear_features, &means))
 		return 0;
 
 	try {
@@ -1152,6 +1158,8 @@ PyObject* MCGSM_setstate(MCGSMObject* self, PyObject* state, PyObject*) {
 		MCGSM_set_features(self, features, 0);
 		MCGSM_set_cholesky_factors(self, cholesky_factors, 0);
 		MCGSM_set_predictors(self, predictors, 0);
+		MCGSM_set_linear_features(self, linear_features, 0);
+		MCGSM_set_means(self, means, 0);
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;

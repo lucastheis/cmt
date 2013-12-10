@@ -261,6 +261,9 @@ class Tests(unittest.TestCase):
 			cholesky_factors.append(cholesky(cov(randn(mcgsm.dim_out, mcgsm.dim_out**2))))
 		mcgsm.cholesky_factors = cholesky_factors
 
+		mcgsm.linear_features = randn(mcgsm.num_components, mcgsm.dim_in) / 5.
+		mcgsm.means = randn(mcgsm.dim_out, mcgsm.num_components) / 5.
+
 		err = mcgsm._check_gradient(
 			randn(mcgsm.dim_in, 1000),
 			randn(mcgsm.dim_out, 1000), 1e-5)
@@ -374,6 +377,9 @@ class Tests(unittest.TestCase):
 	def test_pickle(self):
 		mcgsm0 = MCGSM(11, 2, 4, 7, 21)
 
+		mcgsm0.linear_features = randn(mcgsm0.num_components, mcgsm0.dim_in)
+		mcgsm0.means = randn(mcgsm0.dim_out, mcgsm0.num_components)
+
 		tmp_file = mkstemp()[1]
 
 		# store model
@@ -394,6 +400,8 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(mcgsm0.scales - mcgsm1.scales)), 1e-20)
 		self.assertLess(max(abs(mcgsm0.weights - mcgsm1.weights)), 1e-20)
 		self.assertLess(max(abs(mcgsm0.features - mcgsm1.features)), 1e-20)
+		self.assertLess(max(abs(mcgsm0.linear_features - mcgsm1.linear_features)), 1e-20)
+		self.assertLess(max(abs(mcgsm0.means - mcgsm1.means)), 1e-20)
 
 		for chol0, chol1 in zip(mcgsm0.cholesky_factors, mcgsm1.cholesky_factors):
 			self.assertLess(max(abs(chol0 - chol1)), 1e-20)
