@@ -665,9 +665,9 @@ int CMT::MCGSM::numParameters(const Trainable::Parameters& params_) const {
 	if(params.trainPredictors)
 		numParams += mNumComponents * mPredictors[0].size();
 	if(params.trainLinearFeatures)
-		numParams += mNumComponents * mDimIn;
+		numParams += mLinearFeatures.size();
 	if(params.trainMeans)
-		numParams += mNumComponents * mDimOut;
+		numParams += mMeans.size();
 
 	return numParams;
 }
@@ -823,16 +823,6 @@ double CMT::MCGSM::parameterGradient(
 		for(int i = 0; i < mNumComponents; ++i)
 			choleskyFactors.push_back(mCholeskyFactors[i]);
 
-	MatrixLBFGS linearFeatures(params.trainLinearFeatures ? y + offset : const_cast<double*>(mLinearFeatures.data()), mNumComponents, mDimIn);
-	MatrixLBFGS linearFeaturesGrad(g + offset, mNumComponents, mDimIn);
-	if(params.trainLinearFeatures)
-		offset += linearFeatures.size();
-
-	MatrixLBFGS means(params.trainMeans ? y + offset : const_cast<double*>(mMeans.data()), mDimOut, mNumComponents);
-	MatrixLBFGS meansGrad(g + offset, mDimOut, mNumComponents);
-	if(params.trainMeans)
-		offset += means.size();
-
 	vector<MatrixLBFGS> predictors;
 	vector<MatrixLBFGS> predictorsGrad;
 
@@ -845,6 +835,16 @@ double CMT::MCGSM::parameterGradient(
 	else
 		for(int i = 0; i < mNumComponents; ++i)
 			predictors.push_back(MatrixLBFGS(const_cast<double*>(mPredictors[i].data()), mDimOut, mDimIn));
+
+	MatrixLBFGS linearFeatures(params.trainLinearFeatures ? y + offset : const_cast<double*>(mLinearFeatures.data()), mNumComponents, mDimIn);
+	MatrixLBFGS linearFeaturesGrad(g + offset, mNumComponents, mDimIn);
+	if(params.trainLinearFeatures)
+		offset += linearFeatures.size();
+
+	MatrixLBFGS means(params.trainMeans ? y + offset : const_cast<double*>(mMeans.data()), mDimOut, mNumComponents);
+	MatrixLBFGS meansGrad(g + offset, mDimOut, mNumComponents);
+	if(params.trainMeans)
+		offset += means.size();
 
 	if(g) {
 		// initialize gradients
@@ -1034,12 +1034,12 @@ double CMT::MCGSM::parameterGradient(
 					#pragma omp parallel for
 					for(int i = 0; i < mNumComponents; ++i)
 						predictorsGrad[i] += params.regularizePredictors * signum(predictors[i]);
-
-				if(params.trainLinearFeatures && params.regularizeLinearFeatures > 0.)
-					linearFeaturesGrad += params.regularizeLinearFeatures * signum(linearFeatures);
-
-				if(params.trainMeans && params.regularizeMeans > 0.)
-					meansGrad += params.regularizeMeans * signum(means);
+//
+//				if(params.trainLinearFeatures && params.regularizeLinearFeatures > 0.)
+//					linearFeaturesGrad += params.regularizeLinearFeatures * signum(linearFeatures);
+//
+//				if(params.trainMeans && params.regularizeMeans > 0.)
+//					meansGrad += params.regularizeMeans * signum(means);
 
 				break;
 
@@ -1054,12 +1054,12 @@ double CMT::MCGSM::parameterGradient(
 					#pragma omp parallel for
 					for(int i = 0; i < mNumComponents; ++i)
 						predictorsGrad[i] += params.regularizePredictors * 2. * predictors[i];
-
-				if(params.trainLinearFeatures && params.regularizeLinearFeatures > 0.)
-					linearFeaturesGrad += params.regularizeLinearFeatures * 2. * linearFeatures;
-
-				if(params.trainMeans && params.regularizeMeans > 0.)
-					meansGrad += params.regularizeMeans * 2. * means;
+//
+//				if(params.trainLinearFeatures && params.regularizeLinearFeatures > 0.)
+//					linearFeaturesGrad += params.regularizeLinearFeatures * 2. * linearFeatures;
+//
+//				if(params.trainMeans && params.regularizeMeans > 0.)
+//					meansGrad += params.regularizeMeans * 2. * means;
 
 				break;
 		}
@@ -1079,12 +1079,12 @@ double CMT::MCGSM::parameterGradient(
 			if(params.trainPredictors && params.regularizePredictors > 0.)
 				for(int i = 0; i < mNumComponents; ++i)
 					value += params.regularizePredictors * predictors[i].array().abs().sum();
-
-			if(params.trainLinearFeatures && params.regularizeLinearFeatures > 0.)
-				value += params.regularizeLinearFeatures * linearFeatures.array().abs().sum();
-
-			if(params.trainMeans && params.regularizeMeans > 0.)
-				value += params.regularizeMeans * means.array().abs().sum();
+//
+//			if(params.trainLinearFeatures && params.regularizeLinearFeatures > 0.)
+//				value += params.regularizeLinearFeatures * linearFeatures.array().abs().sum();
+//
+//			if(params.trainMeans && params.regularizeMeans > 0.)
+//				value += params.regularizeMeans * means.array().abs().sum();
 
 			break;
 
@@ -1098,12 +1098,12 @@ double CMT::MCGSM::parameterGradient(
 			if(params.trainPredictors && params.regularizePredictors > 0.)
 				for(int i = 0; i < mNumComponents; ++i)
 					value += params.regularizePredictors * predictors[i].array().square().sum();
-
-			if(params.trainLinearFeatures && params.regularizeLinearFeatures > 0.)
-				value += params.regularizeLinearFeatures * linearFeatures.array().square().sum();
-
-			if(params.trainMeans && params.regularizeMeans > 0.)
-				value += params.regularizeMeans * means.array().square().sum();
+//
+//			if(params.trainLinearFeatures && params.regularizeLinearFeatures > 0.)
+//				value += params.regularizeLinearFeatures * linearFeatures.array().square().sum();
+//
+//			if(params.trainMeans && params.regularizeMeans > 0.)
+//				value += params.regularizeMeans * means.array().square().sum();
 
 			break;
 	}
