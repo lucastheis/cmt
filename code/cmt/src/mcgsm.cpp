@@ -1112,9 +1112,11 @@ bool CMT::MCGSM::train(
 	const MatrixXd& output,
 	const MatrixXd* inputVal,
 	const MatrixXd* outputVal,
-	const Trainable::Parameters& params)
+	const Trainable::Parameters& params_)
 {
 	if(!mDimIn) {
+		const Parameters& params = dynamic_cast<const Parameters&>(params_);
+
 		// MCGSM reduces to MoGSM for zero-dimensional inputs
 		MoGSM mogsm(mDimOut, mNumComponents, mNumScales);
 
@@ -1139,9 +1141,13 @@ bool CMT::MCGSM::train(
 		mogsmParams.threshold = params.threshold;
 		mogsmParams.valIter = params.valIter;
 		mogsmParams.valLookAhead = params.valLookAhead;
+		mogsmParams.trainPriors = params.trainPriors;
 
 		MoGSM::Component::Parameters gsmParams;
 		gsmParams.trainMean = false;
+		gsmParams.trainPriors = params.trainPriors;
+		gsmParams.trainCovariance = params.trainCholeskyFactors;
+		gsmParams.trainScales = params.trainScales;
 
 		// fit parameters of model to data
 		bool converged;
@@ -1167,6 +1173,6 @@ bool CMT::MCGSM::train(
 
 		return converged;
 	} else {
-		return Trainable::train(input, output, inputVal, outputVal, params);
+		return Trainable::train(input, output, inputVal, outputVal, params_);
 	}
 }
