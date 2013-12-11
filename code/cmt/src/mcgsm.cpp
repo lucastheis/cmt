@@ -1242,9 +1242,11 @@ bool CMT::MCGSM::train(
 		mogsmParams.threshold = params.threshold;
 		mogsmParams.valIter = params.valIter;
 		mogsmParams.valLookAhead = params.valLookAhead;
+		mogsmParams.trainPriors = params.trainPriors;
 
 		MoGSM::Component::Parameters gsmParams;
 		gsmParams.trainMean = params.trainMeans;
+		gsmParams.trainPriors = params.trainPriors;
 		gsmParams.trainCovariance = params.trainCholeskyFactors;
 		gsmParams.trainScales = params.trainScales;
 

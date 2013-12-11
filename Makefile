@@ -19,7 +19,7 @@ else
 CXX = \
 	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CXX')[0]);")
 CXXFLAGS = $(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);") \
-	-Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses -Wno-cpp -fPIC -fopenmp -DEIGEN_NO_DEBUG
+	-std=c++0x -Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses -Wno-cpp -fPIC -fopenmp -DEIGEN_NO_DEBUG
 LD = $(CXX)
 LDFLAGS = code/liblbfgs/lib/.libs/liblbfgs.a -lgomp \
 	$(shell python -c "import sysconfig; print(' '.join(sysconfig.get_config_vars('LDSHARED')[0].split(' ')[1:]));")
@@ -107,6 +107,6 @@ $(OBJDIR)/%.o: %.cpp $(OBJDIR)/%.d
 $(OBJDIR)/%.d: %.cpp
 	@mkdir -p $(@D)
 	@echo $(CXX) -MM $< -MF $@
-	@$(CXX) $(INCLUDE) -MM -MT '$(@:.d=.o)' $< -MF $@
+	@$(CXX) $(INCLUDE) $(CXXFLAGS) -MM -MT '$(@:.d=.o)' $< -MF $@
 
 -include $(OBJECTS:.o=.d)
