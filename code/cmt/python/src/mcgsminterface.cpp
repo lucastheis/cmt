@@ -1144,12 +1144,16 @@ PyObject* MCGSM_setstate(MCGSMObject* self, PyObject* state, PyObject*) {
 	PyObject* features;
 	PyObject* cholesky_factors;
 	PyObject* predictors;
-	PyObject* linear_features;
-	PyObject* means;
+	PyObject* linear_features = 0;
+	PyObject* means = 0;
 
-	if(!PyArg_ParseTuple(state, "(OOOOOOOO)",
-		&priors, &scales, &weights, &features, &cholesky_factors, &predictors, &linear_features, &means))
-		return 0;
+	if(!PyArg_ParseTuple(state, "(OOOOOOOO)", &priors, &scales, &weights, &features, &cholesky_factors, &predictors, &linear_features, &means)) {
+		PyErr_Clear();
+
+		// try without means for backwards-compatibility reasons
+		if(!PyArg_ParseTuple(state, "(OOOOOO)", &priors, &scales, &weights, &features, &cholesky_factors, &predictors))
+			return 0;
+	}
 
 	try {
 		MCGSM_set_priors(self, priors, 0);
@@ -1158,8 +1162,10 @@ PyObject* MCGSM_setstate(MCGSMObject* self, PyObject* state, PyObject*) {
 		MCGSM_set_features(self, features, 0);
 		MCGSM_set_cholesky_factors(self, cholesky_factors, 0);
 		MCGSM_set_predictors(self, predictors, 0);
-		MCGSM_set_linear_features(self, linear_features, 0);
-		MCGSM_set_means(self, means, 0);
+		if(linear_features && means) {
+			MCGSM_set_linear_features(self, linear_features, 0);
+			MCGSM_set_means(self, means, 0);
+		}
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
