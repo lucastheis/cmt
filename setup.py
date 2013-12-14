@@ -118,6 +118,7 @@ modules = [
 			'-fPIC',
 			'code/liblbfgs/lib/.libs/liblbfgs.a'] + extra_link_args,
 		extra_compile_args=[
+			'-DEIGEN_NO_DEBUG',
 			'-Wno-sign-compare',
 			'-Wno-parentheses',
 			'-Wno-write-strings'] + extra_compile_args)]

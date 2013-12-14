@@ -22,6 +22,10 @@ using std::min;
 #include "Eigen/Eigenvalues"
 using Eigen::SelfAdjointEigenSolver;
 
+#include <iostream>
+using std::cout;
+using std::endl;
+
 CMT::MCGSM::Parameters::Parameters() :
 	Trainable::Parameters::Parameters(),
 	trainPriors(true),
@@ -30,9 +34,13 @@ CMT::MCGSM::Parameters::Parameters() :
 	trainFeatures(true),
 	trainCholeskyFactors(true),
 	trainPredictors(true),
+	trainLinearFeatures(false),
+	trainMeans(false),
 	regularizeFeatures(0.),
 	regularizePredictors(0.),
 	regularizeWeights(0.),
+	regularizeLinearFeatures(0.),
+	regularizeMeans(0.),
 	regularizer(L2)
 {
 }
@@ -47,9 +55,13 @@ CMT::MCGSM::Parameters::Parameters(const Parameters& params) :
 	trainFeatures(params.trainFeatures),
 	trainCholeskyFactors(params.trainCholeskyFactors),
 	trainPredictors(params.trainPredictors),
+	trainLinearFeatures(params.trainLinearFeatures),
+	trainMeans(params.trainMeans),
 	regularizeFeatures(params.regularizeFeatures),
 	regularizePredictors(params.regularizePredictors),
 	regularizeWeights(params.regularizeWeights),
+	regularizeLinearFeatures(params.regularizeLinearFeatures),
+	regularizeMeans(params.regularizeMeans),
 	regularizer(params.regularizer)
 {
 }
@@ -65,9 +77,13 @@ CMT::MCGSM::Parameters& CMT::MCGSM::Parameters::operator=(const Parameters& para
 	trainFeatures = params.trainFeatures;
 	trainCholeskyFactors = params.trainCholeskyFactors;
 	trainPredictors = params.trainPredictors;
+	trainLinearFeatures = params.trainLinearFeatures;
+	trainMeans = params.trainMeans;
 	regularizeFeatures = params.regularizeFeatures;
-	regularizeWeights = params.regularizeWeights;
 	regularizePredictors = params.regularizePredictors;
+	regularizeWeights = params.regularizeWeights;
+	regularizeLinearFeatures = params.regularizeLinearFeatures;
+	regularizeWeights = params.regularizeWeights;
 	regularizer = params.regularizer;
 
 	return *this;
@@ -105,6 +121,8 @@ CMT::MCGSM::MCGSM(
 	mScales = ArrayXXd::Random(mNumComponents, mNumScales);
 	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100. + 0.01;
 	mFeatures = sampleNormal(mDimIn, mNumFeatures) / 100.;
+	mLinearFeatures = MatrixXd::Zero(mNumComponents, mDimIn);
+	mMeans = MatrixXd::Zero(mDimOut, mNumComponents);
 
 	for(int i = 0; i < mNumComponents; ++i) {
 		mCholeskyFactors.push_back(MatrixXd::Identity(mDimOut, mDimOut));
@@ -135,6 +153,8 @@ CMT::MCGSM::MCGSM(int dimIn, int dimOut, const MCGSM& mcgsm) :
 	mScales = ArrayXXd::Random(mNumComponents, mNumScales);
 	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100. + 0.01;
 	mFeatures = sampleNormal(mDimIn, mNumFeatures) / 100.;
+	mLinearFeatures = MatrixXd::Zero(mNumComponents, mDimIn);
+	mMeans = MatrixXd::Zero(mDimOut, mNumComponents);
 
 	for(int i = 0; i < mNumComponents; ++i) {
 		mCholeskyFactors.push_back(MatrixXd::Identity(mDimOut, mDimOut));
@@ -156,6 +176,8 @@ CMT::MCGSM::MCGSM(int dimIn, const MCGSM& mcgsm) :
 	mScales = ArrayXXd::Random(mNumComponents, mNumScales);
 	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100. + 0.01;
 	mFeatures = sampleNormal(mDimIn, mNumFeatures) / 100.;
+	mLinearFeatures = MatrixXd::Zero(mNumComponents, mDimIn);
+	mMeans = MatrixXd::Zero(mDimOut, mNumComponents);
 
 	for(int i = 0; i < mNumComponents; ++i) {
 		mCholeskyFactors.push_back(MatrixXd::Identity(mDimOut, mDimOut));
@@ -203,6 +225,7 @@ void CMT::MCGSM::initialize(const MatrixXd& input, const MatrixXd& output) {
 
 		// copy parameters back
 		mPriors.colwise() = mogsm.priors().array().log();
+		mMeans.setZero();
 
 		vector<MatrixXd> choleskyFactors;
 
@@ -224,6 +247,9 @@ void CMT::MCGSM::initialize(const MatrixXd& input, const MatrixXd& output) {
 		mScales = sampleNormal(mNumComponents, mNumScales) / 20.;
 		mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100. + 0.01;
 		mFeatures = whitening.transpose() * sampleNormal(mDimIn, mNumFeatures).matrix() / 100.;
+
+		mLinearFeatures.setZero();
+		mMeans.setZero();
 
 		// optimal linear predictor and precision
 		MatrixXd predictor = covXY.transpose() * covXX.inverse();
@@ -250,7 +276,8 @@ MatrixXd CMT::MCGSM::sample(const MatrixXd& input) const {
 
 	if(mDimIn) {
 		ArrayXXd featuresOutput = mFeatures.transpose() * input;
-		weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix();
+		weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix()
+			- 2. * mLinearFeatures * input;
 	}
 
 	#pragma omp parallel for
@@ -284,6 +311,7 @@ MatrixXd CMT::MCGSM::sample(const MatrixXd& input) const {
 		output.col(k) /= sqrt(scalesExp(i, j));
 
 		// add mean
+		output.col(k) += mMeans.col(i);
 		if(mDimIn)
 			output.col(k) += mPredictors[i] * input.col(k);
 	}
@@ -321,8 +349,10 @@ MatrixXd CMT::MCGSM::sample(
 		ArrayXd pmf;
 
 		if(mDimIn)
-			pmf = mPriors.row(k).matrix() - scalesExp.row(k) *
-				(weightsSqr.row(k) * featuresOutput.col(i).square().matrix())[0] / 2.;
+			pmf = mPriors.row(k).matrix() -
+				scalesExp.row(k) * (
+					weightsSqr.row(k) * featuresOutput.col(i).square().matrix() / 2. -
+					mLinearFeatures.row(k) * input.col(i))[0];
 		else
 			pmf = mPriors.row(k);
 
@@ -343,6 +373,7 @@ MatrixXd CMT::MCGSM::sample(
 		output.col(i) /= sqrt(scalesExp(k, j));
 
 		// add predicted mean
+		output.col(i) += mMeans.col(k);
 		if(mDimIn)
 			output.col(i) += mPredictors[k] * input.col(i);
 	}
@@ -353,7 +384,7 @@ MatrixXd CMT::MCGSM::sample(
 
 
 MatrixXd CMT::MCGSM::reconstruct(const MatrixXd& input, const MatrixXd& output) const {
-	// reconstruct output from labels
+	// reconstruct output from sampled labels
 	return sample(input, samplePosterior(input, output));
 }
 
@@ -422,7 +453,8 @@ ArrayXXd CMT::MCGSM::prior(const MatrixXd& input) const {
 
 	if(mDimIn) {
 		ArrayXXd featuresOutput = mFeatures.transpose() * input;
-		weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix();
+		weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix()
+			- 2. * mLinearFeatures * input;
 	}
 
 	#pragma omp parallel for
@@ -460,7 +492,8 @@ ArrayXXd CMT::MCGSM::posterior(const MatrixXd& input, const MatrixXd& output) co
 
 	if(mDimIn) {
 		ArrayXXd featuresOutput = mFeatures.transpose() * input;
-		weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix();
+		weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix()
+			- 2. * mLinearFeatures * input;
 	}
 
 	#pragma omp parallel for
@@ -470,11 +503,11 @@ ArrayXXd CMT::MCGSM::posterior(const MatrixXd& input, const MatrixXd& output) co
 
 		// compute unnormalized posterior
 		if(mDimIn) {
-			errorSqr =
-				(mCholeskyFactors[i].transpose() * (output - mPredictors[i] * input)).colwise().squaredNorm();
+			errorSqr = (mCholeskyFactors[i].transpose() *
+				((output - mPredictors[i] * input).colwise() - mMeans.col(i))).colwise().squaredNorm();
 			negEnergy = -scalesExp.col(i) / 2. * (weightsOutput.row(i) + errorSqr);
 		} else {
-			errorSqr = (mCholeskyFactors[i].transpose() * output).colwise().squaredNorm();
+			errorSqr = (mCholeskyFactors[i].transpose() * (output.colwise() - mMeans.col(i))).colwise().squaredNorm();
 			negEnergy = -scalesExp.col(i) / 2. * errorSqr;
 		}
 
@@ -487,7 +520,7 @@ ArrayXXd CMT::MCGSM::posterior(const MatrixXd& input, const MatrixXd& output) co
 		posterior.row(i) = logSumExp(negEnergy);
 	}
 
-	// return normalized prior
+	// return normalized posterior
 	return (posterior.rowwise() - logSumExp(posterior)).exp();
 }
 
@@ -495,7 +528,7 @@ ArrayXXd CMT::MCGSM::posterior(const MatrixXd& input, const MatrixXd& output) co
 
 Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(
 	const MatrixXd& input,
-	const MatrixXd& output) const 
+	const MatrixXd& output) const
 {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
@@ -510,7 +543,8 @@ Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(
 
 	if(mDimIn) {
 		ArrayXXd featuresOutput = mFeatures.transpose() * input;
-		weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix();
+		weightsOutput = mWeights.square().matrix() * featuresOutput.square().matrix()
+			- 2. * mLinearFeatures * input;
 	}
 
 	#pragma omp parallel for
@@ -522,10 +556,10 @@ Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(
 		if(mDimIn) {
 			negEnergy = -scalesExp.col(i) / 2. * weightsOutput.row(i);
 			negEnergy.colwise() += mPriors.row(i).transpose();
-			outputWhitened = mCholeskyFactors[i].transpose() * (output - mPredictors[i] * input);
+			outputWhitened = mCholeskyFactors[i].transpose() * ((output - mPredictors[i] * input).colwise() - mMeans.col(i));
 		} else {
 			negEnergy.colwise() = mPriors.row(i).transpose();
-			outputWhitened = mCholeskyFactors[i].transpose() * output;
+			outputWhitened = mCholeskyFactors[i].transpose() * (output.colwise() - mMeans.col(i));
 		}
 
 		// normalization constants of gates
@@ -553,7 +587,7 @@ Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(
 Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(
 	const MatrixXd& input,
 	const MatrixXd& output,
-	const Array<int, 1, Dynamic>& labels) const 
+	const Array<int, 1, Dynamic>& labels) const
 {
 	if(input.rows() != mDimIn || output.rows() != mDimOut)
 		throw Exception("Data has wrong dimensionality.");
@@ -575,8 +609,8 @@ Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(
 
 	#pragma omp parallel for
 	for(int k = 0; k < mNumComponents; ++k)
-		 logPartf[k] = mCholeskyFactors[k].diagonal().array().abs().log().sum()
-		 	 - mDimOut / 2. * log(2. * PI);
+		logPartf[k] = mCholeskyFactors[k].diagonal().array().abs().log().sum()
+			- mDimOut / 2. * log(2. * PI);
 
 	#pragma omp parallel for
 	for(int i = 0; i < output.cols(); ++i) {
@@ -584,18 +618,22 @@ Array<double, 1, Dynamic> CMT::MCGSM::logLikelihood(
 
 		// compute distribution over scales
 		ArrayXd logPrior;
+		VectorXd outputWhitened;
 
-		if(mDimIn)
-			logPrior = mPriors.row(k) - scalesExp.row(k) *
-				(weightsSqr.row(k) * featuresOutput.col(i).square().matrix())[0] / 2.;
-		else
+		if(mDimIn) {
+			logPrior = mPriors.row(k) - scalesExp.row(k) * (
+				weightsSqr.row(k) * featuresOutput.col(i).square().matrix() / 2. -
+				mLinearFeatures.row(k) * input.col(i))[0];
+			outputWhitened =
+				mCholeskyFactors[k] * (output.col(i) - mPredictors[k] * input.col(i) - mMeans.col(k));
+		} else {
 			logPrior = mPriors.row(k);
+			outputWhitened =
+				mCholeskyFactors[k] * (output.col(i) - mMeans.col(k));
+		}
 
 		// normalize
 		logPrior = logPrior - logSumExp(logPrior)[0];
-
-		VectorXd outputWhitened =
-			mCholeskyFactors[k] * (output.col(i) - mPredictors[k] * input.col(i));
 
 		logLikelihood.col(i) = logPrior
 			+ mDimOut / 2. * mScales.row(k).transpose()
@@ -626,6 +664,10 @@ int CMT::MCGSM::numParameters(const Trainable::Parameters& params_) const {
 		numParams += mNumComponents * mDimOut * (mDimOut + 1) / 2 - mNumComponents;
 	if(params.trainPredictors)
 		numParams += mNumComponents * mPredictors[0].size();
+	if(params.trainLinearFeatures)
+		numParams += mLinearFeatures.size();
+	if(params.trainMeans)
+		numParams += mMeans.size();
 
 	return numParams;
 }
@@ -660,6 +702,12 @@ lbfgsfloatval_t* CMT::MCGSM::parameters(const Trainable::Parameters& params_) co
 		for(int i = 0; i < mPredictors.size(); ++i)
 			for(int j = 0; j < mPredictors[i].size(); ++j, ++k)
 				x[k] = mPredictors[i].data()[j];
+	if(params.trainLinearFeatures)
+		for(int i = 0; i < mLinearFeatures.size(); ++i, ++k)
+			x[k] = mLinearFeatures.data()[i];
+	if(params.trainMeans)
+		for(int i = 0; i < mMeans.size(); ++i, ++k)
+			x[k] = mMeans.data()[i];
 
 	return x;
 }
@@ -705,6 +753,16 @@ void CMT::MCGSM::setParameters(const lbfgsfloatval_t* x, const Trainable::Parame
 			mPredictors[i] = MatrixLBFGS(const_cast<double*>(x) + offset, mDimOut, mDimIn);
 			offset += mPredictors[i].size();
 		}
+
+	if(params.trainLinearFeatures) {
+		mLinearFeatures = MatrixLBFGS(const_cast<double*>(x) + offset, mNumComponents, mDimIn);
+		offset += mLinearFeatures.size();
+	}
+
+	if(params.trainMeans) {
+		mMeans = MatrixLBFGS(const_cast<double*>(x) + offset, mDimOut, mNumComponents);
+		offset += mMeans.size();
+	}
 }
 
 
@@ -778,6 +836,16 @@ double CMT::MCGSM::parameterGradient(
 		for(int i = 0; i < mNumComponents; ++i)
 			predictors.push_back(MatrixLBFGS(const_cast<double*>(mPredictors[i].data()), mDimOut, mDimIn));
 
+	MatrixLBFGS linearFeatures(params.trainLinearFeatures ? y + offset : const_cast<double*>(mLinearFeatures.data()), mNumComponents, mDimIn);
+	MatrixLBFGS linearFeaturesGrad(g + offset, mNumComponents, mDimIn);
+	if(params.trainLinearFeatures)
+		offset += linearFeatures.size();
+
+	MatrixLBFGS means(params.trainMeans ? y + offset : const_cast<double*>(mMeans.data()), mDimOut, mNumComponents);
+	MatrixLBFGS meansGrad(g + offset, mDimOut, mNumComponents);
+	if(params.trainMeans)
+		offset += means.size();
+
 	if(g) {
 		// initialize gradients
 		if(params.trainPriors)
@@ -791,6 +859,10 @@ double CMT::MCGSM::parameterGradient(
 		if(params.trainPredictors)
 			for(int i = 0; i < mNumComponents; ++i)
 				predictorsGrad[i].setZero();
+		if(params.trainLinearFeatures)
+			linearFeaturesGrad.setZero();
+		if(params.trainMeans)
+			meansGrad.setZero();
 	}
 
 	// split data into batches for better performance
@@ -805,7 +877,7 @@ double CMT::MCGSM::parameterGradient(
 		MatrixXd featureOutput = features.transpose() * input;
 		MatrixXd featureOutputSqr = featureOutput.array().square();
 		MatrixXd weightsSqr = weights.array().square();
-		MatrixXd weightsOutput = weightsSqr * featureOutputSqr;
+		MatrixXd weightsOutput = weightsSqr * featureOutputSqr - 2. * linearFeatures * input;
 
 		// containers for intermediate results
 		vector<ArrayXXd> logPosteriorIn(mNumComponents);
@@ -825,7 +897,7 @@ double CMT::MCGSM::parameterGradient(
 			MatrixXd negEnergyGate = -scalesExp[i] / 2. * weightsOutput.row(i);
 			negEnergyGate.colwise() += priors.row(i).transpose();
 
-			predError[i] = output - predictors[i] * input;
+			predError[i] = (output - predictors[i] * input).colwise() - means.col(i);
 			predErrorSqNorm[i] = (choleskyFactors[i].transpose() * predError[i]).colwise().squaredNorm();
 
 			MatrixXd negEnergyExpert = -scalesExp[i] / 2. * predErrorSqNorm[i].matrix();
@@ -897,7 +969,7 @@ double CMT::MCGSM::parameterGradient(
 				Array<double, 1, Dynamic> tmp4 = (posteriorOut.rowwise() * predErrorSqNorm[i]).rowwise().sum();
 
 				scalesGrad.row(i) += (
-					tmp4 * scales.row(i).array().exp() / 2. - 
+					tmp4 * scales.row(i).array().exp() / 2. -
 					tmp3 * mDimOut / 2. -
 					tmp2 * scales.row(i).array().exp() / 2.).matrix();
 			}
@@ -912,22 +984,26 @@ double CMT::MCGSM::parameterGradient(
 			}
 
 			Array<double, 1, Dynamic> tmp7 = scalesExp[i].transpose() * posteriorOut.matrix();
+			MatrixXd precision = choleskyFactors[i] * choleskyFactors[i].transpose();
 			MatrixXd tmp8 = predError[i].array().rowwise() * tmp7;
+			MatrixXd tmp9 = precision * tmp8;
 
 			// gradient of cholesky factor
 			if(params.trainCholeskyFactors) {
-				MatrixXd tmp9 = choleskyFactors[i].diagonal().cwiseInverse().asDiagonal();
-
+				MatrixXd tmp10 = choleskyFactors[i].diagonal().cwiseInverse().asDiagonal();
 				choleskyFactorsGrad[i] += tmp8 * predError[i].transpose() * choleskyFactors[i]
-					- tmp3.sum() * tmp9;
+					- tmp3.sum() * tmp10;
 			}
 
 			// gradient of linear predictor
-			if(params.trainPredictors) {
-				MatrixXd precision = choleskyFactors[i] * choleskyFactors[i].transpose();
+			if(params.trainPredictors)
+				predictorsGrad[i] -= tmp9 * input.transpose();
 
-				predictorsGrad[i] -= precision * tmp8 * input.transpose();
-			}
+			if(params.trainLinearFeatures)
+				linearFeaturesGrad.row(i) -= (tmp0.matrix() * input.transpose()).colwise().sum();
+
+			if(params.trainMeans)
+				meansGrad.col(i) -= tmp9.rowwise().sum();
 		}
 	}
 
@@ -958,6 +1034,12 @@ double CMT::MCGSM::parameterGradient(
 					#pragma omp parallel for
 					for(int i = 0; i < mNumComponents; ++i)
 						predictorsGrad[i] += params.regularizePredictors * signum(predictors[i]);
+//
+//				if(params.trainLinearFeatures && params.regularizeLinearFeatures > 0.)
+//					linearFeaturesGrad += params.regularizeLinearFeatures * signum(linearFeatures);
+//
+//				if(params.trainMeans && params.regularizeMeans > 0.)
+//					meansGrad += params.regularizeMeans * signum(means);
 
 				break;
 
@@ -972,6 +1054,12 @@ double CMT::MCGSM::parameterGradient(
 					#pragma omp parallel for
 					for(int i = 0; i < mNumComponents; ++i)
 						predictorsGrad[i] += params.regularizePredictors * 2. * predictors[i];
+//
+//				if(params.trainLinearFeatures && params.regularizeLinearFeatures > 0.)
+//					linearFeaturesGrad += params.regularizeLinearFeatures * 2. * linearFeatures;
+//
+//				if(params.trainMeans && params.regularizeMeans > 0.)
+//					meansGrad += params.regularizeMeans * 2. * means;
 
 				break;
 		}
@@ -991,6 +1079,12 @@ double CMT::MCGSM::parameterGradient(
 			if(params.trainPredictors && params.regularizePredictors > 0.)
 				for(int i = 0; i < mNumComponents; ++i)
 					value += params.regularizePredictors * predictors[i].array().abs().sum();
+//
+//			if(params.trainLinearFeatures && params.regularizeLinearFeatures > 0.)
+//				value += params.regularizeLinearFeatures * linearFeatures.array().abs().sum();
+//
+//			if(params.trainMeans && params.regularizeMeans > 0.)
+//				value += params.regularizeMeans * means.array().abs().sum();
 
 			break;
 
@@ -1004,6 +1098,12 @@ double CMT::MCGSM::parameterGradient(
 			if(params.trainPredictors && params.regularizePredictors > 0.)
 				for(int i = 0; i < mNumComponents; ++i)
 					value += params.regularizePredictors * predictors[i].array().square().sum();
+//
+//			if(params.trainLinearFeatures && params.regularizeLinearFeatures > 0.)
+//				value += params.regularizeLinearFeatures * linearFeatures.array().square().sum();
+//
+//			if(params.trainMeans && params.regularizeMeans > 0.)
+//				value += params.regularizeMeans * means.array().square().sum();
 
 			break;
 	}
@@ -1016,13 +1116,13 @@ double CMT::MCGSM::parameterGradient(
 
 pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::MCGSM::computeDataGradient(
 	const MatrixXd& input,
-	const MatrixXd& output) const 
+	const MatrixXd& output) const
 {
 	// compute unnormalized posterior
 	MatrixXd featureOutput = mFeatures.transpose() * input;
 	MatrixXd featureOutputSqr = featureOutput.array().square();
 	MatrixXd weightsSqr = mWeights.array().square();
-	MatrixXd weightsSqrOutput = weightsSqr * featureOutputSqr;
+	MatrixXd weightsSqrOutput = weightsSqr * featureOutputSqr - 2. * mLinearFeatures * input;
 
 	// containers for intermediate results
 	vector<ArrayXXd> logPosteriorIn(mNumComponents);
@@ -1042,7 +1142,7 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::MCGSM::computeDa
 		ArrayXXd negEnergyGate = -scalesExp[i] / 2. * weightsSqrOutput.row(i);
 		negEnergyGate.colwise() += mPriors.row(i).transpose();
 
-		predError[i] = mCholeskyFactors[i].transpose() * (output - mPredictors[i] * input);
+		predError[i] = mCholeskyFactors[i].transpose() * ((output - mPredictors[i] * input).colwise() - mMeans.col(i));
 		ArrayXXd negEnergyExpert = -scalesExp[i] / 2. * predError[i].colwise().squaredNorm();
 
 		// normalize expert energy
@@ -1090,6 +1190,7 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::MCGSM::computeDa
 		ArrayXXd dpdy = -mCholeskyFactors[i] * predError[i];
 		ArrayXXd dpdx = -mPredictors[i].transpose() * dpdy.matrix();
 		ArrayXXd dfdx = -(mFeatures.array().rowwise() * weightsSqr.row(i).array()).matrix() * featureOutput;
+		dfdx.colwise() += mLinearFeatures.col(i).array();
 
 		// weights for this component
 		Array<double, 1, Dynamic> weightsOut = scalesExp[i].transpose() * posteriorOut;
@@ -1127,7 +1228,7 @@ bool CMT::MCGSM::train(
 		for(int k = 0; k < mNumComponents; ++k) {
 			ArrayXd priors = mPriors.row(k).exp().transpose();
 			GSM* gsm = dynamic_cast<GSM*>(mogsm[k]);
-			gsm->setMean(VectorXd::Zero(mDimOut));
+			gsm->setMean(mMeans.col(k));
 			gsm->setPriors(priors / priors.sum());
 			gsm->setScales(mScales.row(k).exp().transpose());
 			gsm->setCholesky(mCholeskyFactors[k]);
@@ -1144,7 +1245,7 @@ bool CMT::MCGSM::train(
 		mogsmParams.trainPriors = params.trainPriors;
 
 		MoGSM::Component::Parameters gsmParams;
-		gsmParams.trainMean = false;
+		gsmParams.trainMean = params.trainMeans;
 		gsmParams.trainPriors = params.trainPriors;
 		gsmParams.trainCovariance = params.trainCholeskyFactors;
 		gsmParams.trainScales = params.trainScales;
@@ -1167,6 +1268,7 @@ bool CMT::MCGSM::train(
 			mPriors.row(k) += gsm->priors().array().log().transpose();
 			mScales.row(k) = gsm->scales().array().log().transpose();
 			choleskyFactors.push_back(gsm->cholesky());
+			mMeans.col(k) = gsm->mean();
 		}
 
 		setCholeskyFactors(choleskyFactors);
