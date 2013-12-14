@@ -128,7 +128,7 @@ CCompiler.compile = parallelCCompiler
 
 setup(
 	name='cmt',
-	version='0.3.5',
+	version='0.4.1',
 	author='Lucas Theis',
 	author_email='lucas@theis.io',
 	description='Fast implementations of different probabilistic models.',

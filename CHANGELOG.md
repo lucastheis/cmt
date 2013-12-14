@@ -1,5 +1,10 @@
 # CMT
 
+## 0.4.1
+
+– Added function for sampling images conditioned on component labels.
+– Extended MCGSM by additional parameters.
+
 ## 0.4.0
 
 - Added spike-triggered mixture model (STM).
