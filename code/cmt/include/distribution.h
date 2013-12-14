@@ -1,28 +1,28 @@
-#ifndef DISTRIBUTION_H
-#define DISTRIBUTION_H
+#ifndef CMT_DISTRIBUTION_H
+#define CMT_DISTRIBUTION_H
 
 #include <vector>
-using std::pair;
-
 #include "Eigen/Core"
-using Eigen::MatrixXd;
-using Eigen::Array;
-using Eigen::Dynamic;
 
-class Distribution {
-	public:
-		virtual ~Distribution();
+namespace CMT {
+	using std::pair;
 
-		virtual int dim() const = 0;
+	using Eigen::MatrixXd;
+	using Eigen::Array;
+	using Eigen::Dynamic;
 
-		virtual void initialize(const MatrixXd& data) const;
-		virtual bool train(const MatrixXd& data) const;
+	class Distribution {
+		public:
+			virtual ~Distribution();
 
-		virtual MatrixXd sample(int num_samples) const = 0;
+			virtual int dim() const = 0;
 
-		virtual Array<double, 1, Dynamic> logLikelihood(
-			const MatrixXd& data) const = 0;
-		virtual double evaluate(const MatrixXd& data) const;
-};
+			virtual MatrixXd sample(int numSamples) const = 0;
+
+			virtual Array<double, 1, Dynamic> logLikelihood(
+				const MatrixXd& data) const = 0;
+			virtual double evaluate(const MatrixXd& data) const;
+	};
+}
 
 #endif

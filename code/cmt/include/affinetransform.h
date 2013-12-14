@@ -1,5 +1,5 @@
-#ifndef AFFINETRANSFORM_H
-#define AFFINETRANSFORM_H
+#ifndef CMT_AFFINETRANSFORM_H
+#define CMT_AFFINETRANSFORM_H
 
 #include "affinepreconditioner.h"
 
@@ -12,9 +12,17 @@ namespace CMT {
 				const MatrixXd& preIn,
 				const MatrixXd& preInInv,
 				int dimOut = 1);
+			AffineTransform(const AffineTransform& transform);
 
-			virtual pair<ArrayXXd, ArrayXXd> operator()(const ArrayXXd& input, const ArrayXXd& output) const;
-			virtual pair<ArrayXXd, ArrayXXd> inverse(const ArrayXXd& input, const ArrayXXd& output) const;
+			using AffinePreconditioner::operator();
+			using AffinePreconditioner::inverse;
+
+			virtual pair<ArrayXXd, ArrayXXd> operator()(
+				const ArrayXXd& input,
+				const ArrayXXd& output) const;
+			virtual pair<ArrayXXd, ArrayXXd> inverse(
+				const ArrayXXd& input,
+				const ArrayXXd& output) const;
 
 			virtual pair<ArrayXXd, ArrayXXd> adjustGradient(
 				const ArrayXXd& inputGradient,

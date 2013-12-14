@@ -1,5 +1,5 @@
-#ifndef WHITENINGTRANSFORM_H
-#define WHITENINGTRANSFORM_H
+#ifndef CMT_WHITENINGTRANSFORM_H
+#define CMT_WHITENINGTRANSFORM_H
 
 #include "affinetransform.h"
 

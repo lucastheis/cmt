@@ -1,3 +1,7 @@
+#include "lbfgs.h"
+#include "utils.h"
+#include "exception.h"
+
 #include <algorithm>
 using std::max;
 using std::min;
@@ -7,22 +11,48 @@ using std::rand;
 
 #include <cmath>
 using std::exp;
+using std::log;
+
+#include <cstring>
+using std::memcpy;
 
 #include <set>
 using std::set;
 
-#include "lbfgs.h"
-#include "tools.h"
-#include "utils.h"
-#include "exception.h"
+#include <vector>
+using std::vector;
+using std::pair;
+using std::make_pair;
 
+#include <algorithm>
+using std::find;
+using std::copy;
+using std::random_shuffle;
+
+#include "tools.h"
+using CMT::Tuple;
+using CMT::Tuples;
+using CMT::ConditionalDistribution;
+using CMT::ArrayXXb;
+using CMT::Preconditioner;
+using CMT::extractFromImage;
+
+#include "Eigen/Core"
 using Eigen::Block;
+using Eigen::Dynamic;
+using Eigen::Array;
 using Eigen::ArrayXd;
+using Eigen::ArrayXXd;
+using Eigen::ArrayXXi;
+using Eigen::VectorXd;
+using Eigen::Map;
 
 #include <iostream>
 #include <iomanip>
+using std::cout;
+using std::endl;
 
-Tuples maskToIndices(const ArrayXXb& mask) {
+Tuples CMT::maskToIndices(const ArrayXXb& mask) {
 	Tuples indices;
 
 	for(int i = 0; i < mask.rows(); ++i)
@@ -35,7 +65,7 @@ Tuples maskToIndices(const ArrayXXb& mask) {
 
 
 
-pair<Tuples, Tuples> masksToIndices(
+pair<Tuples, Tuples> CMT::masksToIndices(
 	const ArrayXXb& inputMask,
 	const ArrayXXb& outputMask)
 {
@@ -61,7 +91,7 @@ pair<Tuples, Tuples> masksToIndices(
 
 
 
-VectorXd extractFromImage(const ArrayXXd& img, const Tuples& indices) {
+VectorXd CMT::extractFromImage(const ArrayXXd& img, const Tuples& indices) {
 	VectorXd pixels(indices.size());
 
 	for(int i = 0; i < indices.size(); ++i)
@@ -72,13 +102,16 @@ VectorXd extractFromImage(const ArrayXXd& img, const Tuples& indices) {
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	const ArrayXXd& img,
 	const ArrayXXb& inputMask,
 	const ArrayXXb& outputMask)
 {
 	int w = img.cols() - inputMask.cols() + 1;
 	int h = img.rows() - inputMask.rows() + 1;
+
+	if(w < 1 || h < 1)
+		throw Exception("Image not large enough for these masks.");
 
 	// precompute indices of active pixels in masks
 	pair<Tuples, Tuples> inOutIndices = masksToIndices(inputMask, outputMask);
@@ -103,7 +136,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	const ArrayXXd& img,
 	const ArrayXXb& inputMask,
 	const ArrayXXb& outputMask,
@@ -126,13 +159,19 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 	// sample random image locations
 	set<int> indices = randomSelect(numSamples, w * h);
 
+	// randomize order of indices
+	vector<int> indicesRand(indices.size());
+	copy(indices.begin(), indices.end(), indicesRand.begin());
+	random_shuffle(indicesRand.begin(), indicesRand.end());
+
+	// allocate memory
 	pair<ArrayXXd, ArrayXXd> data = make_pair(
 		ArrayXXd(inputIndices.size(), numSamples),
 		ArrayXXd(outputIndices.size(), numSamples));
 
 	int k = 0;
 
-	for(set<int>::iterator iter = indices.begin(); iter != indices.end(); ++iter, ++k) {
+	for(vector<int>::iterator iter = indicesRand.begin(); iter != indicesRand.end(); ++iter, ++k) {
 		// compute indices of image location
 		int i = *iter / w;
 		int j = *iter % w;
@@ -149,7 +188,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	const vector<ArrayXXd>& img,
 	const ArrayXXb& inputMask,
 	const ArrayXXb& outputMask)
@@ -191,7 +230,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	const vector<ArrayXXd>& img,
 	const ArrayXXb& inputMask,
 	const ArrayXXb& outputMask,
@@ -222,6 +261,11 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 	// sample random image locations
 	set<int> indices = randomSelect(numSamples, w * h);
 
+	// randomize order of indices
+	vector<int> indicesRand(indices.size());
+	copy(indices.begin(), indices.end(), indicesRand.begin());
+	random_shuffle(indicesRand.begin(), indicesRand.end());
+
 	int numInputs = inputIndices.size();
 	int numOutputs = outputIndices.size();
 
@@ -231,7 +275,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 	int k = 0;
 
-	for(set<int>::iterator iter = indices.begin(); iter != indices.end(); ++iter, ++k) {
+	for(vector<int>::iterator iter = indicesRand.begin(); iter != indicesRand.end(); ++iter, ++k) {
 		// compute indices of image location
 		int i = *iter / w;
 		int j = *iter % w;
@@ -249,7 +293,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	const vector<ArrayXXd>& img,
 	const vector<ArrayXXb>& inputMask,
 	const vector<ArrayXXb>& outputMask)
@@ -313,7 +357,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromImage(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromImage(
 	const vector<ArrayXXd>& img,
 	const vector<ArrayXXb>& inputMask,
 	const vector<ArrayXXb>& outputMask,
@@ -361,13 +405,18 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 	// sample random image locations
 	set<int> indices = randomSelect(numSamples, w * h);
 
+	// randomize order of indices
+	vector<int> indicesRand(indices.size());
+	copy(indices.begin(), indices.end(), indicesRand.begin());
+	random_shuffle(indicesRand.begin(), indicesRand.end());
+
 	pair<ArrayXXd, ArrayXXd> data = make_pair(
 		ArrayXXd(numInputs, numSamples),
 		ArrayXXd(numOutputs, numSamples));
 
 	int k = 0;
 
-	for(set<int>::iterator iter = indices.begin(); iter != indices.end(); ++iter, ++k) {
+	for(vector<int>::iterator iter = indicesRand.begin(); iter != indicesRand.end(); ++iter, ++k) {
 		// compute indices of image location
 		int i = *iter / w;
 		int j = *iter % w;
@@ -392,7 +441,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromImage(
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromVideo(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromVideo(
 	const vector<ArrayXXd>& video,
 	const vector<ArrayXXb>& inputMask,
 	const vector<ArrayXXb>& outputMask)
@@ -455,7 +504,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromVideo(
 
 
 
-pair<ArrayXXd, ArrayXXd> generateDataFromVideo(
+pair<ArrayXXd, ArrayXXd> CMT::generateDataFromVideo(
 	const vector<ArrayXXd>& video,
 	const vector<ArrayXXb>& inputMask,
 	const vector<ArrayXXb>& outputMask,
@@ -501,13 +550,18 @@ pair<ArrayXXd, ArrayXXd> generateDataFromVideo(
 	// sample random video locations
 	set<int> indices = randomSelect(numSamples, w * h * l);
 
+	// randomize order of indices
+	vector<int> indicesRand(indices.size());
+	copy(indices.begin(), indices.end(), indicesRand.begin());
+	random_shuffle(indicesRand.begin(), indicesRand.end());
+
 	pair<ArrayXXd, ArrayXXd> data = make_pair(
 		ArrayXXd(numInputs, numSamples),
 		ArrayXXd(numOutputs, numSamples));
 
 	int k = 0;
 
-	for(set<int>::iterator iter = indices.begin(); iter != indices.end(); ++iter, ++k) {
+	for(vector<int>::iterator iter = indicesRand.begin(); iter != indicesRand.end(); ++iter, ++k) {
 		// compute indices of video location
 		int f = *iter / (w * h);
 		int r = *iter % (w * h);
@@ -534,7 +588,7 @@ pair<ArrayXXd, ArrayXXd> generateDataFromVideo(
 
 
 
-ArrayXXd sampleImage(
+ArrayXXd CMT::sampleImage(
 	ArrayXXd img,
 	const ConditionalDistribution& model,
 	const ArrayXXb& inputMask,
@@ -617,7 +671,7 @@ ArrayXXd sampleImage(
 
 
 
-vector<ArrayXXd> sampleImage(
+vector<ArrayXXd> CMT::sampleImage(
 	vector<ArrayXXd> img,
 	const ConditionalDistribution& model,
 	const ArrayXXb& inputMask,
@@ -717,7 +771,7 @@ vector<ArrayXXd> sampleImage(
 
 
 
-vector<ArrayXXd> sampleImage(
+vector<ArrayXXd> CMT::sampleImage(
 	vector<ArrayXXd> img,
 	const ConditionalDistribution& model,
 	const vector<ArrayXXb>& inputMask,
@@ -832,7 +886,319 @@ vector<ArrayXXd> sampleImage(
 
 
 
-vector<ArrayXXd> sampleVideo(
+ArrayXXd CMT::sampleImageConditionally(
+	ArrayXXd img,
+	ArrayXXi labels,
+	const MCGSM& model,
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask,
+	const Preconditioner* preconditioner,
+	int numIter,
+	bool initialize)
+{
+	if(inputMask.cols() != outputMask.cols() || inputMask.rows() != outputMask.rows())
+		throw Exception("Input and output masks should be of the same size.");
+
+	Tuples inputIndices;
+	Tuples outputIndices;
+
+	// boundaries of output region
+	int iMin = outputMask.rows();
+	int iMax = 0;
+	int jMin = outputMask.cols();
+	int jMax = 0;
+
+	// precompute indices of active pixels in masks
+	for(int i = 0; i < inputMask.rows(); ++i)
+		for(int j = 0; j < inputMask.cols(); ++j) {
+			if(inputMask(i, j))
+				inputIndices.push_back(make_pair(i, j));
+			if(outputMask(i, j)) {
+				outputIndices.push_back(make_pair(i, j));
+
+				// update boundaries
+				iMax = max(iMax, i);
+				iMin = min(iMin, i);
+				jMax = max(jMax, j);
+				jMin = min(jMin, j);
+			}
+			if(inputMask(i, j) && outputMask(i, j))
+				throw Exception("Input and output mask should not overlap.");
+		}
+
+	// width and height of output region
+	int h = iMax - iMin + 1;
+	int w = jMax - jMin + 1;
+
+	if(w < 1)
+		throw Exception("There needs to be at least one active pixel in the output mask.");
+
+	// at the moment, only rectangular output regions are supported
+	if(outputIndices.size() != w * h)
+		throw Exception("Unsupported output mask.");
+
+	if(preconditioner) {
+		if(inputIndices.size() != preconditioner->dimIn() || outputIndices.size() != preconditioner->dimOut())
+			throw Exception("Preconditioner and masks are incompatible.");
+		if(preconditioner->dimInPre() != model.dimIn() || preconditioner->dimOutPre() != model.dimOut())
+			throw Exception("Model and preconditioner are incompatible.");
+	} else {
+		if(inputIndices.size() != model.dimIn() || outputIndices.size() != model.dimOut())
+			throw Exception("Model and masks are incompatible.");
+	}
+
+	// extract causal neighborhoods and corresponding output regions
+	vector<vector<VectorXd> > inputs;
+	vector<vector<VectorXd> > outputs;
+	vector<vector<double> > logLik;
+	vector<vector<double> > logPrb;
+
+	for(int i = 0; i + inputMask.rows() <= img.rows(); ++i) {
+		inputs.push_back(vector<VectorXd>());
+		outputs.push_back(vector<VectorXd>());
+		logLik.push_back(vector<double>());
+		logPrb.push_back(vector<double>());
+ 
+ 		if(i % h != 0)
+ 			continue;
+
+		for(int j = 0; j + inputMask.cols() <= img.cols(); ++j) {
+ 			if(j % w != 0) {
+ 				// create dummy variables
+ 				inputs[i].push_back(VectorXd());
+ 				outputs[i].push_back(VectorXd());
+ 				logLik[i].push_back(0.);
+ 				logPrb[i].push_back(0.);
+ 				continue;
+ 			}
+
+			ArrayXXd patch = img.block(i, j, inputMask.rows(), inputMask.cols());
+			inputs[i].push_back(extractFromImage(patch, inputIndices));
+			outputs[i].push_back(extractFromImage(patch, outputIndices));
+
+			Array<int, 1, Dynamic> label(1);
+			label[0] = labels(i / h, j / w);
+
+			if(preconditioner) {
+				pair<ArrayXXd, ArrayXXd> data = preconditioner->operator()(inputs[i][j], outputs[i][j]);
+				logLik[i].push_back(model.logLikelihood(data.first, data.second, label)[0]);
+				logPrb[i].push_back(log(model.prior(data.first)(label[0], 0)));
+			} else {
+				logLik[i].push_back(model.logLikelihood(inputs[i][j], outputs[i][j], label)[0]);
+				logPrb[i].push_back(log(model.prior(inputs[i][j])(label[0], 0)));
+			}
+		}
+	}
+
+	// precompute which neighborhoods have to be considered in acceptance probability
+	Tuples offsets;
+	for(int m = 0; m < inputIndices.size(); ++m)
+		for(int n = 0; n < outputIndices.size(); ++n) {
+			int di = outputIndices[n].first  - inputIndices[m].first;
+			int dj = outputIndices[n].second - inputIndices[m].second;
+
+			if(di % h == 0 && dj % w == 0)
+				offsets.push_back(make_pair(di, dj));
+		}
+
+	// for each offset, compute indices of input pixels affected by Gibbs update
+	vector<vector<int> > idxIn;
+	vector<vector<int> > idxOut;
+
+	for(int k = 0; k < offsets.size(); ++k) {
+		// list of pixels in input at given offset which need to be updated
+		idxIn.push_back(vector<int>());
+		idxOut.push_back(vector<int>());
+
+		for(int l = 0; l < outputIndices.size(); ++l) {
+			// compute location of affected pixel in shifted input region
+			int i = outputIndices[l].first - offsets[k].first;
+			int j = outputIndices[l].second - offsets[k].second;
+
+			Tuples::iterator it = find(inputIndices.begin(), inputIndices.end(), make_pair(i, j));
+
+			if(it != inputIndices.end())
+				idxIn[k].push_back(distance(inputIndices.begin(), it));
+				idxOut[k].push_back(l);
+		}
+	}
+
+	for(int iter = 0; iter < numIter; ++iter)
+		// walk through image from top left to bottom right
+		for(int i = 0; i + inputMask.rows() <= img.rows(); i += h)
+			for(int j = 0; j + inputMask.cols() <= img.cols(); j += w) {
+				Array<int, 1, Dynamic> label(1);
+				label[0] = labels(i / h, j / w);
+
+				// propose output
+				VectorXd output;
+
+				if(preconditioner) {
+					VectorXd input = preconditioner->operator()(inputs[i][j]);
+					output = preconditioner->inverse(input, model.sample(input, label)).second;
+				} else {
+					output = model.sample(inputs[i][j], label);
+				}
+
+				vector<VectorXd> inputsUpdated;
+				vector<double> logLikUpdated;
+				vector<double> logPrbUpdated;
+
+				// compute acceptance probability
+				double logAlpha = 0.;
+
+				for(int k = 0; k < offsets.size(); ++k) {
+					int m = i + offsets[k].first;
+					int n = j + offsets[k].second;
+
+					if(m >= inputs.size() || n >= inputs[m].size()) {
+						inputsUpdated.push_back(VectorXd());
+						logLikUpdated.push_back(0.);
+						logPrbUpdated.push_back(0.);
+						continue;
+					}
+
+					// replace affected pixels in causal neighborhood
+					inputsUpdated.push_back(inputs[m][n]);
+					for(int l = 0; l < idxIn[k].size(); ++l)
+						inputsUpdated[k][idxIn[k][l]] = output[idxOut[k][l]];
+
+					// update likelihoods and probabilities needed for computing alpha
+					Array<int, 1, Dynamic> label(1);
+					label[0] = labels(m / h, n / w);
+
+					if(preconditioner) {
+						pair<ArrayXXd, ArrayXXd> data = preconditioner->operator()(inputsUpdated[k], outputs[m][n]);
+
+						logLikUpdated.push_back(model.logLikelihood(data.first, data.second, label)[0]);
+						logAlpha += logLikUpdated[k] - logLik[m][n];
+
+						logPrbUpdated.push_back(log(model.prior(data.first)(label[0], 0)));
+						logAlpha += logPrbUpdated[k] - logPrb[m][n];
+					} else {
+						logLikUpdated.push_back(model.logLikelihood(inputsUpdated[k], outputs[m][n], label)[0]);
+						logAlpha += logLikUpdated[k] - logLik[m][n];
+
+						logPrbUpdated.push_back(log(model.prior(inputsUpdated[k])(label[0], 0)));
+						logAlpha += logPrbUpdated[k] - logPrb[m][n];
+					}
+				}
+
+				// accept/reject proposed output
+				if((iter == 0 && initialize) || log(rand() / static_cast<double>(RAND_MAX)) < logAlpha) {
+					// update inputs and outputs
+					outputs[i][j] = output;
+
+					for(int k = 0; k < offsets.size(); ++k) {
+						int m = i + offsets[k].first;
+						int n = j + offsets[k].second;
+
+						if(m >= inputs.size() || n >= inputs[m].size())
+							continue;
+
+						inputs[m][n] = inputsUpdated[k];
+						logLik[m][n] = logLikUpdated[k];
+						logPrb[m][n] = logPrbUpdated[k];
+					}
+				}
+			}
+
+	// replace pixels by sampled pixels
+	for(int i = 0; i + inputMask.rows() <= img.rows(); i += h)
+		for(int j = 0; j + inputMask.cols() <= img.cols(); j += w)
+			for(int k = 0; k < outputIndices.size(); ++k)
+				img(i + outputIndices[k].first, j + outputIndices[k].second) = outputs[i][j][k];
+
+	return img;
+}
+
+
+
+ArrayXXi CMT::sampleLabelsConditionally(
+	ArrayXXd img,
+	const MCGSM& model,
+	const ArrayXXb& inputMask,
+	const ArrayXXb& outputMask,
+	const Preconditioner* preconditioner)
+{
+	if(inputMask.cols() != outputMask.cols() || inputMask.rows() != outputMask.rows())
+		throw Exception("Input and output masks should be of the same size.");
+
+	Tuples inputIndices;
+	Tuples outputIndices;
+
+	// boundaries of output region
+	int iMin = outputMask.rows();
+	int iMax = 0;
+	int jMin = outputMask.cols();
+	int jMax = 0;
+
+	// precompute indices of active pixels in masks
+	for(int i = 0; i < inputMask.rows(); ++i)
+		for(int j = 0; j < inputMask.cols(); ++j) {
+			if(inputMask(i, j))
+				inputIndices.push_back(make_pair(i, j));
+			if(outputMask(i, j)) {
+				outputIndices.push_back(make_pair(i, j));
+
+				// update boundaries
+				iMax = max(iMax, i);
+				iMin = min(iMin, i);
+				jMax = max(jMax, j);
+				jMin = min(jMin, j);
+			}
+			if(inputMask(i, j) && outputMask(i, j))
+				throw Exception("Input and output mask should not overlap.");
+		}
+
+	// width and height of output region
+	int h = iMax - iMin + 1;
+	int w = jMax - jMin + 1;
+
+	if(w < 1)
+		throw Exception("There needs to be at least one active pixel in the output mask.");
+
+	if(outputIndices.size() != w * h)
+		throw Exception("Unsupported output mask.");
+
+	if(preconditioner) {
+		if(inputIndices.size() != preconditioner->dimIn() || outputIndices.size() != preconditioner->dimOut())
+			throw Exception("Preconditioner and masks are incompatible.");
+		if(preconditioner->dimInPre() != model.dimIn() || preconditioner->dimOutPre() != model.dimOut())
+			throw Exception("Model and preconditioner are incompatible.");
+	} else {
+		if(inputIndices.size() != model.dimIn() || outputIndices.size() != model.dimOut())
+			throw Exception("Model and masks are incompatible.");
+	}
+
+	ArrayXXi labels(
+		(img.rows() - inputMask.rows()) / h + 1,
+		(img.cols() - inputMask.cols()) / w + 1);
+
+	labels.setConstant(-1);
+
+	for(int i = 0; i + inputMask.rows() <= img.rows(); i += h) {
+		for(int j = 0; j + inputMask.cols() <= img.cols(); j += w) {
+			ArrayXXd patch = img.block(i, j, inputMask.rows(), inputMask.cols());
+
+			ArrayXd input  = extractFromImage(patch, inputIndices);
+			ArrayXd output = extractFromImage(patch, outputIndices);
+
+			if(preconditioner) {
+				pair<ArrayXXd, ArrayXXd> data = preconditioner->operator()(input, output);
+				labels(i / h, j / w) = model.samplePosterior(data.first, data.second)[0];
+			} else {
+				labels(i / h, j / w) = model.samplePosterior(input, output)[0];
+			}
+		}
+	}
+
+	return labels;
+}
+
+
+
+vector<ArrayXXd> CMT::sampleVideo(
 	vector<ArrayXXd> video,
 	const ConditionalDistribution& model,
 	const vector<ArrayXXb>& inputMask,
@@ -993,7 +1359,7 @@ inline double computeEnergy(
 
 
 
-ArrayXXd fillInImage(
+ArrayXXd CMT::fillInImage(
 	ArrayXXd img,
 	const ConditionalDistribution& model,
 	const ArrayXXb& inputMask,
@@ -1165,7 +1531,7 @@ lbfgsfloatval_t fillInImageMAPGradient(
 
 
 
-ArrayXXd fillInImageMAP(
+ArrayXXd CMT::fillInImageMAP(
 	ArrayXXd img,
 	const ConditionalDistribution& model,
 	const ArrayXXb& inputMask,
@@ -1262,4 +1628,86 @@ ArrayXXd fillInImageMAP(
 		}
 
 	return img;
+}
+
+
+
+ArrayXXd CMT::extractWindows(const ArrayXXd& timeSeries, int windowLength) {
+	ArrayXXd windows(timeSeries.rows() * windowLength, timeSeries.cols() - windowLength + 1);
+
+	#ifndef EIGEN_DEFAULT_TO_ROW_MAJOR
+	const double* dataFrom = timeSeries.data();
+	double* dataTo = windows.data();
+	#endif
+
+	#pragma omp parallel for
+	for(int t = 0; t < windows.cols(); ++t) {
+		// read entries from time series in column-major order
+		#ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
+		for(int j = 0, k = 0; j < windowLength; ++j)
+			for(int i = 0; i < timeSeries.rows(); ++i, ++k)
+				windows(k, t) = timeSeries(i, t + j);
+		#else
+		memcpy(
+			dataTo + t * windows.rows(),
+			dataFrom + t * timeSeries.rows(),
+			sizeof(double) * windows.rows());
+		#endif
+	}
+
+	return windows;
+}
+
+
+
+ArrayXXd CMT::sampleSpikeTrain(
+	const ArrayXXd& stimuli,
+	const ConditionalDistribution& model,
+	int spikeHistory,
+	const Preconditioner* preconditioner)
+{
+	if(spikeHistory <= 0)
+		return model.sample(stimuli);
+
+	// container for sampled spike train
+	ArrayXXd spikeTrain = ArrayXXd::Zero(model.dimOut(), stimuli.cols());
+
+	if(preconditioner) {
+		// container for input to the model and spike history
+		ArrayXd input(stimuli.rows() + preconditioner->dimInPre());
+		ArrayXd spikes(spikeHistory * model.dimOut());
+
+		for(int t = spikeHistory; t < stimuli.cols(); ++t) {
+			// extract spike history
+			for(int k = 0, i = t - spikeHistory; i < t; ++i)
+				for(int j = 0; j < model.dimOut(); ++j, ++k)
+					spikes[k] = spikeTrain(j, i);
+
+			// transform spike history
+			ArrayXd spikesPrec = preconditioner->operator()(spikes);
+
+			// copy stimulus and transformed spike history into input
+			for(int i = 0; i < stimuli.rows(); ++i)
+				input[i] = stimuli(i, t);
+			for(int i = 0; i < spikesPrec.rows(); ++i)
+				input[stimuli.rows() + i] = spikesPrec[i];
+
+			spikeTrain.col(t) = model.sample(input);
+		}
+	} else {
+		ArrayXd input(stimuli.rows() + spikeHistory * model.dimOut());
+
+		for(int t = spikeHistory; t < stimuli.cols(); ++t) {
+			// copy stimulus and spike history into input
+			for(int i = 0; i < stimuli.rows(); ++i)
+				input[i] = stimuli(i, t);
+			for(int i = t - spikeHistory, k = stimuli.rows(); i < t; ++i)
+				for(int j = 0; j < model.dimOut(); ++j, ++k)
+					input[k] = spikeTrain(j, i);
+
+			spikeTrain.col(t) = model.sample(input);
+		}
+	}
+
+	return spikeTrain;
 }

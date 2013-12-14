@@ -3,7 +3,14 @@
 #include "affinepreconditioner.h"
 #include "Eigen/LU"
 
-#include <iostream>
+#include "Eigen/Core"
+using Eigen::Dynamic;
+using Eigen::Array;
+using Eigen::ArrayXXd;
+
+#include <utility>
+using std::pair;
+using std::make_pair;
 
 CMT::AffinePreconditioner::AffinePreconditioner(
 	const VectorXd& meanIn,
@@ -14,13 +21,16 @@ CMT::AffinePreconditioner::AffinePreconditioner(
 	mMeanIn(meanIn),
 	mMeanOut(meanOut),
 	mPreIn(preIn),
-	mPreInInv(preIn.inverse()),
+	mPreInInv(preIn.rows() == preIn.cols() ? preIn.inverse().eval() : pInverse(preIn)),
 	mPreOut(preOut),
-	mPreOutInv(preOut.inverse()),
+	mPreOutInv(preOut.rows() == preOut.cols() ? preOut.inverse().eval() : pInverse(preOut)),
 	mPredictor(predictor),
-	mLogJacobian(preOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum()),
- 	mGradTransform(preOut * predictor * preIn)
+	mLogJacobian(preOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum())
 {
+	if(preIn.size() > 0)
+		mGradTransform = preOut * predictor * preIn;
+	else
+		mGradTransform = MatrixXd(preOut.rows(), preIn.cols());
 }
 
 
@@ -40,8 +50,26 @@ CMT::AffinePreconditioner::AffinePreconditioner(
 	mPreOut(preOut),
 	mPreOutInv(preOutInv),
 	mPredictor(predictor),
-	mLogJacobian(preOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum()),
- 	mGradTransform(preOut * predictor * preIn)
+	mLogJacobian(preOut.partialPivLu().matrixLU().diagonal().array().abs().log().sum())
+{
+	if(preIn.size() > 0)
+		mGradTransform = preOut * predictor * preIn;
+	else
+		mGradTransform = MatrixXd(preOut.rows(), preIn.cols());
+}
+
+
+
+CMT::AffinePreconditioner::AffinePreconditioner(const AffinePreconditioner& preconditioner) :
+	mMeanIn(preconditioner.mMeanIn),
+	mMeanOut(preconditioner.mMeanOut),
+	mPreIn(preconditioner.mPreIn),
+	mPreInInv(preconditioner.mPreInInv),
+	mPreOut(preconditioner.mPreOut),
+	mPreOutInv(preconditioner.mPreOutInv),
+	mPredictor(preconditioner.mPredictor),
+	mLogJacobian(preconditioner.mLogJacobian),
+	mGradTransform(preconditioner.mGradTransform)
 {
 }
 
@@ -91,9 +119,15 @@ pair<ArrayXXd, ArrayXXd> CMT::AffinePreconditioner::operator()(
 		throw Exception("Input has wrong dimensionality."); 
 	if(output.rows() != dimOut())
 		throw Exception("Output has wrong dimensionality."); 
-	ArrayXXd inputTr = mPreIn * (input.matrix().colwise() - mMeanIn);
-	ArrayXXd outputTr = mPreOut * (output.matrix().colwise() - mMeanOut - mPredictor * inputTr.matrix());
-	return make_pair(inputTr, outputTr);
+
+	if(input.rows() < 1) {
+		ArrayXXd outputTr = mPreOut * (output.matrix().colwise() - mMeanOut);
+		return make_pair(input, outputTr);
+	} else {
+		ArrayXXd inputTr = mPreIn * (input.matrix().colwise() - mMeanIn);
+		ArrayXXd outputTr = mPreOut * (output.matrix().colwise() - mMeanOut - mPredictor * inputTr.matrix());
+		return make_pair(inputTr, outputTr);
+	}
 }
 
 
@@ -108,9 +142,14 @@ pair<ArrayXXd, ArrayXXd> CMT::AffinePreconditioner::inverse(
 		throw Exception("Input has wrong dimensionality."); 
 	if(output.rows() != dimOutPre())
 		throw Exception("Output has wrong dimensionality."); 
-	ArrayXXd outputTr = (mPreOutInv * output.matrix() + mPredictor * input.matrix()).colwise() + mMeanOut;
-	ArrayXXd inputTr = (mPreInInv * input.matrix()).colwise() + mMeanIn;
-	return make_pair(inputTr, outputTr);
+	if(input.rows() < 1) {
+		ArrayXXd outputTr = (mPreOutInv * output.matrix()).colwise() + mMeanOut;
+		return make_pair(input, outputTr);
+	} else {
+		ArrayXXd outputTr = (mPreOutInv * output.matrix() + mPredictor * input.matrix()).colwise() + mMeanOut;
+		ArrayXXd inputTr = (mPreInInv * input.matrix()).colwise() + mMeanIn;
+		return make_pair(inputTr, outputTr);
+	}
 }
 
 
@@ -118,6 +157,8 @@ pair<ArrayXXd, ArrayXXd> CMT::AffinePreconditioner::inverse(
 ArrayXXd CMT::AffinePreconditioner::operator()(const ArrayXXd& input) const {
 	if(input.rows() != dimIn())
 		throw Exception("Input has wrong dimensionality."); 
+	if(input.rows() < 1)
+		return input;
 	return mPreIn * (input.matrix().colwise() - mMeanIn);
 }
 
@@ -126,6 +167,8 @@ ArrayXXd CMT::AffinePreconditioner::operator()(const ArrayXXd& input) const {
 ArrayXXd CMT::AffinePreconditioner::inverse(const ArrayXXd& input) const {
 	if(input.rows() != dimInPre())
 		throw Exception("Input has wrong dimensionality."); 
+	if(input.rows() < 1)
+		return input;
 	return (mPreInInv * input.matrix()).colwise() + mMeanIn;
 }
 
@@ -141,6 +184,10 @@ pair<ArrayXXd, ArrayXXd> CMT::AffinePreconditioner::adjustGradient(
 	const ArrayXXd& inputGradient,
 	const ArrayXXd& outputGradient) const
 {
+	if(inputGradient.rows() < 1)
+		return make_pair(
+			inputGradient,
+			mPreOut.transpose() * outputGradient.matrix());
 	return make_pair(
 		mPreIn.transpose() * inputGradient.matrix() - mGradTransform.transpose() * outputGradient.matrix(),
 		mPreOut.transpose() * outputGradient.matrix());

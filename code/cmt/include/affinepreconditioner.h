@@ -1,5 +1,5 @@
-#ifndef AFFINEPRECONDITIONER_H
-#define AFFINEPRECONDITIONER_H
+#ifndef CMT_AFFINEPRECONDITIONER_H
+#define CMT_AFFINEPRECONDITIONER_H
 
 #include "preconditioner.h"
 
@@ -10,6 +10,11 @@ using Eigen::VectorXd;
 namespace CMT {
 	class AffinePreconditioner : public Preconditioner {
 		public:
+			using Preconditioner::operator();
+			using Preconditioner::inverse;
+			using Preconditioner::logJacobian;
+			using Preconditioner::adjustGradient;
+
 			AffinePreconditioner(
 				const VectorXd& meanIn,
 				const VectorXd& meanOut,
@@ -24,6 +29,7 @@ namespace CMT {
 				const MatrixXd& preOut,
 				const MatrixXd& preOutInv,
 				const MatrixXd& predictor);
+			AffinePreconditioner(const AffinePreconditioner& preconditioner);
 			virtual ~AffinePreconditioner();
 
 			virtual int dimIn() const;

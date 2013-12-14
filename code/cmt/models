@@ -1,0 +1,18 @@
+#ifndef CMT_MODELS_
+#define CMT_MODELS_
+
+#include "include/conditionaldistribution.h"
+#include "include/distribution.h"
+#include "include/glm.h"
+#include "include/gsm.h"
+#include "include/stm.h"
+#include "include/mcgsm.h"
+#include "include/mcbm.h"
+#include "include/mixture.h"
+#include "include/mlr.h"
+#include "include/mogsm.h"
+#include "include/patchmodel.h"
+#include "include/trainable.h"
+#include "include/univariatedistributions.h"
+
+#endif

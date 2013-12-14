@@ -1,14 +1,24 @@
 # Conditional Modeling Toolkit
 
-A C++ implementation of conditional models such as the MCGSM and MCBM.
+![samples](https://raw.github.com/lucastheis/cmt/develop/media/samples.jpg)
+
+Fast implementations of several probabilistic models. Examples:
+
+* MCGSM (mixture of conditional Gaussian scale mixtures; Theis et al., 2012)
+* MCBM (mixture of conditional Boltzmann machines)
+* FVBN (fully-visible belief network; Neal, 1992)
+* GLM (generalized linear model; Nelder & Wedderburn, 1972)
+* MLR (multinomial logistic regression)
+* STM (spike-triggered mixture model; Theis et al., 2013)
 
 ## Requirements
 
-* NumPy >= 2.6.0
+* Python >= 2.7.0
+* NumPy >= 1.6.1
 * automake >= 1.11.0
 * libtool >= 2.4.0
 
-I have tested it with the above versions, but older versions might also work.
+I have tested the code with the above versions, but older versions might also work.
 
 ## Example
 
@@ -18,9 +28,8 @@ from cmt import MCGSM, WhiteningPreconditioner
 # load data
 input, output = load('data')
 
-# preprocess data
+# preprocessing
 wt = WhiteningPreconditioner(input, output)
-input, output = wt(input, output)
 
 # fit a conditional model to predict outputs from inputs
 model = MCGSM(
@@ -29,13 +38,13 @@ model = MCGSM(
 	num_components=8,
 	num_scales=6,
 	num_features=40)
-model.initialize(input, output)
-model.train(input, output, parameters={
+model.initialize(*wt(input, output))
+model.train(*wt(input, output), parameters={
 	'max_iter': 1000,
 	'threshold': 1e-5})
 
 # evaluate log-likelihood [nats] on the training data
-loglik = model.loglikelihood(input, output) + wt.logjacobian(*wt.inverse(input, output))
+loglik = model.loglikelihood(*wt(input, output)) + wt.logjacobian(input, output)
 ```
 
 ## Installation
@@ -89,4 +98,9 @@ on 64-bit systems and
 
 	python setup.py build --compiler=intel
 
-on 32-bit systems.
+on 32-bit systems. The following might be helpful when trying to compile the L-BFGS library with the
+Intel compiler.
+
+	./autogen.sh
+	CC=icc ./configure --enable-sse2
+	CC=icc make CFLAGS="-fPIC"

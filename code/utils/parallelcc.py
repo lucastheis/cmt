@@ -1,4 +1,6 @@
 from multiprocessing import pool, cpu_count
+from random import random
+from time import sleep
 
 def parallelCCompiler(self, sources, output_dir=None, macros=None, include_dirs=None, debug=0,
 	extra_preargs=None, extra_postargs=None, depends=None):
@@ -11,7 +13,9 @@ def parallelCCompiler(self, sources, output_dir=None, macros=None, include_dirs=
 	cc_args = self._get_cc_args(pp_opts, debug, extra_preargs)
 
 	def _single_compile(obj):
-		try: 
+		# wait a random amount of time so that compiler outputs don't interfere
+		sleep(random() / 20. * cpu_count())
+		try:
 			src, ext = build[obj]
 		except KeyError:
 			return

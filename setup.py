@@ -29,60 +29,87 @@ if any(['intel' in arg for arg in sys.argv]) or 'intel' in get_default_compiler(
 	extra_compile_args = [
 		'-DEIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS',
 		'-DEIGEN_USE_MKL_ALL',
+		'-Wno-deprecated',
 		'-wd1224',
-		'-openmp']
+		'-openmp',
+		'-std=c++0x']
 	extra_link_args = []
 
 	for path in ['/opt/intel/mkl/lib/intel64', '/opt/intel/lib/intel64']:
 		if os.path.exists(path):
 			library_dirs += [path]
+
+elif sys.platform == 'darwin':
+	# clang-specific options
+	include_dirs = []
+	library_dirs = []
+	libraries = []
+	extra_compile_args = ['-std=c++0x', '-stdlib=libc++']
+	extra_link_args = []
+
+	os.environ['CC'] = 'clang++'
+	os.environ['CXX'] = 'clang++'
+	os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.7'
+
 else:
 	# gcc-specific options
 	include_dirs = []
 	library_dirs = []
-	libraries = []
-	extra_compile_args = []
+	libraries = ['gomp']
+	extra_compile_args = ['-std=c++0x', '-Wno-cpp', '-fopenmp']
 	extra_link_args = []
 
-	if sys.platform != 'darwin':
-		libraries += [
-			'gomp']
-		extra_compile_args += [
-			'-Wno-cpp',
-			'-fopenmp']
-
-if sys.platform != 'darwin':
-	extra_compile_args += [
-		'-std=c++0x']
 
 modules = [
-	Extension('cmt',
+	Extension('_cmt',
 		language='c++',
 		sources=[
+			'code/cmt/python/src/callbackinterface.cpp',
+			'code/cmt/python/src/conditionaldistributioninterface.cpp',
+			'code/cmt/python/src/distributioninterface.cpp',
+			'code/cmt/python/src/fvbninterface.cpp',
+			'code/cmt/python/src/glminterface.cpp',
+			'code/cmt/python/src/gsminterface.cpp',
+			'code/cmt/python/src/mcbminterface.cpp',
+			'code/cmt/python/src/mcgsminterface.cpp',
+			'code/cmt/python/src/module.cpp',
+			'code/cmt/python/src/mixtureinterface.cpp',
+			'code/cmt/python/src/mlrinterface.cpp',
+			'code/cmt/python/src/nonlinearitiesinterface.cpp',
+			'code/cmt/python/src/patchmodelinterface.cpp',
+			'code/cmt/python/src/preconditionerinterface.cpp',
+			'code/cmt/python/src/pyutils.cpp',
+			'code/cmt/python/src/stminterface.cpp',
+			'code/cmt/python/src/toolsinterface.cpp',
+			'code/cmt/python/src/trainableinterface.cpp',
+			'code/cmt/python/src/univariatedistributionsinterface.cpp',
 			'code/cmt/src/affinepreconditioner.cpp',
 			'code/cmt/src/affinetransform.cpp',
-			'code/cmt/src/callbackinterface.cpp',
+			'code/cmt/src/binningtransform.cpp',
 			'code/cmt/src/conditionaldistribution.cpp',
-			'code/cmt/src/conditionaldistributioninterface.cpp',
 			'code/cmt/src/distribution.cpp',
-			'code/cmt/src/distributioninterface.cpp',
-			'code/cmt/src/mcgsm.cpp',
-			'code/cmt/src/mcgsminterface.cpp',
+			'code/cmt/src/glm.cpp',
+			'code/cmt/src/gsm.cpp',
 			'code/cmt/src/mcbm.cpp',
-			'code/cmt/src/mcbminterface.cpp',
-			'code/cmt/src/module.cpp',
+			'code/cmt/src/mcgsm.cpp',
+			'code/cmt/src/mixture.cpp',
+			'code/cmt/src/mlr.cpp',
+			'code/cmt/src/nonlinearities.cpp',
+			'code/cmt/src/patchmodel.cpp',
 			'code/cmt/src/pcapreconditioner.cpp',
 			'code/cmt/src/pcatransform.cpp',
-			'code/cmt/src/preconditionerinterface.cpp',
-			'code/cmt/src/pyutils.cpp',
+			'code/cmt/src/preconditioner.cpp',
+			'code/cmt/src/stm.cpp',
 			'code/cmt/src/tools.cpp',
-			'code/cmt/src/toolsinterface.cpp',
+			'code/cmt/src/trainable.cpp',
 			'code/cmt/src/utils.cpp',
+			'code/cmt/src/univariatedistributions.cpp',
 			'code/cmt/src/whiteningpreconditioner.cpp',
 			'code/cmt/src/whiteningtransform.cpp'],
 		include_dirs=[
 			'code',
 			'code/cmt/include',
+			'code/cmt/python/include',
 			'code/liblbfgs/include',
 			os.path.join(numpy.__path__[0], 'core/include/numpy')] + include_dirs,
 		library_dirs=[] + library_dirs,
@@ -91,6 +118,7 @@ modules = [
 			'-fPIC',
 			'code/liblbfgs/lib/.libs/liblbfgs.a'] + extra_link_args,
 		extra_compile_args=[
+			'-DEIGEN_NO_DEBUG',
 			'-Wno-sign-compare',
 			'-Wno-parentheses',
 			'-Wno-write-strings'] + extra_compile_args)]
@@ -100,10 +128,18 @@ CCompiler.compile = parallelCCompiler
 
 setup(
 	name='cmt',
-	version='0.2.0',
+	version='0.4.1',
 	author='Lucas Theis',
 	author_email='lucas@theis.io',
-	description='C++ implementations of conditional probabilistic models.',
+	description='Fast implementations of different probabilistic models.',
 	url='http://github.com/lucastheis/cmt',
 	license='MIT',
-	ext_modules=modules)
+	ext_modules=modules,
+	package_dir={'cmt': 'code/cmt/python'},
+	packages=[
+		'cmt',
+		'cmt.models',
+		'cmt.transforms',
+		'cmt.tools',
+		'cmt.utils',
+		'cmt.nonlinear'])

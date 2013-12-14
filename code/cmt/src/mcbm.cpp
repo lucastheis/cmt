@@ -1,104 +1,42 @@
 #include "mcbm.h"
 #include "utils.h"
-#include "lbfgs.h"
 
-#include "Eigen/Core"
-using Eigen::Matrix;
-using Eigen::Map;
-
-#include <vector>
+#include <utility>
+using std::pair;
 using std::make_pair;
 
 #include <cmath>
 using std::min;
+using std::max;
 using std::exp;
 using std::log;
 
-#include <iostream>
-using std::cout;
-using std::endl;
+#include "Eigen/Core"
+using Eigen::Dynamic;
+using Eigen::Array;
+using Eigen::ArrayXXd;
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
 
-#include <iomanip>
-using std::setw;
-using std::setprecision;
-
-struct InstanceLBFGS {
-	const MCBM* mcbm;
-	const MCBM::Parameters* params;
-	const MatrixXd* input;
-	const MatrixXd* output;
-};
-
-typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;
-typedef Map<Matrix<lbfgsfloatval_t, Dynamic, 1> > VectorLBFGS;
-
-static int callbackLBFGS(
-	void *instance,
-	const lbfgsfloatval_t *x,
-	const lbfgsfloatval_t *g,
-	const lbfgsfloatval_t fx,
-	const lbfgsfloatval_t xnorm,
-	const lbfgsfloatval_t gnorm,
-	const lbfgsfloatval_t, int,
-	int iteration,
-	int)
+CMT::MCBM::Parameters::Parameters() :
+	Trainable::Parameters::Parameters(),
+	trainPriors(true),
+	trainWeights(true),
+	trainFeatures(true),
+	trainPredictors(true),
+	trainInputBias(true),
+	trainOutputBias(true),
+	regularizeFeatures(0.),
+	regularizePredictors(0.),
+	regularizeWeights(0.),
+	regularizer(L2)
 {
-	// unpack user data
-	const InstanceLBFGS& inst = *static_cast<InstanceLBFGS*>(instance);
-	const MCBM& mcbm = *inst.mcbm;
-	const MCBM::Parameters& params = *inst.params;
-
-	if(params.verbosity > 0)
-		cout << setw(6) << iteration << setw(11) << setprecision(5) << fx << endl;
-
-	if(params.callback && iteration % params.cbIter == 0) {
-		// TODO: fix this nasty hack
-		const_cast<MCBM&>(mcbm).setParameters(x, params);
-
-		if(!(*params.callback)(iteration, mcbm))
-			return 1;
-	}
-
-	return 0;
 }
 
 
 
-static lbfgsfloatval_t evaluateLBFGS(
-	void* instance,
-	const lbfgsfloatval_t* x,
-	lbfgsfloatval_t* g,
-	int, double)
-{
-	// unpack user data
-	const InstanceLBFGS& inst = *static_cast<InstanceLBFGS*>(instance);
-	const MCBM& mcbm = *inst.mcbm;
-	const MCBM::Parameters& params = *inst.params;
-	const MatrixXd& input = *inst.input;
-	const MatrixXd& output = *inst.output;
-
-	return mcbm.computeGradient(input, output, x, g, params);
-}
-
-
-
-MCBM::Parameters::Parameters() : 
-	ConditionalDistribution::Parameters::Parameters()
-{
-	trainPriors = true;
-	trainWeights = true;
-	trainFeatures = true;
-	trainPredictors = true;
-	trainInputBias = true;
-	trainOutputBias = true;
-	regularizeFeatures = 0.;
-	regularizePredictors = 0.;
-}
-
-
-
-MCBM::Parameters::Parameters(const Parameters& params) :
-	ConditionalDistribution::Parameters::Parameters(params),
+CMT::MCBM::Parameters::Parameters(const Parameters& params) :
+	Trainable::Parameters::Parameters(params),
 	trainPriors(params.trainPriors),
 	trainWeights(params.trainWeights),
 	trainFeatures(params.trainFeatures),
@@ -106,21 +44,16 @@ MCBM::Parameters::Parameters(const Parameters& params) :
 	trainInputBias(params.trainInputBias),
 	trainOutputBias(params.trainOutputBias),
 	regularizeFeatures(params.regularizeFeatures),
-	regularizePredictors(params.regularizePredictors)
+	regularizePredictors(params.regularizePredictors),
+	regularizeWeights(params.regularizeWeights),
+	regularizer(params.regularizer)
 {
-	if(params.callback)
-		callback = params.callback->copy();
 }
 
 
 
-MCBM::Parameters::~Parameters() {
-}
-
-
-
-MCBM::Parameters& MCBM::Parameters::operator=(const Parameters& params) {
-	ConditionalDistribution::Parameters::operator=(params);
+CMT::MCBM::Parameters& CMT::MCBM::Parameters::operator=(const Parameters& params) {
+	Trainable::Parameters::operator=(params);
 
 	trainPriors = params.trainPriors;
 	trainWeights = params.trainWeights;
@@ -130,13 +63,15 @@ MCBM::Parameters& MCBM::Parameters::operator=(const Parameters& params) {
 	trainOutputBias = params.trainOutputBias;
 	regularizeFeatures = params.regularizeFeatures;
 	regularizePredictors = params.regularizePredictors;
+	regularizeWeights = params.regularizeWeights;
+	regularizer = params.regularizer;
 
 	return *this;
 }
 
 
 
-MCBM::MCBM(int dimIn, int numComponents, int numFeatures) : 
+CMT::MCBM::MCBM(int dimIn, int numComponents, int numFeatures) :
 	mDimIn(dimIn),
 	mNumComponents(numComponents),
 	mNumFeatures(numFeatures < 0 ? dimIn : numFeatures)
@@ -156,7 +91,7 @@ MCBM::MCBM(int dimIn, int numComponents, int numFeatures) :
 
 
 
-MCBM::MCBM(int dimIn, const MCBM& mcbm) : 
+CMT::MCBM::MCBM(int dimIn, const MCBM& mcbm) : 
 	mDimIn(dimIn),
 	mNumComponents(mcbm.numComponents()),
 	mNumFeatures(mcbm.numFeatures())
@@ -172,12 +107,12 @@ MCBM::MCBM(int dimIn, const MCBM& mcbm) :
 
 
 
-MCBM::~MCBM() {
+CMT::MCBM::~MCBM() {
 }
 
 
 
-MatrixXd MCBM::sample(const MatrixXd& input) const {
+MatrixXd CMT::MCBM::sample(const MatrixXd& input) const {
 	if(mDimIn) {
 		// some intermediate computations
 		ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
@@ -199,7 +134,8 @@ MatrixXd MCBM::sample(const MatrixXd& input) const {
 		// normalize log-probability
 		logProb1 -= logSumExp(logProb01);
 
-		return (Array<double, 1, Dynamic>::Random(input.cols()).abs() < logProb1.exp()).cast<double>();
+		ArrayXXd uniRand = Array<double, 1, Dynamic>::Random(input.cols()).abs();
+		return (uniRand < logProb1.exp()).cast<double>();
 	} else {
 		// input is zero-dimensional
 		double logProb0 = logSumExp(mPriors)[0];
@@ -210,13 +146,108 @@ MatrixXd MCBM::sample(const MatrixXd& input) const {
 
 		logProb1 -= logSumExp(logProb01)[0];
 
-		return (Array<double, 1, Dynamic>::Random(input.cols()).abs() < Array<double, 1, Dynamic>::Zero(input.cols()) + exp(logProb1)).cast<double>();
+		return (
+			Array<double, 1, Dynamic>::Random(input.cols()).abs() <
+			Array<double, 1, Dynamic>::Zero(input.cols()) + exp(logProb1)).cast<double>();
 	}
 }
 
 
 
-Array<double, 1, Dynamic> MCBM::logLikelihood(const MatrixXd& input, const MatrixXd& output) const {
+Array<int, 1, Dynamic> CMT::MCBM::samplePrior(const MatrixXd& input) const {
+	if(input.rows() != dimIn())
+		throw Exception("Inputs have wrong dimensionality.");
+
+	ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
+	ArrayXXd biasEnergy = mInputBias.transpose() * input;
+
+	ArrayXXd predictorEnergy = mPredictors * input;
+
+	ArrayXXd tmp0 = (featureEnergy + biasEnergy).colwise() + mPriors.array();
+	ArrayXXd tmp1 = (tmp0 + predictorEnergy).colwise() + mOutputBias.array();
+
+	ArrayXXd logPrior = tmp0 + tmp1;
+	logPrior.rowwise() -= logSumExp(logPrior);
+
+	ArrayXXd prior = logPrior.exp();
+
+	Array<int, 1, Dynamic> labels(input.cols());
+
+	#pragma omp parallel for
+	for(int j = 0; j < input.cols(); ++j) {
+		int i = 0;
+		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double cdf;
+
+		// compute index
+		for(cdf = prior(0, j); cdf < urand; cdf += prior(i, j))
+			++i;
+
+		labels[j] = i;
+	}
+
+	return labels;
+}
+
+
+
+Array<int, 1, Dynamic> CMT::MCBM::samplePosterior(
+	const MatrixXd& input,
+	const MatrixXd& output) const
+{
+	if(output.cols() != input.cols())
+		throw Exception("Number of inputs and outputs must be the same.");
+	if(input.rows() != dimIn())
+		throw Exception("Inputs have wrong dimensionality.");
+	if(output.rows() != dimOut())
+		throw Exception("Outputs have wrong dimensionality.");
+
+	ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
+	ArrayXXd biasEnergy = mInputBias.transpose() * input;
+
+	ArrayXXd predictorEnergy = mPredictors * input;
+
+	ArrayXXd tmp0 = (featureEnergy + biasEnergy).colwise() + mPriors.array();
+	ArrayXXd tmp1 = (tmp0 + predictorEnergy).colwise() + mOutputBias.array();
+
+	ArrayXXd logPosterior = 
+		tmp0.rowwise() * (1. - output.row(0).array()) +
+		tmp1.rowwise() * output.row(0).array();
+	logPosterior.rowwise() -= logSumExp(logPosterior);
+
+	ArrayXXd post = logPosterior.exp();
+
+	Array<int, 1, Dynamic> labels(input.cols());
+
+	#pragma omp parallel for
+	for(int j = 0; j < input.cols(); ++j) {
+		int i = 0;
+		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double cdf;
+
+		// compute index
+		for(cdf = post(0, j); cdf < urand; cdf += post(i, j))
+			++i;
+
+		labels[j] = i;
+	}
+
+	return labels;
+}
+
+
+
+Array<double, 1, Dynamic> CMT::MCBM::logLikelihood(
+	const MatrixXd& input,
+	const MatrixXd& output) const 
+{
+	if(input.rows() != dimIn())
+		throw Exception("Input has wrong dimensionality.");
+	if(output.rows() != dimOut())
+		throw Exception("Input has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("The number of inputs and outputs must be the same.");
+
 	if(mDimIn) {
 		// some intermediate computations
 		ArrayXXd featureEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
@@ -259,60 +290,30 @@ Array<double, 1, Dynamic> MCBM::logLikelihood(const MatrixXd& input, const Matri
 
 
 
-bool MCBM::train(const MatrixXd& input, const MatrixXd& output, const Parameters& params) {
-	if(input.rows() != mDimIn || output.rows() != 1)
-		throw Exception("Data has wrong dimensionality.");
+int CMT::MCBM::numParameters(const Trainable::Parameters& params_) const {
+	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 
-	if(!mDimIn) {
-		// zero-dimensional inputs; MCBM reduces to Bernoulli
-		mPriors.setZero();
-		mOutputBias.setConstant(log(output.array().mean()));
-		return true;
-	} else {
-		if(input.cols() != output.cols())
-			throw Exception("The number of inputs and outputs should be the same.");
-
-		// copy parameters for L-BFGS
-		lbfgsfloatval_t* x = parameters(params);
-
-		// optimization hyperparameters
-		lbfgs_parameter_t hyperparams;
-		lbfgs_parameter_init(&hyperparams);
-		hyperparams.max_iterations = params.maxIter;
-		hyperparams.m = params.numGrad;
-		hyperparams.epsilon = params.threshold;
-		hyperparams.linesearch = LBFGS_LINESEARCH_MORETHUENTE;
-		hyperparams.max_linesearch = 100;
-		hyperparams.ftol = 1e-4;
-		hyperparams.xtol = 1e-32;
-
-		// wrap additional arguments
-		InstanceLBFGS instance = { this, &params, &input, &output };
-
-		// start LBFGS optimization
-		int status = LBFGSERR_MAXIMUMITERATION;
-		if(params.maxIter > 0)
-			status = lbfgs(numParameters(params), x, 0, &evaluateLBFGS, &callbackLBFGS, &instance, &hyperparams);
-
-		// copy parameters back
-		setParameters(x, params);
-
-		// free memory used by LBFGS
-		lbfgs_free(x);
-
-		if(status >= 0) {
-			return true;
-		} else {
-			if(status != LBFGSERR_MAXIMUMITERATION)
-				cout << "There seems to be something not quite right with the optimization (" << status << ")." << endl;
-			return false;
-		}
-	}
+	int numParams = 0;
+	if(params.trainPriors)
+		numParams += mPriors.size();
+	if(params.trainWeights)
+		numParams += mWeights.size();
+	if(params.trainFeatures)
+		numParams += mFeatures.size();
+	if(params.trainPredictors)
+		numParams += mPredictors.size();
+	if(params.trainInputBias)
+		numParams += mInputBias.size();
+	if(params.trainOutputBias)
+		numParams += mOutputBias.size();
+	return numParams;
 }
 
 
 
-lbfgsfloatval_t* MCBM::parameters(const Parameters& params) const {
+lbfgsfloatval_t* CMT::MCBM::parameters(const Trainable::Parameters& params_) const {
+	const Parameters& params = dynamic_cast<const Parameters&>(params_);
+
 	lbfgsfloatval_t* x = lbfgs_malloc(numParameters(params));
 
 	int k = 0;
@@ -340,7 +341,9 @@ lbfgsfloatval_t* MCBM::parameters(const Parameters& params) const {
 
 
 
-void MCBM::setParameters(const lbfgsfloatval_t* x, const Parameters& params) {
+void CMT::MCBM::setParameters(const lbfgsfloatval_t* x, const Trainable::Parameters& params_) {
+	const Parameters& params = dynamic_cast<const Parameters&>(params_);
+
 	int offset = 0;
 
 	if(params.trainPriors) {
@@ -376,13 +379,15 @@ void MCBM::setParameters(const lbfgsfloatval_t* x, const Parameters& params) {
 
 
 
-double MCBM::computeGradient(
+double CMT::MCBM::parameterGradient(
 	const MatrixXd& inputCompl,
 	const MatrixXd& outputCompl,
 	const lbfgsfloatval_t* x,
 	lbfgsfloatval_t* g,
-	const Parameters& params) const
+	const Trainable::Parameters& params_) const
 {
+	const Parameters& params = dynamic_cast<const Parameters&>(params_);
+
 	// average log-likelihood
 	double logLik = 0.;
 
@@ -439,12 +444,12 @@ double MCBM::computeGradient(
 
 	// split data into batches for better performance
 	int numData = static_cast<int>(inputCompl.cols());
-	int batchSize = min(params.batchSize, numData);
+	int batchSize = min(max(params.batchSize, 10), numData);
 
+	#pragma omp parallel for
 	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
-		// TODO: copying memory necessary?
-		const MatrixXd input = inputCompl.middleCols(b, min(batchSize, numData - b));
-		const MatrixXd output = outputCompl.middleCols(b, min(batchSize, numData - b));
+		const MatrixXd& input = inputCompl.middleCols(b, min(batchSize, numData - b));
+		const MatrixXd& output = outputCompl.middleCols(b, min(batchSize, numData - b));
 
 		ArrayXXd featureOutput = features.transpose() * input;
 		MatrixXd featureOutputSq = featureOutput.square();
@@ -472,7 +477,10 @@ double MCBM::computeGradient(
 		logProb1 -= logNorm;
 		logProb0 -= logNorm;
 
-		logLik += (output.array() * logProb1 + (1. - output.array()) * logProb0).sum();
+		double logLikBatch = (output.array() * logProb1 + (1. - output.array()) * logProb0).sum();
+
+		#pragma omp critical
+		logLik += logLikBatch;
 
 		if(!g)
 			// don't compute gradients
@@ -484,100 +492,124 @@ double MCBM::computeGradient(
 		ArrayXXd post1Tmp = logPost1.exp().rowwise() * tmp;
 		ArrayXXd postDiffTmp = post1Tmp - post0Tmp;
 
+		// update gradients
 		if(params.trainPriors)
+			#pragma omp critical
 			priorsGrad -= postDiffTmp.rowwise().sum().matrix();
 
 		if(params.trainWeights)
+			#pragma omp critical
 			weightsGrad -= postDiffTmp.matrix() * featureOutputSq.transpose();
 
 		if(params.trainFeatures) {
 			ArrayXXd tmp2 = weights.transpose() * postDiffTmp.matrix() * 2.;
 			MatrixXd tmp3 = featureOutput * tmp2;
+			#pragma omp critical
 			featuresGrad -= input * tmp3.transpose();
 		}
 
 		if(params.trainPredictors)
+			#pragma omp critical
 			predictorsGrad -= post1Tmp.matrix() * input.transpose();
 
 		if(params.trainInputBias)
+			#pragma omp critical
 			inputBiasGrad -= input * postDiffTmp.matrix().transpose();
 
 		if(params.trainOutputBias)
+			#pragma omp critical
 			outputBiasGrad -= post1Tmp.rowwise().sum().matrix();
 	}
 
-	double normConst = inputCompl.cols() / log(2.);
+	double normConst = inputCompl.cols() * log(2.) * dimOut();
 
-	if(g)
+	if(g) {
 		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
 
-	return -logLik / normConst;
-}
+		if(params.regularizer == Parameters::L2) {
+			if(params.trainFeatures && params.regularizeFeatures > 0.)
+				featuresGrad += params.regularizeFeatures * 2. * features;
 
+			if(params.trainPredictors && params.regularizePredictors > 0.)
+				predictorsGrad += params.regularizePredictors * 2. * predictors;
 
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				weightsGrad += params.regularizeWeights * 2. * weights;
+		} else {
+			if(params.trainFeatures && params.regularizeFeatures > 0.)
+				featuresGrad += params.regularizeFeatures * signum(features);
 
-double MCBM::checkGradient(
-	const MatrixXd& input,
-	const MatrixXd& output,
-	double epsilon,
-	const Parameters& params) const
-{
-	if(input.rows() != mDimIn || output.rows() != 1)
-		throw Exception("Data has wrong dimensionality.");
-	if(input.cols() != output.cols())
-		throw Exception("The number of inputs and outputs should be the same.");
+			if(params.trainPredictors && params.regularizePredictors > 0.)
+				predictorsGrad += params.regularizePredictors * signum(predictors);
 
-	// request memory for LBFGS and copy parameters
-	lbfgsfloatval_t* x = parameters(params);
-
-	int numParams = numParameters(params);
-
-	lbfgsfloatval_t y[numParams];
-	lbfgsfloatval_t g[numParams];
-	lbfgsfloatval_t n[numParams];
-	lbfgsfloatval_t val1;
-	lbfgsfloatval_t val2;
-
-	// make another copy
-	for(int i = 0; i < numParams; ++i)
-		y[i] = x[i];
-
-	// arguments to LBFGS function
-	InstanceLBFGS instance = { this, &params, &input, &output };
-
-	// compute numerical gradient using central differences
-	for(int i = 0; i < numParams; ++i) {
-		y[i] = x[i] + epsilon;
-		val1 = evaluateLBFGS(&instance, y, 0, 0, 0.);
-		y[i] = x[i] - epsilon;
-		val2 = evaluateLBFGS(&instance, y, 0, 0, 0.);
-		y[i] = x[i];
-		n[i] = (val1 - val2) / (2. * epsilon);
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				weightsGrad += params.regularizeWeights * signum(weights);
+		}
 	}
 
-	// compute analytical gradient
-	evaluateLBFGS(&instance, x, g, 0, 0.);
+	double value = -logLik / normConst;
 
-	// squared error
-	double err = 0.;
-	for(int i = 0; i < numParams; ++i)
-		err += (g[i] - n[i]) * (g[i] - n[i]);
+	switch(params.regularizer) {
+		case Parameters::L1:
+			if(params.trainFeatures && params.regularizeFeatures > 0.)
+				value += params.regularizeFeatures * features.array().abs().sum();
 
-	return sqrt(err);
+			if(params.trainPredictors && params.regularizePredictors > 0.)
+				value += params.regularizePredictors * predictors.array().abs().sum();
+
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				value += params.regularizeWeights * weights.array().abs().sum();
+
+			break;
+
+		case Parameters::L2:
+			if(params.trainFeatures && params.regularizeFeatures > 0.)
+				value += params.regularizeFeatures * features.array().square().sum();
+
+			if(params.trainPredictors && params.regularizePredictors > 0.)
+				value += params.regularizePredictors * predictors.array().square().sum();
+
+			if(params.trainWeights && params.regularizeWeights > 0.)
+				value += params.regularizeWeights * weights.array().square().sum();
+			
+			break;
+	}
+
+	return value;
 }
 
 
 
-pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > MCBM::computeDataGradient(
-			const MatrixXd& input,
-			const MatrixXd& output) const
+pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::MCBM::computeDataGradient(
+	const MatrixXd& input,
+	const MatrixXd& output) const
 {
 	throw Exception("Not implemented.");
 
 	return make_pair(
 		make_pair(
-			ArrayXXd::Zero(input.rows(), input.cols()), 
+			ArrayXXd::Zero(input.rows(), input.cols()),
 			ArrayXXd::Zero(output.rows(), output.cols())), 
 		logLikelihood(input, output));
+}
+
+
+
+bool CMT::MCBM::train(
+	const MatrixXd& input,
+	const MatrixXd& output,
+	const MatrixXd* inputVal,
+	const MatrixXd* outputVal,
+	const Trainable::Parameters& params)
+{
+	if(!mDimIn) {
+		// zero-dimensional inputs; MCBM reduces to Bernoulli
+		double prob = output.array().mean();
+		mPriors.setZero();
+		mOutputBias.setConstant(prob > 0. ? log(prob) : -50.);
+		return true;
+	} else {
+		return Trainable::train(input, output, inputVal, outputVal, params);
+	}
 }

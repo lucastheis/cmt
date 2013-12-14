@@ -1,5 +1,5 @@
-#ifndef PCATRANSFORM_H
-#define PCATRANSFORM_H
+#ifndef CMT_PCATRANSFORM_H
+#define CMT_PCATRANSFORM_H
 
 #include "affinetransform.h"
 
@@ -9,11 +9,11 @@ namespace CMT {
 			PCATransform(
 				const ArrayXXd& input,
 				const ArrayXXd& output,
-				double varExplained = 99.0,
+				double varExplained = 99.,
 				int numPCs = -1);
 			PCATransform(
 				const ArrayXXd& input,
-				double varExplained = 99.0,
+				double varExplained = 99.,
 				int numPCs = -1,
 				int dimOut = 1);
 			PCATransform(
@@ -22,6 +22,7 @@ namespace CMT {
 				const MatrixXd& preIn,
 				const MatrixXd& preInInv,
 				int dimOut);
+			PCATransform(const PCATransform& transform);
 
 			inline VectorXd eigenvalues() const;
 
@@ -29,7 +30,11 @@ namespace CMT {
 			VectorXd mEigenvalues;
 
 		private:
-			void initialize(const ArrayXXd& input, double varExplained, int numPCs, int dimOut);
+			void initialize(
+				const ArrayXXd& input,
+				double varExplained,
+				int numPCs,
+				int dimOut);
 	};
 }
 

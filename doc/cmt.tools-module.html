@@ -1,0 +1,1190 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>cmt.tools</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$','$']],
+        displayMath: [['$$','$$']],
+        skipTags: ["script","noscript","style","textarea","code"],
+        processEnvironments: true
+      }
+    });
+  </script>
+  <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  </head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="cmt-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="cmt-module.html">Package&nbsp;cmt</a> ::
+        Package&nbsp;tools
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="cmt.tools-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PACKAGE DESCRIPTION ==================== -->
+<h1 class="epydoc">Package tools</h1><p class="nomargin-top"><span class="codelink"><a href="cmt.tools-pysrc.html">source&nbsp;code</a></span></p>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>tuple</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#generate_data_from_image" class="summary-sig-name">generate_data_from_image</a>(<span class="summary-sig-arg">img</span>,
+        <span class="summary-sig-arg">input_mask</span>,
+        <span class="summary-sig-arg">output_mask</span>,
+        <span class="summary-sig-arg">num_samples</span>=<span class="summary-sig-default">0</span>)</span><br />
+      Uniformly samples inputs and outputs for conditional models from 
+      images.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>tuple</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#generate_data_from_video" class="summary-sig-name">generate_data_from_video</a>(<span class="summary-sig-arg">video</span>,
+        <span class="summary-sig-arg">input_mask</span>,
+        <span class="summary-sig-arg">output_mask</span>,
+        <span class="summary-sig-arg">num_samples</span>=<span class="summary-sig-default">0</span>)</span><br />
+      Uniformly samples inputs and outputs for conditional models from 
+      videos.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>ndarray</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#sample_image" class="summary-sig-name">sample_image</a>(<span class="summary-sig-arg">img</span>,
+        <span class="summary-sig-arg">model</span>,
+        <span class="summary-sig-arg">input_mask</span>,
+        <span class="summary-sig-arg">output_mask</span>,
+        <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Generates an image using a conditional distribution.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>ndarray</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#sample_image_conditionally" class="summary-sig-name">sample_image_conditionally</a>(<span class="summary-sig-arg">img</span>,
+        <span class="summary-sig-arg">model</span>,
+        <span class="summary-sig-arg">labels</span>,
+        <span class="summary-sig-arg">input_mask</span>,
+        <span class="summary-sig-arg">output_mask</span>,
+        <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">num_iter</span>=<span class="summary-sig-default">10</span>,
+        <span class="summary-sig-arg">initialize</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Conditionally samples an image from an <a 
+      href="cmt.models.MCGSM-class.html" class="link">MCGSM</a> using 
+      Metropolis-within-Gibbs sampling.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>ndarray</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#sample_labels_conditionally" class="summary-sig-name">sample_labels_conditionally</a>(<span class="summary-sig-arg">img</span>,
+        <span class="summary-sig-arg">model</span>,
+        <span class="summary-sig-arg">input_mask</span>,
+        <span class="summary-sig-arg">output_mask</span>,
+        <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Samples component labels from an <a 
+      href="cmt.models.MCGSM-class.html" class="link">MCGSM</a> for a given
+      image.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>ndarray</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#sample_video" class="summary-sig-name">sample_video</a>(<span class="summary-sig-arg">video</span>,
+        <span class="summary-sig-arg">model</span>,
+        <span class="summary-sig-arg">input_mask</span>,
+        <span class="summary-sig-arg">output_mask</span>,
+        <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Generates a video using a conditional distribution.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>ndarray</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#fill_in_image" class="summary-sig-name">fill_in_image</a>(<span class="summary-sig-arg">img</span>,
+        <span class="summary-sig-arg">model</span>,
+        <span class="summary-sig-arg">input_mask</span>,
+        <span class="summary-sig-arg">output_mask</span>,
+        <span class="summary-sig-arg">fmask</span>,
+        <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">num_iter</span>=<span class="summary-sig-default">10</span>,
+        <span class="summary-sig-arg">num_steps</span>=<span class="summary-sig-default">100</span>)</span><br />
+      Samples pixels of an image conditioned on all other pixels.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="fill_in_image_map"></a><span class="summary-sig-name">fill_in_image_map</span>(<span class="summary-sig-arg">...</span>)</span></td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>tuple</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#extract_windows" class="summary-sig-name">extract_windows</a>(<span class="summary-sig-arg">time_series</span>,
+        <span class="summary-sig-arg">window_length</span>)</span><br />
+      Extract windows from a given time series.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>ndarray</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#sample_spike_train" class="summary-sig-name">sample_spike_train</a>(<span class="summary-sig-arg">stimuli</span>,
+        <span class="summary-sig-arg">model</span>,
+        <span class="summary-sig-arg">spike_history</span>=<span class="summary-sig-default">0</span>,
+        <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Generate a spike train using a given model and a sequence of stimuli.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>tuple</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#generate_masks" class="summary-sig-name">generate_masks</a>(<span class="summary-sig-arg">input_size</span>,
+        <span class="summary-sig-arg">output_size</span>=<span class="summary-sig-default">1</span>,
+        <span class="summary-sig-arg">observed</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Generates some basic input and output masks.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>ndarray</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#rgb2gray" class="summary-sig-name">rgb2gray</a>(<span class="summary-sig-arg">img</span>)</span><br />
+      Converts the image to YCbCr and returns its luma component.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>ndarray</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#rgb2ycc" class="summary-sig-name">rgb2ycc</a>(<span class="summary-sig-arg">img</span>)</span><br />
+      Converts an RGB image into a YCbCr encoded image.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>ndarray</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#ycc2rgb" class="summary-sig-name">ycc2rgb</a>(<span class="summary-sig-arg">img</span>)</span><br />
+      Converts a YCbCr image back to RGB.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#imwrite" class="summary-sig-name">imwrite</a>(<span class="summary-sig-arg">filename</span>,
+        <span class="summary-sig-arg">img</span>,
+        <span class="summary-sig-arg">vmin</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">vmax</span>=<span class="summary-sig-default">None</span>)</span><br />
+      A convenient wrapper for saving images using the PIL package.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">ndarray</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#imread" class="summary-sig-name">imread</a>(<span class="summary-sig-arg">filename</span>)</span><br />
+      Returns:
+      the image</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">ndarray</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#imformat" class="summary-sig-name">imformat</a>(<span class="summary-sig-arg">img</span>,
+        <span class="summary-sig-arg">symmetric</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">perc</span>=<span class="summary-sig-default">100</span>,
+        <span class="summary-sig-arg">vmin</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">vmax</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Rescales and converts images to uint8.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>tuple</code>/<code>ndarray</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#generate_data_from_spike_train" class="summary-sig-name">generate_data_from_spike_train</a>(<span class="summary-sig-arg">stimulus</span>,
+        <span class="summary-sig-arg">stimulus_history</span>,
+        <span class="summary-sig-arg">spike_train</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">spike_history</span>=<span class="summary-sig-default">0</span>)</span><br />
+      Extracts windows from a stimulus time-series and a spike train.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="cmt.tools-module.html#YCbCr" class="summary-name">YCbCr</a> = <code title="array([[ 0.49415309, -0.27886743,  0.82634296],
+       [ 0.97012664, -0.54747553, -0.54747553],
+       [ 0.1884062 ,  0.82634296, -0.13438388]])">array([[ 0.49415309, -0.27886743,  0.8263429<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'cmt.tools'"><code class="variable-quote">'</code><code class="variable-string">cmt.tools</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Function Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="generate_data_from_image"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">generate_data_from_image</span>(<span class="sig-arg">img</span>,
+        <span class="sig-arg">input_mask</span>,
+        <span class="sig-arg">output_mask</span>,
+        <span class="sig-arg">num_samples</span>=<span class="sig-default">0</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Uniformly samples inputs and outputs for conditional models from 
+  images.</p>
+  <p>If no number of samples is specified, all possible inputs and outputs 
+  are extracted from the image and returned in row-major order.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>img</code></strong> (<code>ndarray</code>) - an array representing a grayscale or color image</li>
+        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
+        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
+        <li><strong class="pname"><code>num_samples</code></strong> (<code>int</code>) - the number of generated input/output pairs</li>
+    </ul></dd>
+    <dt>Returns: <code>tuple</code></dt>
+        <dd>the input and output vectors stored in columns</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="generate_data_from_video"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">generate_data_from_video</span>(<span class="sig-arg">video</span>,
+        <span class="sig-arg">input_mask</span>,
+        <span class="sig-arg">output_mask</span>,
+        <span class="sig-arg">num_samples</span>=<span class="sig-default">0</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Uniformly samples inputs and outputs for conditional models from 
+  videos.</p>
+  <p>If no number of samples is specified, all possible inputs and outputs 
+  are extracted from the image and returned in row-major order.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>video</code></strong> (<code>ndarray</code>) - a three-dimensional array representing the video</li>
+        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a three-dimensioal Boolean array describing the input pixels</li>
+        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a three-dimensioal Boolean array describing the output pixels</li>
+        <li><strong class="pname"><code>num_samples</code></strong> (<code>int</code>) - the number of generated input/output pairs</li>
+    </ul></dd>
+    <dt>Returns: <code>tuple</code></dt>
+        <dd>the input and output vectors stored in columns</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="sample_image"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">sample_image</span>(<span class="sig-arg">img</span>,
+        <span class="sig-arg">model</span>,
+        <span class="sig-arg">input_mask</span>,
+        <span class="sig-arg">output_mask</span>,
+        <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Generates an image using a conditional distribution. The initial image
+  passed to this function is used to initialize the boundaries and is also 
+  used to determine the size and length of the image to be generated.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>img</code></strong> (<code>ndarray</code>) - initialization of image</li>
+        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.models.ConditionalDistribution-class.html" 
+          class="link">ConditionalDistribution</a>) - a conditional distribution such as an <a 
+          href="cmt.models.MCGSM-class.html" class="link">MCGSM</a></li>
+        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
+        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
+        <li><strong class="pname"><code>preconditioner</code></strong> (<a href="cmt.transforms.Preconditioner-class.html" 
+          class="link">Preconditioner</a>) - transforms the input before feeding it into the model</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>the sampled image</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="sample_image_conditionally"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">sample_image_conditionally</span>(<span class="sig-arg">img</span>,
+        <span class="sig-arg">model</span>,
+        <span class="sig-arg">labels</span>,
+        <span class="sig-arg">input_mask</span>,
+        <span class="sig-arg">output_mask</span>,
+        <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">num_iter</span>=<span class="sig-default">10</span>,
+        <span class="sig-arg">initialize</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Conditionally samples an image from an <a 
+  href="cmt.models.MCGSM-class.html" class="link">MCGSM</a> using 
+  Metropolis-within-Gibbs sampling. The image passed to this function is 
+  used as the initialization of the Gibbs sampler.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>img</code></strong> (<code>ndarray</code>) - initialization of image</li>
+        <li><strong class="pname"><code>labels</code></strong> (<code>ndarray</code>) - labels as generated by <a 
+          href="cmt.tools-module.html#sample_labels_conditionally" 
+          class="link">sample_labels_conditionally</a></li>
+        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.models.MCGSM-class.html" class="link">MCGSM</a>) - the model defining the joint distribution over labels and images</li>
+        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
+        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
+        <li><strong class="pname"><code>preconditioner</code></strong> (<a href="cmt.transforms.Preconditioner-class.html" 
+          class="link">Preconditioner</a>) - transforms the input before feeding it into the model</li>
+        <li><strong class="pname"><code>num_iter</code></strong> (<code>int</code>) - the number of Gibbs updates of each pixel</li>
+        <li><strong class="pname"><code>initialize</code></strong> (<code>bool</code>) - if true, accept all proposed pixel updates in the first iteration</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>the sampled image</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="sample_labels_conditionally"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">sample_labels_conditionally</span>(<span class="sig-arg">img</span>,
+        <span class="sig-arg">model</span>,
+        <span class="sig-arg">input_mask</span>,
+        <span class="sig-arg">output_mask</span>,
+        <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Samples component labels from an <a href="cmt.models.MCGSM-class.html"
+  class="link">MCGSM</a> for a given image.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>img</code></strong> (<code>ndarray</code>) - initialization of image</li>
+        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.models.MCGSM-class.html" class="link">MCGSM</a>) - the model defining the joint distribution over labels and images</li>
+        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
+        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
+        <li><strong class="pname"><code>preconditioner</code></strong> (<a href="cmt.transforms.Preconditioner-class.html" 
+          class="link">Preconditioner</a>) - transforms the input before feeding it into the model</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>sampled component labels</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="sample_video"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">sample_video</span>(<span class="sig-arg">video</span>,
+        <span class="sig-arg">model</span>,
+        <span class="sig-arg">input_mask</span>,
+        <span class="sig-arg">output_mask</span>,
+        <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Generates a video using a conditional distribution. The initial video 
+  passed to this function is used to initialize the boundaries and is also 
+  used to determine the size and length of the video to be generated.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>video</code></strong> (<code>ndarray</code>) - initialization of video</li>
+        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.models.ConditionalDistribution-class.html" 
+          class="link">ConditionalDistribution</a>) - a conditional distribution such as an <a 
+          href="cmt.models.MCGSM-class.html" class="link">MCGSM</a></li>
+        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a three-dimensional Boolean array describing the input pixels</li>
+        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a three-dimensional Boolean array describing the output pixels</li>
+        <li><strong class="pname"><code>preconditioner</code></strong> (<a href="cmt.transforms.Preconditioner-class.html" 
+          class="link">Preconditioner</a>) - transforms the input before feeding it into the model</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>the sampled video</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="fill_in_image"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">fill_in_image</span>(<span class="sig-arg">img</span>,
+        <span class="sig-arg">model</span>,
+        <span class="sig-arg">input_mask</span>,
+        <span class="sig-arg">output_mask</span>,
+        <span class="sig-arg">fmask</span>,
+        <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">num_iter</span>=<span class="sig-default">10</span>,
+        <span class="sig-arg">num_steps</span>=<span class="sig-default">100</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Samples pixels of an image conditioned on all other pixels.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>img</code></strong> (<code>ndarray</code>) - the image with the missing pixels initialized somehow</li>
+        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.models.ConditionalDistribution-class.html" 
+          class="link">ConditionalDistribution</a>) - a conditional distribution such as an <a 
+          href="cmt.models.MCGSM-class.html" class="link">MCGSM</a></li>
+        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
+        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
+        <li><strong class="pname"><code>fmask</code></strong> (<code>ndarray</code>) - a Boolean array describing the missing pixels</li>
+        <li><strong class="pname"><code>preconditioner</code></strong> (<a href="cmt.transforms.Preconditioner-class.html" 
+          class="link">Preconditioner</a>) - transforms the input before feeding it into the model</li>
+        <li><strong class="pname"><code>num_iter</code></strong> (<code>int</code>) - number of iterations of replacing all pixels</li>
+        <li><strong class="pname"><code>num_steps</code></strong> (<code>int</code>) - number of Metropolis steps per pixel and iteration</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>an image with the missing pixels replaced</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="extract_windows"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">extract_windows</span>(<span class="sig-arg">time_series</span>,
+        <span class="sig-arg">window_length</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Extract windows from a given time series.</p>
+  <p>This method can be used to, for example, extract stimulus and spike 
+  windows before training a neuron model such as the <a 
+  href="cmt.models.STM-class.html" class="link">STM</a>.</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>spikes = extract_windows(spike_train, 20)
+<span class="py-prompt">&gt;&gt;&gt; </span>stimuli = extract_windows(stimulus, 20)</pre>
+  <p>The last row of <code>spikes</code> contains the most recent bin of 
+  each window. We can use</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>inputs = vstack([stimuli, spikes[:-1]])
+<span class="py-prompt">&gt;&gt;&gt; </span>outputs = spikes[-1]</pre>
+  <p>to generate the inputs and outputs to a neuron model.</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>stm = STM(20, 50, 3, 10)
+<span class="py-prompt">&gt;&gt;&gt; </span>stm.train(inputs, outputs)</pre>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>time_series</code></strong> (<code>ndarray</code>) - an NxT array representing an N-dimensional time series of length 
+          T</li>
+        <li><strong class="pname"><code>window_length</code></strong> (<code>int</code>) - number of bins of the extracted windows</li>
+    </ul></dd>
+    <dt>Returns: <code>tuple</code></dt>
+        <dd>all possible overlapping windows of the time series</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="sample_spike_train"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">sample_spike_train</span>(<span class="sig-arg">stimuli</span>,
+        <span class="sig-arg">model</span>,
+        <span class="sig-arg">spike_history</span>=<span class="sig-default">0</span>,
+        <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Generate a spike train using a given model and a sequence of 
+  stimuli.</p>
+  <p>If the model's output depends on the spike history, the length of the 
+  spike history taken into account can be specified using 
+  <code>spike_history</code>. If <code>spike_history</code> is positive, 
+  the model at time $t$ will receive the stimulus at time $t$ concatenated 
+  with <code>spike_history</code> bins of the spike train preceding. The 
+  last entry of the input to the model is the most recent bin of the spike 
+  train.</p>
+  <p>If <code>preconditioner</code> is specified, the spike history is 
+  first transformed before appending it to the stimulus.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>stimuli</code></strong> (<code>ndarray</code>) - each column represents a (possibly preprocessed) stimulus window</li>
+        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.models.ConditionalDistribution-class.html" 
+          class="link">ConditionalDistribution</a>) - a conditional distribution such as an <a 
+          href="cmt.models.STM-class.html" class="link">STM</a></li>
+        <li><strong class="pname"><code>spike_history</code></strong> (<code>int</code>) - number of bins used as input to the model</li>
+        <li><strong class="pname"><code>preconditioner</code></strong> (<a href="cmt.transforms.Preconditioner-class.html" 
+          class="link">Preconditioner</a>) - transforms the spike history before appending it to the input</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>sampled spike train</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="generate_masks"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">generate_masks</span>(<span class="sig-arg">input_size</span>,
+        <span class="sig-arg">output_size</span>=<span class="sig-default">1</span>,
+        <span class="sig-arg">observed</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Generates some basic input and output masks.</p>
+  <p>If <code>input_size</code> is an integer, the number of columns of the
+  mask will be that integer. If <code>input_size</code> is a list or tuple,
+  a mask with multiple channels is created, which can be used with RGB 
+  images, for example.</p>
+  <p>By default, the input region will cover the upper half of the mask, 
+  also known as a *causal neighborhood*. If any of the channels is 
+  observed, the input region in that channel will cover a full square 
+  neighborhood around the output region.</p>
+  <p>Examples:</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>input_mask, output_mask = generate_masks(8, 2)
+<span class="py-prompt">&gt;&gt;&gt; </span>input_mask, output_mask = generate_masks([3, 7, 7], 1, [1, 0, 0])</pre>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>input_size</code></strong> (<code>int</code> / <code>list</code>) - determines the size of the input region</li>
+        <li><strong class="pname"><code>output_size</code></strong> (<code>int</code>) - determines the size of the output region</li>
+        <li><strong class="pname"><code>observed</code></strong> (<code>list</code>) - can be used to indicate channels which are observed</li>
+    </ul></dd>
+    <dt>Returns: <code>tuple</code></dt>
+        <dd>one input mask and one output mask</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="rgb2gray"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">rgb2gray</span>(<span class="sig-arg">img</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Converts the image to YCbCr and returns its luma component.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>img</code></strong> (<code>ndarray</code>) - an RGB or RGBA image</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>a grayscale image</dd>
+  </dl>
+<div class="fields">      <p><strong>See Also:</strong>
+        rgb2ycc
+      </p>
+</div></td></tr></table>
+</div>
+<a name="rgb2ycc"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">rgb2ycc</span>(<span class="sig-arg">img</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Converts an RGB image into a YCbCr encoded image.</p>
+  <p>The color matrix used to convert the image is volume-preserving, that 
+  is, the determinant of the transformation is 1.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>img</code></strong> (<code>ndarray</code>) - an RGB or RGBA image</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>a YCbCr encoded image</dd>
+  </dl>
+<div class="fields">      <p><strong>See Also:</strong>
+        ycc2rgb
+      </p>
+</div></td></tr></table>
+</div>
+<a name="ycc2rgb"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ycc2rgb</span>(<span class="sig-arg">img</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Converts a YCbCr image back to RGB.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>img</code></strong> (<code>ndarray</code>) - a YCbCr encoded image</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>an RGB image</dd>
+  </dl>
+<div class="fields">      <p><strong>See Also:</strong>
+        rgb2ycc
+      </p>
+</div></td></tr></table>
+</div>
+<a name="imwrite"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">imwrite</span>(<span class="sig-arg">filename</span>,
+        <span class="sig-arg">img</span>,
+        <span class="sig-arg">vmin</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">vmax</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>A convenient wrapper for saving images using the PIL package.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>filename</code></strong> (string) - the place where the image shall be stored</li>
+        <li><strong class="pname"><code>img</code></strong> (array_like) - a gray-scale or RGB image</li>
+        <li><strong class="pname"><code>vmin</code></strong> (float/int) - can be used to manually specify which value is mapped to 0</li>
+        <li><strong class="pname"><code>vmax</code></strong> (float/int) - can be used to manually specify which value is mapped to 255</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="imread"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">imread</span>(<span class="sig-arg">filename</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Returns: ndarray</dt>
+        <dd>the image</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="imformat"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">imformat</span>(<span class="sig-arg">img</span>,
+        <span class="sig-arg">symmetric</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">perc</span>=<span class="sig-default">100</span>,
+        <span class="sig-arg">vmin</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">vmax</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Rescales and converts images to uint8.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>img</code></strong> (array_like) - any image</li>
+        <li><strong class="pname"><code>symmetric</code></strong> (boolean) - if true, 0. will be mapped to 128</li>
+        <li><strong class="pname"><code>perc</code></strong> (int) - can be used to clip intensity values</li>
+        <li><strong class="pname"><code>vmin</code></strong> (float/int) - can be used to manually specify which value is mapped to 0</li>
+        <li><strong class="pname"><code>vmax</code></strong> (float/int) - can be used to manually specify which value is mapped to 255</li>
+    </ul></dd>
+    <dt>Returns: ndarray</dt>
+        <dd>the converted image</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="generate_data_from_spike_train"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">generate_data_from_spike_train</span>(<span class="sig-arg">stimulus</span>,
+        <span class="sig-arg">stimulus_history</span>,
+        <span class="sig-arg">spike_train</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">spike_history</span>=<span class="sig-default">0</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Extracts windows from a stimulus time-series and a spike train.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>stimulus</code></strong> (<code>ndarray</code>) - time-series (NxT) where the second dimension is time</li>
+        <li><strong class="pname"><code>stimulus_history</code></strong> (<code>int</code>) - length of extracted stimulus windows</li>
+        <li><strong class="pname"><code>spike_train</code></strong> (<code>ndarray</code>) - spikes corresponding to stimulus (1xT)</li>
+        <li><strong class="pname"><code>spike_history</code></strong> (<code>int</code>) - length of extracted spike windows</li>
+    </ul></dd>
+    <dt>Returns: <code>tuple</code>/<code>ndarray</code></dt>
+        <dd>stimulus windows, spike histories, and spikes</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-VariablesDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="YCbCr"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">YCbCr</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+array([[ 0.49415309, -0.27886743,  0.82634296],
+       [ 0.97012664, -0.54747553, -0.54747553],
+       [ 0.1884062 ,  0.82634296, -0.13438388]])
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="cmt-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="https://github.com/lucastheis/cmt">Conditional Modeling Toolkit</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Sat Dec 14 19:43:22 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
