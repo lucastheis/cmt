@@ -1184,7 +1184,12 @@ ArrayXXi CMT::sampleLabelsConditionally(
 			ArrayXd input  = extractFromImage(patch, inputIndices);
 			ArrayXd output = extractFromImage(patch, outputIndices);
 
-			labels(i / h, j / w) = model.samplePosterior(input, output)[0];
+			if(preconditioner) {
+				pair<ArrayXXd, ArrayXXd> data = preconditioner->operator()(input, output);
+				labels(i / h, j / w) = model.samplePosterior(data.first, data.second)[0];
+			} else {
+				labels(i / h, j / w) = model.samplePosterior(input, output)[0];
+			}
 		}
 	}
 
