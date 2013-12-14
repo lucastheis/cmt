@@ -73,17 +73,17 @@
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class ConditionalDistribution</h1><p class="nomargin-top"><span class="codelink"><a href="cmt.models-pysrc.html#ConditionalDistribution">source&nbsp;code</a></span></p>
+<h1 class="epydoc">Class ConditionalDistribution</h1><p class="nomargin-top"><span class="codelink"><a href="cmt-pysrc.html#models.ConditionalDistribution">source&nbsp;code</a></span></p>
 <pre class="base-tree">
 object --+
          |
-        <strong class="uidshort">ConditionalDistribution</strong>
+        <strong class="uidshort">models.ConditionalDistribution</strong>
 </pre>
 
 <dl><dt>Known Subclasses:</dt>
 <dd>
       <ul class="subclass-list">
-<li><a href="cmt.models.GLM-class.html">GLM</a></li><li>, <a href="cmt.models.MCBM-class.html">MCBM</a></li><li>, <a href="cmt.models.MCGSM-class.html">MCGSM</a></li><li>, <a href="cmt.models.STM-class.html">STM</a></li>  </ul>
+<li><a href="cmt.models.GLM-class.html">GLM</a></li><li>, <a href="cmt.models.MCBM-class.html">MCBM</a></li><li>, <a href="cmt.models.MCGSM-class.html">MCGSM</a></li><li>, <a href="cmt.models.MLR-class.html">MLR</a></li><li>, <a href="cmt.models.STM-class.html">STM</a></li>  </ul>
 </dd></dl>
 
 <hr />
@@ -115,7 +115,7 @@ object --+
           <td><span class="summary-sig"><a href="cmt.models.ConditionalDistribution-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt.models-pysrc.html#ConditionalDistribution.__init__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.ConditionalDistribution.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -133,7 +133,7 @@ object --+
         <span class="summary-sig-arg">S</span>,
         <span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt.models-pysrc.html#ConditionalDistribution.__new__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.ConditionalDistribution.__new__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -154,7 +154,7 @@ object --+
       Computes the average negative conditional log-likelihood for the 
       given data points in bits per output component (smaller is better).</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt.models-pysrc.html#ConditionalDistribution.evaluate">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.ConditionalDistribution.evaluate">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -174,7 +174,25 @@ object --+
       Computes the conditional log-likelihood for the given data points in 
       nats.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt.models-pysrc.html#ConditionalDistribution.loglikelihood">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.ConditionalDistribution.loglikelihood">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">ndarray</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.models.ConditionalDistribution-class.html#predict" class="summary-sig-name">predict</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">input</span>)</span><br />
+      Computes the expectation value of the output.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="cmt-pysrc.html#models.ConditionalDistribution.predict">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -192,7 +210,7 @@ object --+
         <span class="summary-sig-arg">input</span>)</span><br />
       Generates outputs for given inputs.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt.models-pysrc.html#ConditionalDistribution.sample">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.ConditionalDistribution.sample">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -288,7 +306,7 @@ object --+
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt.models-pysrc.html#ConditionalDistribution.__init__">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.ConditionalDistribution.__init__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -312,7 +330,7 @@ object --+
         <span class="sig-arg">...</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt.models-pysrc.html#ConditionalDistribution.__new__">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.ConditionalDistribution.__new__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -338,7 +356,7 @@ object --+
         <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt.models-pysrc.html#ConditionalDistribution.evaluate">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.ConditionalDistribution.evaluate">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -373,7 +391,7 @@ object --+
         <span class="sig-arg">output</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt.models-pysrc.html#ConditionalDistribution.loglikelihood">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.ConditionalDistribution.loglikelihood">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -390,6 +408,32 @@ object --+
   </dl>
 </td></tr></table>
 </div>
+<a name="predict"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">predict</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">input</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="cmt-pysrc.html#models.ConditionalDistribution.predict">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Computes the expectation value of the output.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>input</code></strong> (ndarray) - inputs stored in columns</li>
+    </ul></dd>
+    <dt>Returns: ndarray</dt>
+        <dd>expected value of outputs</dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="sample"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -401,7 +445,7 @@ object --+
         <span class="sig-arg">input</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt.models-pysrc.html#ConditionalDistribution.sample">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.ConditionalDistribution.sample">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -448,7 +492,7 @@ object --+
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Sun Sep 15 16:28:16 2013
+    Generated by Epydoc 3.0.1 on Sat Dec 14 19:43:22 2013
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

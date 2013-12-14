@@ -417,7 +417,7 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 
 
 const char* sample_image_conditionally_doc =
-	"sample_image(img, model, labels, input_mask, output_mask, preconditioner=None, num_iter=10)\n"
+	"sample_image(img, model, labels, input_mask, output_mask, preconditioner=None, num_iter=10, initialize=False)\n"
 	"\n"
 	"Conditionally samples an image from an L{MCGSM<models.MCGSM>} using Metropolis-within-Gibbs\n"
 	"sampling. The image passed to this function is used as the initialization of the Gibbs sampler.\n"
@@ -591,7 +591,7 @@ PyObject* sample_image_conditionally(PyObject* self, PyObject* args, PyObject* k
 const char* sample_labels_conditionally_doc =
 	"sample_labels_conditionally(img, model, input_mask, output_mask, preconditioner=None)\n"
 	"\n"
-	"Samples component labels from an L{MCGSM<model.MCGSM>} for a given image.\n"
+	"Samples component labels from an L{MCGSM<models.MCGSM>} for a given image.\n"
 	"\n"
 	"@type  img: C{ndarray}\n"
 	"@param img: initialization of image\n"

@@ -6,6 +6,18 @@
 #include "cmt/utils"
 using CMT::Exception;
 
+const char* Mixture_doc =
+	"Basic mixture class implementing expectation maximization.\n"
+	"\n"
+	"$$p(\\mathbf{x}) = \\sum_k \\pi_k p_k(\\mathbf{x})$$\n"
+	"\n"
+	"To access the parameters $\\pi_k$, use C{mixture.priors}. Mixture components are added\n"
+	"manually via C{mixture.add_component(component)}. To access component $k$, you can use\n"
+	"C{mixture[k]}.\n"
+	"\n"
+	"@type  dim: C{int}\n"
+	"@param dim: dimensionality of the data";
+
 int Mixture_init(MixtureObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"dim", 0};
 
@@ -25,6 +37,17 @@ int Mixture_init(MixtureObject* self, PyObject* args, PyObject* kwds) {
 }
 
 
+const char* MoGSM_doc =
+	"Mixture of L{Gaussian scale mixtures<models.GSM>}.\n"
+	"\n"
+	"@type  dim: C{int}\n"
+	"@param dim: dimensionality of the data\n"
+	"\n"
+	"@type  num_components: C{int}\n"
+	"@param num_components: number of initial mixture components\n"
+	"\n"
+	"@type  num_scales: C{int}\n"
+	"@param num_scales: number of scales per mixture component";
 
 int MoGSM_init(MoGSMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"dim", "num_components", "num_scales", 0};
@@ -582,6 +605,9 @@ PyObject* Mixture_setstate(MixtureObject* self, PyObject* state) {
 }
 
 
+
+const char* MixtureComponent_doc =
+	"Abstract base class for objects which can be used as mixture components.";
 
 int MixtureComponent_init(MixtureComponentObject*, PyObject*, PyObject*) {
 	PyErr_SetString(PyExc_NotImplementedError, "This is an abstract class.");
