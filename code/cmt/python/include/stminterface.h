@@ -46,6 +46,9 @@ PyObject* STM_dim_in_linear(STMObject*, void*);
 PyObject* STM_num_components(STMObject*, void*);
 PyObject* STM_num_features(STMObject*, void*);
 
+PyObject* STM_sharpness(STMObject*, void*);
+int STM_set_sharpness(STMObject*, PyObject*, void*);
+
 PyObject* STM_biases(STMObject*, void*);
 int STM_set_biases(STMObject*, PyObject*, void*);
 

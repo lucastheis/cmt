@@ -42,6 +42,7 @@ UnivariateDistribution* const STM::defaultDistribution = new Bernoulli;
 
 CMT::STM::Parameters::Parameters() :
 	Trainable::Parameters::Parameters(),
+	trainSharpness(false),
 	trainBiases(true),
 	trainWeights(true),
 	trainFeatures(true),
@@ -59,6 +60,7 @@ CMT::STM::Parameters::Parameters() :
 
 CMT::STM::Parameters::Parameters(const Parameters& params) :
 	Trainable::Parameters::Parameters(params),
+	trainSharpness(params.trainSharpness),
 	trainBiases(params.trainBiases),
 	trainWeights(params.trainWeights),
 	trainFeatures(params.trainFeatures),
@@ -77,6 +79,7 @@ CMT::STM::Parameters::Parameters(const Parameters& params) :
 CMT::STM::Parameters& CMT::STM::Parameters::operator=(const Parameters& params) {
 	Trainable::Parameters::operator=(params);
 
+	trainSharpness = params.trainSharpness;
 	trainBiases = params.trainBiases;
 	trainWeights = params.trainWeights;
 	trainFeatures = params.trainFeatures;
@@ -113,6 +116,7 @@ CMT::STM::STM(
 		throw Exception("The number of components has to be positive.");
 
 	// initialize parameters
+	mSharpness = 1.;
 	mBiases = -10. * ArrayXd::Random(mNumComponents).abs() - log(mNumComponents);
 	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100.;
 	mFeatures = sampleNormal(mDimInNonlinear, mNumFeatures) / 100.;
@@ -143,6 +147,7 @@ CMT::STM::STM(
 		throw Exception("The number of components has to be positive.");
 
 	// initialize parameters
+	mSharpness = 1.;
 	mBiases = -10. * ArrayXd::Random(mNumComponents).abs() - log(mNumComponents);
 	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100.;
 	mFeatures = sampleNormal(mDimInNonlinear, mNumFeatures) / 100.;
@@ -233,7 +238,7 @@ Array<double, 1, Dynamic> CMT::STM::response(const MatrixXd& input) const {
 	jointEnergy += mPredictors * input;
 	jointEnergy.colwise() += mBiases;
 
-	return logSumExp(jointEnergy);
+	return logSumExp(mSharpness * jointEnergy) / mSharpness;
 }
 
 
@@ -261,7 +266,8 @@ Array<double, 1, Dynamic> CMT::STM::response(
 	jointEnergy += mPredictors * inputNonlinear;
 	jointEnergy.colwise() += mBiases;
 
-	return logSumExp(jointEnergy) + (mLinearPredictor.transpose() * inputLinear).array();
+	return logSumExp(mSharpness * jointEnergy) / mSharpness
+		+ (mLinearPredictor.transpose() * inputLinear).array();
 }
 
 
@@ -306,6 +312,8 @@ void CMT::STM::initialize(const MatrixXd& input, const MatrixXd& output) {
 	int numSpikes = output.sum();
 
 	if(dimInNonlinear() > 0) {
+		mSharpness = 1.;
+
 		MatrixXd inputNonlinear = input.topRows(dimInNonlinear());
 
 		if(numSpikes > dimInNonlinear()) {
@@ -425,6 +433,8 @@ int CMT::STM::numParameters(const Trainable::Parameters& params_) const {
 		numParams += mPredictors.size();
 	if(params.trainLinearPredictor)
 		numParams += mLinearPredictor.size();
+	if(params.trainSharpness)
+		numParams += 1;
 	return numParams;
 }
 
@@ -436,6 +446,7 @@ lbfgsfloatval_t* CMT::STM::parameters(const Trainable::Parameters& params_) cons
 	lbfgsfloatval_t* x = lbfgs_malloc(numParameters(params));
 
 	int k = 0;
+
 	if(params.trainBiases)
 		for(int i = 0; i < mBiases.size(); ++i, ++k)
 			x[k] = mBiases.data()[i];
@@ -451,6 +462,8 @@ lbfgsfloatval_t* CMT::STM::parameters(const Trainable::Parameters& params_) cons
 	if(params.trainLinearPredictor)
 		for(int i = 0; i < mLinearPredictor.size(); ++i, ++k)
 			x[k] = mLinearPredictor.data()[i];
+	if(params.trainSharpness)
+		x[k++] = mSharpness;
 
 	return x;
 }
@@ -486,6 +499,9 @@ void CMT::STM::setParameters(const lbfgsfloatval_t* x, const Trainable::Paramete
 		mLinearPredictor = VectorLBFGS(const_cast<double*>(x) + offset, dimInLinear());
 		offset += mLinearPredictor.size();
 	}
+
+	if(params.trainSharpness)
+		mSharpness = x[offset++];
 }
 
 
@@ -540,6 +556,9 @@ double CMT::STM::parameterGradient(
 	if(params.trainLinearPredictor)
 		offset += linearPredictor.size();
 
+	double sharpness = params.trainSharpness ? y[offset++] : mSharpness;
+	double sharpnessGrad = 0.;
+
 	if(g) {
 		// initialize gradients
 		if(params.trainBiases)
@@ -573,11 +592,19 @@ double CMT::STM::parameterGradient(
 
 		MatrixXd jointEnergy = weights * featureOutputSq + predictors * inputNonlinear;
 		jointEnergy.colwise() += biases;
+		MatrixXd jointEnergyScaled = jointEnergy * sharpness;
 
-		Matrix<double, 1, Dynamic> response = logSumExp(jointEnergy);
+		Matrix<double, 1, Dynamic> response = logSumExp(jointEnergyScaled);
 
 		// posterior over components for each data point
-		MatrixXd posterior = (jointEnergy.rowwise() - response).array().exp();
+		MatrixXd posterior = (jointEnergyScaled.rowwise() - response).array().exp();
+
+		response /= sharpness;
+
+		MatrixXd nonlinearResponse;
+		if(params.trainSharpness)
+			// make copy of nonlinear response
+			nonlinearResponse = response;
 
 		if(dimInLinear())
 			response += linearPredictor.transpose() * inputLinear;
@@ -621,11 +648,21 @@ double CMT::STM::parameterGradient(
 		if(params.trainLinearPredictor && dimInLinear())
 			#pragma omp critical
 			linearPredictorGrad -= inputLinear * tmp.transpose().matrix();
+
+		if(params.trainSharpness) {
+			double tmp2 = ((jointEnergy.array() * posterior.array()).colwise().sum() * tmp).sum() / sharpness;
+			double tmp3 = (nonlinearResponse.array() * tmp).sum() / sharpness;
+			#pragma omp critical
+			sharpnessGrad -= tmp2 - tmp3;
+		}
 	}
 
 	double normConst = inputCompl.cols() * log(2.) * dimOut();
 
 	if(g) {
+		if(params.trainSharpness)
+			g[offset - 1] = sharpnessGrad;
+
 		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
 
