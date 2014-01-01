@@ -104,6 +104,7 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
 
     typedef typename internal::TransposeImpl_base<MatrixType>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Transpose<MatrixType>)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(TransposeImpl)
 
     inline Index innerStride() const { return derived().nestedExpression().innerStride(); }
     inline Index outerStride() const { return derived().nestedExpression().outerStride(); }
@@ -252,7 +253,7 @@ struct inplace_transpose_selector;
 template<typename MatrixType>
 struct inplace_transpose_selector<MatrixType,true> { // square matrix
   static void run(MatrixType& m) {
-    m.template triangularView<StrictlyUpper>().swap(m.transpose());
+    m.matrix().template triangularView<StrictlyUpper>().swap(m.matrix().transpose());
   }
 };
 
@@ -260,7 +261,7 @@ template<typename MatrixType>
 struct inplace_transpose_selector<MatrixType,false> { // non square matrix
   static void run(MatrixType& m) {
     if (m.rows()==m.cols())
-      m.template triangularView<StrictlyUpper>().swap(m.transpose());
+      m.matrix().template triangularView<StrictlyUpper>().swap(m.matrix().transpose());
     else
       m = m.transpose().eval();
   }
@@ -353,7 +354,7 @@ struct check_transpose_aliasing_run_time_selector
 {
   static bool run(const Scalar* dest, const OtherDerived& src)
   {
-    return (bool(blas_traits<OtherDerived>::IsTransposed) != DestIsTransposed) && (dest!=0 && dest==(Scalar*)extract_data(src));
+    return (bool(blas_traits<OtherDerived>::IsTransposed) != DestIsTransposed) && (dest!=0 && dest==(const Scalar*)extract_data(src));
   }
 };
 
@@ -362,8 +363,8 @@ struct check_transpose_aliasing_run_time_selector<Scalar,DestIsTransposed,CwiseB
 {
   static bool run(const Scalar* dest, const CwiseBinaryOp<BinOp,DerivedA,DerivedB>& src)
   {
-    return ((blas_traits<DerivedA>::IsTransposed != DestIsTransposed) && (dest!=0 && dest==(Scalar*)extract_data(src.lhs())))
-        || ((blas_traits<DerivedB>::IsTransposed != DestIsTransposed) && (dest!=0 && dest==(Scalar*)extract_data(src.rhs())));
+    return ((blas_traits<DerivedA>::IsTransposed != DestIsTransposed) && (dest!=0 && dest==(const Scalar*)extract_data(src.lhs())))
+        || ((blas_traits<DerivedB>::IsTransposed != DestIsTransposed) && (dest!=0 && dest==(const Scalar*)extract_data(src.rhs())));
   }
 };
 

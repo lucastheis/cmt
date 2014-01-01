@@ -112,7 +112,7 @@ class Tests(unittest.TestCase):
 		I = glm._fisher_information(inputs, outputs)
 
 		x_mle = []
-		
+
 		# repeated maximum likelihood estimation
 		for t in range(T):
 			inputs = randn(glm.dim_in, N)

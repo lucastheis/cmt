@@ -31,7 +31,8 @@ if any(['intel' in arg for arg in sys.argv]) or 'intel' in get_default_compiler(
 		'-DEIGEN_USE_MKL_ALL',
 		'-Wno-deprecated',
 		'-wd1224',
-		'-openmp']
+		'-openmp',
+		'-std=c++0x']
 	extra_link_args = []
 
 	for path in ['/opt/intel/mkl/lib/intel64', '/opt/intel/lib/intel64']:
@@ -43,7 +44,7 @@ elif sys.platform == 'darwin':
 	include_dirs = []
 	library_dirs = []
 	libraries = []
-	extra_compile_args = ['-stdlib=libc++']
+	extra_compile_args = ['-std=c++0x', '-stdlib=libc++']
 	extra_link_args = []
 
 	os.environ['CC'] = 'clang++'
@@ -117,6 +118,7 @@ modules = [
 			'-fPIC',
 			'code/liblbfgs/lib/.libs/liblbfgs.a'] + extra_link_args,
 		extra_compile_args=[
+			'-DEIGEN_NO_DEBUG',
 			'-Wno-sign-compare',
 			'-Wno-parentheses',
 			'-Wno-write-strings'] + extra_compile_args)]
@@ -126,7 +128,7 @@ CCompiler.compile = parallelCCompiler
 
 setup(
 	name='cmt',
-	version='0.3.5',
+	version='0.4.1',
 	author='Lucas Theis',
 	author_email='lucas@theis.io',
 	description='Fast implementations of different probabilistic models.',

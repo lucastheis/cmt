@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>cmt.models.MCBM</title>
+  <title>cmt.models.MLR</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 
@@ -56,7 +56,7 @@
       <span class="breadcrumbs">
         <a href="cmt-module.html">Package&nbsp;cmt</a> ::
         <a href="cmt.models-module.html">Package&nbsp;models</a> ::
-        Class&nbsp;MCBM
+        Class&nbsp;MLR
       </span>
     </td>
     <td>
@@ -66,45 +66,35 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="cmt.models.MCBM-class.html"
+            >]&nbsp;|&nbsp;<a href="cmt.models.MLR-class.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class MCBM</h1><p class="nomargin-top"><span class="codelink"><a href="cmt-pysrc.html#models.MCBM">source&nbsp;code</a></span></p>
+<h1 class="epydoc">Class MLR</h1><p class="nomargin-top"><span class="codelink"><a href="cmt-pysrc.html#models.MLR">source&nbsp;code</a></span></p>
 <pre class="base-tree">
                     object --+    
                              |    
 <a href="cmt.models.ConditionalDistribution-class.html">models.ConditionalDistribution</a> --+
                                  |
-                                <strong class="uidshort">models.MCBM</strong>
+                                <strong class="uidshort">models.MLR</strong>
 </pre>
 
 <hr />
-<p>An implementation of a mixture of conditional Boltzmann machines.</p>
-  <p>The conditional distribution defined by the model is</p>
-  <p>$$p(y \mid \mathbf{x}) \propto \sum_{c} \exp\left(\eta_c + \sum_i 
-  \beta_{ci} \left(\mathbf{b}_i^\top \mathbf{x}\right)^2 + 
-  \mathbf{w}_c^\top \mathbf{x} + \mathbf{y}_c^\top \mathbf{A}_c \mathbf{x} 
-  + v_c y\right),$$</p>
-  <p>where $y \in \{0, 1\}$ and $\mathbf{x} \in \mathbb{R}^N$ (although 
-  typically $\mathbf{x} \in \{0, 1\}^N$).</p>
-  <p>To create an MCBM with $N$-dimensional inputs and, for example, 8 
-  components and 100 features $\mathbf{b}_i$, use</p>
+<p>An implementation of multinomial logistic regression (also known as 
+  softmax regression).</p>
+  <p>$$p(\mathbf{y} \mid \mathbf{x}) = \frac{\exp(\mathbf{w}_i^\top 
+  \mathbf{x} + b_i)}{\sum_j \exp(\mathbf{w}_j^\top \mathbf{x} + 
+  b_j)},$$</p>
+  <p>for $\mathbf{y} \in \{0, 1\}^N$ with $y_i = 1$ and $y_j = 0$ for all 
+  $j \neq i$.</p>
+  <p>To access linear filters $\mathbf{w}_i$ and biases $b$, use</p>
 <pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>mcbm = MCBM(N, 8, 100)</pre>
-  <p>To access the different parameters, you can use</p>
-<pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>mcbm.priors
-<span class="py-prompt">&gt;&gt;&gt; </span>mcbm.weights
-<span class="py-prompt">&gt;&gt;&gt; </span>mcbm.features
-<span class="py-prompt">&gt;&gt;&gt; </span>mcbm.predictors
-<span class="py-prompt">&gt;&gt;&gt; </span>mcbm.input_bias
-<span class="py-prompt">&gt;&gt;&gt; </span>mcbm.output_bias</pre>
-  <p>which correspond to $\eta_{c}$, $\beta_{ci}$, $\mathbf{b}_i$, 
-  $\mathbf{A}_c$, $\mathbf{w}_c$,and $v_c$, respectively.</p>
+<span class="py-prompt">&gt;&gt;&gt; </span>mlr = MLR(M, N)
+<span class="py-prompt">&gt;&gt;&gt; </span>mlr.weights
+<span class="py-prompt">&gt;&gt;&gt; </span>mlr.biases</pre>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -129,10 +119,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.models.MCBM-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.models.MLR-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt-pysrc.html#models.MCBM.__init__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.MLR.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -146,11 +136,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.models.MCBM-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
+          <td><span class="summary-sig"><a href="cmt.models.MLR-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
         <span class="summary-sig-arg">S</span>,
         <span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt-pysrc.html#models.MCBM.__new__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.MLR.__new__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -164,10 +154,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.models.MCBM-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.models.MLR-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Method used by Pickle.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt-pysrc.html#models.MCBM.__reduce__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.MLR.__reduce__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -184,7 +174,7 @@
           <td><span class="summary-sig"><a name="__setstate__"></a><span class="summary-sig-name">__setstate__</span>(<span class="summary-sig-arg">self</span>)</span><br />
       Method used by Pickle.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt-pysrc.html#models.MCBM.__setstate__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.MLR.__setstate__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -198,14 +188,14 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.models.MCBM-class.html#_check_gradient" class="summary-sig-name" onclick="show_private();">_check_gradient</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="cmt.models.MLR-class.html#_check_gradient" class="summary-sig-name" onclick="show_private();">_check_gradient</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">input</span>,
         <span class="summary-sig-arg">output</span>,
         <span class="summary-sig-arg">epsilon</span>=<span class="summary-sig-default">1e-5</span>,
         <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
       Compare the gradient to a numerical gradient.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt-pysrc.html#models.MCBM._check_gradient">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.MLR._check_gradient">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -219,7 +209,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.models.MCBM-class.html#_check_performance" class="summary-sig-name" onclick="show_private();">_check_performance</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="cmt.models.MLR-class.html#_check_performance" class="summary-sig-name" onclick="show_private();">_check_performance</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">input</span>,
         <span class="summary-sig-arg">output</span>,
         <span class="summary-sig-arg">repetitions</span>=<span class="summary-sig-default">2</span>,
@@ -227,48 +217,7 @@
       Measures the time it takes to evaluate the parameter gradient for the
       given data points.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt-pysrc.html#models.MCBM._check_performance">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr class="private">
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type"><code>ndarray</code></span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt.models.MCBM-class.html#_parameter_gradient" class="summary-sig-name" onclick="show_private();">_parameter_gradient</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">input</span>,
-        <span class="summary-sig-arg">output</span>,
-        <span class="summary-sig-arg">x</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Computes the gradient of the parameters as returned by <a 
-      href="cmt.models.MCBM-class.html#_parameters" class="link" 
-      onclick="show_private();">_parameters()</a>.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="cmt-pysrc.html#models.MCBM._parameter_gradient">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr class="private">
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type"><code>ndarray</code></span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="cmt.models.MCBM-class.html#_parameters" class="summary-sig-name" onclick="show_private();">_parameters</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Summarizes the parameters of the model in a long vector.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="cmt-pysrc.html#models.MCBM._parameters">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.MLR._check_performance">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -282,13 +231,9 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.models.MCBM-class.html#_set_parameters" class="summary-sig-name" onclick="show_private();">_set_parameters</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">x</span>,
-        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Loads all model parameters from a vector as produced by <code 
-      class="link">parameters()</code>.</td>
+          <td><span class="summary-sig"><a name="_parameter_gradient"></a><span class="summary-sig-name">_parameter_gradient</span>(<span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt-pysrc.html#models.MCBM._set_parameters">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.MLR._parameter_gradient">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -296,19 +241,37 @@
       
     </td>
   </tr>
-<tr>
+<tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type"><code>ndarray</code></span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.models.MCBM-class.html#sample_posterior" class="summary-sig-name">sample_posterior</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">input</span>,
-        <span class="summary-sig-arg">output</span>)</span><br />
-      Samples component labels $c$ from the posterior $p(c \mid \mathbf{x},
-      \mathbf{y})$.</td>
+          <td><span class="summary-sig"><a href="cmt.models.MLR-class.html#_parameters" class="summary-sig-name" onclick="show_private();">_parameters</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Summarizes the parameters of the model in a long vector.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt-pysrc.html#models.MCBM.sample_posterior">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.MLR._parameters">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.models.MLR-class.html#_set_parameters" class="summary-sig-name" onclick="show_private();">_set_parameters</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">x</span>,
+        <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Loads all model parameters from a vector as produced by <code 
+      class="link">parameters()</code>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="cmt-pysrc.html#models.MLR._set_parameters">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -322,7 +285,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.models.MCBM-class.html#train" class="summary-sig-name">train</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="cmt.models.MLR-class.html#train" class="summary-sig-name">train</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">input</span>,
         <span class="summary-sig-arg">output</span>,
         <span class="summary-sig-arg">input_val</span>=<span class="summary-sig-default">None</span>,
@@ -330,7 +293,7 @@
         <span class="summary-sig-arg">parameters</span>=<span class="summary-sig-default">None</span>)</span><br />
       Fits model parameters to given data using L-BFGS.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt-pysrc.html#models.MCBM.train">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.MLR.train">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -382,56 +345,8 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="features"></a><span class="summary-name">features</span><br />
-      Features used for capturing structure in inputs, $\mathbf{b}_i$.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="input_bias"></a><span class="summary-name">input_bias</span><br />
-      Input bias vectors, $\mathbf{w}_c$.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="num_components"></a><span class="summary-name">num_components</span><br />
-      Numer of predictors.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="num_features"></a><span class="summary-name">num_features</span><br />
-      Number of features available to approximate input covariances.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="output_bias"></a><span class="summary-name">output_bias</span><br />
-      Output biases, $v_c$.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="predictors"></a><span class="summary-name">predictors</span><br />
-      Parameters relating inputs and outputs, $\mathbf{A}_c$.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="priors"></a><span class="summary-name">priors</span><br />
-      Log-weights of mixture components and scales, $\eta_{cs}$.
+        <a name="biases"></a><span class="summary-name">biases</span><br />
+      Bias terms, $b_i$.
     </td>
   </tr>
 <tr>
@@ -439,7 +354,7 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="weights"></a><span class="summary-name">weights</span><br />
-      Weights relating features and mixture components, $\beta_{ci}$.
+      Linear filters, $\mathbf{w}_i$, one per row.
     </td>
   </tr>
   <tr>
@@ -483,7 +398,7 @@
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt-pysrc.html#models.MCBM.__init__">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.MLR.__init__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -492,8 +407,7 @@
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
         <li><strong class="pname"><code>dim_in</code></strong> (<code>int</code>) - dimensionality of input</li>
-        <li><strong class="pname"><code>num_components</code></strong> (<code>int</code>) - number of components</li>
-        <li><strong class="pname"><code>num_features</code></strong> (<code>int</code>) - number of quadratic features</li>
+        <li><strong class="pname"><code>dim_out</code></strong> (<code>int</code>) - number of possible outputs (one-hot encoded)</li>
     </ul></dd>
     <dt>Overrides:
         object.__init__
@@ -513,7 +427,7 @@
         <span class="sig-arg">...</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt-pysrc.html#models.MCBM.__new__">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.MLR.__new__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -536,7 +450,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__reduce__</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt-pysrc.html#models.MCBM.__reduce__">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.MLR.__reduce__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -562,7 +476,7 @@
         <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt-pysrc.html#models.MCBM._check_gradient">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.MLR._check_gradient">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -598,7 +512,7 @@
         <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt-pysrc.html#models.MCBM._check_performance">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.MLR._check_performance">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -619,42 +533,6 @@
   </dl>
 </td></tr></table>
 </div>
-<a name="_parameter_gradient"></a>
-<div class="private">
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">_parameter_gradient</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">input</span>,
-        <span class="sig-arg">output</span>,
-        <span class="sig-arg">x</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt-pysrc.html#models.MCBM._parameter_gradient">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Computes the gradient of the parameters as returned by <a 
-  href="cmt.models.MCBM-class.html#_parameters" class="link" 
-  onclick="show_private();">_parameters()</a>.</p>
-  <p>If <code>x</code> is not specified, the gradient will be evaluated for
-  the current parameters of the model.</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>input</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
-        <li><strong class="pname"><code>output</code></strong> (<code>ndarray</code>) - outputs stored in columns</li>
-        <li><strong class="pname"><code>x</code></strong> (<code>ndarray</code>) - set of parameters for which to evaluate gradient</li>
-        <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
-    </ul></dd>
-    <dt>Returns: <code>ndarray</code></dt>
-        <dd>gradient of model parameters</dd>
-  </dl>
-</td></tr></table>
-</div>
 <a name="_parameters"></a>
 <div class="private">
 <table class="details" border="1" cellpadding="3"
@@ -666,7 +544,7 @@
         <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt-pysrc.html#models.MCBM._parameters">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.MLR._parameters">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -695,7 +573,7 @@
         <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt-pysrc.html#models.MCBM._set_parameters">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.MLR._set_parameters">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -707,36 +585,6 @@
         <li><strong class="pname"><code>x</code></strong> (<code>ndarray</code>) - all model parameters concatenated to a vector</li>
         <li><strong class="pname"><code>parameters</code></strong> (<code>dict</code>) - a dictionary containing hyperparameters</li>
     </ul></dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="sample_posterior"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">sample_posterior</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">input</span>,
-        <span class="sig-arg">output</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt-pysrc.html#models.MCBM.sample_posterior">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Samples component labels $c$ from the posterior $p(c \mid \mathbf{x}, 
-  \mathbf{y})$.</p>
-  <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>input</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
-        <li><strong class="pname"><code>output</code></strong> (<code>ndarray</code>) - inputs stored in columns</li>
-    </ul></dd>
-    <dt>Returns: <code>ndarray</code></dt>
-        <dd>an integer array containing a sampled index for each input and 
-          output pair</dd>
   </dl>
 </td></tr></table>
 </div>
@@ -755,11 +603,13 @@
         <span class="sig-arg">parameters</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt-pysrc.html#models.MCBM.train">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.MLR.train">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Fits model parameters to given data using L-BFGS.</p>
+  <p>Fits model parameters to given data using L-BFGS. Because the 
+  parameters are redundant, the filter and bias belonging to the first 
+  output are fixed and only the remaining parameters are optimized.</p>
   <p>The following example demonstrates possible parameters and default 
   settings.</p>
 <pre class="py-doctest">
@@ -773,23 +623,16 @@
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'cb_iter'</span>: 25,
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'val_iter'</span>: 5,
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'val_look_ahead'</span>: 20,
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_priors'</span>: True,
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_weights'</span>: True,
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_features'</span>: True,
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_predictors'</span>: True,
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_input_bias'</span>: True,
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_output_bias'</span>: True,
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_biases'</span>: True,
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularizer'</span>: <span class="py-string">'L2'</span>,
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_features'</span>: 0.,
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_weights'</span>: 0.,
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_predictors'</span>: 0.
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_bias'</span>: 0.,
 <span class="py-prompt">&gt;&gt;&gt; </span>})</pre>
-  <p>The parameters <code>train_priors</code>, <code>train_weights</code>, 
-  and so on can be used to control which parameters will be optimized. 
-  Optimization stops after <code>max_iter</code> iterations or if the 
-  difference in (penalized) log-likelihood is sufficiently small enough, as
-  specified by <code>threshold</code>. <code>num_grad</code> is the number 
-  of gradients used by L-BFGS to approximate the inverse Hessian 
+  <p>The optimization stops after <code>max_iter</code> iterations or if 
+  the difference in (penalized) log-likelihood is sufficiently small 
+  enough, as specified by <code>threshold</code>. <code>num_grad</code> is 
+  the number of gradients used by L-BFGS to approximate the inverse Hessian
   matrix.</p>
   <p>The parameter <code>batch_size</code> has no effect on the solution of
   the optimization but can affect speed by reducing the number of cache 
@@ -799,7 +642,7 @@
   the current iteration, the second argument will be a <i>copy</i> of the 
   model.</p>
 <pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">def</span> <span class="py-defname">callback</span>(i, mcbm):
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">def</span> <span class="py-defname">callback</span>(i, mlr):
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-keyword">print</span> i</pre>
   <dl class="fields">
     <dt>Parameters:</dt>

@@ -417,10 +417,10 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 
 
 const char* sample_image_conditionally_doc =
-	"sample_image(img, model, labels, input_mask, output_mask, preconditioner=None, num_iter=10)\n"
+	"sample_image(img, model, labels, input_mask, output_mask, preconditioner=None, num_iter=10, initialize=False)\n"
 	"\n"
-	"Conditionally samples an image from an L{MCGSM<models.MCGSM>} using Gibbs sampling.\n"
-	"The image passed to this function is used as the initialization of the Gibbs sampler.\n"
+	"Conditionally samples an image from an L{MCGSM<models.MCGSM>} using Metropolis-within-Gibbs\n"
+	"sampling. The image passed to this function is used as the initialization of the Gibbs sampler.\n"
 	"\n"
 	"@type  img: C{ndarray}\n"
 	"@param img: initialization of image\n"
@@ -443,6 +443,9 @@ const char* sample_image_conditionally_doc =
 	"@type  num_iter: C{int}\n"
 	"@param num_iter: the number of Gibbs updates of each pixel\n"
 	"\n"
+	"@type  initialize: C{bool}\n"
+	"@param initialize: if true, accept all proposed pixel updates in the first iteration\n"
+	"\n"
 	"@rtype: C{ndarray}\n"
 	"@return: the sampled image";
 
@@ -454,7 +457,8 @@ PyObject* sample_image_conditionally(PyObject* self, PyObject* args, PyObject* k
 		"input_mask",
 		"output_mask",
 		"preconditioner",
-		"num_iter", 0};
+		"num_iter",
+		"initialize", 0};
 
 	PyObject* img;
 	PyObject* labels;
@@ -463,15 +467,17 @@ PyObject* sample_image_conditionally(PyObject* self, PyObject* args, PyObject* k
 	PyObject* output_mask;
 	PyObject* preconditionerObj = 0;
 	int num_iter = 10;
+	bool initialize = false;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOO!OO|O!i", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOO!OO|O!ib", const_cast<char**>(kwlist),
 		&img, 
 		&labels,
 		&MCGSM_type, &modelObj,
 		&input_mask,
 		&output_mask,
 		&Preconditioner_type, &preconditionerObj,
-		&num_iter))
+		&num_iter,
+		&initialize))
 		return 0;
 
 	const MCGSM& model = *reinterpret_cast<MCGSMObject*>(modelObj)->mcgsm;
@@ -546,7 +552,8 @@ PyObject* sample_image_conditionally(PyObject* self, PyObject* args, PyObject* k
 					PyArray_ToMatrixXb(input_mask),
 					PyArray_ToMatrixXb(output_mask),
 					preconditioner,
-					num_iter));
+					num_iter,
+					initialize));
 //		}
 
 		Py_DECREF(img);
@@ -584,7 +591,7 @@ PyObject* sample_image_conditionally(PyObject* self, PyObject* args, PyObject* k
 const char* sample_labels_conditionally_doc =
 	"sample_labels_conditionally(img, model, input_mask, output_mask, preconditioner=None)\n"
 	"\n"
-	"Samples component labels from an L{MCGSM<model.MCGSM>} for a given image.\n"
+	"Samples component labels from an L{MCGSM<models.MCGSM>} for a given image.\n"
 	"\n"
 	"@type  img: C{ndarray}\n"
 	"@param img: initialization of image\n"

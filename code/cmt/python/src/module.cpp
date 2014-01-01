@@ -176,6 +176,14 @@ static PyGetSetDef MCGSM_getset[] = {
 		(getter)MCGSM_predictors,
 		(setter)MCGSM_set_predictors,
 		"A list of linear predictors, $\\mathbf{A}_c$."},
+	{"linear_features",
+		(getter)MCGSM_linear_features,
+		(setter)MCGSM_set_linear_features,
+		"Linear features, $\\mathbf{w}_c$."},
+	{"means",
+		(getter)MCGSM_means,
+		(setter)MCGSM_set_means,
+		"Means of outputs, $\\{u}_c$."},
 	{0}
 };
 
@@ -560,7 +568,7 @@ PyTypeObject Mixture_type = {
 	0,                                /*tp_setattro*/
 	0,                                /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
-	0,                                /*tp_doc*/
+	Mixture_doc,                      /*tp_doc*/
 	0,                                /*tp_traverse*/
 	0,                                /*tp_clear*/
 	0,                                /*tp_richcompare*/
@@ -615,7 +623,7 @@ PyTypeObject MoGSM_type = {
 	0,                                /*tp_setattro*/
 	0,                                /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
-	0,                                /*tp_doc*/
+	MoGSM_doc,                        /*tp_doc*/
 	0,                                /*tp_traverse*/
 	0,                                /*tp_clear*/
 	0,                                /*tp_richcompare*/
@@ -663,7 +671,7 @@ PyTypeObject MixtureComponent_type = {
 	0,                                /*tp_setattro*/
 	0,                                /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
-	0,                                /*tp_doc*/
+	MixtureComponent_doc,             /*tp_doc*/
 	0,                                /*tp_traverse*/
 	0,                                /*tp_clear*/
 	0,                                /*tp_richcompare*/

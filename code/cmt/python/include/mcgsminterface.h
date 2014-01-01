@@ -71,6 +71,12 @@ int MCGSM_set_cholesky_factors(MCGSMObject*, PyObject*, void*);
 PyObject* MCGSM_predictors(MCGSMObject*, PyObject*, void*);
 int MCGSM_set_predictors(MCGSMObject*, PyObject*, void*);
 
+PyObject* MCGSM_linear_features(MCGSMObject*, PyObject*, void*);
+int MCGSM_set_linear_features(MCGSMObject*, PyObject*, void*);
+
+PyObject* MCGSM_means(MCGSMObject*, PyObject*, void*);
+int MCGSM_set_means(MCGSMObject*, PyObject*, void*);
+
 PyObject* MCGSM_train(MCGSMObject*, PyObject*, PyObject*);
 
 PyObject* MCGSM_check_gradient(MCGSMObject*, PyObject*, PyObject*);

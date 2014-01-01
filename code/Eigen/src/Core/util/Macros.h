@@ -13,7 +13,7 @@
 
 #define EIGEN_WORLD_VERSION 3
 #define EIGEN_MAJOR_VERSION 1
-#define EIGEN_MINOR_VERSION 2
+#define EIGEN_MINOR_VERSION 4
 
 #define EIGEN_VERSION_AT_LEAST(x,y,z) (EIGEN_WORLD_VERSION>x || (EIGEN_WORLD_VERSION>=x && \
                                       (EIGEN_MAJOR_VERSION>y || (EIGEN_MAJOR_VERSION>=y && \
@@ -158,11 +158,11 @@
 #define EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 #define EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS inline
 
-#ifdef NDEBUG
-# ifndef EIGEN_NO_DEBUG
-#  define EIGEN_NO_DEBUG
-# endif
-#endif
+//#ifdef NDEBUG
+//# ifndef EIGEN_NO_DEBUG
+//#  define EIGEN_NO_DEBUG
+//# endif
+//#endif
 
 // eigen_plain_assert is where we implement the workaround for the assert() bug in GCC <= 4.3, see bug 89
 #ifdef EIGEN_NO_DEBUG

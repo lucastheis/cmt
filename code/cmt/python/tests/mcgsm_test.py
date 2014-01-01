@@ -52,6 +52,10 @@ class Tests(unittest.TestCase):
 		self.assertEqual(mcgsm.cholesky_factors[0].shape[1], dim_out)
 		self.assertEqual(mcgsm.predictors[0].shape[0], dim_out)
 		self.assertEqual(mcgsm.predictors[0].shape[1], dim_in)
+		self.assertEqual(mcgsm.linear_features.shape[0], num_components)
+		self.assertEqual(mcgsm.linear_features.shape[1], dim_in)
+		self.assertEqual(mcgsm.means.shape[0], dim_out)
+		self.assertEqual(mcgsm.means.shape[1], num_components)
 
 		# check dimensionality of output
 		self.assertEqual(output.shape[0], dim_out)
@@ -146,7 +150,10 @@ class Tests(unittest.TestCase):
 			dot(cholesky(C0), randn(mcgsm.dim_out, round(p0 * N))) + m0,
 			dot(cholesky(C1), randn(mcgsm.dim_out, round(p1 * N))) + m1]) * (rand(1, N) + 0.5)
 
-		mcgsm.train(input, output, parameters={'verbosity': 0, 'max_iter': 10})
+		mcgsm.train(input, output, parameters={
+			'verbosity': 0,
+			'max_iter': 10,
+			'train_means': True})
 
 		mogsm = MoGSM(3, 2, 2)
 
@@ -154,7 +161,7 @@ class Tests(unittest.TestCase):
 		mogsm.priors = sum(exp(mcgsm.priors), 1) / sum(exp(mcgsm.priors))
 
 		for k in range(mogsm.num_components):
-			mogsm[k].mean = zeros([mogsm.dim, 1])
+			mogsm[k].mean = mcgsm.means[:, k]
 			mogsm[k].covariance = inv(dot(mcgsm.cholesky_factors[k], mcgsm.cholesky_factors[k].T))
 			mogsm[k].scales = exp(mcgsm.scales[k, :])
 			mogsm[k].priors = exp(mcgsm.priors[k, :]) / sum(exp(mcgsm.priors[k, :]))
@@ -217,6 +224,9 @@ class Tests(unittest.TestCase):
 	def test_conditional_loglikelihood(self):
 		mcgsm = MCGSM(3, 1, 2, 1, 4)
 
+		mcgsm.linear_features = randn(mcgsm.num_components, mcgsm.dim_in) / 5.
+		mcgsm.means = randn(mcgsm.dim_out, mcgsm.num_components) / 5.
+
 		M = 100
 
 		inputs = randn(mcgsm.dim_in, M)
@@ -251,13 +261,16 @@ class Tests(unittest.TestCase):
 			cholesky_factors.append(cholesky(cov(randn(mcgsm.dim_out, mcgsm.dim_out**2))))
 		mcgsm.cholesky_factors = cholesky_factors
 
+		mcgsm.linear_features = randn(mcgsm.num_components, mcgsm.dim_in) / 5.
+		mcgsm.means = randn(mcgsm.dim_out, mcgsm.num_components) / 5.
+
 		err = mcgsm._check_gradient(
 			randn(mcgsm.dim_in, 1000),
 			randn(mcgsm.dim_out, 1000), 1e-5)
 		self.assertLess(err, 1e-8)
 
 		# without regularization
-		for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred']:
+		for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred', 'linear_features', 'means']:
 			err = mcgsm._check_gradient(
 				randn(mcgsm.dim_in, 1000),
 				randn(mcgsm.dim_out, 1000),
@@ -269,12 +282,14 @@ class Tests(unittest.TestCase):
 					'train_features': param == 'features',
 					'train_cholesky_factors': param == 'chol',
 					'train_predictors': param == 'pred',
+					'train_linear_features': param == 'linear_features',
+					'train_means': param == 'means',
 				})
 			self.assertLess(err, 1e-8)
 
 		# with regularization
 		for regularizer in ['L1', 'L2']:
-			for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred']:
+			for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred', 'linear_features', 'means']:
 				err = mcgsm._check_gradient(
 					randn(mcgsm.dim_in, 1000),
 					randn(mcgsm.dim_out, 1000),
@@ -286,10 +301,14 @@ class Tests(unittest.TestCase):
 						'train_features': param == 'features',
 						'train_cholesky_factors': param == 'chol',
 						'train_predictors': param == 'pred',
+						'train_linear_features': param == 'linear_features',
+						'train_means': param == 'means',
 						'regularizer': regularizer,
 						'regularize_features': 0.4,
 						'regularize_predictors': 0.5,
 						'regularize_weights': 0.7,
+						'regularize_linear_features': 0.3,
+						'regularize_means': 0.6,
 					})
 				self.assertLess(err, 1e-6)
 
@@ -358,6 +377,9 @@ class Tests(unittest.TestCase):
 	def test_pickle(self):
 		mcgsm0 = MCGSM(11, 2, 4, 7, 21)
 
+		mcgsm0.linear_features = randn(mcgsm0.num_components, mcgsm0.dim_in)
+		mcgsm0.means = randn(mcgsm0.dim_out, mcgsm0.num_components)
+
 		tmp_file = mkstemp()[1]
 
 		# store model
@@ -378,6 +400,8 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(mcgsm0.scales - mcgsm1.scales)), 1e-20)
 		self.assertLess(max(abs(mcgsm0.weights - mcgsm1.weights)), 1e-20)
 		self.assertLess(max(abs(mcgsm0.features - mcgsm1.features)), 1e-20)
+		self.assertLess(max(abs(mcgsm0.linear_features - mcgsm1.linear_features)), 1e-20)
+		self.assertLess(max(abs(mcgsm0.means - mcgsm1.means)), 1e-20)
 
 		for chol0, chol1 in zip(mcgsm0.cholesky_factors, mcgsm1.cholesky_factors):
 			self.assertLess(max(abs(chol0 - chol1)), 1e-20)
