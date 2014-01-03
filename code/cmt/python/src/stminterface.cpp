@@ -783,15 +783,17 @@ PyObject* STM_reduce(STMObject* self, PyObject*) {
 	PyObject* features = STM_features(self, 0);
 	PyObject* predictors = STM_predictors(self, 0);
 	PyObject* linear_predictor = STM_linear_predictor(self, 0);
+	PyObject* sharpness = STM_sharpness(self, 0);
 
-	PyObject* state = Py_BuildValue("(OOOOO)",
-		biases, weights, features, predictors, linear_predictor);
+	PyObject* state = Py_BuildValue("(OOOOOO)",
+		biases, weights, features, predictors, linear_predictor, sharpness);
 
 	Py_DECREF(biases);
 	Py_DECREF(weights);
 	Py_DECREF(features);
 	Py_DECREF(predictors);
 	Py_DECREF(linear_predictor);
+	Py_DECREF(sharpness);
 
 	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
 
@@ -814,10 +816,15 @@ PyObject* STM_setstate(STMObject* self, PyObject* state) {
 	PyObject* features;
 	PyObject* predictors;
 	PyObject* linear_predictor;
+	PyObject* sharpness = 0;
 
-	if(!PyArg_ParseTuple(state, "(OOOOO)",
-		&biases, &weights, &features, &predictors, &linear_predictor))
-		return 0;
+	if(!PyArg_ParseTuple(state, "(OOOOOO)", &biases, &weights, &features, &predictors, &linear_predictor, &sharpness)) {
+		PyErr_Clear();
+
+		// try without sharpness for backwards-compatibility
+		if(!PyArg_ParseTuple(state, "(OOOOO)", &biases, &weights, &features, &predictors, &linear_predictor))
+			return 0;
+	}
 
 	try {
 		STM_set_biases(self, biases, 0);
@@ -825,6 +832,9 @@ PyObject* STM_setstate(STMObject* self, PyObject* state) {
 		STM_set_features(self, features, 0);
 		STM_set_predictors(self, predictors, 0);
 		STM_set_linear_predictor(self, linear_predictor, 0);
+
+		if(sharpness)
+			STM_set_sharpness(self, sharpness, 0);
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
