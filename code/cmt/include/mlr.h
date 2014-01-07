@@ -70,6 +70,16 @@ namespace CMT {
 				const MatrixXd& input,
 				const MatrixXd& output) const;
 
+			virtual double evaluate(const MatrixXd& input, const MatrixXd& output) const;
+			virtual double evaluate(
+					const MatrixXd& input,
+					const MatrixXd& output,
+					const Preconditioner& preconditioner) const;
+			virtual double evaluate(const pair<ArrayXXd, ArrayXXd>& data) const;
+			virtual double evaluate(
+					const pair<ArrayXXd, ArrayXXd>& data,
+					const Preconditioner& preconditioner) const;
+
 		private:
 			int mDimIn;
 			int mDimOut;

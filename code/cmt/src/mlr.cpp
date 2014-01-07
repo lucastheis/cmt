@@ -108,7 +108,7 @@ MatrixXd CMT::MLR::sample(const MatrixXd& input) const {
 
 	#pragma omp parallel for
 	for(int j = 0; j < input.cols(); ++j) {
-		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double urand = static_cast<double>(rand()) / RAND_MAX;
 		double cdf = 0.;
 
 		for(int k = 0; k < mDimOut; ++k) {
@@ -260,4 +260,42 @@ double CMT::MLR::parameterGradient(
 
 	// return negative average log-likelihood in bits
 	return -(logProb * output.array()).sum() / normConst;
+}
+
+
+
+double CMT::MLR::evaluate(
+	const MatrixXd& input,
+	const MatrixXd& output) const
+{
+	return -logLikelihood(input, output).mean() / log(2.);
+}
+
+
+
+double CMT::MLR::evaluate(
+	const MatrixXd& input,
+	const MatrixXd& output,
+	const Preconditioner& preconditioner) const
+{
+	return -logLikelihood(preconditioner(input, output)).mean() / log(2.)
+		- preconditioner.logJacobian(input, output).mean() / log(2.);
+}
+
+
+
+double CMT::MLR::evaluate(
+	const pair<ArrayXXd, ArrayXXd>& data) const
+{
+	return -logLikelihood(data.first, data.second).mean() / log(2.);
+}
+
+
+
+double CMT::MLR::evaluate(
+	const pair<ArrayXXd, ArrayXXd>& data,
+	const Preconditioner& preconditioner) const
+{
+	return -logLikelihood(preconditioner(data.first, data.second)).mean() / log(2.)
+		- preconditioner.logJacobian(data).mean() / log(2.);
 }
