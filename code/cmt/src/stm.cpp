@@ -170,6 +170,18 @@ MatrixXd CMT::STM::sample(const MatrixXd& inputNonlinear, const MatrixXd& inputL
 
 
 
+MatrixXd CMT::STM::predict(const MatrixXd& input) const {
+	return mNonlinearity->operator()(response(input));
+}
+
+
+
+MatrixXd CMT::STM::predict(const MatrixXd& inputNonlinear, const MatrixXd& inputLinear) const {
+	return mNonlinearity->operator()(response(inputNonlinear, inputLinear));
+}
+
+
+
 Array<double, 1, Dynamic> CMT::STM::logLikelihood(
 	const MatrixXd& input,
 	const MatrixXd& output) const

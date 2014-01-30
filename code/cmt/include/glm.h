@@ -63,6 +63,7 @@ namespace CMT {
 				const MatrixXd& output) const;
 
 			virtual MatrixXd sample(const MatrixXd& input) const;
+			virtual MatrixXd predict(const MatrixXd& input) const;
 
 			virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
 				const MatrixXd& input,

@@ -101,6 +101,10 @@ namespace CMT {
 			virtual MatrixXd sample(
 				const MatrixXd& inputNonlinear,
 				const MatrixXd& inputLinear) const;
+			virtual MatrixXd predict(const MatrixXd& input) const;
+			virtual MatrixXd predict(
+				const MatrixXd& inputNonlinear,
+				const MatrixXd& inputLinear) const;
 
 			virtual Array<double, 1, Dynamic> logLikelihood(
 				const MatrixXd& input,
