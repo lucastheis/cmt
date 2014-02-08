@@ -246,8 +246,12 @@ Array<double, 1, Dynamic> CMT::STM::response(const MatrixXd& input) const {
 			numComponents() > 1 ? log(mBiases.array().exp().sum()) : mBiases[0]);
 
 	// model has only nonlinear inputs
-	MatrixXd jointEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
-	jointEnergy += mPredictors * input;
+	MatrixXd jointEnergy;
+	if(numFeatures() > 0)
+		jointEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix()
+			+ mPredictors * input;
+	else
+		jointEnergy = mPredictors * input;
 	jointEnergy.colwise() += mBiases;
 
 	return logSumExp(mSharpness * jointEnergy) / mSharpness;
@@ -274,8 +278,12 @@ Array<double, 1, Dynamic> CMT::STM::response(
 	}
 
 	// model has linear and nonlinear inputs
-	MatrixXd jointEnergy = mWeights * (mFeatures.transpose() * inputNonlinear).array().square().matrix();
-	jointEnergy += mPredictors * inputNonlinear;
+	MatrixXd jointEnergy;
+	if(numFeatures() > 0)
+		jointEnergy = mWeights * (mFeatures.transpose() * inputNonlinear).array().square().matrix()
+			+ mPredictors * inputNonlinear;
+	else
+		jointEnergy = mPredictors * inputNonlinear;
 	jointEnergy.colwise() += mBiases;
 
 	return logSumExp(mSharpness * jointEnergy) / mSharpness
@@ -292,8 +300,12 @@ ArrayXXd CMT::STM::nonlinearResponses(const MatrixXd& input) const {
 		// model has only linear inputs
 		return MatrixXd::Zero(numComponents(), input.cols()).colwise() + mBiases;
 
-	MatrixXd jointEnergy = mWeights * (mFeatures.transpose() * input.topRows(dimInNonlinear())).array().square().matrix();
-	jointEnergy += mPredictors * input.topRows(dimInNonlinear());
+	MatrixXd jointEnergy;
+	if(numFeatures() > 0)
+		jointEnergy = mWeights * (mFeatures.transpose() * input.topRows(dimInNonlinear())).array().square().matrix()
+			+ mPredictors * input.topRows(dimInNonlinear());
+	else
+		jointEnergy = mPredictors * input.topRows(dimInNonlinear());
 	jointEnergy.colwise() += mBiases;
 
 	return jointEnergy;
@@ -587,18 +599,23 @@ double CMT::STM::parameterGradient(
 
 	#pragma omp parallel for
 	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
-		// TODO: can this be done more efficiently?
 		int width = min(batchSize, numData - b);
 		const MatrixXd& inputNonlinear = inputCompl.block(0, b, dimInNonlinear(), width);
 		const MatrixXd& inputLinear = inputCompl.block(dimInNonlinear(), b, dimInLinear(), width);
 		const MatrixXd& output = outputCompl.middleCols(b, width);
 
-		ArrayXXd featureOutput = features.transpose() * inputNonlinear;
-		MatrixXd featureOutputSq = featureOutput.square();
-		MatrixXd weightsOutput = weights * featureOutputSq;
-		ArrayXXd predictorOutput = predictors * inputNonlinear;
+		ArrayXXd featureOutput;
+		MatrixXd featureOutputSq;
+		MatrixXd jointEnergy;
 
-		MatrixXd jointEnergy = weights * featureOutputSq + predictors * inputNonlinear;
+		if(numFeatures() > 0) {
+			featureOutput = features.transpose() * inputNonlinear;
+			featureOutputSq = featureOutput.square();
+			jointEnergy = weights * featureOutputSq + predictors * inputNonlinear;
+		} else {
+			jointEnergy = predictors * inputNonlinear;
+		}
+
 		jointEnergy.colwise() += biases;
 		MatrixXd jointEnergyScaled = jointEnergy * sharpness;
 
@@ -638,22 +655,24 @@ double CMT::STM::parameterGradient(
 			#pragma omp critical
 			biasesGrad -= postTmp.rowwise().sum();
 
-		if(params.trainWeights)
-			#pragma omp critical
-			weightsGrad -= postTmp * featureOutputSq.transpose();
+		if(numFeatures() > 0) {
+			if(params.trainWeights)
+				#pragma omp critical
+				weightsGrad -= postTmp * featureOutputSq.transpose();
 
-		if(params.trainFeatures) {
-			ArrayXXd tmp2 = 2. * weights.transpose() * postTmp;
-			MatrixXd tmp3 = featureOutput * tmp2;
-			#pragma omp critical
-			featuresGrad -= inputNonlinear * tmp3.transpose();
+			if(params.trainFeatures) {
+				ArrayXXd tmp2 = 2. * weights.transpose() * postTmp;
+				MatrixXd tmp3 = featureOutput * tmp2;
+				#pragma omp critical
+				featuresGrad -= inputNonlinear * tmp3.transpose();
+			}
 		}
 
 		if(params.trainPredictors)
 			#pragma omp critical
 			predictorsGrad -= postTmp * inputNonlinear.transpose();
 
-		if(params.trainLinearPredictor && dimInLinear())
+		if(params.trainLinearPredictor && dimInLinear() > 0)
 			#pragma omp critical
 			linearPredictorGrad -= inputLinear * tmp.transpose().matrix();
 
@@ -787,12 +806,12 @@ bool CMT::STM::train(
 
 		return true;
 
-	} else if(!dimInNonlinear()) {
-		if(dimInLinear() != input.rows())
+	} else if(!dimInNonlinear() || (numComponents() == 1 && numFeatures() == 0)) {
+		if(dimIn() != input.rows())
 			throw Exception("Input has wrong dimensionality.");
 
 		// STM reduces to GLM
-		GLM glm(dimInLinear(), mNonlinearity, mDistribution);
+		GLM glm(dimIn(), mNonlinearity, mDistribution);
 
 		GLM::Parameters glmParams;
 		glmParams.Trainable::Parameters::operator=(params);
@@ -811,7 +830,8 @@ bool CMT::STM::train(
 			converged = glm.train(input, output, glmParams);
 
 		// copy parameters
-		mLinearPredictor = glm.weights();
+		mPredictors = glm.weights().topRows(dimInNonlinear()).transpose();
+		mLinearPredictor = glm.weights().bottomRows(dimInLinear());
 		mBiases.setConstant(glm.bias() - log(numComponents()));
 
 		return converged;
