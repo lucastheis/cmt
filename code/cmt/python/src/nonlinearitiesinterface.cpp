@@ -92,9 +92,16 @@ const char* LogisticFunction_doc =
 	"\n"
 	"$$f(x) = (1 + e^{-x})^{-1}$$";
 
-int LogisticFunction_init(LogisticFunctionObject* self, PyObject*, PyObject*) {
+int LogisticFunction_init(LogisticFunctionObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"epsilon", 0};
+
+	double epsilon = 1e-12;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|d", const_cast<char**>(kwlist), &epsilon))
+		return -1;
+
 	try {
-		self->nonlinearity = new LogisticFunction;
+		self->nonlinearity = new LogisticFunction(epsilon);
 		return 0;
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
@@ -111,9 +118,16 @@ const char* ExponentialFunction_doc =
 	"\n"
 	"$$f(x) = e^{x}$$";
 
-int ExponentialFunction_init(ExponentialFunctionObject* self, PyObject*, PyObject*) {
+int ExponentialFunction_init(ExponentialFunctionObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"epsilon", 0};
+
+	double epsilon = 1e-12;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|d", const_cast<char**>(kwlist), &epsilon))
+		return -1;
+
 	try {
-		self->nonlinearity = new ExponentialFunction;
+		self->nonlinearity = new ExponentialFunction(epsilon);
 		return 0;
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
