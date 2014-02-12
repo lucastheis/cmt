@@ -771,11 +771,13 @@ const char* STM_reduce_doc =
 
 PyObject* STM_reduce(STMObject* self, PyObject*) {
 	// constructor arguments
-	PyObject* args = Py_BuildValue("(iiii)",
+	PyObject* args = Py_BuildValue("(iiiiOO)",
 		self->stm->dimInNonlinear(),
 		self->stm->dimInLinear(),
 		self->stm->numComponents(),
-		self->stm->numFeatures());
+		self->stm->numFeatures(),
+		self->nonlinearity,
+		self->distribution);
 
 	// parameters
 	PyObject* biases = STM_biases(self, 0);
