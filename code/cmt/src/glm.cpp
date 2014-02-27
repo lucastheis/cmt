@@ -105,7 +105,7 @@ CMT::GLM::GLM(int dimIn) : mDimIn(dimIn) {
 
 
 
-CMT::GLM::GLM(int dimIn, const GLM& glm) : 
+CMT::GLM::GLM(int dimIn, const GLM& glm) :
 	mDimIn(dimIn),
 	mNonlinearity(glm.mNonlinearity),
 	mDistribution(glm.mDistribution)
@@ -168,8 +168,8 @@ MatrixXd CMT::GLM::predict(const MatrixXd& input) const {
 
 
 int CMT::GLM::numParameters(const Trainable::Parameters& params_) const {
-	const Parameters& params = dynamic_cast<const Parameters&>(params_);
-	
+	const Parameters& params = static_cast<const Parameters&>(params_);
+
 	int numParams = 0;
 
 	if(params.trainWeights)
@@ -191,7 +191,7 @@ int CMT::GLM::numParameters(const Trainable::Parameters& params_) const {
 
 
 lbfgsfloatval_t* CMT::GLM::parameters(const Trainable::Parameters& params_) const {
-	const Parameters& params = dynamic_cast<const Parameters&>(params_);
+	const Parameters& params = static_cast<const Parameters&>(params_);
 
 	lbfgsfloatval_t* x = lbfgs_malloc(numParameters(params));
 
@@ -224,7 +224,7 @@ void CMT::GLM::setParameters(
 	const lbfgsfloatval_t* x,
 	const Trainable::Parameters& params_)
 {
-	const Parameters& params = dynamic_cast<const Parameters&>(params_);
+	const Parameters& params = static_cast<const Parameters&>(params_);
 
 	int k = 0;
 
@@ -257,10 +257,10 @@ double CMT::GLM::parameterGradient(
 	lbfgsfloatval_t* g,
 	const Trainable::Parameters& params_) const
 {
-	const Parameters& params = dynamic_cast<const Parameters&>(params_);
+	const Parameters& params = static_cast<const Parameters&>(params_);
 
 	// check if nonlinearity is trainable and/or differentiable
-	TrainableNonlinearity* trainableNonlinearity = 
+	TrainableNonlinearity* trainableNonlinearity =
 		dynamic_cast<TrainableNonlinearity*>(mNonlinearity);
 	DifferentiableNonlinearity* differentiableNonlinearity =
 		dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
@@ -325,7 +325,7 @@ double CMT::GLM::parameterGradient(
 
 		if(g) {
 			Array<double, 1, Dynamic> tmp1 = mDistribution->gradient(output, means);
-			
+
 			if(params.trainWeights || params.trainBias) {
 				Array<double, 1, Dynamic> tmp2 = differentiableNonlinearity->derivative(responses);
 				Array<double, 1, Dynamic> tmp3 = tmp1 * tmp2;
@@ -404,10 +404,10 @@ double CMT::GLM::parameterGradient(
 
 			if(params.trainBias && params.regularizeBias > 0.)
 				value += params.regularizeBias * bias * bias;
-			
+
 			break;
 	}
- 	
+
  	return value;
 }
 
@@ -419,7 +419,7 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::GLM::computeData
 {
 	return make_pair(
 		make_pair(
-			ArrayXXd::Zero(input.rows(), input.cols()), 
-			ArrayXXd::Zero(output.rows(), output.cols())), 
+			ArrayXXd::Zero(input.rows(), input.cols()),
+			ArrayXXd::Zero(output.rows(), output.cols())),
 		logLikelihood(input, output));
 }
