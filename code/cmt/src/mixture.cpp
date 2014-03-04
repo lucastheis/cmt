@@ -107,7 +107,7 @@ MatrixXd CMT::Mixture::sample(int numSamples) const {
 	// generate sample from multinomial distribution
 	#pragma omp parallel for
 	for(int i = 0; i < numSamples; ++i) {
-		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double urand = static_cast<double>(rand()) / RAND_MAX;
 
 		int j = 0;
 		while(urand > cdf[j])
