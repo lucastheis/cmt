@@ -1,5 +1,5 @@
 #include "mex.hpp"
 
-#include "ConditionalDistribution.h"
+#include "conditionaldistribution.h"
 
 bool conditionaldistributioninterface(CMT::ConditionalDistribution* obj, std::string cmd, MEXOutput output, MEXInput input);
