@@ -21,6 +21,9 @@ using Eigen::Dynamic;
 #include "cmt/tools"
 using CMT::Tuples;
 
+#include "cmt/utils"
+using CMT::Regularizer;
+
 typedef Matrix<bool, Dynamic, Dynamic> MatrixXb;
 typedef Array<bool, Dynamic, Dynamic> ArrayXXb;
 
@@ -36,5 +39,7 @@ PyObject* PyArray_FromArraysXXd(const vector<ArrayXXd>& channels);
 
 Tuples PyList_AsTuples(PyObject* list);
 PyObject* PyList_FromTuples(const Tuples& tuples);
+
+Regularizer PyObject_ToRegularizer(PyObject* regularizer);
 
 #endif

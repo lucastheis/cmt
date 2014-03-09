@@ -42,35 +42,14 @@ Trainable::Parameters* PyObject_ToGLMParameters(PyObject* parameters) {
 
 		PyObject* regularize_weights = PyDict_GetItemString(parameters, "regularize_weights");
 		if(regularize_weights)
-			if(PyFloat_Check(regularize_weights))
-				params->regularizeWeights = PyFloat_AsDouble(regularize_weights);
-			else if(PyInt_Check(regularize_weights))
-				params->regularizeWeights = static_cast<double>(PyFloat_AsDouble(regularize_weights));
-			else
-				throw Exception("regularize_weights should be of type `float`.");
+			params->regularizeWeights = PyObject_ToRegularizer(regularize_weights);
 
 		PyObject* regularize_bias = PyDict_GetItemString(parameters, "regularize_bias");
 		if(regularize_bias)
-			if(PyFloat_Check(regularize_bias))
-				params->regularizeBias = PyFloat_AsDouble(regularize_bias);
-			else if(PyInt_Check(regularize_bias))
-				params->regularizeBias = static_cast<double>(PyFloat_AsDouble(regularize_bias));
-			else
-				throw Exception("regularize_bias should be of type `float`.");
+			params->regularizeWeights = PyObject_ToRegularizer(regularize_bias);
 
-		PyObject* regularizer = PyDict_GetItemString(parameters, "regularizer");
-		if(regularizer)
-			if(PyString_Check(regularizer)) {
-				if(PyString_Size(regularizer) != 2)
-					throw Exception("Regularizer should be 'L1' or 'L2'.");
-
-				if(PyString_AsString(regularizer)[1] == '1')
-					params->regularizer = GLM::Parameters::L1;
-				else
-					params->regularizer = GLM::Parameters::L2;
-			} else {
-				throw Exception("regularizer should be of type `str`.");
-			}
+		if(PyDict_GetItemString(parameters, "regularizer"))
+			throw Exception("Please use the new interface for specifying regularizer norms.");
 	}
 
 	return params;

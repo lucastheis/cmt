@@ -99,6 +99,7 @@ modules = [
 			'code/cmt/src/pcapreconditioner.cpp',
 			'code/cmt/src/pcatransform.cpp',
 			'code/cmt/src/preconditioner.cpp',
+			'code/cmt/src/regularizer.cpp',
 			'code/cmt/src/stm.cpp',
 			'code/cmt/src/tools.cpp',
 			'code/cmt/src/trainable.cpp',

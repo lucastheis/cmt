@@ -33,10 +33,7 @@ CMT::GLM::Parameters::Parameters() :
 	Trainable::Parameters::Parameters(),
 	trainWeights(true),
 	trainBias(true),
-	trainNonlinearity(false),
-	regularizeWeights(0.),
-	regularizeBias(0.),
-	regularizer(L2)
+	trainNonlinearity(false)
 {
 }
 
@@ -48,8 +45,7 @@ CMT::GLM::Parameters::Parameters(const Parameters& params) :
 	trainBias(params.trainBias),
 	trainNonlinearity(params.trainNonlinearity),
 	regularizeWeights(params.regularizeWeights),
-	regularizeBias(params.regularizeBias),
-	regularizer(params.regularizer)
+	regularizeBias(params.regularizeBias)
 {
 }
 
@@ -63,7 +59,6 @@ CMT::GLM::Parameters& CMT::GLM::Parameters::operator=(const Parameters& params) 
 	trainNonlinearity = params.trainNonlinearity;
 	regularizeWeights = params.regularizeWeights;
 	regularizeBias = params.regularizeBias;
-	regularizer = params.regularizer;
 
 	return *this;
 }
@@ -362,52 +357,15 @@ double CMT::GLM::parameterGradient(
 		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
 
-		switch(params.regularizer) {
-			case Parameters::L1:
-				if(params.trainWeights && params.regularizeWeights > 0.)
-					weightsGrad += params.regularizeWeights * signum(weights);
-
-				if(params.trainBias && params.regularizeBias > 0.)
-					if(bias > 0.)
-						*biasGrad += params.regularizeBias;
-					else if(bias < 0.)
-						*biasGrad -= params.regularizeBias;
-
-				break;
-
-			case Parameters::L2:
-				if(params.trainWeights && params.regularizeWeights > 0.)
-					weightsGrad += params.regularizeWeights * 2. * weights;
-
-				if(params.trainBias && params.regularizeBias > 0.)
-					*biasGrad += params.regularizeBias * 2. * bias;
-
-				break;
-		}
+		weightsGrad += params.regularizeWeights.gradient(weights);
+		*biasGrad += params.regularizeBias.gradient(MatrixXd::Constant(1, 1, bias))(0, 0);
 	}
 
 	double value = -logLik / normConst;
 
-	switch(params.regularizer) {
-		case Parameters::L1:
-			if(params.trainWeights && params.regularizeWeights > 0.)
-				value += params.regularizeWeights * weights.array().abs().sum();
+	value += params.regularizeWeights.evaluate(weights);
+	value += params.regularizeBias.evaluate(MatrixXd::Constant(1, 1, bias));
 
-			if(params.trainBias && params.regularizeBias > 0.)
-				value += params.regularizeBias * abs(bias);
-
-			break;
-
-		case Parameters::L2:
-			if(params.trainWeights && params.regularizeWeights > 0.)
-				value += params.regularizeWeights * weights.array().square().sum();
-
-			if(params.trainBias && params.regularizeBias > 0.)
-				value += params.regularizeBias * bias * bias;
-			
-			break;
-	}
- 	
  	return value;
 }
 

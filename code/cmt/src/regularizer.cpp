@@ -4,43 +4,43 @@
 #include "Eigen/Core"
 using Eigen::MatrixXd;
 
-CMT::Regularizer::Regularizer(double lambda, Norm norm) :
+CMT::Regularizer::Regularizer(double strength, Norm norm) :
 	mUseMatrix(false),
 	mNorm(norm),
-	mLambda(lambda)
+	mStrength(strength)
 {
 }
 
 
 
-CMT::Regularizer::Regularizer(MatrixXd matrix, Norm norm, double lambda) :
+CMT::Regularizer::Regularizer(MatrixXd matrix, Norm norm, double strength) :
 	mUseMatrix(true),
 	mNorm(norm),
-	mMatrix(matrix),
-	mLambda(lambda)
+	mTransform(matrix),
+	mStrength(strength)
 {
 	if(norm == L2)
-		mMatrixMatrix = mMatrix.transpose() * mMatrix;
+		mTT = mTransform.transpose() * mTransform;
 }
 
 
 
-double CMT::Regularizer::evaluate(const MatrixXd& parameters) {
+double CMT::Regularizer::evaluate(const MatrixXd& parameters) const {
 	if(mUseMatrix) {
 		switch(mNorm) {
 			case L1:
-				return mLambda * (mMatrix * parameters).array().abs().sum();
+				return mStrength * (mTransform * parameters).array().abs().sum();
 
 			case L2:
-				return mLambda * (mMatrix * parameters).array().square().sum();
+				return mStrength * (mTransform * parameters).array().square().sum();
 		}
 	} else {
 		switch(mNorm) {
 			case L1:
-				return mLambda * parameters.array().abs().sum();
+				return mStrength * parameters.array().abs().sum();
 
 			case L2:
-				return mLambda * parameters.array().square().sum();
+				return mStrength * parameters.array().square().sum();
 		}
 	}
 
@@ -49,23 +49,23 @@ double CMT::Regularizer::evaluate(const MatrixXd& parameters) {
 
 
 
-MatrixXd CMT::Regularizer::gradient(const MatrixXd& parameters) {
+MatrixXd CMT::Regularizer::gradient(const MatrixXd& parameters) const {
 	if(mUseMatrix) {
 		switch(mNorm) {
 			case L1:
-				return mLambda * mMatrix.transpose() * signum(mMatrix * parameters);
+				return mStrength * mTransform.transpose() * signum(mTransform * parameters);
 
 			case L2:
-				return mLambda * 2. * mMatrixMatrix * parameters;
+				return mStrength * 2. * mTT * parameters;
 				
 		}
 	} else {
 		switch(mNorm) {
 			case L1:
-				return mLambda * signum(parameters);
+				return mStrength * signum(parameters);
 
 			case L2:
-				return mLambda * 2. * parameters;
+				return mStrength * 2. * parameters;
 		}
 	}
 
