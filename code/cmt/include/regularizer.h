@@ -1,5 +1,5 @@
-#ifndef REGULARIZER_H
-#define REGULARIZER_H
+#ifndef CMT_REGULARIZER_H
+#define CMT_REGULARIZER_H
 
 #include "Eigen/Core"
 
@@ -10,8 +10,8 @@ namespace CMT {
 		public:
 			enum Norm { L1, L2 };
 
-			Regularizer(double strength = 0.0, Norm norm = L2);
-			Regularizer(MatrixXd transform, Norm norm = L2, double strength = 1.0);
+			Regularizer(double strength = 0., Norm norm = L2);
+			Regularizer(MatrixXd transform, Norm norm = L2, double strength = 1.);
 
 			double evaluate(const MatrixXd& parameters) const;
 			MatrixXd gradient(const MatrixXd& parameters) const;

@@ -6,6 +6,7 @@
 #include "trainable.h"
 #include "nonlinearities.h"
 #include "univariatedistributions.h"
+#include "regularizer.h"
 
 namespace CMT {
 	using Eigen::VectorXd;
@@ -15,19 +16,17 @@ namespace CMT {
 		public:
 			struct Parameters : public Trainable::Parameters {
 				public:
-					enum Regularizer { L1, L2 };
-
 					bool trainSharpness;
 					bool trainBiases;
 					bool trainWeights;
 					bool trainFeatures;
 					bool trainPredictors;
 					bool trainLinearPredictor;
-					double regularizeWeights;
-					double regularizeFeatures;
-					double regularizePredictors;
-					double regularizeLinearPredictor;
-					Regularizer regularizer;
+					Regularizer regularizeBiases;
+					Regularizer regularizeWeights;
+					Regularizer regularizeFeatures;
+					Regularizer regularizePredictors;
+					Regularizer regularizeLinearPredictor;
 
 					Parameters();
 					Parameters(const Parameters& params);

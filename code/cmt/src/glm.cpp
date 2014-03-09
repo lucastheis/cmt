@@ -357,8 +357,10 @@ double CMT::GLM::parameterGradient(
 		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
 
-		weightsGrad += params.regularizeWeights.gradient(weights);
-		*biasGrad += params.regularizeBias.gradient(MatrixXd::Constant(1, 1, bias))(0, 0);
+		if(params.trainWeights)
+			weightsGrad += params.regularizeWeights.gradient(weights);
+		if(params.trainBias)
+			*biasGrad += params.regularizeBias.gradient(MatrixXd::Constant(1, 1, bias))(0, 0);
 	}
 
 	double value = -logLik / normConst;

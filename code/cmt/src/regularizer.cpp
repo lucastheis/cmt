@@ -27,6 +27,9 @@ CMT::Regularizer::Regularizer(MatrixXd matrix, Norm norm, double strength) :
 
 double CMT::Regularizer::evaluate(const MatrixXd& parameters) const {
 	if(mUseMatrix) {
+		if(mTransform.cols() != parameters.rows())
+			throw Exception("Regularizer transform and parameters are incompatible.");
+
 		switch(mNorm) {
 			case L1:
 				return mStrength * (mTransform * parameters).array().abs().sum();
@@ -51,6 +54,9 @@ double CMT::Regularizer::evaluate(const MatrixXd& parameters) const {
 
 MatrixXd CMT::Regularizer::gradient(const MatrixXd& parameters) const {
 	if(mUseMatrix) {
+		if(mTransform.cols() != parameters.rows())
+			throw Exception("Regularizer transform and parameters are incompatible.");
+
 		switch(mNorm) {
 			case L1:
 				return mStrength * mTransform.transpose() * signum(mTransform * parameters);

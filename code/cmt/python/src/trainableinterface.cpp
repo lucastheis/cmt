@@ -46,7 +46,7 @@ Trainable::Parameters* PyObject_ToParameters(
 			if(PyFloat_Check(threshold))
 				params->threshold = PyFloat_AsDouble(threshold);
 			else if(PyInt_Check(threshold))
-				params->threshold = static_cast<double>(PyFloat_AsDouble(threshold));
+				params->threshold = static_cast<double>(PyInt_AsLong(threshold));
 			else
 				throw Exception("threshold should be of type `float`.");
 

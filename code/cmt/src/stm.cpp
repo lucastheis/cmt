@@ -48,11 +48,11 @@ CMT::STM::Parameters::Parameters() :
 	trainFeatures(true),
 	trainPredictors(true),
 	trainLinearPredictor(true),
+	regularizeBiases(0.),
 	regularizeWeights(0.),
 	regularizeFeatures(0.),
 	regularizePredictors(0.),
-	regularizeLinearPredictor(0.),
-	regularizer(L2)
+	regularizeLinearPredictor(0.)
 {
 }
 
@@ -66,11 +66,11 @@ CMT::STM::Parameters::Parameters(const Parameters& params) :
 	trainFeatures(params.trainFeatures),
 	trainPredictors(params.trainPredictors),
 	trainLinearPredictor(params.trainLinearPredictor),
+	regularizeBiases(params.regularizeBiases),
 	regularizeWeights(params.regularizeWeights),
 	regularizeFeatures(params.regularizeFeatures),
 	regularizePredictors(params.regularizePredictors),
-	regularizeLinearPredictor(params.regularizeLinearPredictor),
-	regularizer(params.regularizer)
+	regularizeLinearPredictor(params.regularizeLinearPredictor)
 {
 }
 
@@ -85,11 +85,11 @@ CMT::STM::Parameters& CMT::STM::Parameters::operator=(const Parameters& params) 
 	trainFeatures = params.trainFeatures;
 	trainPredictors = params.trainPredictors;
 	trainLinearPredictor = params.trainLinearPredictor;
+	regularizeBiases = params.regularizeBiases;
 	regularizeWeights = params.regularizeWeights;
 	regularizeFeatures = params.regularizeFeatures;
 	regularizePredictors = params.regularizePredictors;
 	regularizeLinearPredictor = params.regularizeLinearPredictor;
-	regularizer = params.regularizer;
 
 	return *this;
 }
@@ -693,72 +693,25 @@ double CMT::STM::parameterGradient(
 		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
 
-		switch(params.regularizer) {
-			case Parameters::L1:
-				if(params.trainFeatures && params.regularizeFeatures > 0.)
-					featuresGrad += params.regularizeFeatures * signum(features);
-
-				if(params.trainPredictors && params.regularizePredictors > 0.)
-					predictorsGrad += params.regularizePredictors * signum(predictors);
-
-				if(params.trainWeights && params.regularizeWeights > 0.)
-					weightsGrad += params.regularizeWeights * signum(weights);
-
-				if(params.trainLinearPredictor && params.regularizeLinearPredictor > 0.)
-					linearPredictorGrad += params.regularizeLinearPredictor * signum(linearPredictor);
-
-				break;
-
-			case Parameters::L2:
-				if(params.trainFeatures && params.regularizeFeatures > 0.)
-					featuresGrad += params.regularizeFeatures * 2. * features;
-
-				if(params.trainPredictors && params.regularizePredictors > 0.)
-					predictorsGrad += params.regularizePredictors * 2. * predictors;
-
-				if(params.trainWeights && params.regularizeWeights > 0.)
-					weightsGrad += params.regularizeWeights * 2. * weights;
-
-				if(params.trainLinearPredictor && params.regularizeLinearPredictor > 0.)
-					linearPredictorGrad += params.regularizeLinearPredictor * 2. * linearPredictor;
-
-				break;
-		}
+		if(params.trainBiases)
+			biasesGrad += params.regularizeBiases.gradient(biases);
+		if(params.trainFeatures)
+			featuresGrad += params.regularizeFeatures.gradient(features);
+		if(params.trainPredictors)
+			predictorsGrad += params.regularizePredictors.gradient(predictors.transpose()).transpose();
+		if(params.trainWeights)
+			weightsGrad += params.regularizeWeights.gradient(weights.transpose()).transpose();
+		if(params.trainLinearPredictor)
+			linearPredictorGrad += params.regularizeLinearPredictor.gradient(linearPredictor);
 	}
 
 	double value = -logLik / normConst;
 
-	switch(params.regularizer) {
-		case Parameters::L1:
-			if(params.trainFeatures && params.regularizeFeatures > 0.)
-				value += params.regularizeFeatures * features.array().abs().sum();
-
-			if(params.trainPredictors && params.regularizePredictors > 0.)
-				value += params.regularizePredictors * predictors.array().abs().sum();
-
-			if(params.trainWeights && params.regularizeWeights > 0.)
-				value += params.regularizeWeights * weights.array().abs().sum();
-
-			if(params.trainLinearPredictor && params.regularizeLinearPredictor > 0.)
-				value += params.regularizeLinearPredictor * linearPredictor.array().abs().sum();
-
-			break;
-
-		case Parameters::L2:
-			if(params.trainFeatures && params.regularizeFeatures > 0.)
-				value += params.regularizeFeatures * features.array().square().sum();
-
-			if(params.trainPredictors && params.regularizePredictors > 0.)
-				value += params.regularizePredictors * predictors.array().square().sum();
-
-			if(params.trainWeights && params.regularizeWeights > 0.)
-				value += params.regularizeWeights * weights.array().square().sum();
-
-			if(params.trainLinearPredictor && params.regularizeLinearPredictor > 0.)
-				value += params.regularizeLinearPredictor * linearPredictor.array().square().sum();
-			
-			break;
-	}
+	value += params.regularizeBiases.evaluate(biases);
+	value += params.regularizeFeatures.evaluate(features);
+	value += params.regularizePredictors.evaluate(predictors.transpose());
+	value += params.regularizeWeights.evaluate(weights.transpose());
+	value += params.regularizeLinearPredictor.evaluate(linearPredictor);
 
 	if(value != value)
 		// value is NaN; line search probably went into bad region of parameter space
@@ -822,6 +775,8 @@ bool CMT::STM::train(
 			glmParams.trainWeights = true;
 		if(stmParams.trainBiases)
 			glmParams.trainBias = true;
+		glmParams.regularizeWeights = stmParams.regularizeLinearPredictor;
+		glmParams.regularizeBias = stmParams.regularizeBiases;
 
 		bool converged;
 		if(inputVal && outputVal)

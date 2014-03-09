@@ -365,7 +365,6 @@ Regularizer PyObject_ToRegularizer(PyObject* regularizer) {
 		PyObject* r_norm = PyDict_GetItemString(regularizer, "norm");
 
 		Regularizer::Norm norm = Regularizer::L2;
-		double strength = 1.0;
 
 		if(r_norm) {
 			if(PyString_Size(r_norm) != 2)
@@ -381,6 +380,8 @@ Regularizer PyObject_ToRegularizer(PyObject* regularizer) {
 					break;
 			}
 		}
+
+		double strength = r_transform ? 1. : 0.;
 
 		if(r_strength) {
 			if(PyInt_Check(r_strength)) {
