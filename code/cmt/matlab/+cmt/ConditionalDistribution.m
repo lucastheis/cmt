@@ -32,7 +32,7 @@ classdef (Abstract) ConditionalDistribution < cmt.MexInterface
         end
             
         function loglikelihood = evaluate(self, input, output)
-            loglikelihood = self.mexEval('train', input, output);
+            loglikelihood = self.mexEval('evaluate', input, output);
         end
     end
 end
