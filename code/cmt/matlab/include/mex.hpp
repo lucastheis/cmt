@@ -279,7 +279,6 @@ public:
             // }
 
             Converter& operator=(const bool& b) {
-                std::cout << "Bool: " << b << std::endl;
                 (*mData) = mxCreateLogicalScalar(b);
                 return *this;
             }
