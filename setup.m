@@ -111,7 +111,7 @@ function setup()
 
       if isunix() && ~ismac()
             % Relative path linking
-            default_options = default_options + {'-Wl,-rpath,''\$ORIGIN''', '-Wl,-z,origin'};
+            default_options = [default_options, {'-Wl,-rpath,''\$ORIGIN''', '-Wl,-z,origin'}];
       end
 
       %% Create shared object files
