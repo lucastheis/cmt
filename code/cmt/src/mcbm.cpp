@@ -28,8 +28,7 @@ CMT::MCBM::Parameters::Parameters() :
 	trainOutputBias(true),
 	regularizeFeatures(0.),
 	regularizePredictors(0.),
-	regularizeWeights(0.),
-	regularizer(L2)
+	regularizeWeights(0.)
 {
 }
 
@@ -45,8 +44,7 @@ CMT::MCBM::Parameters::Parameters(const Parameters& params) :
 	trainOutputBias(params.trainOutputBias),
 	regularizeFeatures(params.regularizeFeatures),
 	regularizePredictors(params.regularizePredictors),
-	regularizeWeights(params.regularizeWeights),
-	regularizer(params.regularizer)
+	regularizeWeights(params.regularizeWeights)
 {
 }
 
@@ -64,7 +62,6 @@ CMT::MCBM::Parameters& CMT::MCBM::Parameters::operator=(const Parameters& params
 	regularizeFeatures = params.regularizeFeatures;
 	regularizePredictors = params.regularizePredictors;
 	regularizeWeights = params.regularizeWeights;
-	regularizer = params.regularizer;
 
 	return *this;
 }
@@ -527,54 +524,26 @@ double CMT::MCBM::parameterGradient(
 		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
 
-		if(params.regularizer == Parameters::L2) {
-			if(params.trainFeatures && params.regularizeFeatures > 0.)
-				featuresGrad += params.regularizeFeatures * 2. * features;
+		if(params.trainFeatures)
+			featuresGrad += params.regularizeFeatures.gradient(features);
 
-			if(params.trainPredictors && params.regularizePredictors > 0.)
-				predictorsGrad += params.regularizePredictors * 2. * predictors;
+		if(params.trainPredictors)
+			predictorsGrad += params.regularizePredictors.gradient(predictors.transpose()).transpose();
 
-			if(params.trainWeights && params.regularizeWeights > 0.)
-				weightsGrad += params.regularizeWeights * 2. * weights;
-		} else {
-			if(params.trainFeatures && params.regularizeFeatures > 0.)
-				featuresGrad += params.regularizeFeatures * signum(features);
-
-			if(params.trainPredictors && params.regularizePredictors > 0.)
-				predictorsGrad += params.regularizePredictors * signum(predictors);
-
-			if(params.trainWeights && params.regularizeWeights > 0.)
-				weightsGrad += params.regularizeWeights * signum(weights);
-		}
+		if(params.trainWeights)
+			weightsGrad += params.regularizeWeights.gradient(weights);
 	}
 
 	double value = -logLik / normConst;
 
-	switch(params.regularizer) {
-		case Parameters::L1:
-			if(params.trainFeatures && params.regularizeFeatures > 0.)
-				value += params.regularizeFeatures * features.array().abs().sum();
+	if(params.trainFeatures)
+		value += params.regularizeFeatures.evaluate(features);
 
-			if(params.trainPredictors && params.regularizePredictors > 0.)
-				value += params.regularizePredictors * predictors.array().abs().sum();
+	if(params.trainPredictors)
+		value += params.regularizePredictors.evaluate(predictors.transpose());
 
-			if(params.trainWeights && params.regularizeWeights > 0.)
-				value += params.regularizeWeights * weights.array().abs().sum();
-
-			break;
-
-		case Parameters::L2:
-			if(params.trainFeatures && params.regularizeFeatures > 0.)
-				value += params.regularizeFeatures * features.array().square().sum();
-
-			if(params.trainPredictors && params.regularizePredictors > 0.)
-				value += params.regularizePredictors * predictors.array().square().sum();
-
-			if(params.trainWeights && params.regularizeWeights > 0.)
-				value += params.regularizeWeights * weights.array().square().sum();
-			
-			break;
-	}
+	if(params.trainWeights)
+		value += params.regularizeWeights.evaluate(weights);
 
 	return value;
 }

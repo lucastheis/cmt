@@ -4,6 +4,7 @@
 #include "Eigen/Core"
 #include "exception.h"
 #include "trainable.h"
+#include "regularizer.h"
 
 namespace CMT {
 	using Eigen::VectorXd;
@@ -13,18 +14,15 @@ namespace CMT {
 		public:
 			struct Parameters : public Trainable::Parameters {
 				public:
-					enum Regularizer { L1, L2 };
-
 					bool trainPriors;
 					bool trainWeights;
 					bool trainFeatures;
 					bool trainPredictors;
 					bool trainInputBias;
 					bool trainOutputBias;
-					double regularizeFeatures;
-					double regularizePredictors;
-					double regularizeWeights;
-					Regularizer regularizer;
+					Regularizer regularizeFeatures;
+					Regularizer regularizePredictors;
+					Regularizer regularizeWeights;
 
 					Parameters();
 					Parameters(const Parameters& params);
