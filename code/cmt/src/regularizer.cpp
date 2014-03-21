@@ -16,8 +16,8 @@ CMT::Regularizer::Regularizer(double strength, Norm norm) :
 CMT::Regularizer::Regularizer(MatrixXd matrix, Norm norm, double strength) :
 	mUseMatrix(true),
 	mNorm(norm),
-	mTransform(matrix),
-	mStrength(strength)
+	mStrength(strength),
+	mTransform(matrix)
 {
 	if(norm == L2)
 		mTT = mTransform.transpose() * mTransform;
