@@ -25,8 +25,7 @@ CMT::MLR::Parameters::Parameters() :
 	trainWeights(true),
 	trainBiases(true),
 	regularizeWeights(0.),
-	regularizeBiases(0.),
-	regularizer(L2)
+	regularizeBiases(0.)
 {
 }
 
@@ -37,8 +36,7 @@ CMT::MLR::Parameters::Parameters(const Parameters& params) :
 	trainWeights(params.trainWeights),
 	trainBiases(params.trainBiases),
 	regularizeWeights(params.regularizeWeights),
-	regularizeBiases(params.regularizeBiases),
-	regularizer(params.regularizer)
+	regularizeBiases(params.regularizeBiases)
 {
 }
 
@@ -51,7 +49,6 @@ CMT::MLR::Parameters& CMT::MLR::Parameters::operator=(const Parameters& params) 
 	trainBiases = params.trainBiases;
 	regularizeWeights = params.regularizeWeights;
 	regularizeBiases = params.regularizeBiases;
-	regularizer = params.regularizer;
 
 	return *this;
 }
@@ -250,16 +247,28 @@ double CMT::MLR::parameterGradient(
 			Map<Matrix<double, Dynamic, Dynamic, RowMajor> > weightsGrad(g, mDimOut - 1, mDimIn);
 			weightsGrad = (diff * input.transpose() / normConst).bottomRows(mDimOut - 1);
 			offset += weightsGrad.size();
+
+			weightsGrad += params.regularizeWeights.gradient(
+				weights.bottomRows(mDimOut - 1).transpose()).transpose();
 		}
 
 		if(params.trainBiases) {
 			VectorLBFGS biasesGrad(g + offset, mDimOut - 1);
 			biasesGrad = diff.rowwise().sum().bottomRows(mDimOut - 1) / normConst;
+			biasesGrad += params.regularizeBiases.gradient(biases);
 		}
 	}
 
 	// return negative average log-likelihood in bits
-	return -(logProb * output.array()).sum() / normConst;
+	double value = -(logProb * output.array()).sum() / normConst;
+
+	if(params.trainWeights)
+		value += params.regularizeWeights.evaluate(weights.bottomRows(mDimOut - 1).transpose());
+
+	if(params.trainBiases)
+		value += params.regularizeBiases.evaluate(biases);
+
+	return value;
 }
 
 

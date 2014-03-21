@@ -35,35 +35,12 @@ Trainable::Parameters* PyObject_ToMLRParameters(PyObject* parameters) {
 
 		PyObject* regularize_weights = PyDict_GetItemString(parameters, "regularize_weights");
 		if(regularize_weights)
-			if(PyFloat_Check(regularize_weights))
-				params->regularizeWeights = PyFloat_AsDouble(regularize_weights);
-			else if(PyInt_Check(regularize_weights))
-				params->regularizeWeights = static_cast<double>(PyFloat_AsDouble(regularize_weights));
-			else
-				throw Exception("regularize_weights should be of type `float`.");
+			params->regularizeWeights = PyObject_ToRegularizer(regularize_weights);
 
-		PyObject* regularize_biases = PyDict_GetItemString(parameters, "regularize_bias");
+		PyObject* regularize_biases = PyDict_GetItemString(parameters, "regularize_biases");
 		if(regularize_biases)
-			if(PyFloat_Check(regularize_biases))
-				params->regularizeBiases = PyFloat_AsDouble(regularize_biases);
-			else if(PyInt_Check(regularize_biases))
-				params->regularizeBiases = static_cast<double>(PyFloat_AsDouble(regularize_biases));
-			else
-				throw Exception("regularize_biases should be of type `float`.");
+			params->regularizeBiases = PyObject_ToRegularizer(regularize_biases);
 
-		PyObject* regularizer = PyDict_GetItemString(parameters, "regularizer");
-		if(regularizer)
-			if(PyString_Check(regularizer)) {
-				if(PyString_Size(regularizer) != 2)
-					throw Exception("Regularizer should be 'L1' or 'L2'.");
-
-				if(PyString_AsString(regularizer)[1] == '1')
-					params->regularizer = MLR::Parameters::L1;
-				else
-					params->regularizer = MLR::Parameters::L2;
-			} else {
-				throw Exception("regularizer should be of type `str`.");
-			}
 	}
 
 	return params;

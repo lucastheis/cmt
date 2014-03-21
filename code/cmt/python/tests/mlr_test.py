@@ -24,6 +24,47 @@ class Tests(unittest.TestCase):
 
 
 
+	def test_gradient(self):
+		mlr = MLR(10, 5)
+
+		N = 1000
+
+		inputs = randn(mlr.dim_in, N)
+		outputs = zeros([mlr.dim_out, N])
+		outputs[randint(mlr.dim_out, size=N), range(N)] = 1.
+
+		err = mlr._check_gradient( inputs, outputs, 1e-5)
+		self.assertLess(err, 1e-8)
+
+		# without regularization
+		for param in ['weights', 'biases']:
+			err = mlr._check_gradient(
+				inputs,
+				outputs,
+				1e-5,
+				parameters={
+					'train_weights': param == 'weights',
+					'train_biases': param == 'biases',
+				})
+			self.assertLess(err, 1e-8)
+
+		# with regularization
+		for norm in ['L1', 'L2']:
+			for param in ['weights', 'biases']:
+				err = mlr._check_gradient(
+					inputs,
+					outputs,
+					1e-7,
+					parameters={
+						'train_weights': param == 'weights',
+						'train_biases': param == 'biases',
+						'regularize_weights': {'strength': 0.7, 'norm': norm},
+						'regularize_biases': {'strength': 0.3, 'norm': norm},
+					})
+				self.assertLess(err, 1e-6)
+
+
+
 	def test_mlr_pickle(self):
 		tmp_file = mkstemp()[1]
 

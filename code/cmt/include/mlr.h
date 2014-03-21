@@ -4,6 +4,7 @@
 #include "Eigen/Core"
 #include "trainable.h"
 #include "exception.h"
+#include "regularizer.h"
 
 namespace CMT {
 	using Eigen::Array;
@@ -18,13 +19,10 @@ namespace CMT {
 		public:
 			struct Parameters : public Trainable::Parameters {
 				public:
-					enum Regularizer { L1, L2 };
-
 					bool trainWeights;
 					bool trainBiases;
-					double regularizeWeights;
-					double regularizeBiases;
-					Regularizer regularizer;
+					Regularizer regularizeWeights;
+					Regularizer regularizeBiases;
 
 					Parameters();
 					Parameters(const Parameters& params);

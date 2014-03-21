@@ -46,7 +46,7 @@ Trainable::Parameters* PyObject_ToGLMParameters(PyObject* parameters) {
 
 		PyObject* regularize_bias = PyDict_GetItemString(parameters, "regularize_bias");
 		if(regularize_bias)
-			params->regularizeWeights = PyObject_ToRegularizer(regularize_bias);
+			params->regularizeBias = PyObject_ToRegularizer(regularize_bias);
 
 		if(PyDict_GetItemString(parameters, "regularizer"))
 			throw Exception("Please use the new interface for specifying regularizer norms.");
