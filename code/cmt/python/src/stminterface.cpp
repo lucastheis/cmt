@@ -22,6 +22,13 @@ Trainable::Parameters* PyObject_ToSTMParameters(PyObject* parameters) {
 			else if(callback != Py_None)
 				throw Exception("callback should be a function or callable object.");
 
+		PyObject* train_sharpness = PyDict_GetItemString(parameters, "train_sharpness");
+		if(train_sharpness)
+			if(PyBool_Check(train_sharpness))
+				params->trainSharpness = (train_sharpness == Py_True);
+			else
+				throw Exception("train_sharpness should be of type `bool`.");
+
 		PyObject* train_biases = PyDict_GetItemString(parameters, "train_biases");
 		if(train_biases)
 			if(PyBool_Check(train_biases))
@@ -123,7 +130,7 @@ const char* STM_doc =
 	"where $y$ is a scalar, $\\mathbf{x} \\in \\mathbb{R}^N$, $\\mathbf{z} \\in \\mathbb{R}^M$, $q$\n"
 	"is a univariate distribution, $g$ is some nonlinearity, and\n"
 	"\n"
-	"$$f(\\mathbf{x}, \\mathbf{z}) = \\log \\sum_k \\exp\\left( \\sum_l \\beta_{kl} (\\mathbf{u}_l^\\top \\mathbf{x})^2 + \\mathbf{w}_k \\mathbf{x} + a_k \\right) + \\mathbf{v}^\\top \\mathbf{z}.$$\n"
+	"$$f(\\mathbf{x}, \\mathbf{z}) = \\log \\sum_k \\exp\\left( \\lambda \\left[ \\sum_l \\beta_{kl} (\\mathbf{u}_l^\\top \\mathbf{x})^2 + \\mathbf{w}_k \\mathbf{x} + a_k \\right] \\right) / \\lambda + \\mathbf{v}^\\top \\mathbf{z}.$$\n"
 	"\n"
 	"As you can see from the equation above, part of the input is processed nonlinearly and part of\n"
 	"the input is processed linearly. To create an STM with $N$-dimensional\n"
@@ -134,6 +141,7 @@ const char* STM_doc =
 	"\n"
 	"To access the different parameters, you can use\n"
 	"\n"
+	"\t>>> stm.sharpness\n"
 	"\t>>> stm.biases\n"
 	"\t>>> stm.weights\n"
 	"\t>>> stm.features\n"
@@ -261,6 +269,25 @@ PyObject* STM_num_components(STMObject* self, void*) {
 
 PyObject* STM_num_features(STMObject* self, void*) {
 	return PyInt_FromLong(self->stm->numFeatures());
+}
+
+
+
+PyObject* STM_sharpness(STMObject* self, void*) {
+	return PyFloat_FromDouble(self->stm->sharpness());
+}
+
+
+
+int STM_set_sharpness(STMObject* self, PyObject* value, void*) {
+	try {
+		self->stm->setSharpness(PyFloat_AsDouble(value));
+	} catch(Exception exception) {
+		Py_DECREF(value);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+	return 0;
 }
 
 
@@ -744,11 +771,13 @@ const char* STM_reduce_doc =
 
 PyObject* STM_reduce(STMObject* self, PyObject*) {
 	// constructor arguments
-	PyObject* args = Py_BuildValue("(iiii)",
+	PyObject* args = Py_BuildValue("(iiiiOO)",
 		self->stm->dimInNonlinear(),
 		self->stm->dimInLinear(),
 		self->stm->numComponents(),
-		self->stm->numFeatures());
+		self->stm->numFeatures(),
+		self->nonlinearity,
+		self->distribution);
 
 	// parameters
 	PyObject* biases = STM_biases(self, 0);
@@ -756,15 +785,17 @@ PyObject* STM_reduce(STMObject* self, PyObject*) {
 	PyObject* features = STM_features(self, 0);
 	PyObject* predictors = STM_predictors(self, 0);
 	PyObject* linear_predictor = STM_linear_predictor(self, 0);
+	PyObject* sharpness = STM_sharpness(self, 0);
 
-	PyObject* state = Py_BuildValue("(OOOOO)",
-		biases, weights, features, predictors, linear_predictor);
+	PyObject* state = Py_BuildValue("(OOOOOO)",
+		biases, weights, features, predictors, linear_predictor, sharpness);
 
 	Py_DECREF(biases);
 	Py_DECREF(weights);
 	Py_DECREF(features);
 	Py_DECREF(predictors);
 	Py_DECREF(linear_predictor);
+	Py_DECREF(sharpness);
 
 	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
 
@@ -787,10 +818,15 @@ PyObject* STM_setstate(STMObject* self, PyObject* state) {
 	PyObject* features;
 	PyObject* predictors;
 	PyObject* linear_predictor;
+	PyObject* sharpness = 0;
 
-	if(!PyArg_ParseTuple(state, "(OOOOO)",
-		&biases, &weights, &features, &predictors, &linear_predictor))
-		return 0;
+	if(!PyArg_ParseTuple(state, "(OOOOOO)", &biases, &weights, &features, &predictors, &linear_predictor, &sharpness)) {
+		PyErr_Clear();
+
+		// try without sharpness for backwards-compatibility
+		if(!PyArg_ParseTuple(state, "(OOOOO)", &biases, &weights, &features, &predictors, &linear_predictor))
+			return 0;
+	}
 
 	try {
 		STM_set_biases(self, biases, 0);
@@ -798,6 +834,9 @@ PyObject* STM_setstate(STMObject* self, PyObject* state) {
 		STM_set_features(self, features, 0);
 		STM_set_predictors(self, predictors, 0);
 		STM_set_linear_predictor(self, linear_predictor, 0);
+
+		if(sharpness)
+			STM_set_sharpness(self, sharpness, 0);
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;

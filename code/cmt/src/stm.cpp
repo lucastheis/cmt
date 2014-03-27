@@ -42,6 +42,7 @@ UnivariateDistribution* const STM::defaultDistribution = new Bernoulli;
 
 CMT::STM::Parameters::Parameters() :
 	Trainable::Parameters::Parameters(),
+	trainSharpness(false),
 	trainBiases(true),
 	trainWeights(true),
 	trainFeatures(true),
@@ -59,6 +60,7 @@ CMT::STM::Parameters::Parameters() :
 
 CMT::STM::Parameters::Parameters(const Parameters& params) :
 	Trainable::Parameters::Parameters(params),
+	trainSharpness(params.trainSharpness),
 	trainBiases(params.trainBiases),
 	trainWeights(params.trainWeights),
 	trainFeatures(params.trainFeatures),
@@ -77,6 +79,7 @@ CMT::STM::Parameters::Parameters(const Parameters& params) :
 CMT::STM::Parameters& CMT::STM::Parameters::operator=(const Parameters& params) {
 	Trainable::Parameters::operator=(params);
 
+	trainSharpness = params.trainSharpness;
 	trainBiases = params.trainBiases;
 	trainWeights = params.trainWeights;
 	trainFeatures = params.trainFeatures;
@@ -113,6 +116,7 @@ CMT::STM::STM(
 		throw Exception("The number of components has to be positive.");
 
 	// initialize parameters
+	mSharpness = 1.;
 	mBiases = -10. * ArrayXd::Random(mNumComponents).abs() - log(mNumComponents);
 	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100.;
 	mFeatures = sampleNormal(mDimInNonlinear, mNumFeatures) / 100.;
@@ -143,6 +147,7 @@ CMT::STM::STM(
 		throw Exception("The number of components has to be positive.");
 
 	// initialize parameters
+	mSharpness = 1.;
 	mBiases = -10. * ArrayXd::Random(mNumComponents).abs() - log(mNumComponents);
 	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100.;
 	mFeatures = sampleNormal(mDimInNonlinear, mNumFeatures) / 100.;
@@ -161,6 +166,18 @@ MatrixXd CMT::STM::sample(const MatrixXd& input) const {
 MatrixXd CMT::STM::sample(const MatrixXd& inputNonlinear, const MatrixXd& inputLinear) const {
 	return mDistribution->sample(
 		mNonlinearity->operator()(response(inputNonlinear, inputLinear)));
+}
+
+
+
+MatrixXd CMT::STM::predict(const MatrixXd& input) const {
+	return mNonlinearity->operator()(response(input));
+}
+
+
+
+MatrixXd CMT::STM::predict(const MatrixXd& inputNonlinear, const MatrixXd& inputLinear) const {
+	return mNonlinearity->operator()(response(inputNonlinear, inputLinear));
 }
 
 
@@ -229,11 +246,15 @@ Array<double, 1, Dynamic> CMT::STM::response(const MatrixXd& input) const {
 			numComponents() > 1 ? log(mBiases.array().exp().sum()) : mBiases[0]);
 
 	// model has only nonlinear inputs
-	MatrixXd jointEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix();
-	jointEnergy += mPredictors * input;
+	MatrixXd jointEnergy;
+	if(numFeatures() > 0)
+		jointEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix()
+			+ mPredictors * input;
+	else
+		jointEnergy = mPredictors * input;
 	jointEnergy.colwise() += mBiases;
 
-	return logSumExp(jointEnergy);
+	return logSumExp(mSharpness * jointEnergy) / mSharpness;
 }
 
 
@@ -257,11 +278,16 @@ Array<double, 1, Dynamic> CMT::STM::response(
 	}
 
 	// model has linear and nonlinear inputs
-	MatrixXd jointEnergy = mWeights * (mFeatures.transpose() * inputNonlinear).array().square().matrix();
-	jointEnergy += mPredictors * inputNonlinear;
+	MatrixXd jointEnergy;
+	if(numFeatures() > 0)
+		jointEnergy = mWeights * (mFeatures.transpose() * inputNonlinear).array().square().matrix()
+			+ mPredictors * inputNonlinear;
+	else
+		jointEnergy = mPredictors * inputNonlinear;
 	jointEnergy.colwise() += mBiases;
 
-	return logSumExp(jointEnergy) + (mLinearPredictor.transpose() * inputLinear).array();
+	return logSumExp(mSharpness * jointEnergy) / mSharpness
+		+ (mLinearPredictor.transpose() * inputLinear).array();
 }
 
 
@@ -274,8 +300,12 @@ ArrayXXd CMT::STM::nonlinearResponses(const MatrixXd& input) const {
 		// model has only linear inputs
 		return MatrixXd::Zero(numComponents(), input.cols()).colwise() + mBiases;
 
-	MatrixXd jointEnergy = mWeights * (mFeatures.transpose() * input.topRows(dimInNonlinear())).array().square().matrix();
-	jointEnergy += mPredictors * input.topRows(dimInNonlinear());
+	MatrixXd jointEnergy;
+	if(numFeatures() > 0)
+		jointEnergy = mWeights * (mFeatures.transpose() * input.topRows(dimInNonlinear())).array().square().matrix()
+			+ mPredictors * input.topRows(dimInNonlinear());
+	else
+		jointEnergy = mPredictors * input.topRows(dimInNonlinear());
 	jointEnergy.colwise() += mBiases;
 
 	return jointEnergy;
@@ -303,56 +333,54 @@ void CMT::STM::initialize(const MatrixXd& input, const MatrixXd& output) {
 		throw Exception("The number of inputs and outputs should be the same.");
 
 	Array<bool, 1, Dynamic> spikes = output.array() > 0.5;
-	int numSpikes = output.sum();
+	int numSpikes = spikes.sum();
 
-	if(dimInNonlinear() > 0) {
+	if(numSpikes > dimInNonlinear() && dimInNonlinear() > 0) {
+		mSharpness = 1.;
 		MatrixXd inputNonlinear = input.topRows(dimInNonlinear());
+		MatrixXd inputs1(inputNonlinear.rows(), numSpikes);
+		MatrixXd inputs0(inputNonlinear.rows(), spikes.size() - numSpikes);
 
-		if(numSpikes > dimInNonlinear()) {
-			MatrixXd inputs1(inputNonlinear.rows(), numSpikes);
-			MatrixXd inputs0(inputNonlinear.rows(), spikes.size() - numSpikes);
+		// separate data into spike-triggered and non-spike-triggered stimuli
+		for(int i = 0, i0 = 0, i1 = 0; i < spikes.size(); ++i)
+			if(spikes[i])
+				inputs1.col(i1++) = inputNonlinear.col(i);
+			else
+				inputs0.col(i0++) = inputNonlinear.col(i);
 
-			// separate data into spike-triggered and non-spike-triggered stimuli
-			for(int i = 0, i0 = 0, i1 = 0; i < spikes.size(); ++i)
-				if(spikes[i])
-					inputs1.col(i1++) = inputNonlinear.col(i);
-				else
-					inputs0.col(i0++) = inputNonlinear.col(i);
+		// spike-triggered/non-spike-triggered mean and precision
+		VectorXd m1 = inputs1.rowwise().mean();
+		VectorXd m0 = inputs0.rowwise().mean();
 
-			// spike-triggered/non-spike-triggered mean and precision
-			VectorXd m1 = inputs1.rowwise().mean();
-			VectorXd m0 = inputs0.rowwise().mean();
+		MatrixXd S1 = covariance(inputs1).inverse();
+		MatrixXd S0 = covariance(inputs0).inverse();
 
-			MatrixXd S1 = covariance(inputs1).inverse();
-			MatrixXd S0 = covariance(inputs0).inverse();
+		// parameters of a quadratic model
+		MatrixXd K = (S0 - S1) / 2.;
+		VectorXd w = S1 * m1 - S0 * m0;
+		double p = static_cast<float>(numSpikes) / output.cols();
+		double a = 0.5 * (m0.transpose() * S0 * m0)(0, 0) - 0.5 * (m1.transpose() * S1 * m1)(0, 0)
+			+ 0.5 * logDetPD(S1) - 0.5 * logDetPD(S0) + log(p) - log(1. - p)
+			- log(mNumComponents);
 
-			// parameters of a quadratic model
-			MatrixXd K = (S0 - S1) / 2.;
-			VectorXd w = S1 * m1 - S0 * m0;
-			double p = static_cast<float>(numSpikes) / output.cols();
-			double a = 0.5 * (m0.transpose() * S0 * m0)(0, 0) - 0.5 * (m1.transpose() * S1 * m1)(0, 0)
-				+ 0.5 * logDetPD(S1) - 0.5 * logDetPD(S0) + log(p) - log(1. - p)
-				- log(mNumComponents);
+		// decompose matrix into eigenvectors
+		SelfAdjointEigenSolver<MatrixXd> eigenSolver(K);
+		VectorXd eigVals = eigenSolver.eigenvalues();
+		MatrixXd eigVecs = eigenSolver.eigenvectors();
+		VectorXi indices = argSort(eigVals.array().abs());
 
-			// decompose matrix into eigenvectors
-			SelfAdjointEigenSolver<MatrixXd> eigenSolver(K);
-			VectorXd eigVals = eigenSolver.eigenvalues();
-			MatrixXd eigVecs = eigenSolver.eigenvectors();
-			VectorXi indices = argSort(eigVals.array().abs());
-
-			// use most informative eigenvectors as features
-			for(int i = 0; i < mNumFeatures && i < indices.size(); ++i) {
-				int j = indices[i];
-				mWeights.col(i).setConstant(eigVals[j]);
-				mFeatures.col(i) = eigVecs.col(j);
-			}
-
-			mWeights = mWeights.array() * (0.5 + 0.5 * ArrayXXd::Random(mNumComponents, mNumFeatures).abs());
-			mPredictors.rowwise() = w.transpose();
-			mPredictors += sampleNormal(mNumComponents, mDimInNonlinear).matrix() * log(mNumComponents) / 10.;
-			mBiases.setConstant(a);
-			mBiases += VectorXd::Random(mNumComponents) * log(mNumComponents) / 100.;
+		// use most informative eigenvectors as features
+		for(int i = 0; i < mNumFeatures && i < indices.size(); ++i) {
+			int j = indices[i];
+			mWeights.col(i).setConstant(eigVals[j]);
+			mFeatures.col(i) = eigVecs.col(j);
 		}
+
+		mWeights = mWeights.array() * (0.5 + 0.5 * ArrayXXd::Random(mNumComponents, mNumFeatures).abs());
+		mPredictors.rowwise() = w.transpose();
+		mPredictors += sampleNormal(mNumComponents, mDimInNonlinear).matrix() * log(mNumComponents) / 10.;
+		mBiases.setConstant(a);
+		mBiases += VectorXd::Random(mNumComponents) * log(mNumComponents) / 100.;
 	}
 
 	if(dimInLinear() > 0)
@@ -425,6 +453,8 @@ int CMT::STM::numParameters(const Trainable::Parameters& params_) const {
 		numParams += mPredictors.size();
 	if(params.trainLinearPredictor)
 		numParams += mLinearPredictor.size();
+	if(params.trainSharpness)
+		numParams += 1;
 	return numParams;
 }
 
@@ -436,6 +466,7 @@ lbfgsfloatval_t* CMT::STM::parameters(const Trainable::Parameters& params_) cons
 	lbfgsfloatval_t* x = lbfgs_malloc(numParameters(params));
 
 	int k = 0;
+
 	if(params.trainBiases)
 		for(int i = 0; i < mBiases.size(); ++i, ++k)
 			x[k] = mBiases.data()[i];
@@ -451,6 +482,8 @@ lbfgsfloatval_t* CMT::STM::parameters(const Trainable::Parameters& params_) cons
 	if(params.trainLinearPredictor)
 		for(int i = 0; i < mLinearPredictor.size(); ++i, ++k)
 			x[k] = mLinearPredictor.data()[i];
+	if(params.trainSharpness)
+		x[k++] = mSharpness;
 
 	return x;
 }
@@ -486,6 +519,9 @@ void CMT::STM::setParameters(const lbfgsfloatval_t* x, const Trainable::Paramete
 		mLinearPredictor = VectorLBFGS(const_cast<double*>(x) + offset, dimInLinear());
 		offset += mLinearPredictor.size();
 	}
+
+	if(params.trainSharpness)
+		mSharpness = x[offset++];
 }
 
 
@@ -540,6 +576,9 @@ double CMT::STM::parameterGradient(
 	if(params.trainLinearPredictor)
 		offset += linearPredictor.size();
 
+	double sharpness = params.trainSharpness ? y[offset++] : mSharpness;
+	double sharpnessGrad = 0.;
+
 	if(g) {
 		// initialize gradients
 		if(params.trainBiases)
@@ -560,24 +599,37 @@ double CMT::STM::parameterGradient(
 
 	#pragma omp parallel for
 	for(int b = 0; b < inputCompl.cols(); b += batchSize) {
-		// TODO: can this be done more efficiently?
 		int width = min(batchSize, numData - b);
 		const MatrixXd& inputNonlinear = inputCompl.block(0, b, dimInNonlinear(), width);
 		const MatrixXd& inputLinear = inputCompl.block(dimInNonlinear(), b, dimInLinear(), width);
 		const MatrixXd& output = outputCompl.middleCols(b, width);
 
-		ArrayXXd featureOutput = features.transpose() * inputNonlinear;
-		MatrixXd featureOutputSq = featureOutput.square();
-		MatrixXd weightsOutput = weights * featureOutputSq;
-		ArrayXXd predictorOutput = predictors * inputNonlinear;
+		ArrayXXd featureOutput;
+		MatrixXd featureOutputSq;
+		MatrixXd jointEnergy;
 
-		MatrixXd jointEnergy = weights * featureOutputSq + predictors * inputNonlinear;
+		if(numFeatures() > 0) {
+			featureOutput = features.transpose() * inputNonlinear;
+			featureOutputSq = featureOutput.square();
+			jointEnergy = weights * featureOutputSq + predictors * inputNonlinear;
+		} else {
+			jointEnergy = predictors * inputNonlinear;
+		}
+
 		jointEnergy.colwise() += biases;
+		MatrixXd jointEnergyScaled = jointEnergy * sharpness;
 
-		Matrix<double, 1, Dynamic> response = logSumExp(jointEnergy);
+		Matrix<double, 1, Dynamic> response = logSumExp(jointEnergyScaled);
 
 		// posterior over components for each data point
-		MatrixXd posterior = (jointEnergy.rowwise() - response).array().exp();
+		MatrixXd posterior = (jointEnergyScaled.rowwise() - response).array().exp();
+
+		response /= sharpness;
+
+		MatrixXd nonlinearResponse;
+		if(params.trainSharpness)
+			// make copy of nonlinear response
+			nonlinearResponse = response;
 
 		if(dimInLinear())
 			response += linearPredictor.transpose() * inputLinear;
@@ -603,29 +655,41 @@ double CMT::STM::parameterGradient(
 			#pragma omp critical
 			biasesGrad -= postTmp.rowwise().sum();
 
-		if(params.trainWeights)
-			#pragma omp critical
-			weightsGrad -= postTmp * featureOutputSq.transpose();
+		if(numFeatures() > 0) {
+			if(params.trainWeights)
+				#pragma omp critical
+				weightsGrad -= postTmp * featureOutputSq.transpose();
 
-		if(params.trainFeatures) {
-			ArrayXXd tmp2 = 2. * weights.transpose() * postTmp;
-			MatrixXd tmp3 = featureOutput * tmp2;
-			#pragma omp critical
-			featuresGrad -= inputNonlinear * tmp3.transpose();
+			if(params.trainFeatures) {
+				ArrayXXd tmp2 = 2. * weights.transpose() * postTmp;
+				MatrixXd tmp3 = featureOutput * tmp2;
+				#pragma omp critical
+				featuresGrad -= inputNonlinear * tmp3.transpose();
+			}
 		}
 
 		if(params.trainPredictors)
 			#pragma omp critical
 			predictorsGrad -= postTmp * inputNonlinear.transpose();
 
-		if(params.trainLinearPredictor && dimInLinear())
+		if(params.trainLinearPredictor && dimInLinear() > 0)
 			#pragma omp critical
 			linearPredictorGrad -= inputLinear * tmp.transpose().matrix();
+
+		if(params.trainSharpness) {
+			double tmp2 = ((jointEnergy.array() * posterior.array()).colwise().sum() * tmp).sum() / sharpness;
+			double tmp3 = (nonlinearResponse.array() * tmp).sum() / sharpness;
+			#pragma omp critical
+			sharpnessGrad -= tmp2 - tmp3;
+		}
 	}
 
 	double normConst = inputCompl.cols() * log(2.) * dimOut();
 
 	if(g) {
+		if(params.trainSharpness)
+			g[offset - 1] = sharpnessGrad;
+
 		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
 
@@ -742,12 +806,12 @@ bool CMT::STM::train(
 
 		return true;
 
-	} else if(!dimInNonlinear()) {
-		if(dimInLinear() != input.rows())
+	} else if(!dimInNonlinear() || (numComponents() == 1 && numFeatures() == 0)) {
+		if(dimIn() != input.rows())
 			throw Exception("Input has wrong dimensionality.");
 
 		// STM reduces to GLM
-		GLM glm(dimInLinear(), mNonlinearity, mDistribution);
+		GLM glm(dimIn(), mNonlinearity, mDistribution);
 
 		GLM::Parameters glmParams;
 		glmParams.Trainable::Parameters::operator=(params);
@@ -766,7 +830,8 @@ bool CMT::STM::train(
 			converged = glm.train(input, output, glmParams);
 
 		// copy parameters
-		mLinearPredictor = glm.weights();
+		mPredictors = glm.weights().topRows(dimInNonlinear()).transpose();
+		mLinearPredictor = glm.weights().bottomRows(dimInLinear());
 		mBiases.setConstant(glm.bias() - log(numComponents()));
 
 		return converged;

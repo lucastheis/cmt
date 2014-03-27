@@ -155,6 +155,18 @@ MatrixXd CMT::GLM::sample(const MatrixXd& input) const {
 
 
 
+MatrixXd CMT::GLM::predict(const MatrixXd& input) const {
+	if(input.rows() != mDimIn)
+		throw Exception("Input has wrong dimensionality.");
+
+	if(!mDimIn)
+		return Array<double, 1, Dynamic>::Constant(input.cols(), mBias);
+
+	return (*mNonlinearity)((mWeights.transpose() * input).array() + mBias);
+}
+
+
+
 int CMT::GLM::numParameters(const Trainable::Parameters& params_) const {
 	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 	

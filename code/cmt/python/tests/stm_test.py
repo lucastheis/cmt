@@ -137,16 +137,20 @@ class Tests(unittest.TestCase):
 	def test_gradient(self):
 		stm = STM(5, 2, 10)
 
+		stm.sharpness = 1.5
+
 		# choose random parameters
 		stm._set_parameters(randn(*stm._parameters().shape) / 100.)
 
 		err = stm._check_gradient(
 			randn(stm.dim_in, 1000),
-			randint(2, size=[stm.dim_out, 1000]), 1e-5)
+			randint(2, size=[stm.dim_out, 1000]),
+			1e-5,
+			parameters={'train_sharpness': True})
 		self.assertLess(err, 1e-8)
 
 		# test with regularization turned off
-		for param in ['biases', 'weights', 'features', 'pred', 'linear_predictor']:
+		for param in ['biases', 'weights', 'features', 'pred', 'linear_predictor', 'sharpness']:
 			err = stm._check_gradient(
 				randn(stm.dim_in, 1000),
 				randint(2, size=[stm.dim_out, 1000]),
@@ -157,6 +161,7 @@ class Tests(unittest.TestCase):
 					'train_features': param == 'features',
 					'train_predictors': param == 'pred',
 					'train_linear_predictor': param == 'linear_predictor',
+					'train_sharpness': param == 'sharpness',
 				})
 			self.assertLess(err, 1e-7)
 
