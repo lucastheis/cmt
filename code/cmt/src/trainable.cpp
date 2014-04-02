@@ -344,8 +344,8 @@ bool CMT::Trainable::train(
 	lbfgs_parameter_init(&hyperparams);
 	hyperparams.max_iterations = params.maxIter;
 	hyperparams.m = params.numGrad;
-	hyperparams.epsilon = 1e-7;
-	hyperparams.linesearch = LBFGS_LINESEARCH_MORETHUENTE;
+	hyperparams.epsilon = 1e-9;
+	hyperparams.linesearch = LBFGS_LINESEARCH_BACKTRACKING;
 	hyperparams.max_linesearch = 100;
 	hyperparams.ftol = 1e-4;
 
