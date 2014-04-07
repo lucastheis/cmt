@@ -25,7 +25,7 @@ using Eigen::MatrixXd;
 CMT::Mixture::Parameters::Parameters() :
 	verbosity(1),
 	maxIter(20),
-	threshold(1e-5),
+	threshold(1e-8),
 	valIter(2),
 	valLookAhead(5),
 	initialize(true),
@@ -40,7 +40,7 @@ CMT::Mixture::Parameters::Parameters() :
 CMT::Mixture::Component::Parameters::Parameters() :
 	verbosity(0),
 	maxIter(10),
-	threshold(1e-5),
+	threshold(1e-8),
 	trainPriors(true),
 	trainCovariance(true),
 	trainScales(true),

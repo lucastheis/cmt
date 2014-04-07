@@ -284,6 +284,7 @@ const char* Mixture_train_doc =
 	"\t>>> \tparameters={\n"
 	"\t>>> \t\t'verbosity': 1,\n"
 	"\t>>> \t\t'max_iter': 20,\n"
+	"\t>>> \t\t'threshold': 1e-8,\n"
 	"\t>>> \t\t'val_iter': 2,\n"
 	"\t>>> \t\t'val_look_ahead': 5,\n"
 	"\t>>> \t\t'initialize': True,\n"
