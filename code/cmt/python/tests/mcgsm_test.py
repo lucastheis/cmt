@@ -342,7 +342,7 @@ class Tests(unittest.TestCase):
 		outputs = ones_like(mcgsm.sample(inputs))
 
 		# compute density gradient and loglikelihood
-		dx, dy, ll = mcgsm._compute_data_gradient(inputs, outputs)
+		dx, dy, ll = mcgsm._data_gradient(inputs, outputs)
 
 		self.assertLess(max(abs(ll - mcgsm.loglikelihood(inputs, outputs))), 1e-8)
 

@@ -101,6 +101,9 @@ static PyMethodDef CD_methods[] = {
 		(PyCFunction)CD_evaluate,
 		METH_VARARGS | METH_KEYWORDS,
 		CD_evaluate_doc},
+	{"_data_gradient",
+		(PyCFunction)CD_data_gradient,
+		METH_VARARGS | METH_KEYWORDS, 0},
 	{0}
 };
 
@@ -237,9 +240,6 @@ static PyMethodDef MCGSM_methods[] = {
 		(PyCFunction)MCGSM_parameter_gradient,
 		METH_VARARGS | METH_KEYWORDS,
 		Trainable_parameter_gradient_doc},
-	{"_compute_data_gradient",
-		(PyCFunction)MCGSM_compute_data_gradient,
-		METH_VARARGS | METH_KEYWORDS, 0},
 	{"__reduce__", (PyCFunction)MCGSM_reduce, METH_NOARGS, MCGSM_reduce_doc},
 	{"__setstate__", (PyCFunction)MCGSM_setstate, METH_VARARGS, MCGSM_setstate_doc},
 	{0}

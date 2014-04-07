@@ -130,7 +130,33 @@ class Tests(unittest.TestCase):
 
 		# inv(I) should be sufficiently close to C
 		self.assertLess(max(abs(inv(I) - C) / (abs(C) + .1)), max(abs(C) / (abs(C) + .1)) / 2.)
-		
+
+
+
+	def test_glm_data_gradient(self):
+		glm = GLM(7, LogisticFunction, Bernoulli)
+
+		x = randn(glm.dim_in, 100)
+		y = glm.sample(x)
+
+		dx, _, ll = glm._data_gradient(x, y)
+
+		h = 1e-7
+
+		# compute numerical gradient
+		dx_ = zeros_like(dx)
+
+		for i in range(glm.dim_in):
+			x_p = x.copy()
+			x_m = x.copy()
+			x_p[i] += h
+			x_m[i] -= h
+			dx_[i] = (
+				glm.loglikelihood(x_p, y) -
+				glm.loglikelihood(x_m, y)) / (2. * h)
+
+		self.assertLess(max(abs(ll - glm.loglikelihood(x, y))), 1e-8)
+		self.assertLess(max(abs(dx_ - dx)), 1e-7)
 
 
 

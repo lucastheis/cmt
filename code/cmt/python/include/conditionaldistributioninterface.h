@@ -36,5 +36,6 @@ PyObject* CD_sample(CDObject*, PyObject*, PyObject*);
 PyObject* CD_predict(CDObject*, PyObject*, PyObject*);
 PyObject* CD_loglikelihood(CDObject*, PyObject*, PyObject*);
 PyObject* CD_evaluate(CDObject*, PyObject*, PyObject*);
+PyObject* CD_data_gradient(CDObject*, PyObject*, PyObject*);
 
 #endif
