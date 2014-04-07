@@ -194,6 +194,76 @@ class Tests(unittest.TestCase):
 
 
 
+	def test_glm_data_gradient(self):
+		models = []
+		models.append(
+			STM(
+				dim_in_nonlinear=5,
+				dim_in_linear=0,
+				num_components=3,
+				num_features=2,
+				nonlinearity=LogisticFunction,
+				distribution=Bernoulli))
+		models.append(
+			STM(
+				dim_in_nonlinear=5,
+				dim_in_linear=0,
+				num_components=3,
+				num_features=2,
+				nonlinearity=ExponentialFunction,
+				distribution=Poisson))
+		models.append(
+			STM(
+				dim_in_nonlinear=2,
+				dim_in_linear=3,
+				num_components=3,
+				num_features=2,
+				nonlinearity=LogisticFunction,
+				distribution=Bernoulli))
+		models.append(
+			STM(
+				dim_in_nonlinear=2,
+				dim_in_linear=3,
+				num_components=4,
+				num_features=0,
+				nonlinearity=LogisticFunction,
+				distribution=Bernoulli))
+		models.append(
+			STM(
+				dim_in_nonlinear=0,
+				dim_in_linear=3,
+				num_components=2,
+				num_features=0,
+				nonlinearity=LogisticFunction,
+				distribution=Bernoulli))
+
+		for stm in models:
+			stm.sharpness = .5 + rand()
+
+			x = randn(stm.dim_in, 100)
+			y = stm.sample(x)
+
+			dx, _, ll = stm._data_gradient(x, y)
+
+			h = 1e-7
+
+			# compute numerical gradient
+			dx_ = zeros_like(dx)
+
+			for i in range(stm.dim_in):
+				x_p = x.copy()
+				x_m = x.copy()
+				x_p[i] += h
+				x_m[i] -= h
+				dx_[i] = (
+					stm.loglikelihood(x_p, y) -
+					stm.loglikelihood(x_m, y)) / (2. * h)
+
+			self.assertLess(max(abs(ll - stm.loglikelihood(x, y))), 1e-8)
+			self.assertLess(max(abs(dx_ - dx)), 1e-7)
+
+
+
 	def test_poisson(self):
 		stm = STM(5, 5, 3, 10, ExponentialFunction, Poisson)
 

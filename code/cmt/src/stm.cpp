@@ -273,7 +273,9 @@ Array<double, 1, Dynamic> CMT::STM::response(
 
 	if(!dimInNonlinear()) {
 		// model has only linear inputs
-		double bias = numComponents() > 1 ? log(mBiases.array().exp().sum()) : mBiases[0];
+		double bias = numComponents() > 1 ?
+			log((mSharpness * mBiases).array().exp().sum()) / mSharpness :
+			mBiases[0];
 		return (mLinearPredictor.transpose() * inputLinear).array() + bias;
 	}
 
@@ -726,12 +728,129 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::STM::computeData
 	const MatrixXd& input,
 	const MatrixXd& output) const
 {
-	throw Exception("Not implemented.");
+	// make sure nonlinearity is differentiable
+	DifferentiableNonlinearity* nonlinearity =
+		dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
+	if(!nonlinearity)
+		throw Exception("Nonlinearity has to be differentiable.");
+
+	if(input.rows() != dimIn())
+		throw Exception("Input has wrong dimensionality.");
+	if(output.rows() != 1)
+		throw Exception("Output has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("Number of inputs and outputs should be the same.");
+
+	if(dimInNonlinear() && !dimInLinear()) {
+		Array<double, 1, Dynamic> responses;
+
+		ArrayXXd jointEnergy;
+
+		if(numFeatures() > 0)
+			jointEnergy = mWeights * (mFeatures.transpose() * input).array().square().matrix()
+				+ mPredictors * input;
+		else
+			jointEnergy = mPredictors * input;
+		jointEnergy.colwise() += mBiases.array();
+		jointEnergy *= mSharpness;
+
+		responses = logSumExp(jointEnergy);
+
+		// posterior over components for each input
+		MatrixXd posterior = (jointEnergy.rowwise() - responses).array().exp();
+
+		responses /= mSharpness;
+
+		Array<double, 1, Dynamic> tmp0 = (*mNonlinearity)(responses);
+		Array<double, 1, Dynamic> tmp1 = -mDistribution->gradient(output, tmp0);
+		Array<double, 1, Dynamic> tmp2 = nonlinearity->derivative(responses);
+
+		ArrayXXd avgPredictor = mPredictors.transpose() * posterior;
+
+		ArrayXXd tmp3;
+		if(numFeatures() > 0) {
+			ArrayXXd avgWeights = (2. * mWeights).transpose() * posterior;
+			tmp3 = mFeatures * (avgWeights * (mFeatures.transpose() * input).array()).matrix();
+		} else {
+			tmp3 = ArrayXXd::Zero(avgPredictor.rows(), avgPredictor.cols());
+		}
+
+		return make_pair(
+			make_pair(
+				(tmp3 + avgPredictor).rowwise() * (tmp1 * tmp2),
+				ArrayXXd::Zero(output.rows(), output.cols())),
+			mDistribution->logLikelihood(output, tmp0));
+
+	} else if(dimInNonlinear() && dimInLinear()) {
+		// split inputs into linear and nonlinear components
+		MatrixXd inputNonlinear = input.topRows(dimInNonlinear());
+		MatrixXd inputLinear = input.bottomRows(dimInLinear());
+
+		Array<double, 1, Dynamic> responses;
+
+		ArrayXXd jointEnergy;
+
+		if(numFeatures() > 0)
+			jointEnergy = mWeights * (mFeatures.transpose() * inputNonlinear).array().square().matrix()
+				+ mPredictors * input;
+		else
+			jointEnergy = mPredictors * inputNonlinear;
+		jointEnergy.colwise() += mBiases.array();
+		jointEnergy *= mSharpness;
+
+		responses = logSumExp(jointEnergy);
+
+		// posterior over components for each input
+		MatrixXd posterior = (jointEnergy.rowwise() - responses).array().exp();
+
+		responses /= mSharpness;
+		responses += (mLinearPredictor.transpose() * inputLinear).array();
+
+		Array<double, 1, Dynamic> tmp0 = (*mNonlinearity)(responses);
+		Array<double, 1, Dynamic> tmp1 = -mDistribution->gradient(output, tmp0);
+		Array<double, 1, Dynamic> tmp2 = nonlinearity->derivative(responses);
+
+		ArrayXXd avgPredictor = mPredictors.transpose() * posterior;
+
+		ArrayXXd tmp3;
+		if(numFeatures() > 0) {
+			ArrayXXd avgWeights = (2. * mWeights).transpose() * posterior;
+			tmp3 = mFeatures * (avgWeights * (mFeatures.transpose() * inputNonlinear).array()).matrix();
+		} else {
+			tmp3 = ArrayXXd::Zero(avgPredictor.rows(), avgPredictor.cols());
+		}
+
+		// concatenate gradients of nonlinear and linear component
+		ArrayXXd inputGradient(dimIn(), input.cols());
+		inputGradient << 
+			(tmp3 + avgPredictor).rowwise() * (tmp1 * tmp2),
+			mLinearPredictor * (tmp1 * tmp2).matrix();
+
+		return make_pair(
+			make_pair(
+				inputGradient,
+				ArrayXXd::Zero(output.rows(), output.cols())),
+			mDistribution->logLikelihood(output, tmp0));
+
+	} else if(dimInLinear()) {
+		double avgBias = logSumExp(mSharpness * mBiases)(0, 0) / mSharpness;
+		Array<double, 1, Dynamic> responses = (mLinearPredictor.transpose() * input).array() + avgBias;
+
+		Array<double, 1, Dynamic> tmp0 = (*mNonlinearity)(responses);
+		Array<double, 1, Dynamic> tmp1 = -mDistribution->gradient(output, tmp0);
+		Array<double, 1, Dynamic> tmp2 = nonlinearity->derivative(responses);
+
+		return make_pair(
+			make_pair(
+				mLinearPredictor * (tmp1 * tmp2).matrix(),
+				ArrayXXd::Zero(output.rows(), output.cols())),
+			mDistribution->logLikelihood(output, tmp0));
+	}
 
 	return make_pair(
 		make_pair(
 			ArrayXXd::Zero(input.rows(), input.cols()),
-			ArrayXXd::Zero(output.rows(), output.cols())), 
+			ArrayXXd::Zero(output.rows(), output.cols())),
 		logLikelihood(input, output));
 }
 

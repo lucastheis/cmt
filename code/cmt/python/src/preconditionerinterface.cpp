@@ -857,7 +857,7 @@ const char* PCAPreconditioner_doc =
 	"@param output: outputs stored in columns\n"
 	"\n"
 	"@type  var_explained: C{double}\n"
-	"@param var_explained: the amount of variance retained after dimensionality reduction\n"
+	"@param var_explained: the amount of variance retained after dimensionality reduction (in percent)\n"
 	"\n"
 	"@type  num_pcs: C{int}\n"
 	"@param num_pcs: the number of principal components of the input kept";
@@ -997,7 +997,7 @@ const char* PCATransform_doc =
 	"@param dim_out: number of outputs (default: 1)\n"
 	"\n"
 	"@type  var_explained: C{double}\n"
-	"@param var_explained: the amount of variance retained after dimensionality reduction\n"
+	"@param var_explained: the amount of variance retained after dimensionality reduction (in percent)\n"
 	"\n"
 	"@type  num_pcs: C{int}\n"
 	"@param num_pcs: the number of principal components of the input kept";

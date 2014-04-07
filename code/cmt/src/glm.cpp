@@ -377,9 +377,35 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::GLM::computeData
 	const MatrixXd& input,
 	const MatrixXd& output) const
 {
+	// make sure nonlinearity is differentiable
+	DifferentiableNonlinearity* nonlinearity =
+		dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
+	if(!nonlinearity)
+		throw Exception("Nonlinearity has to be differentiable.");
+
+	if(mDimIn && input.rows() != mDimIn)
+		throw Exception("Input has wrong dimensionality.");
+	if(output.rows() != 1)
+		throw Exception("Output has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("Number of inputs and outputs should be the same.");
+
+	if(!mDimIn)
+		return make_pair(
+			make_pair(
+				ArrayXXd::Zero(input.rows(), input.cols()),
+				ArrayXXd::Zero(output.rows(), output.cols())),
+			logLikelihood(input, output));
+
+	Array<double, 1, Dynamic> responses = (mWeights.transpose() * input).array() + mBias;
+
+	Array<double, 1, Dynamic> tmp0 = (*mNonlinearity)(responses);
+	Array<double, 1, Dynamic> tmp1 = -mDistribution->gradient(output, tmp0);
+	Array<double, 1, Dynamic> tmp2 = nonlinearity->derivative(responses);
+
 	return make_pair(
 		make_pair(
-			ArrayXXd::Zero(input.rows(), input.cols()), 
-			ArrayXXd::Zero(output.rows(), output.cols())), 
-		logLikelihood(input, output));
+			mWeights * (tmp1 * tmp2).matrix(),
+			ArrayXXd::Zero(output.rows(), output.cols())),
+		mDistribution->logLikelihood(output, tmp0));
 }
