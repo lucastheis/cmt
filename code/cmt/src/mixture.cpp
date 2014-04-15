@@ -159,6 +159,9 @@ void CMT::Mixture::initialize(
 	const Parameters& parameters,
 	const Component::Parameters& componentParameters)
 {
+	if(data.rows() != dim())
+		throw Exception("Data has wrong dimensionality.");
+
 	if(parameters.trainPriors)
 		mPriors.setConstant(1. / numComponents()); 
 
@@ -176,6 +179,9 @@ bool CMT::Mixture::train(
 	const Parameters& parameters,
 	const Component::Parameters& componentParameters)
 {
+	if(data.rows() != dim())
+		throw Exception("Data has wrong dimensionality.");
+
 	if(parameters.initialize && !initialized())
 		initialize(data, parameters, componentParameters);
 
