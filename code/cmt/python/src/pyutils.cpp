@@ -364,6 +364,9 @@ Regularizer PyObject_ToRegularizer(PyObject* regularizer) {
 		PyObject* r_transform = PyDict_GetItemString(regularizer, "transform");
 		PyObject* r_norm = PyDict_GetItemString(regularizer, "norm");
 
+		if(r_transform == Py_None)
+			r_transform = 0;
+
 		Regularizer::Norm norm = Regularizer::L2;
 
 		if(r_norm) {
@@ -371,6 +374,9 @@ Regularizer PyObject_ToRegularizer(PyObject* regularizer) {
 				throw Exception("Regularizer norm should be 'L1' or 'L2'.");
 
 			switch(PyString_AsString(r_norm)[1]) {
+				default:
+					throw Exception("Regularizer norm should be 'L1' or 'L2'.");
+
 				case '1':
 					norm = Regularizer::L1;
 					break;

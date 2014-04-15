@@ -186,7 +186,7 @@ static PyGetSetDef MCGSM_getset[] = {
 	{"means",
 		(getter)MCGSM_means,
 		(setter)MCGSM_set_means,
-		"Means of outputs, $\\{u}_c$."},
+		"Means of outputs, $\\mathbf{u}_c$."},
 	{0}
 };
 

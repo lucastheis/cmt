@@ -255,22 +255,6 @@
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="_compute_data_gradient"></a><span class="summary-sig-name">_compute_data_gradient</span>(<span class="summary-sig-arg">...</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="cmt-pysrc.html#models.MCGSM._compute_data_gradient">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr class="private">
-    <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type"><code>ndarray</code></span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -496,6 +480,9 @@
       <code><a href="cmt.models.ConditionalDistribution-class.html#evaluate">evaluate</a></code>,
       <code><a href="cmt.models.ConditionalDistribution-class.html#predict">predict</a></code>
       </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.ConditionalDistribution-class.html">ConditionalDistribution</a></code></b> (private):
+      <code><a href="cmt.models.ConditionalDistribution-class.html#_data_gradient" onclick="show_private();">_data_gradient</a></code>
+      </p></div>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__delattr__</code>,
       <code>__format__</code>,
@@ -558,7 +545,7 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="means"></a><span class="summary-name">means</span><br />
-      Means of outputs, $\{u}_c$.
+      Means of outputs, $\mathbf{u}_c$.
     </td>
   </tr>
 <tr>
@@ -1137,12 +1124,26 @@
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_predictors'</span>: True,
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_linear_features'</span>: False,
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_means'</span>: False,
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularizer'</span>: <span class="py-string">'L2'</span>,
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_features'</span>: 0.,
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_weights'</span>: 0.,
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_predictors'</span>: 0.
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_linear_features'</span>: 0.
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_means'</span>: 0.
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_features'</span>: {
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'strength'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'transform'</span>: None,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'norm'</span>: <span class="py-string">'L2'</span>},
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_weights'</span>: {
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'strength'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'transform'</span>: None,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'norm'</span>: <span class="py-string">'L2'</span>},
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_predictors'</span>: {
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'strength'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'transform'</span>: None,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'norm'</span>: <span class="py-string">'L2'</span>},
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_linear_features'</span>: {
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'strength'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'transform'</span>: None,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'norm'</span>: <span class="py-string">'L2'</span>},
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_means'</span>: {
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'strength'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'transform'</span>: None,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'norm'</span>: <span class="py-string">'L2'</span>},
 <span class="py-prompt">&gt;&gt;&gt; </span>})</pre>
   <p>The parameters <code>train_priors</code>, <code>train_scales</code>, 
   and so on can be used to control which parameters will be optimized. 
@@ -1150,6 +1151,12 @@
   gradient is sufficiently small enough, as specified by 
   <code>threshold</code>.<code>num_grad</code> is the number of gradients 
   used by L-BFGS to approximate the inverse Hessian matrix.</p>
+  <p>Regularization of parameters $\mathbf{z}$ adds a penalty term</p>
+  <p>$$\eta ||\mathbf{A} \mathbf{z}||_p$$</p>
+  <p>to the average log-likelihood, where $\eta$ is given by 
+  <code>strength</code>, $\mathbf{A}$ is given by <code>transform</code>, 
+  and $p$ is controlled by <code>norm</code>, which has to be either 
+  <code>'L1'</code> or <code>'L2'</code>.</p>
   <p>The parameter <code>batch_size</code> has no effect on the solution of
   the optimization but can affect speed by reducing the number of cache 
   misses.</p>
@@ -1207,7 +1214,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Sat Dec 14 19:43:22 2013
+    Generated by Epydoc 3.0.1 on Tue Apr 15 18:26:29 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

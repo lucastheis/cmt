@@ -16,10 +16,10 @@ from numpy import any
 if any(['intel' in arg for arg in sys.argv]) or 'intel' in get_default_compiler():
 	# icc-specific options
 	include_dirs=[
-		'/opt/intel/mkl/include']
+		'/kyb/agmb/lucas/intel/mkl/include']
 	library_dirs=[
-		'/opt/intel/mkl/lib',
-		'/opt/intel/lib']
+		'/kyb/agmb/lucas/intel/mkl/lib',
+		'/kyb/agmb/lucas/intel/lib']
 	libraries = [
 		'mkl_intel_lp64',
 		'mkl_intel_thread',
@@ -32,10 +32,11 @@ if any(['intel' in arg for arg in sys.argv]) or 'intel' in get_default_compiler(
 		'-Wno-deprecated',
 		'-wd1224',
 		'-openmp',
+#		'-gxx-name=g++-4.8',
 		'-std=c++0x']
 	extra_link_args = []
 
-	for path in ['/opt/intel/mkl/lib/intel64', '/opt/intel/lib/intel64']:
+	for path in ['/kyb/agmb/lucas/intel/mkl/lib/intel64', '/kyb/agmb/lucas/intel/lib/intel64']:
 		if os.path.exists(path):
 			library_dirs += [path]
 

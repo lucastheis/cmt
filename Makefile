@@ -18,6 +18,7 @@ LDFLAGS = code/liblbfgs/lib/.libs/liblbfgs.a \
 else
 CXX = \
 	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CXX')[0]);")
+#CXX = g++-4.8
 CXXFLAGS = $(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);") \
 	-std=c++0x -Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses -Wno-cpp -fPIC -fopenmp -DEIGEN_NO_DEBUG
 LD = $(CXX)
