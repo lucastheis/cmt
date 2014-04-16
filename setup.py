@@ -12,14 +12,16 @@ from utils import parallelCCompiler
 from numpy.distutils.intelccompiler import IntelCCompiler
 from numpy import any
 
+INTEL_PATH = '/opt/intel/'
+
 # heuristic for figuring out which compiler is being used (icc, gcc)
 if any(['intel' in arg for arg in sys.argv]) or 'intel' in get_default_compiler():
 	# icc-specific options
 	include_dirs=[
-		'/kyb/agmb/lucas/intel/mkl/include']
+		os.path.join(INTEL_PATH, 'mkl/include')]
 	library_dirs=[
-		'/kyb/agmb/lucas/intel/mkl/lib',
-		'/kyb/agmb/lucas/intel/lib']
+		os.path.join(INTEL_PATH, 'mkl/lib'),
+		os.path.join(INTEL_PATH, 'lib')]
 	libraries = [
 		'mkl_intel_lp64',
 		'mkl_intel_thread',
@@ -32,11 +34,10 @@ if any(['intel' in arg for arg in sys.argv]) or 'intel' in get_default_compiler(
 		'-Wno-deprecated',
 		'-wd1224',
 		'-openmp',
-#		'-gxx-name=g++-4.8',
 		'-std=c++0x']
 	extra_link_args = []
 
-	for path in ['/kyb/agmb/lucas/intel/mkl/lib/intel64', '/kyb/agmb/lucas/intel/lib/intel64']:
+	for path in [os.path.join(INTEL_PATH, 'mkl/lib/intel64'), os.path.join(INTEL_PATH, 'lib/intel64')]:
 		if os.path.exists(path):
 			library_dirs += [path]
 

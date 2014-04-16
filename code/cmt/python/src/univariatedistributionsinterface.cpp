@@ -104,3 +104,54 @@ PyObject* Poisson_reduce(PoissonObject* self, PyObject*) {
 
 	return result;
 }
+
+
+
+const char* Binomial_doc =
+	"The binomial distribution.\n"
+	"\n"
+	"$$p(k) = \\binom{n}{k} p^k (1 - p)^{n - k}$$\n"
+	"\n"
+	"@type  n: C{float}\n"
+	"@param n: parameter of the binomial distribution, $n$"
+	"\n"
+	"@type  p: C{float}\n"
+	"@param p: parameter of the binomial distribution, $p$";
+
+int Binomial_init(BinomialObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"n", "p", 0};
+
+	int n = 10;
+	double p = .5;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|id", const_cast<char**>(kwlist), &n, &p))
+		return -1;
+
+	try {
+		self->distribution = new Binomial(n, p);
+		return 0;
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+
+	return -1;
+}
+
+
+
+const char* Binomial_reduce_doc =
+	"__reduce__(self)\n"
+	"\n"
+	"Method used by Pickle.";
+
+PyObject* Binomial_reduce(BinomialObject* self, PyObject*) {
+	PyObject* args = Py_BuildValue("(id)",
+		self->distribution->number(),
+		self->distribution->probability());
+	PyObject* result = Py_BuildValue("(OO)", Py_TYPE(self), args);
+
+	Py_DECREF(args);
+
+	return result;
+}

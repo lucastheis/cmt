@@ -4,12 +4,13 @@
 
 - Regularizers are now more flexible.
 - Several bug fixes and stability improvements.
+- Added binomial distribution.
 
 ## 0.4.1
 
 - Added multinomial logistic regression (MLR).
-– Added function for sampling images conditioned on component labels.
-– Extended MCGSM by additional parameters.
+- Added function for sampling images conditioned on component labels.
+- Extended MCGSM by additional parameters.
 
 ## 0.4.0
 

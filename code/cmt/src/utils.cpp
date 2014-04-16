@@ -181,7 +181,7 @@ ArrayXXd CMT::sampleGamma(int m, int n, int k) {
  * Algorithm due to Knuth, 1969.
  */
 ArrayXXi CMT::samplePoisson(int m, int n, double lambda) {
-	ArrayXXi samples = ArrayXXi::Zero(m, n);
+	ArrayXXi samples(m, n);
 	double threshold = exp(-lambda);
 
 	#pragma omp parallel for
@@ -206,7 +206,7 @@ ArrayXXi CMT::samplePoisson(int m, int n, double lambda) {
  * Algorithm due to Knuth, 1969.
  */
 ArrayXXi CMT::samplePoisson(const ArrayXXd& lambda) {
-	ArrayXXi samples = ArrayXXi::Zero(lambda.rows(), lambda.cols());
+	ArrayXXi samples(lambda.rows(), lambda.cols());
 	ArrayXXd threshold = (-lambda).exp();
 
 	#pragma omp parallel for
@@ -220,6 +220,41 @@ ArrayXXi CMT::samplePoisson(const ArrayXXd& lambda) {
 		}
 
 		samples(i) = k;
+	}
+
+	return samples;
+}
+
+
+
+ArrayXXi CMT::sampleBinomial(int w, int h, int n, double p) {
+	ArrayXXi samples = ArrayXXi::Zero(w, h);
+
+	#pragma omp parallel for
+	for(int i = 0; i < samples.size(); ++i) {
+		// very naive algorithm for generating binomial samples
+		for(int k = 0; k < n; ++k)
+			if(rand() / static_cast<double>(RAND_MAX) < p)
+				samples(i) += 1; 
+	}
+
+	return samples;
+}
+
+
+
+ArrayXXi CMT::sampleBinomial(const ArrayXXi& n, const ArrayXXd& p) {
+	if(n.rows() != p.rows() || n.cols() != p.cols())
+		throw Exception("n and p must be of the same size.");
+
+	ArrayXXi samples = ArrayXXi::Zero(n.rows(), n.cols());
+
+	#pragma omp parallel for
+	for(int i = 0; i < samples.size(); ++i) {
+		// very naive algorithm for generating binomial samples
+		for(int k = 0; k < n(i); ++k)
+			if(rand() / static_cast<double>(RAND_MAX) < p(i))
+				samples(i) += 1; 
 	}
 
 	return samples;
