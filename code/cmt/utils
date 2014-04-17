@@ -3,5 +3,6 @@
 
 #include "include/exception.h"
 #include "include/utils.h"
+#include "include/regularizer.h"
 
 #endif

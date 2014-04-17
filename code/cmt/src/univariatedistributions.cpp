@@ -6,6 +6,9 @@ using Eigen::MatrixXd;
 using Eigen::Array;
 using Eigen::Dynamic;
 
+#include <limits>
+using std::numeric_limits;
+
 CMT::Bernoulli::Bernoulli(double prob) : mProb(prob) {
 	if(prob < 0. || prob > 1.)
 		throw Exception("Probability has to be between 0 and 1.");
@@ -46,6 +49,7 @@ Array<double, 1, Dynamic> CMT::Bernoulli::logLikelihood(const MatrixXd& data) co
 	double logProb1 = log(mProb);
 	double logProb0 = log(1. - mProb);
 
+	#pragma omp parallel for
 	for(int i = 0; i < data.size(); ++i)
 		logLik[i] = data.data()[i] > 0.5 ? logProb1 : logProb0;
 
@@ -135,4 +139,100 @@ Array<double, 1, Dynamic> CMT::Poisson::gradient(
 	const Array<double, 1, Dynamic>& means) const
 {
 	return 1. - data / means;
+}
+
+
+
+CMT::Binomial::Binomial(int n, double p) : mN(n), mP(p) {
+	if(n < 0)
+		throw Exception("Number of throws has to be non-negative.");
+	if(p < 0. || p > 1.)
+		throw Exception("Probability has to be between 0 and 1.");
+}
+
+
+
+double CMT::Binomial::mean() const {
+	return mP * mN;
+}
+
+
+
+void CMT::Binomial::setMean(double mean) {
+	if(mean < 0.)
+		throw Exception("The mean cannot be negative.");
+	if(mean > mN)
+		throw Exception("The mean cannot be larger than N.");
+	mP = mean / mN;
+}
+
+
+
+MatrixXd CMT::Binomial::sample(int numSamples) const {
+	return sampleBinomial(1, numSamples, mN, mP).cast<double>();
+}
+
+
+
+MatrixXd CMT::Binomial::sample(const Array<double, 1, Dynamic>& means) const {
+	ArrayXXi n = ArrayXXi::Constant(1, means.cols(), mN);
+	ArrayXXd p = means / mN;
+	return sampleBinomial(n, p).cast<double>();
+}
+
+
+
+Array<double, 1, Dynamic> CMT::Binomial::logLikelihood(const MatrixXd& data) const {
+	ArrayXXd normConst = 
+		lnGamma(mN + 1.) - lnGamma(mN - data.array() + 1.) - lnGamma(data.array() + 1);
+
+	if(mP < 1. && mP > 0.) {
+		return data.array() * log(mP) + (mN - data.array()) * log(1. - mP) + normConst;
+	} else {
+		Array<double, 1, Dynamic> logLik(data.size());
+
+		#pragma omp parallel for
+		for(int i = 0; i < data.size(); ++i)
+			if(data(i) > mN || data(i) < 0.)
+				logLik[i] = -numeric_limits<double>::infinity();
+			else if(data(i) > 0.)
+				logLik[i] = data(i) * log(mP) + (mN - data(i)) * log(1. - mP) + normConst(i);
+			else
+				logLik[i] = (mN - data(i)) * log(1. - mP) + normConst(i);
+
+		return logLik;
+	}
+}
+
+
+
+Array<double, 1, Dynamic> CMT::Binomial::logLikelihood(
+	const Array<double, 1, Dynamic>& data,
+	const Array<double, 1, Dynamic>& means) const
+{
+	Array<double, 1, Dynamic> normConst =
+		lnGamma(mN + 1.) - lnGamma(mN - data + 1.) - lnGamma(data + 1);
+	Array<double, 1, Dynamic> logLik(data.size());
+	Array<double, 1, Dynamic> p = means / mN;
+
+	#pragma omp parallel for
+	for(int i = 0; i < data.size(); ++i) {
+		if(data(i) > mN || data(i) < 0. || p[i] > 1.)
+			logLik[i] = -numeric_limits<double>::infinity();
+		else if(data(i) > 0.)
+			logLik[i] = data[i] * log(p[i]) + (mN - data[i]) * log(1. - p[i]) + normConst[i];
+		else
+			logLik[i] = (mN - data[i]) * log(1. - p[i]) + normConst[i];
+	}
+
+	return logLik;
+}
+
+
+
+Array<double, 1, Dynamic> CMT::Binomial::gradient(
+	const Array<double, 1, Dynamic>& data,
+	const Array<double, 1, Dynamic>& means) const
+{
+	return (mN - data) / (mN - means) - data / means;
 }

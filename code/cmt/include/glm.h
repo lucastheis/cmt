@@ -6,6 +6,7 @@
 #include "distribution.h"
 #include "nonlinearities.h"
 #include "univariatedistributions.h"
+#include "regularizer.h"
 
 namespace CMT {
 	using Eigen::Array;
@@ -19,14 +20,11 @@ namespace CMT {
 		public:
 			struct Parameters : public Trainable::Parameters {
 				public:
-					enum Regularizer { L1, L2 };
-
 					bool trainWeights;
 					bool trainBias;
 					bool trainNonlinearity;
-					double regularizeWeights;
-					double regularizeBias;
-					Regularizer regularizer;
+					Regularizer regularizeWeights;
+					Regularizer regularizeBias;
 
 					Parameters();
 					Parameters(const Parameters& params);
@@ -63,6 +61,7 @@ namespace CMT {
 				const MatrixXd& output) const;
 
 			virtual MatrixXd sample(const MatrixXd& input) const;
+			virtual MatrixXd predict(const MatrixXd& input) const;
 
 			virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
 				const MatrixXd& input,

@@ -22,6 +22,13 @@ Trainable::Parameters* PyObject_ToSTMParameters(PyObject* parameters) {
 			else if(callback != Py_None)
 				throw Exception("callback should be a function or callable object.");
 
+		PyObject* train_sharpness = PyDict_GetItemString(parameters, "train_sharpness");
+		if(train_sharpness)
+			if(PyBool_Check(train_sharpness))
+				params->trainSharpness = (train_sharpness == Py_True);
+			else
+				throw Exception("train_sharpness should be of type `bool`.");
+
 		PyObject* train_biases = PyDict_GetItemString(parameters, "train_biases");
 		if(train_biases)
 			if(PyBool_Check(train_biases))
@@ -57,55 +64,25 @@ Trainable::Parameters* PyObject_ToSTMParameters(PyObject* parameters) {
 			else
 				throw Exception("train_linear_predictor should be of type `bool`.");
 
+		PyObject* regularize_biases = PyDict_GetItemString(parameters, "regularize_biases");
+		if(regularize_biases)
+			params->regularizeBiases = PyObject_ToRegularizer(regularize_biases);
+
 		PyObject* regularize_features = PyDict_GetItemString(parameters, "regularize_features");
 		if(regularize_features)
-			if(PyFloat_Check(regularize_features))
-				params->regularizeFeatures = PyFloat_AsDouble(regularize_features);
-			else if(PyInt_Check(regularize_features))
-				params->regularizeFeatures = static_cast<double>(PyFloat_AsDouble(regularize_features));
-			else
-				throw Exception("regularize_features should be of type `float`.");
+			params->regularizeFeatures = PyObject_ToRegularizer(regularize_features);
 
 		PyObject* regularize_predictors = PyDict_GetItemString(parameters, "regularize_predictors");
 		if(regularize_predictors)
-			if(PyFloat_Check(regularize_predictors))
-				params->regularizePredictors = PyFloat_AsDouble(regularize_predictors);
-			else if(PyInt_Check(regularize_predictors))
-				params->regularizePredictors = static_cast<double>(PyFloat_AsDouble(regularize_predictors));
-			else
-				throw Exception("regularize_predictors should be of type `float`.");
+			params->regularizePredictors = PyObject_ToRegularizer(regularize_predictors);
 
 		PyObject* regularize_weights = PyDict_GetItemString(parameters, "regularize_weights");
 		if(regularize_weights)
-			if(PyFloat_Check(regularize_weights))
-				params->regularizeWeights = PyFloat_AsDouble(regularize_weights);
-			else if(PyInt_Check(regularize_weights))
-				params->regularizeWeights = static_cast<double>(PyFloat_AsDouble(regularize_weights));
-			else
-				throw Exception("regularize_weights should be of type `float`.");
+			params->regularizeWeights = PyObject_ToRegularizer(regularize_weights);
 
 		PyObject* regularize_linear_predictor = PyDict_GetItemString(parameters, "regularize_linear_predictor");
 		if(regularize_linear_predictor)
-			if(PyFloat_Check(regularize_linear_predictor))
-				params->regularizeLinearPredictor = PyFloat_AsDouble(regularize_linear_predictor);
-			else if(PyInt_Check(regularize_linear_predictor))
-				params->regularizeLinearPredictor = static_cast<double>(PyFloat_AsDouble(regularize_linear_predictor));
-			else
-				throw Exception("regularize_linear_predictor should be of type `float`.");
-
-		PyObject* regularizer = PyDict_GetItemString(parameters, "regularizer");
-		if(regularizer)
-			if(PyString_Check(regularizer)) {
-				if(PyString_Size(regularizer) != 2)
-					throw Exception("Regularizer should be 'L1' or 'L2'.");
-
-				if(PyString_AsString(regularizer)[1] == '1')
-					params->regularizer = STM::Parameters::L1;
-				else
-					params->regularizer = STM::Parameters::L2;
-			} else {
-				throw Exception("regularizer should be of type `str`.");
-			}
+			params->regularizeLinearPredictor = PyObject_ToRegularizer(regularize_linear_predictor);
 	}
 
 	return params;
@@ -123,7 +100,7 @@ const char* STM_doc =
 	"where $y$ is a scalar, $\\mathbf{x} \\in \\mathbb{R}^N$, $\\mathbf{z} \\in \\mathbb{R}^M$, $q$\n"
 	"is a univariate distribution, $g$ is some nonlinearity, and\n"
 	"\n"
-	"$$f(\\mathbf{x}, \\mathbf{z}) = \\log \\sum_k \\exp\\left( \\sum_l \\beta_{kl} (\\mathbf{u}_l^\\top \\mathbf{x})^2 + \\mathbf{w}_k \\mathbf{x} + a_k \\right) + \\mathbf{v}^\\top \\mathbf{z}.$$\n"
+	"$$f(\\mathbf{x}, \\mathbf{z}) = \\log \\sum_k \\exp\\left( \\lambda \\left[ \\sum_l \\beta_{kl} (\\mathbf{u}_l^\\top \\mathbf{x})^2 + \\mathbf{w}_k \\mathbf{x} + a_k \\right] \\right) / \\lambda + \\mathbf{v}^\\top \\mathbf{z}.$$\n"
 	"\n"
 	"As you can see from the equation above, part of the input is processed nonlinearly and part of\n"
 	"the input is processed linearly. To create an STM with $N$-dimensional\n"
@@ -134,6 +111,7 @@ const char* STM_doc =
 	"\n"
 	"To access the different parameters, you can use\n"
 	"\n"
+	"\t>>> stm.sharpness\n"
 	"\t>>> stm.biases\n"
 	"\t>>> stm.weights\n"
 	"\t>>> stm.features\n"
@@ -261,6 +239,25 @@ PyObject* STM_num_components(STMObject* self, void*) {
 
 PyObject* STM_num_features(STMObject* self, void*) {
 	return PyInt_FromLong(self->stm->numFeatures());
+}
+
+
+
+PyObject* STM_sharpness(STMObject* self, void*) {
+	return PyFloat_FromDouble(self->stm->sharpness());
+}
+
+
+
+int STM_set_sharpness(STMObject* self, PyObject* value, void*) {
+	try {
+		self->stm->setSharpness(PyFloat_AsDouble(value));
+	} catch(Exception exception) {
+		Py_DECREF(value);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+	return 0;
 }
 
 
@@ -626,11 +623,24 @@ const char* STM_train_doc =
 	"\t>>> \t'train_features': True,\n"
 	"\t>>> \t'train_predictors': True,\n"
 	"\t>>> \t'train_linear_predictor': True,\n"
-	"\t>>> \t'regularizer': 'L2',\n"
-	"\t>>> \t'regularize_features': 0.,\n"
-	"\t>>> \t'regularize_weights': 0.,\n"
-	"\t>>> \t'regularize_predictors': 0.\n"
-	"\t>>> \t'regularize_linear_predictor': 0.\n"
+	"\t>>> \t'regularize_biases': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
+	"\t>>> \t'regularize_features': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
+	"\t>>> \t'regularize_weights': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
+	"\t>>> \t'regularize_predictors': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
+	"\t>>> \t'regularize_linear_predictor': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
 	"\t>>> })\n"
 	"\n"
 	"The parameters C{train_biases}, C{train_weights}, and so on can be used to control which\n"
@@ -638,6 +648,13 @@ const char* STM_train_doc =
 	"the difference in (penalized) log-likelihood is sufficiently small enough, as specified by\n"
 	"C{threshold}. C{num_grad} is the number of gradients used by L-BFGS to approximate the inverse\n"
 	"Hessian matrix.\n"
+	"\n"
+	"Regularization of parameters $\\mathbf{z}$ adds a penalty term\n"
+	"\n"
+	"$$\\eta ||\\mathbf{A} \\mathbf{z}||_p$$\n"
+	"\n"
+	"to the average log-likelihood, where $\\eta$ is given by C{strength}, $\\mathbf{A}$ is\n"
+	"given by C{transform}, and $p$ is controlled by C{norm}, which has to be either C{'L1'} or C{'L2'}.\n"
 	"\n"
 	"The parameter C{batch_size} has no effect on the solution of the optimization but\n"
 	"can affect speed by reducing the number of cache misses.\n"
@@ -744,11 +761,13 @@ const char* STM_reduce_doc =
 
 PyObject* STM_reduce(STMObject* self, PyObject*) {
 	// constructor arguments
-	PyObject* args = Py_BuildValue("(iiii)",
+	PyObject* args = Py_BuildValue("(iiiiOO)",
 		self->stm->dimInNonlinear(),
 		self->stm->dimInLinear(),
 		self->stm->numComponents(),
-		self->stm->numFeatures());
+		self->stm->numFeatures(),
+		self->nonlinearity,
+		self->distribution);
 
 	// parameters
 	PyObject* biases = STM_biases(self, 0);
@@ -756,15 +775,17 @@ PyObject* STM_reduce(STMObject* self, PyObject*) {
 	PyObject* features = STM_features(self, 0);
 	PyObject* predictors = STM_predictors(self, 0);
 	PyObject* linear_predictor = STM_linear_predictor(self, 0);
+	PyObject* sharpness = STM_sharpness(self, 0);
 
-	PyObject* state = Py_BuildValue("(OOOOO)",
-		biases, weights, features, predictors, linear_predictor);
+	PyObject* state = Py_BuildValue("(OOOOOO)",
+		biases, weights, features, predictors, linear_predictor, sharpness);
 
 	Py_DECREF(biases);
 	Py_DECREF(weights);
 	Py_DECREF(features);
 	Py_DECREF(predictors);
 	Py_DECREF(linear_predictor);
+	Py_DECREF(sharpness);
 
 	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
 
@@ -787,10 +808,15 @@ PyObject* STM_setstate(STMObject* self, PyObject* state) {
 	PyObject* features;
 	PyObject* predictors;
 	PyObject* linear_predictor;
+	PyObject* sharpness = 0;
 
-	if(!PyArg_ParseTuple(state, "(OOOOO)",
-		&biases, &weights, &features, &predictors, &linear_predictor))
-		return 0;
+	if(!PyArg_ParseTuple(state, "(OOOOOO)", &biases, &weights, &features, &predictors, &linear_predictor, &sharpness)) {
+		PyErr_Clear();
+
+		// try without sharpness for backwards-compatibility
+		if(!PyArg_ParseTuple(state, "(OOOOO)", &biases, &weights, &features, &predictors, &linear_predictor))
+			return 0;
+	}
 
 	try {
 		STM_set_biases(self, biases, 0);
@@ -798,6 +824,9 @@ PyObject* STM_setstate(STMObject* self, PyObject* state) {
 		STM_set_features(self, features, 0);
 		STM_set_predictors(self, predictors, 0);
 		STM_set_linear_predictor(self, linear_predictor, 0);
+
+		if(sharpness)
+			STM_set_sharpness(self, sharpness, 0);
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;

@@ -1,5 +1,6 @@
 __all__ = [
 	"Bernoulli",
+	"Binomial",
 	"ConditionalDistribution",
 	"Distribution",
 	"FVBN",
@@ -19,6 +20,7 @@ __all__ = [
 	"UnivariateDistribution"]
 
 from _cmt import Bernoulli
+from _cmt import Binomial
 from _cmt import ConditionalDistribution
 from _cmt import Distribution
 from _cmt import FVBN

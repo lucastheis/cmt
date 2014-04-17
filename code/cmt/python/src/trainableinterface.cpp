@@ -8,6 +8,10 @@ using Eigen::Dynamic;
 using Eigen::Matrix;
 using Eigen::Map;
 
+#include <iostream>
+using std::cout;
+using std::endl;
+
 Trainable::Parameters* PyObject_ToParameters(PyObject* parameters) {
 	return PyObject_ToParameters(parameters, new Trainable::Parameters);
 }
@@ -46,7 +50,7 @@ Trainable::Parameters* PyObject_ToParameters(
 			if(PyFloat_Check(threshold))
 				params->threshold = PyFloat_AsDouble(threshold);
 			else if(PyInt_Check(threshold))
-				params->threshold = static_cast<double>(PyFloat_AsDouble(threshold));
+				params->threshold = static_cast<double>(PyInt_AsLong(threshold));
 			else
 				throw Exception("threshold should be of type `float`.");
 
@@ -192,6 +196,14 @@ PyObject* Trainable_train(
 		input_val = 0;
 	if(output_val == Py_None)
 		output_val = 0;
+
+	if((input_val && PyDict_Check(input_val)) || (output_val && PyDict_Check(output_val))) {
+		// for some reason PyArray_FROM_OTF segfaults when input_val is a dictionary
+		Py_DECREF(input);
+		Py_DECREF(output);
+		PyErr_SetString(PyExc_TypeError, "Validation data has to be stored in NumPy arrays.");
+		return 0;
+	}
 
 	if(input_val || output_val) {
 		input_val = PyArray_FROM_OTF(input_val, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);

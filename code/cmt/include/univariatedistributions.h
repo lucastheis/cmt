@@ -99,6 +99,38 @@ namespace CMT {
 		protected:
 			double mLambda;
 	};
+
+	class Binomial : public UnivariateDistribution {
+		public:
+			Binomial(int n = 10, double p = .5);
+
+			inline double probability() const;
+			inline void setProbability(double p);
+
+			inline int number() const;
+			inline void setNumber(int n);
+
+			virtual double mean() const;
+			virtual void setMean(double mean);
+
+			virtual MatrixXd sample(int numSamples) const;
+			virtual MatrixXd sample(
+				const Array<double, 1, Dynamic>& means) const;
+
+			virtual Array<double, 1, Dynamic> logLikelihood(
+				const MatrixXd& data) const;
+			virtual Array<double, 1, Dynamic> logLikelihood(
+				const Array<double, 1, Dynamic>& data,
+				const Array<double, 1, Dynamic>& means) const;
+
+			virtual Array<double, 1, Dynamic> gradient(
+				const Array<double, 1, Dynamic>& data,
+				const Array<double, 1, Dynamic>& means) const;
+
+		protected:
+			int mN;
+			double mP;
+	};
 }
 
 
@@ -119,6 +151,34 @@ inline void CMT::Bernoulli::setProbability(double prob) {
 	if(prob < 0. || prob > 1.)
 		throw Exception("Probability has to be between 0 and 1.");
 	mProb = prob;
+}
+
+
+
+inline double CMT::Binomial::probability() const {
+	return mP;
+}
+
+
+
+inline void CMT::Binomial::setProbability(double p) {
+	if(p < 0. || p > 1.)
+		throw Exception("Probability has to be between 0 and 1.");
+	mP = p;
+}
+
+
+
+inline int CMT::Binomial::number() const {
+	return mN;
+}
+
+
+
+inline void CMT::Binomial::setNumber(int n) {
+	if(n < 0)
+		throw Exception("Number of throws cannot be negative.");
+	mN = n;
 }
 
 #endif

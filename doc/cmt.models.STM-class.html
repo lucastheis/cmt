@@ -90,9 +90,10 @@
   <p>where $y$ is a scalar, $\mathbf{x} \in \mathbb{R}^N$, $\mathbf{z} \in 
   \mathbb{R}^M$, $q$ is a univariate distribution, $g$ is some 
   nonlinearity, and</p>
-  <p>$$f(\mathbf{x}, \mathbf{z}) = \log \sum_k \exp\left( \sum_l \beta_{kl}
-  (\mathbf{u}_l^\top \mathbf{x})^2 + \mathbf{w}_k \mathbf{x} + a_k \right) 
-  + \mathbf{v}^\top \mathbf{z}.$$</p>
+  <p>$$f(\mathbf{x}, \mathbf{z}) = \log \sum_k \exp\left( \lambda \left[ 
+  \sum_l \beta_{kl} (\mathbf{u}_l^\top \mathbf{x})^2 + \mathbf{w}_k 
+  \mathbf{x} + a_k \right] \right) / \lambda + \mathbf{v}^\top 
+  \mathbf{z}.$$</p>
   <p>As you can see from the equation above, part of the input is processed
   nonlinearly and part of the input is processed linearly. To create an STM
   with $N$-dimensional nonlinear inputs $\mathbf{x}$ and $M$-dimensional 
@@ -102,6 +103,7 @@
 <span class="py-prompt">&gt;&gt;&gt; </span>stm = STM(N, M, 3, 20, LogisticFunction, Bernoulli)</pre>
   <p>To access the different parameters, you can use</p>
 <pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>stm.sharpness
 <span class="py-prompt">&gt;&gt;&gt; </span>stm.biases
 <span class="py-prompt">&gt;&gt;&gt; </span>stm.weights
 <span class="py-prompt">&gt;&gt;&gt; </span>stm.features
@@ -412,6 +414,9 @@
       <code><a href="cmt.models.ConditionalDistribution-class.html#predict">predict</a></code>,
       <code><a href="cmt.models.ConditionalDistribution-class.html#sample">sample</a></code>
       </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.ConditionalDistribution-class.html">ConditionalDistribution</a></code></b> (private):
+      <code><a href="cmt.models.ConditionalDistribution-class.html#_data_gradient" onclick="show_private();">_data_gradient</a></code>
+      </p></div>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__delattr__</code>,
       <code>__format__</code>,
@@ -523,6 +528,15 @@
     </td><td class="summary">
         <a name="predictors"></a><span class="summary-name">predictors</span><br />
       Parameters relating inputs and outputs, $\mathbf{w}_k$.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="sharpness"></a><span class="summary-name">sharpness</span><br />
+      Controls the sharpness of the soft-maximum implemented by the 
+      log-sum-exp, $\lambda$.
     </td>
   </tr>
 <tr>
@@ -968,11 +982,24 @@
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_features'</span>: True,
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_predictors'</span>: True,
 <span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'train_linear_predictor'</span>: True,
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularizer'</span>: <span class="py-string">'L2'</span>,
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_features'</span>: 0.,
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_weights'</span>: 0.,
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_predictors'</span>: 0.
-<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_linear_predictor'</span>: 0.
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_biases'</span>: {
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'strength'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'norm'</span>: <span class="py-string">'L2'</span>},
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_features'</span>: {
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'strength'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'transform'</span>: None,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'norm'</span>: <span class="py-string">'L2'</span>},
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_weights'</span>: {
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'strength'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'norm'</span>: <span class="py-string">'L2'</span>},
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_predictors'</span>: {
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'strength'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'transform'</span>: None,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'norm'</span>: <span class="py-string">'L2'</span>},
+<span class="py-prompt">&gt;&gt;&gt; </span>    <span class="py-string">'regularize_linear_predictor'</span>: {
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'strength'</span>: 0.,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'transform'</span>: None,
+<span class="py-prompt">&gt;&gt;&gt; </span>            <span class="py-string">'norm'</span>: <span class="py-string">'L2'</span>},
 <span class="py-prompt">&gt;&gt;&gt; </span>})</pre>
   <p>The parameters <code>train_biases</code>, <code>train_weights</code>, 
   and so on can be used to control which parameters will be optimized. 
@@ -981,6 +1008,12 @@
   specified by <code>threshold</code>. <code>num_grad</code> is the number 
   of gradients used by L-BFGS to approximate the inverse Hessian 
   matrix.</p>
+  <p>Regularization of parameters $\mathbf{z}$ adds a penalty term</p>
+  <p>$$\eta ||\mathbf{A} \mathbf{z}||_p$$</p>
+  <p>to the average log-likelihood, where $\eta$ is given by 
+  <code>strength</code>, $\mathbf{A}$ is given by <code>transform</code>, 
+  and $p$ is controlled by <code>norm</code>, which has to be either 
+  <code>'L1'</code> or <code>'L2'</code>.</p>
   <p>The parameter <code>batch_size</code> has no effect on the solution of
   the optimization but can affect speed by reducing the number of cache 
   misses.</p>
@@ -1038,7 +1071,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Sat Dec 14 19:43:22 2013
+    Generated by Epydoc 3.0.1 on Thu Apr 17 11:30:49 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -25,7 +25,7 @@ using Eigen::MatrixXd;
 CMT::Mixture::Parameters::Parameters() :
 	verbosity(1),
 	maxIter(20),
-	threshold(1e-5),
+	threshold(1e-8),
 	valIter(2),
 	valLookAhead(5),
 	initialize(true),
@@ -40,7 +40,7 @@ CMT::Mixture::Parameters::Parameters() :
 CMT::Mixture::Component::Parameters::Parameters() :
 	verbosity(0),
 	maxIter(10),
-	threshold(1e-5),
+	threshold(1e-8),
 	trainPriors(true),
 	trainCovariance(true),
 	trainScales(true),
@@ -107,7 +107,7 @@ MatrixXd CMT::Mixture::sample(int numSamples) const {
 	// generate sample from multinomial distribution
 	#pragma omp parallel for
 	for(int i = 0; i < numSamples; ++i) {
-		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double urand = static_cast<double>(rand()) / RAND_MAX;
 
 		int j = 0;
 		while(urand > cdf[j])
@@ -159,6 +159,9 @@ void CMT::Mixture::initialize(
 	const Parameters& parameters,
 	const Component::Parameters& componentParameters)
 {
+	if(data.rows() != dim())
+		throw Exception("Data has wrong dimensionality.");
+
 	if(parameters.trainPriors)
 		mPriors.setConstant(1. / numComponents()); 
 
@@ -176,6 +179,9 @@ bool CMT::Mixture::train(
 	const Parameters& parameters,
 	const Component::Parameters& componentParameters)
 {
+	if(data.rows() != dim())
+		throw Exception("Data has wrong dimensionality.");
+
 	if(parameters.initialize && !initialized())
 		initialize(data, parameters, componentParameters);
 

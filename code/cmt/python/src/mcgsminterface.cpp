@@ -85,62 +85,23 @@ Trainable::Parameters* PyObject_ToMCGSMParameters(PyObject* parameters) {
 
 		PyObject* regularize_features = PyDict_GetItemString(parameters, "regularize_features");
 		if(regularize_features)
-			if(PyFloat_Check(regularize_features))
-				params->regularizeFeatures = PyFloat_AsDouble(regularize_features);
-			else if(PyInt_Check(regularize_features))
-				params->regularizeFeatures = static_cast<double>(PyFloat_AsDouble(regularize_features));
-			else
-				throw Exception("regularize_features should be of type `float`.");
+			params->regularizeFeatures = PyObject_ToRegularizer(regularize_features);
 
 		PyObject* regularize_predictors = PyDict_GetItemString(parameters, "regularize_predictors");
 		if(regularize_predictors)
-			if(PyFloat_Check(regularize_predictors))
-				params->regularizePredictors = PyFloat_AsDouble(regularize_predictors);
-			else if(PyInt_Check(regularize_predictors))
-				params->regularizePredictors = static_cast<double>(PyFloat_AsDouble(regularize_predictors));
-			else
-				throw Exception("regularize_predictors should be of type `float`.");
+			params->regularizePredictors = PyObject_ToRegularizer(regularize_predictors);
 
 		PyObject* regularize_weights = PyDict_GetItemString(parameters, "regularize_weights");
 		if(regularize_weights)
-			if(PyFloat_Check(regularize_weights))
-				params->regularizeWeights = PyFloat_AsDouble(regularize_weights);
-			else if(PyInt_Check(regularize_weights))
-				params->regularizeWeights = static_cast<double>(PyFloat_AsDouble(regularize_weights));
-			else
-				throw Exception("regularize_weights should be of type `float`.");
+			params->regularizeWeights = PyObject_ToRegularizer(regularize_weights);
 
 		PyObject* regularize_linear_features = PyDict_GetItemString(parameters, "regularize_linear_features");
 		if(regularize_linear_features)
-			if(PyFloat_Check(regularize_linear_features))
-				params->regularizeLinearFeatures = PyFloat_AsDouble(regularize_linear_features);
-			else if(PyInt_Check(regularize_linear_features))
-				params->regularizeLinearFeatures = static_cast<double>(PyFloat_AsDouble(regularize_linear_features));
-			else
-				throw Exception("regularize_linear_features should be of type `float`.");
+			params->regularizeLinearFeatures = PyObject_ToRegularizer(regularize_linear_features);
 
 		PyObject* regularize_means = PyDict_GetItemString(parameters, "regularize_means");
 		if(regularize_means)
-			if(PyFloat_Check(regularize_means))
-				params->regularizeMeans = PyFloat_AsDouble(regularize_means);
-			else if(PyInt_Check(regularize_means))
-				params->regularizeMeans = static_cast<double>(PyFloat_AsDouble(regularize_means));
-			else
-				throw Exception("regularize_means should be of type `float`.");
-
-		PyObject* regularizer = PyDict_GetItemString(parameters, "regularizer");
-		if(regularizer)
-			if(PyString_Check(regularizer)) {
-				if(PyString_Size(regularizer) != 2)
-					throw Exception("Regularizer should be 'L1' or 'L2'.");
-
-				if(PyString_AsString(regularizer)[1] == '1')
-					params->regularizer = MCGSM::Parameters::L1;
-				else
-					params->regularizer = MCGSM::Parameters::L2;
-			} else {
-				throw Exception("regularizer should be of type `str`.");
-			}
+			params->regularizeMeans = PyObject_ToRegularizer(regularize_means);
 	}
 
 	return params;
@@ -589,12 +550,26 @@ const char* MCGSM_train_doc =
 	"\t>>> \t'train_predictors': True,\n"
 	"\t>>> \t'train_linear_features': False,\n"
 	"\t>>> \t'train_means': False,\n"
-	"\t>>> \t'regularizer': 'L2',\n"
-	"\t>>> \t'regularize_features': 0.,\n"
-	"\t>>> \t'regularize_weights': 0.,\n"
-	"\t>>> \t'regularize_predictors': 0.\n"
-	"\t>>> \t'regularize_linear_features': 0.\n"
-	"\t>>> \t'regularize_means': 0.\n"
+	"\t>>> \t'regularize_features': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
+	"\t>>> \t'regularize_weights': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
+	"\t>>> \t'regularize_predictors': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
+	"\t>>> \t'regularize_linear_features': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
+	"\t>>> \t'regularize_means': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
 	"\t>>> })\n"
 	"\n"
 	"The parameters C{train_priors}, C{train_scales}, and so on can be used to control which "
@@ -602,6 +577,13 @@ const char* MCGSM_train_doc =
 	"the gradient is sufficiently small enough, as specified by C{threshold}."
 	"C{num_grad} is the number of gradients used by L-BFGS to approximate the inverse Hessian "
 	"matrix.\n"
+	"\n"
+	"Regularization of parameters $\\mathbf{z}$ adds a penalty term\n"
+	"\n"
+	"$$\\eta ||\\mathbf{A} \\mathbf{z}||_p$$\n"
+	"\n"
+	"to the average log-likelihood, where $\\eta$ is given by C{strength}, $\\mathbf{A}$ is\n"
+	"given by C{transform}, and $p$ is controlled by C{norm}, which has to be either C{'L1'} or C{'L2'}.\n"
 	"\n"
 	"The parameter C{batch_size} has no effect on the solution of the optimization but "
 	"can affect speed by reducing the number of cache misses.\n"

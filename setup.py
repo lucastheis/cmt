@@ -12,14 +12,16 @@ from utils import parallelCCompiler
 from numpy.distutils.intelccompiler import IntelCCompiler
 from numpy import any
 
+INTEL_PATH = '/opt/intel/'
+
 # heuristic for figuring out which compiler is being used (icc, gcc)
 if any(['intel' in arg for arg in sys.argv]) or 'intel' in get_default_compiler():
 	# icc-specific options
 	include_dirs=[
-		'/opt/intel/mkl/include']
+		os.path.join(INTEL_PATH, 'mkl/include')]
 	library_dirs=[
-		'/opt/intel/mkl/lib',
-		'/opt/intel/lib']
+		os.path.join(INTEL_PATH, 'mkl/lib'),
+		os.path.join(INTEL_PATH, 'lib')]
 	libraries = [
 		'mkl_intel_lp64',
 		'mkl_intel_thread',
@@ -35,7 +37,7 @@ if any(['intel' in arg for arg in sys.argv]) or 'intel' in get_default_compiler(
 		'-std=c++0x']
 	extra_link_args = []
 
-	for path in ['/opt/intel/mkl/lib/intel64', '/opt/intel/lib/intel64']:
+	for path in [os.path.join(INTEL_PATH, 'mkl/lib/intel64'), os.path.join(INTEL_PATH, 'lib/intel64')]:
 		if os.path.exists(path):
 			library_dirs += [path]
 
@@ -99,6 +101,7 @@ modules = [
 			'code/cmt/src/pcapreconditioner.cpp',
 			'code/cmt/src/pcatransform.cpp',
 			'code/cmt/src/preconditioner.cpp',
+			'code/cmt/src/regularizer.cpp',
 			'code/cmt/src/stm.cpp',
 			'code/cmt/src/tools.cpp',
 			'code/cmt/src/trainable.cpp',
@@ -128,7 +131,7 @@ CCompiler.compile = parallelCCompiler
 
 setup(
 	name='cmt',
-	version='0.4.1',
+	version='0.5.0',
 	author='Lucas Theis',
 	author_email='lucas@theis.io',
 	description='Fast implementations of different probabilistic models.',

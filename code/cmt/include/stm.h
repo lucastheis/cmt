@@ -6,6 +6,7 @@
 #include "trainable.h"
 #include "nonlinearities.h"
 #include "univariatedistributions.h"
+#include "regularizer.h"
 
 namespace CMT {
 	using Eigen::VectorXd;
@@ -15,18 +16,17 @@ namespace CMT {
 		public:
 			struct Parameters : public Trainable::Parameters {
 				public:
-					enum Regularizer { L1, L2 };
-
+					bool trainSharpness;
 					bool trainBiases;
 					bool trainWeights;
 					bool trainFeatures;
 					bool trainPredictors;
 					bool trainLinearPredictor;
-					double regularizeWeights;
-					double regularizeFeatures;
-					double regularizePredictors;
-					double regularizeLinearPredictor;
-					Regularizer regularizer;
+					Regularizer regularizeBiases;
+					Regularizer regularizeWeights;
+					Regularizer regularizeFeatures;
+					Regularizer regularizePredictors;
+					Regularizer regularizeLinearPredictor;
 
 					Parameters();
 					Parameters(const Parameters& params);
@@ -59,6 +59,9 @@ namespace CMT {
 
 			inline int numComponents() const;
 			inline int numFeatures() const;
+
+			inline double sharpness() const;
+			inline void setSharpness(double sharpness);
 
 			inline VectorXd biases() const;
 			inline void setBiases(const VectorXd& bias);
@@ -95,6 +98,10 @@ namespace CMT {
 
 			virtual MatrixXd sample(const MatrixXd& input) const;
 			virtual MatrixXd sample(
+				const MatrixXd& inputNonlinear,
+				const MatrixXd& inputLinear) const;
+			virtual MatrixXd predict(const MatrixXd& input) const;
+			virtual MatrixXd predict(
 				const MatrixXd& inputNonlinear,
 				const MatrixXd& inputLinear) const;
 
@@ -150,6 +157,7 @@ namespace CMT {
 			Nonlinearity* mNonlinearity;
 			UnivariateDistribution* mDistribution;
 
+			double mSharpness;
 			VectorXd mBiases;
 			MatrixXd mWeights;
 			MatrixXd mFeatures;
@@ -199,6 +207,18 @@ inline int CMT::STM::numComponents() const {
 
 inline int CMT::STM::numFeatures() const {
 	return mNumFeatures;
+}
+
+
+
+inline double CMT::STM::sharpness() const {
+	return mSharpness;
+}
+
+
+
+inline void CMT::STM::setSharpness(double sharpness) {
+	mSharpness = sharpness;
 }
 
 

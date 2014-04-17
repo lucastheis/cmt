@@ -25,8 +25,7 @@ CMT::MLR::Parameters::Parameters() :
 	trainWeights(true),
 	trainBiases(true),
 	regularizeWeights(0.),
-	regularizeBiases(0.),
-	regularizer(L2)
+	regularizeBiases(0.)
 {
 }
 
@@ -37,8 +36,7 @@ CMT::MLR::Parameters::Parameters(const Parameters& params) :
 	trainWeights(params.trainWeights),
 	trainBiases(params.trainBiases),
 	regularizeWeights(params.regularizeWeights),
-	regularizeBiases(params.regularizeBiases),
-	regularizer(params.regularizer)
+	regularizeBiases(params.regularizeBiases)
 {
 }
 
@@ -51,7 +49,6 @@ CMT::MLR::Parameters& CMT::MLR::Parameters::operator=(const Parameters& params) 
 	trainBiases = params.trainBiases;
 	regularizeWeights = params.regularizeWeights;
 	regularizeBiases = params.regularizeBiases;
-	regularizer = params.regularizer;
 
 	return *this;
 }
@@ -108,7 +105,7 @@ MatrixXd CMT::MLR::sample(const MatrixXd& input) const {
 
 	#pragma omp parallel for
 	for(int j = 0; j < input.cols(); ++j) {
-		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double urand = static_cast<double>(rand()) / RAND_MAX;
 		double cdf = 0.;
 
 		for(int k = 0; k < mDimOut; ++k) {
@@ -250,14 +247,64 @@ double CMT::MLR::parameterGradient(
 			Map<Matrix<double, Dynamic, Dynamic, RowMajor> > weightsGrad(g, mDimOut - 1, mDimIn);
 			weightsGrad = (diff * input.transpose() / normConst).bottomRows(mDimOut - 1);
 			offset += weightsGrad.size();
+
+			weightsGrad += params.regularizeWeights.gradient(
+				weights.bottomRows(mDimOut - 1).transpose()).transpose();
 		}
 
 		if(params.trainBiases) {
 			VectorLBFGS biasesGrad(g + offset, mDimOut - 1);
 			biasesGrad = diff.rowwise().sum().bottomRows(mDimOut - 1) / normConst;
+			biasesGrad += params.regularizeBiases.gradient(biases);
 		}
 	}
 
 	// return negative average log-likelihood in bits
-	return -(logProb * output.array()).sum() / normConst;
+	double value = -(logProb * output.array()).sum() / normConst;
+
+	if(params.trainWeights)
+		value += params.regularizeWeights.evaluate(weights.bottomRows(mDimOut - 1).transpose());
+
+	if(params.trainBiases)
+		value += params.regularizeBiases.evaluate(biases);
+
+	return value;
+}
+
+
+
+double CMT::MLR::evaluate(
+	const MatrixXd& input,
+	const MatrixXd& output) const
+{
+	return -logLikelihood(input, output).mean() / log(2.);
+}
+
+
+
+double CMT::MLR::evaluate(
+	const MatrixXd& input,
+	const MatrixXd& output,
+	const Preconditioner& preconditioner) const
+{
+	return -logLikelihood(preconditioner(input, output)).mean() / log(2.)
+		- preconditioner.logJacobian(input, output).mean() / log(2.);
+}
+
+
+
+double CMT::MLR::evaluate(
+	const pair<ArrayXXd, ArrayXXd>& data) const
+{
+	return -logLikelihood(data.first, data.second).mean() / log(2.);
+}
+
+
+
+double CMT::MLR::evaluate(
+	const pair<ArrayXXd, ArrayXXd>& data,
+	const Preconditioner& preconditioner) const
+{
+	return -logLikelihood(preconditioner(data.first, data.second)).mean() / log(2.)
+		- preconditioner.logJacobian(data).mean() / log(2.);
 }

@@ -6,7 +6,7 @@
 #include "Eigen/Core"
 #include "trainable.h"
 #include "exception.h"
-#include "lbfgs.h"
+#include "regularizer.h"
 
 namespace CMT {
 	using std::vector;
@@ -21,8 +21,6 @@ namespace CMT {
 		public:
 			struct Parameters : public Trainable::Parameters {
 				public:
-					enum Regularizer { L1, L2 };
-
 					bool trainPriors;
 					bool trainScales;
 					bool trainWeights;
@@ -31,11 +29,11 @@ namespace CMT {
 					bool trainPredictors;
 					bool trainLinearFeatures;
 					bool trainMeans;
-					double regularizeFeatures;
-					double regularizePredictors;
-					double regularizeWeights;
-					double regularizeLinearFeatures;
-					double regularizeMeans;
+					Regularizer regularizeFeatures;
+					Regularizer regularizePredictors;
+					Regularizer regularizeWeights;
+					Regularizer regularizeLinearFeatures;
+					Regularizer regularizeMeans;
 					Regularizer regularizer;
 
 					Parameters();

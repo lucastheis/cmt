@@ -137,16 +137,20 @@ class Tests(unittest.TestCase):
 	def test_gradient(self):
 		stm = STM(5, 2, 10)
 
+		stm.sharpness = 1.5
+
 		# choose random parameters
 		stm._set_parameters(randn(*stm._parameters().shape) / 100.)
 
 		err = stm._check_gradient(
 			randn(stm.dim_in, 1000),
-			randint(2, size=[stm.dim_out, 1000]), 1e-5)
+			randint(2, size=[stm.dim_out, 1000]),
+			1e-5,
+			parameters={'train_sharpness': True})
 		self.assertLess(err, 1e-8)
 
 		# test with regularization turned off
-		for param in ['biases', 'weights', 'features', 'pred', 'linear_predictor']:
+		for param in ['biases', 'weights', 'features', 'pred', 'linear_predictor', 'sharpness']:
 			err = stm._check_gradient(
 				randn(stm.dim_in, 1000),
 				randint(2, size=[stm.dim_out, 1000]),
@@ -157,11 +161,12 @@ class Tests(unittest.TestCase):
 					'train_features': param == 'features',
 					'train_predictors': param == 'pred',
 					'train_linear_predictor': param == 'linear_predictor',
+					'train_sharpness': param == 'sharpness',
 				})
 			self.assertLess(err, 1e-7)
 
 		# test with regularization turned on
-		for regularizer in ['L2']:
+		for norm in ['L1', 'L2']:
 			for param in ['priors', 'weights', 'features', 'pred', 'input_bias', 'output_bias']:
 				err = stm._check_gradient(
 					randint(2, size=[stm.dim_in, 1000]),
@@ -174,10 +179,10 @@ class Tests(unittest.TestCase):
 						'train_predictors': param == 'pred',
 						'train_input_bias': param == 'input_bias',
 						'train_output_bias': param == 'output_bias',
-						'regularizer': regularizer,
-						'regularize_features': 0.5,
-						'regularize_predictors': 0.4,
-						'regularize_weights': 0.7,
+						'regularize_biases': {'strength': 0.6, 'norm': norm},
+						'regularize_features': {'strength': 0.6, 'norm': norm},
+						'regularize_predictors': {'strength': 0.6, 'norm': norm},
+						'regularize_weights': {'strength': 0.6, 'norm': norm},
 					})
 				self.assertLess(err, 1e-6)
 
@@ -186,6 +191,76 @@ class Tests(unittest.TestCase):
 				randint(2, size=[stm.dim_in, 1000]),
 				randint(2, size=[stm.dim_out, 1000]),
 				stm._parameters()))))
+
+
+
+	def test_glm_data_gradient(self):
+		models = []
+		models.append(
+			STM(
+				dim_in_nonlinear=5,
+				dim_in_linear=0,
+				num_components=3,
+				num_features=2,
+				nonlinearity=LogisticFunction,
+				distribution=Bernoulli))
+		models.append(
+			STM(
+				dim_in_nonlinear=5,
+				dim_in_linear=0,
+				num_components=3,
+				num_features=2,
+				nonlinearity=ExponentialFunction,
+				distribution=Poisson))
+		models.append(
+			STM(
+				dim_in_nonlinear=2,
+				dim_in_linear=3,
+				num_components=3,
+				num_features=2,
+				nonlinearity=LogisticFunction,
+				distribution=Bernoulli))
+		models.append(
+			STM(
+				dim_in_nonlinear=2,
+				dim_in_linear=3,
+				num_components=4,
+				num_features=0,
+				nonlinearity=LogisticFunction,
+				distribution=Bernoulli))
+		models.append(
+			STM(
+				dim_in_nonlinear=0,
+				dim_in_linear=3,
+				num_components=2,
+				num_features=0,
+				nonlinearity=LogisticFunction,
+				distribution=Bernoulli))
+
+		for stm in models:
+			stm.sharpness = .5 + rand()
+
+			x = randn(stm.dim_in, 100)
+			y = stm.sample(x)
+
+			dx, _, ll = stm._data_gradient(x, y)
+
+			h = 1e-7
+
+			# compute numerical gradient
+			dx_ = zeros_like(dx)
+
+			for i in range(stm.dim_in):
+				x_p = x.copy()
+				x_m = x.copy()
+				x_p[i] += h
+				x_m[i] -= h
+				dx_[i] = (
+					stm.loglikelihood(x_p, y) -
+					stm.loglikelihood(x_m, y)) / (2. * h)
+
+			self.assertLess(max(abs(ll - stm.loglikelihood(x, y))), 1e-8)
+			self.assertLess(max(abs(dx_ - dx)), 1e-7)
 
 
 

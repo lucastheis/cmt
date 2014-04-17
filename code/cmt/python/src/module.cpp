@@ -101,6 +101,9 @@ static PyMethodDef CD_methods[] = {
 		(PyCFunction)CD_evaluate,
 		METH_VARARGS | METH_KEYWORDS,
 		CD_evaluate_doc},
+	{"_data_gradient",
+		(PyCFunction)CD_data_gradient,
+		METH_VARARGS | METH_KEYWORDS, 0},
 	{0}
 };
 
@@ -183,7 +186,7 @@ static PyGetSetDef MCGSM_getset[] = {
 	{"means",
 		(getter)MCGSM_means,
 		(setter)MCGSM_set_means,
-		"Means of outputs, $\\{u}_c$."},
+		"Means of outputs, $\\mathbf{u}_c$."},
 	{0}
 };
 
@@ -237,9 +240,6 @@ static PyMethodDef MCGSM_methods[] = {
 		(PyCFunction)MCGSM_parameter_gradient,
 		METH_VARARGS | METH_KEYWORDS,
 		Trainable_parameter_gradient_doc},
-	{"_compute_data_gradient",
-		(PyCFunction)MCGSM_compute_data_gradient,
-		METH_VARARGS | METH_KEYWORDS, 0},
 	{"__reduce__", (PyCFunction)MCGSM_reduce, METH_NOARGS, MCGSM_reduce_doc},
 	{"__setstate__", (PyCFunction)MCGSM_setstate, METH_VARARGS, MCGSM_setstate_doc},
 	{0}
@@ -399,6 +399,10 @@ static PyGetSetDef STM_getset[] = {
 	{"num_features",
 		(getter)STM_num_features, 0,
 		"Number of features available to approximate input covariances."},
+	{"sharpness",
+		(getter)STM_sharpness,
+		(setter)STM_set_sharpness,
+		"Controls the sharpness of the soft-maximum implemented by the log-sum-exp, $\\lambda$."},
 	{"biases",
 		(getter)STM_biases,
 		(setter)STM_set_biases,
@@ -1721,6 +1725,53 @@ PyTypeObject Poisson_type = {
 	Distribution_new,                 /*tp_new*/
 };
 
+static PyMethodDef Binomial_methods[] = {
+	{"__reduce__", (PyCFunction)Binomial_reduce, METH_NOARGS, Binomial_reduce_doc},
+	{0}
+};
+
+PyTypeObject Binomial_type = {
+	PyObject_HEAD_INIT(0)
+	0,                                /*ob_size*/
+	"cmt.models.Binomial",            /*tp_name*/
+	sizeof(BinomialObject),           /*tp_basicsize*/
+	0,                                /*tp_itemsize*/
+	(destructor)Distribution_dealloc, /*tp_dealloc*/
+	0,                                /*tp_print*/
+	0,                                /*tp_getattr*/
+	0,                                /*tp_setattr*/
+	0,                                /*tp_compare*/
+	0,                                /*tp_repr*/
+	0,                                /*tp_as_number*/
+	0,                                /*tp_as_sequence*/
+	0,                                /*tp_as_mapping*/
+	0,                                /*tp_hash */
+	0,                                /*tp_call*/
+	0,                                /*tp_str*/
+	0,                                /*tp_getattro*/
+	0,                                /*tp_setattro*/
+	0,                                /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,               /*tp_flags*/
+	Binomial_doc,                     /*tp_doc*/
+	0,                                /*tp_traverse*/
+	0,                                /*tp_clear*/
+	0,                                /*tp_richcompare*/
+	0,                                /*tp_weaklistoffset*/
+	0,                                /*tp_iter*/
+	0,                                /*tp_iternext*/
+	Binomial_methods,                 /*tp_methods*/
+	0,                                /*tp_members*/
+	0,                                /*tp_getset*/
+	&UnivariateDistribution_type,     /*tp_base*/
+	0,                                /*tp_dict*/
+	0,                                /*tp_descr_get*/
+	0,                                /*tp_descr_set*/
+	0,                                /*tp_dictoffset*/
+	(initproc)Binomial_init,          /*tp_init*/
+	0,                                /*tp_alloc*/
+	Distribution_new,                 /*tp_new*/
+};
+
 static PyGetSetDef Preconditioner_getset[] = {
 	{"dim_in", (getter)Preconditioner_dim_in, 0, 0},
 	{"dim_in_pre", (getter)Preconditioner_dim_in_pre, 0, 0},
@@ -2173,6 +2224,8 @@ PyMODINIT_FUNC init_cmt() {
 		return;
 	if(PyType_Ready(&BinningTransform_type) < 0)
 		return;
+	if(PyType_Ready(&Binomial_type) < 0)
+		return;
 	if(PyType_Ready(&BlobNonlinearity_type) < 0)
 		return;
 	if(PyType_Ready(&CD_type) < 0)
@@ -2244,6 +2297,7 @@ PyMODINIT_FUNC init_cmt() {
 	Py_INCREF(&AffineTransform_type);
 	Py_INCREF(&Bernoulli_type);
 	Py_INCREF(&BinningTransform_type);
+	Py_INCREF(&Binomial_type);
 	Py_INCREF(&BlobNonlinearity_type);
 	Py_INCREF(&CD_type);
 	Py_INCREF(&DifferentiableNonlinearity_type);
@@ -2280,6 +2334,7 @@ PyMODINIT_FUNC init_cmt() {
 	PyModule_AddObject(module, "AffineTransform", reinterpret_cast<PyObject*>(&AffineTransform_type));
 	PyModule_AddObject(module, "Bernoulli", reinterpret_cast<PyObject*>(&Bernoulli_type));
 	PyModule_AddObject(module, "BinningTransform", reinterpret_cast<PyObject*>(&BinningTransform_type));
+	PyModule_AddObject(module, "Binomial", reinterpret_cast<PyObject*>(&Binomial_type));
 	PyModule_AddObject(module, "BlobNonlinearity", reinterpret_cast<PyObject*>(&BlobNonlinearity_type));
 	PyModule_AddObject(module, "ConditionalDistribution", reinterpret_cast<PyObject*>(&CD_type));
 	PyModule_AddObject(module, "DifferentiableNonlinearity", reinterpret_cast<PyObject*>(&DifferentiableNonlinearity_type));

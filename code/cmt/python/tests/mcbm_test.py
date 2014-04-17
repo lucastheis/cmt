@@ -116,7 +116,7 @@ class Tests(unittest.TestCase):
 			self.assertLess(err, 1e-7)
 
 		# test with regularization turned on
-		for regularizer in ['L1', 'L2']:
+		for norm in ['L1', 'L2']:
 			for param in ['priors', 'weights', 'features', 'pred', 'input_bias', 'output_bias']:
 				err = mcbm._check_gradient(
 					randint(2, size=[mcbm.dim_in, 1000]),
@@ -129,10 +129,9 @@ class Tests(unittest.TestCase):
 						'train_predictors': param == 'pred',
 						'train_input_bias': param == 'input_bias',
 						'train_output_bias': param == 'output_bias',
-						'regularizer': regularizer,
-						'regularize_features': 0.5,
-						'regularize_predictors': 0.4,
-						'regularize_weights': 0.7,
+						'regularize_features': {'strength': 0.5, 'norm': norm},
+						'regularize_predictors': {'strength': 0.5, 'norm': norm},
+						'regularize_weights': {'strength': 0.5, 'norm': norm},
 					})
 				self.assertLess(err, 1e-6)
 

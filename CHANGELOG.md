@@ -1,9 +1,16 @@
 # CMT
 
+## 0.5.0
+
+- Regularizers are now more flexible.
+- Several bug fixes and stability improvements.
+- Added binomial distribution.
+
 ## 0.4.1
 
-– Added function for sampling images conditioned on component labels.
-– Extended MCGSM by additional parameters.
+- Added multinomial logistic regression (MLR).
+- Added function for sampling images conditioned on component labels.
+- Extended MCGSM by additional parameters.
 
 ## 0.4.0
 

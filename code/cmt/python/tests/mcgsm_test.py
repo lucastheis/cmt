@@ -288,7 +288,7 @@ class Tests(unittest.TestCase):
 			self.assertLess(err, 1e-8)
 
 		# with regularization
-		for regularizer in ['L1', 'L2']:
+		for norm in ['L1', 'L2']:
 			for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred', 'linear_features', 'means']:
 				err = mcgsm._check_gradient(
 					randn(mcgsm.dim_in, 1000),
@@ -303,12 +303,11 @@ class Tests(unittest.TestCase):
 						'train_predictors': param == 'pred',
 						'train_linear_features': param == 'linear_features',
 						'train_means': param == 'means',
-						'regularizer': regularizer,
-						'regularize_features': 0.4,
-						'regularize_predictors': 0.5,
-						'regularize_weights': 0.7,
-						'regularize_linear_features': 0.3,
-						'regularize_means': 0.6,
+						'regularize_features': {'strength': 0.4, 'norm': norm},
+						'regularize_predictors': {'strength': 0.5, 'norm': norm},
+						'regularize_weights': {'strength': 0.7, 'norm': norm},
+						'regularize_linear_features': {'strength': 0.3, 'norm': norm},
+						'regularize_means': {'strength': 0.6, 'norm': norm},
 					})
 				self.assertLess(err, 1e-6)
 
@@ -342,7 +341,7 @@ class Tests(unittest.TestCase):
 		outputs = ones_like(mcgsm.sample(inputs))
 
 		# compute density gradient and loglikelihood
-		dx, dy, ll = mcgsm._compute_data_gradient(inputs, outputs)
+		dx, dy, ll = mcgsm._data_gradient(inputs, outputs)
 
 		self.assertLess(max(abs(ll - mcgsm.loglikelihood(inputs, outputs))), 1e-8)
 
