@@ -27,8 +27,6 @@ cmt.tools.extract_windows	cmt.tools-module.html#extract_windows
 cmt.tools.generate_data_from_spike_train	cmt.tools-module.html#generate_data_from_spike_train
 cmt.transforms	cmt.transforms-module.html
 cmt.transforms.__package__	cmt.transforms-module.html#__package__
-cmt.transforms.stackedaffinetransform	cmt.transforms.stackedaffinetransform-module.html
-cmt.transforms.stackedaffinetransform.__package__	cmt.transforms.stackedaffinetransform-module.html#__package__
 cmt.utils	cmt.utils-module.html
 cmt.utils.random_select	cmt.utils-module.html#random_select
 cmt.utils.__package__	cmt.utils-module.html#__package__
