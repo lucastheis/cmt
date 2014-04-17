@@ -5,6 +5,7 @@
 - Regularizers are now more flexible.
 - Several bug fixes and stability improvements.
 - Added binomial distribution.
+- Added StackedAffineTransform.
 
 ## 0.4.1
 
