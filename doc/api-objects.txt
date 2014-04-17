@@ -27,6 +27,8 @@ cmt.tools.extract_windows	cmt.tools-module.html#extract_windows
 cmt.tools.generate_data_from_spike_train	cmt.tools-module.html#generate_data_from_spike_train
 cmt.transforms	cmt.transforms-module.html
 cmt.transforms.__package__	cmt.transforms-module.html#__package__
+cmt.transforms.stackedaffinetransform	cmt.transforms.stackedaffinetransform-module.html
+cmt.transforms.stackedaffinetransform.__package__	cmt.transforms.stackedaffinetransform-module.html#__package__
 cmt.utils	cmt.utils-module.html
 cmt.utils.random_select	cmt.utils-module.html#random_select
 cmt.utils.__package__	cmt.utils-module.html#__package__
@@ -38,6 +40,14 @@ cmt.models.Bernoulli.__reduce__	cmt.models.Bernoulli-class.html#__reduce__
 cmt.models.Distribution.sample	cmt.models.Distribution-class.html#sample
 cmt.models.Distribution.loglikelihood	cmt.models.Distribution-class.html#loglikelihood
 cmt.models.Bernoulli.__init__	cmt.models.Bernoulli-class.html#__init__
+cmt.models.Binomial	cmt.models.Binomial-class.html
+cmt.models.Distribution.dim	cmt.models.Distribution-class.html#dim
+cmt.models.Binomial.__new__	cmt.models.Binomial-class.html#__new__
+cmt.models.Distribution.evaluate	cmt.models.Distribution-class.html#evaluate
+cmt.models.Binomial.__reduce__	cmt.models.Binomial-class.html#__reduce__
+cmt.models.Distribution.sample	cmt.models.Distribution-class.html#sample
+cmt.models.Distribution.loglikelihood	cmt.models.Distribution-class.html#loglikelihood
+cmt.models.Binomial.__init__	cmt.models.Binomial-class.html#__init__
 cmt.models.ConditionalDistribution	cmt.models.ConditionalDistribution-class.html
 cmt.models.ConditionalDistribution.__new__	cmt.models.ConditionalDistribution-class.html#__new__
 cmt.models.ConditionalDistribution.predict	cmt.models.ConditionalDistribution-class.html#predict
@@ -523,3 +533,5 @@ cmt.transforms.Preconditioner.dim_in_pre	cmt.transforms.Preconditioner-class.htm
 cmt.transforms.AffinePreconditioner.pre_out	cmt.transforms.AffinePreconditioner-class.html#pre_out
 cmt.transforms.AffinePreconditioner.mean_out	cmt.transforms.AffinePreconditioner-class.html#mean_out
 cmt.transforms.AffinePreconditioner.predictor	cmt.transforms.AffinePreconditioner-class.html#predictor
+cmt.transforms.stackedaffinetransform.StackedAffineTransform	cmt.transforms.stackedaffinetransform.StackedAffineTransform-class.html
+cmt.transforms.stackedaffinetransform.StackedAffineTransform.__new__	cmt.transforms.stackedaffinetransform.StackedAffineTransform-class.html#__new__
