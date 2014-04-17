@@ -7,7 +7,7 @@ class StackedAffineTransform(object):
 	Concatenates affine transforms.
 	
 	This is useful if the inputs consists of several parts that need to be
-	be processed seperately.
+	be processed separately.
 
 	Example:
 
@@ -16,7 +16,7 @@ class StackedAffineTransform(object):
 		>>>		BinningTransform(binning=5, dim_in=inputs.shape[0] - N))
 
 	Using this transform, the first C{N} dimensions are preprocessed using PCA, while
-	the remaining dimensions are preprocessed by averaging neighboring values.
+	the remaining dimensions are preprocessed by summing neighboring values.
 	"""
 
 	def __new__(cls, *args, **kwargs):
