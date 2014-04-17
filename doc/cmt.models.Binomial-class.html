@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>cmt.transforms.AffineTransform</title>
+  <title>cmt.models.Binomial</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 
@@ -55,8 +55,8 @@
     <td width="100%">
       <span class="breadcrumbs">
         <a href="cmt-module.html">Package&nbsp;cmt</a> ::
-        <a href="cmt.transforms-module.html">Package&nbsp;transforms</a> ::
-        Class&nbsp;AffineTransform
+        <a href="cmt.models-module.html">Package&nbsp;models</a> ::
+        Class&nbsp;Binomial
       </span>
     </td>
     <td>
@@ -66,36 +66,27 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="cmt.transforms.AffineTransform-class.html"
+            >]&nbsp;|&nbsp;<a href="cmt.models.Binomial-class.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class AffineTransform</h1><p class="nomargin-top"><span class="codelink"><a href="cmt-pysrc.html#transforms.AffineTransform">source&nbsp;code</a></span></p>
+<h1 class="epydoc">Class Binomial</h1><p class="nomargin-top"><span class="codelink"><a href="cmt-pysrc.html#models.Binomial">source&nbsp;code</a></span></p>
 <pre class="base-tree">
-                 object --+        
-                          |        
-  <a href="cmt.transforms.Preconditioner-class.html">transforms.Preconditioner</a> --+    
-                              |    
-<a href="cmt.transforms.AffinePreconditioner-class.html">transforms.AffinePreconditioner</a> --+
-                                  |
-                                 <strong class="uidshort">transforms.AffineTransform</strong>
+               object --+        
+                        |        
+      <a href="cmt.models.Distribution-class.html">models.Distribution</a> --+    
+                            |    
+<a href="cmt.models.UnivariateDistribution-class.html">models.UnivariateDistribution</a> --+
+                                |
+                               <strong class="uidshort">models.Binomial</strong>
 </pre>
 
-<dl><dt>Known Subclasses:</dt>
-<dd>
-      <ul class="subclass-list">
-<li><a href="cmt.transforms.BinningTransform-class.html">BinningTransform</a></li><li>, <a href="cmt.transforms.PCATransform-class.html">PCATransform</a></li><li>, <a href="cmt.transforms.WhiteningTransform-class.html">WhiteningTransform</a></li>  </ul>
-</dd></dl>
-
 <hr />
-<p>Performs an affine transformation on inputs.</p>
-  <p>$$\mathbf{\hat x} = \mathbf{P}_x(\mathbf{x} - \mathbf{m}_x),$$</p>
-  <p>Unlike <a href="cmt.transforms.AffinePreconditioner-class.html" 
-  class="link">AffinePreconditioner</a>, this class does not touch the 
-  output and can thus be used with discrete data, for example.</p>
+<p>The binomial distribution.</p>
+  <p>$$p(k) = \binom{n}{k} p^k (1 - p)^{n - k}$$</p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -120,10 +111,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.transforms.AffineTransform-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+          <td><span class="summary-sig"><a href="cmt.models.Binomial-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">...</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt-pysrc.html#transforms.AffineTransform.__init__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.Binomial.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -137,11 +128,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.transforms.AffineTransform-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
+          <td><span class="summary-sig"><a href="cmt.models.Binomial-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
         <span class="summary-sig-arg">S</span>,
         <span class="summary-sig-arg">...</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt-pysrc.html#transforms.AffineTransform.__new__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.Binomial.__new__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -155,10 +146,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="cmt.transforms.AffineTransform-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">...</span>)</span><br />
-      helper for pickle</td>
+          <td><span class="summary-sig"><a href="cmt.models.Binomial-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Method used by Pickle.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="cmt-pysrc.html#transforms.AffineTransform.__reduce__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="cmt-pysrc.html#models.Binomial.__reduce__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -168,13 +159,10 @@
   </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.transforms.AffinePreconditioner-class.html">AffinePreconditioner</a></code></b>:
-      <code><a href="cmt.transforms.AffinePreconditioner-class.html#__setstate__">__setstate__</a></code>
-      </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.transforms.Preconditioner-class.html">Preconditioner</a></code></b>:
-      <code><a href="cmt.transforms.Preconditioner-class.html#__call__">__call__</a></code>,
-      <code><a href="cmt.transforms.Preconditioner-class.html#inverse">inverse</a></code>,
-      <code><a href="cmt.transforms.Preconditioner-class.html#logjacobian">logjacobian</a></code>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.Distribution-class.html">Distribution</a></code></b>:
+      <code><a href="cmt.models.Distribution-class.html#evaluate">evaluate</a></code>,
+      <code><a href="cmt.models.Distribution-class.html#loglikelihood">loglikelihood</a></code>,
+      <code><a href="cmt.models.Distribution-class.html#sample">sample</a></code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__delattr__</code>,
@@ -210,18 +198,8 @@
 </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.transforms.AffinePreconditioner-class.html">AffinePreconditioner</a></code></b>:
-      <code><a href="cmt.transforms.AffinePreconditioner-class.html#mean_in">mean_in</a></code>,
-      <code><a href="cmt.transforms.AffinePreconditioner-class.html#mean_out">mean_out</a></code>,
-      <code><a href="cmt.transforms.AffinePreconditioner-class.html#pre_in">pre_in</a></code>,
-      <code><a href="cmt.transforms.AffinePreconditioner-class.html#pre_out">pre_out</a></code>,
-      <code><a href="cmt.transforms.AffinePreconditioner-class.html#predictor">predictor</a></code>
-      </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.transforms.Preconditioner-class.html">Preconditioner</a></code></b>:
-      <code><a href="cmt.transforms.Preconditioner-class.html#dim_in">dim_in</a></code>,
-      <code><a href="cmt.transforms.Preconditioner-class.html#dim_in_pre">dim_in_pre</a></code>,
-      <code><a href="cmt.transforms.Preconditioner-class.html#dim_out">dim_out</a></code>,
-      <code><a href="cmt.transforms.Preconditioner-class.html#dim_out_pre">dim_out_pre</a></code>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="cmt.models.Distribution-class.html">Distribution</a></code></b>:
+      <code><a href="cmt.models.Distribution-class.html#dim">dim</a></code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__class__</code>
@@ -258,7 +236,7 @@
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt-pysrc.html#transforms.AffineTransform.__init__">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.Binomial.__init__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -266,10 +244,8 @@
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>mean_in</code></strong> (<code>ndarray</code>) - a column vector which will be subtracted from the input 
-          ($\mathbf{m}_x$)</li>
-        <li><strong class="pname"><code>pre_in</code></strong> (<code>ndarray</code>) - a preconditioner for the input ($\mathbf{P}_x$)</li>
-        <li><strong class="pname"><code>dim_out</code></strong> (<code>int</code>) - dimensionality of the output (default: 1)</li>
+        <li><strong class="pname"><code>n</code></strong> (<code>float</code>) - parameter of the binomial distribution, $n$</li>
+        <li><strong class="pname"><code>p</code></strong> (<code>float</code>) - parameter of the binomial distribution, $p$</li>
     </ul></dd>
     <dt>Overrides:
         object.__init__
@@ -289,7 +265,7 @@
         <span class="sig-arg">...</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt-pysrc.html#transforms.AffineTransform.__new__">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.Binomial.__new__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -309,18 +285,17 @@
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__reduce__</span>(<span class="sig-arg">...</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__reduce__</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="cmt-pysrc.html#transforms.AffineTransform.__reduce__">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="cmt-pysrc.html#models.Binomial.__reduce__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>helper for pickle</p>
+  <p>Method used by Pickle.</p>
   <dl class="fields">
     <dt>Overrides:
         object.__reduce__
-        <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
 </td></tr></table>
