@@ -112,7 +112,7 @@ const char* Binomial_doc =
 	"\n"
 	"$$p(k) = \\binom{n}{k} p^k (1 - p)^{n - k}$$\n"
 	"\n"
-	"@type  n: C{float}\n"
+	"@type  n: C{int}\n"
 	"@param n: parameter of the binomial distribution, $n$"
 	"\n"
 	"@type  p: C{float}\n"

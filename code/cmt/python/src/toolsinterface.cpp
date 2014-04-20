@@ -323,9 +323,17 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 	PyObject* output_mask;
 	PyObject* preconditionerObj = 0;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!OO|O!", const_cast<char**>(kwlist),
-		&img, &CD_type, &modelObj, &input_mask, &output_mask, &Preconditioner_type, &preconditionerObj))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!OO|O", const_cast<char**>(kwlist),
+		&img, &CD_type, &modelObj, &input_mask, &output_mask, &preconditionerObj))
 		return 0;
+
+	if(preconditionerObj == Py_None)
+		preconditionerObj = 0;
+
+	if(preconditionerObj && !PyObject_IsInstance(preconditionerObj, reinterpret_cast<PyObject*>(&Preconditioner_type))) {
+		PyErr_SetString(PyExc_TypeError, "`preconditioner` should be of type `Preconditioner`.");
+		return 0;
+	}
 
 	const ConditionalDistribution& model = *reinterpret_cast<CDObject*>(modelObj)->cd;
 

@@ -5,12 +5,14 @@ import sys
 import numpy
 
 sys.path.append('./code')
+sys.path.append('./code/cmt')
 
 from distutils.core import setup, Extension
 from distutils.ccompiler import CCompiler, get_default_compiler
 from utils import parallelCCompiler
 from numpy.distutils.intelccompiler import IntelCCompiler
 from numpy import any
+from python import __version__
 
 INTEL_PATH = '/opt/intel/'
 
@@ -131,7 +133,7 @@ CCompiler.compile = parallelCCompiler
 
 setup(
 	name='cmt',
-	version='0.5.0',
+	version=__version__,
 	author='Lucas Theis',
 	author_email='lucas@theis.io',
 	description='Fast implementations of different probabilistic models.',
