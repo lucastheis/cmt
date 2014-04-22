@@ -30,6 +30,9 @@ using std::set;
 #include <new>
 using std::bad_alloc;
 
+#include <limits>
+using std::numeric_limits;
+
 const char* random_select_doc =
 	"random_select(k, n)\n"
 	"\n"
@@ -289,8 +292,99 @@ PyObject* generate_data_from_video(PyObject* self, PyObject* args, PyObject* kwd
 }
 
 
+const char* density_gradient_doc =
+	"density_gradient(img, model, input_mask, output_mask, preconditioner=None)\n"
+	"\n"
+	"Computes the gradient of the density on images implemented by a conditional distribution.";
+
+PyObject* density_gradient(PyObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"img", "model", "input_mask", "output_mask", "preconditioner", 0};
+
+	PyObject* img;
+	PyObject* modelObj;
+	PyObject* input_mask;
+	PyObject* output_mask;
+	PyObject* preconditionerObj = 0;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!OO|O", const_cast<char**>(kwlist),
+		&img, &CD_type, &modelObj, &input_mask, &output_mask, &preconditionerObj))
+		return 0;
+
+	if(preconditionerObj == Py_None)
+		preconditionerObj = 0;
+
+	if(preconditionerObj && !PyObject_IsInstance(preconditionerObj, reinterpret_cast<PyObject*>(&Preconditioner_type))) {
+		PyErr_SetString(PyExc_TypeError, "`preconditioner` has to be of type `Preconditioner`.");
+		return 0;
+	}
+
+	const ConditionalDistribution& model = *reinterpret_cast<CDObject*>(modelObj)->cd;
+
+	Preconditioner* preconditioner = preconditionerObj ?
+		reinterpret_cast<PreconditionerObject*>(preconditionerObj)->preconditioner : 0;
+
+	// make sure data is stored in NumPy array
+	img = PyArray_FROM_OTF(img, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	input_mask = PyArray_FROM_OTF(input_mask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output_mask = PyArray_FROM_OTF(output_mask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!img) {
+		Py_XDECREF(input_mask);
+		Py_XDECREF(output_mask);
+		PyErr_SetString(PyExc_TypeError, "The image has to be given as an array.");
+		return 0;
+	}
+
+	if(!input_mask || !output_mask) {
+		Py_DECREF(img);
+		Py_XDECREF(input_mask);
+		Py_XDECREF(output_mask);
+		PyErr_SetString(PyExc_TypeError, "Masks have to be given as Boolean arrays.");
+		return 0;
+	}
+
+	try {
+		PyObject* imgGradient;
+
+		if(PyArray_NDIM(img) > 2) {
+			imgGradient = PyArray_FromArraysXXd(
+				densityGradient(
+					PyArray_ToArraysXXd(img),
+					model,
+					PyArray_ToArraysXXb(input_mask),
+					PyArray_ToArraysXXb(output_mask),
+					preconditioner));
+		} else {
+			// single-channel image and single-channel masks
+			imgGradient = PyArray_FromMatrixXd(
+				densityGradient(
+					PyArray_ToMatrixXd(img),
+					model,
+					PyArray_ToMatrixXb(input_mask),
+					PyArray_ToMatrixXb(output_mask),
+					preconditioner));
+		}
+
+		Py_DECREF(img);
+		Py_DECREF(input_mask);
+		Py_DECREF(output_mask);
+
+		return imgGradient;
+
+	} catch(Exception& exception) {
+		Py_DECREF(img);
+		Py_DECREF(input_mask);
+		Py_DECREF(output_mask);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
 const char* sample_image_doc =
-	"sample_image(img, model, input_mask, output_mask, preconditioner=None)\n"
+	"sample_image(img, model, input_mask, output_mask, preconditioner=None, min_value=-inf, max_value=inf)\n"
 	"\n"
 	"Generates an image using a conditional distribution. The initial image passed to\n"
 	"this function is used to initialize the boundaries and is also used to determine\n"
@@ -315,16 +409,18 @@ const char* sample_image_doc =
 	"@return: the sampled image";
 
 PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"img", "model", "input_mask", "output_mask", "preconditioner", 0};
+	const char* kwlist[] = {"img", "model", "input_mask", "output_mask", "preconditioner", "min_value", "max_value", 0};
 
 	PyObject* img;
 	PyObject* modelObj;
 	PyObject* input_mask;
 	PyObject* output_mask;
 	PyObject* preconditionerObj = 0;
+	double min_value = -numeric_limits<double>::infinity();
+	double max_value = numeric_limits<double>::infinity();
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!OO|O", const_cast<char**>(kwlist),
-		&img, &CD_type, &modelObj, &input_mask, &output_mask, &preconditionerObj))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!OO|Odd", const_cast<char**>(kwlist),
+		&img, &CD_type, &modelObj, &input_mask, &output_mask, &preconditionerObj, &min_value, &max_value))
 		return 0;
 
 	if(preconditionerObj == Py_None)
@@ -371,7 +467,9 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 						model,
 						PyArray_ToArraysXXb(input_mask),
 						PyArray_ToArraysXXb(output_mask),
-						preconditioner));
+						preconditioner,
+						min_value,
+						max_value));
 			} else {
 				// multi-channel image and single-channel masks
 				imgSample = PyArray_FromArraysXXd(
@@ -380,7 +478,9 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 						model,
 						PyArray_ToMatrixXb(input_mask),
 						PyArray_ToMatrixXb(output_mask),
-						preconditioner));
+						preconditioner,
+						min_value,
+						max_value));
 			}
 		} else {
 			if(PyArray_NDIM(input_mask) > 2 || PyArray_NDIM(output_mask) > 2)
@@ -393,7 +493,9 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 					model,
 					PyArray_ToMatrixXb(input_mask),
 					PyArray_ToMatrixXb(output_mask),
-					preconditioner));
+					preconditioner,
+					min_value,
+					max_value));
 		}
 
 		Py_DECREF(img);

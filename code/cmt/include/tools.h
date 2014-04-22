@@ -2,6 +2,7 @@
 #define CMT_TOOLS_H
 
 #include <vector>
+#include <limits>
 #include "conditionaldistribution.h"
 #include "mcgsm.h"
 #include "preconditioner.h"
@@ -14,6 +15,7 @@ namespace Eigen {
 namespace CMT {
 	using std::vector;
 	using std::pair;
+	using std::numeric_limits;
 
 	using Eigen::ArrayXXb;
 	using Eigen::ArrayXXi;
@@ -79,24 +81,43 @@ namespace CMT {
 		const vector<ArrayXXb>& outputMask,
 		int numSamples);
 
+	ArrayXXd densityGradient(
+		const ArrayXXd& img,
+		const ConditionalDistribution& model,
+		const ArrayXXb& inputMask,
+		const ArrayXXb& outputMask,
+		const Preconditioner* preconditioner = 0);
+	vector<ArrayXXd> densityGradient(
+		const vector<ArrayXXd>& img,
+		const ConditionalDistribution& model,
+		const vector<ArrayXXb>& inputMask,
+		const vector<ArrayXXb>& outputMask,
+		const Preconditioner* preconditioner = 0);
+
 	ArrayXXd sampleImage(
 		ArrayXXd img,
 		const ConditionalDistribution& model,
 		const ArrayXXb& inputMask,
 		const ArrayXXb& outputMask,
-		const Preconditioner* preconditioner = 0);
+		const Preconditioner* preconditioner = 0,
+		double minValue = -numeric_limits<double>::infinity(),
+		double maxValue = numeric_limits<double>::infinity());
 	vector<ArrayXXd> sampleImage(
 		vector<ArrayXXd> img,
 		const ConditionalDistribution& model,
 		const ArrayXXb& inputMask,
 		const ArrayXXb& outputMask,
-		const Preconditioner* preconditioner = 0);
+		const Preconditioner* preconditioner = 0,
+		double minValue = -numeric_limits<double>::infinity(),
+		double maxValue = numeric_limits<double>::infinity());
 	vector<ArrayXXd> sampleImage(
 		vector<ArrayXXd> img,
 		const ConditionalDistribution& model,
 		const vector<ArrayXXb>& inputMask,
 		const vector<ArrayXXb>& outputMask,
-		const Preconditioner* preconditioner = 0);
+		const Preconditioner* preconditioner = 0,
+		double minValue = -numeric_limits<double>::infinity(),
+		double maxValue = numeric_limits<double>::infinity());
 
 	ArrayXXd sampleImageConditionally(
 		ArrayXXd img,

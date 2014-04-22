@@ -13,6 +13,7 @@ extern PyTypeObject CD_type;
 extern PyTypeObject MCGSM_type;
 
 extern const char* random_select_doc;
+extern const char* density_gradient_doc;
 extern const char* sample_image_doc;
 extern const char* sample_image_conditionally_doc;
 extern const char* sample_labels_conditionally_doc;
@@ -26,6 +27,7 @@ extern const char* sample_spike_train_doc;
 PyObject* random_select(PyObject*, PyObject*, PyObject*);
 PyObject* generate_data_from_image(PyObject*, PyObject*, PyObject*);
 PyObject* generate_data_from_video(PyObject*, PyObject*, PyObject*);
+PyObject* density_gradient(PyObject*, PyObject*, PyObject*);
 PyObject* sample_image(PyObject*, PyObject*, PyObject*);
 PyObject* sample_image_conditionally(PyObject*, PyObject*, PyObject*);
 PyObject* sample_labels_conditionally(PyObject*, PyObject*, PyObject*);
