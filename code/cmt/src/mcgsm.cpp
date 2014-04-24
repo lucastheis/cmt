@@ -1066,92 +1066,139 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::MCGSM::computeDa
 	const MatrixXd& input,
 	const MatrixXd& output) const
 {
-	// compute unnormalized posterior
-	MatrixXd featureOutput = mFeatures.transpose() * input;
-	MatrixXd featureOutputSqr = featureOutput.array().square();
-	MatrixXd weightsSqr = mWeights.array().square();
-	MatrixXd weightsSqrOutput = weightsSqr * featureOutputSqr - 2. * mLinearFeatures * input;
+	if(input.rows() > 0) {
+		// compute unnormalized posterior
+		MatrixXd featureOutput = mFeatures.transpose() * input;
+		MatrixXd featureOutputSqr = featureOutput.array().square();
+		MatrixXd weightsSqr = mWeights.array().square();
+		MatrixXd weightsSqrOutput = weightsSqr * featureOutputSqr - 2. * mLinearFeatures * input;
 
-	// containers for intermediate results
-	vector<ArrayXXd> logPosteriorIn(mNumComponents);
-	vector<ArrayXXd> logPosteriorOut(mNumComponents);
-	vector<MatrixXd> predError(mNumComponents);
-	vector<VectorXd> scalesExp(mNumComponents);
+		// containers for intermediate results
+		vector<ArrayXXd> logPosteriorIn(mNumComponents);
+		vector<ArrayXXd> logPosteriorOut(mNumComponents);
+		vector<MatrixXd> predError(mNumComponents);
+		vector<VectorXd> scalesExp(mNumComponents);
 
-	// partial normalization constants
-	ArrayXXd logNormInScales(mNumComponents, input.cols());
-	ArrayXXd logNormOutScales(mNumComponents, input.cols());
+		// partial normalization constants
+		ArrayXXd logNormInScales(mNumComponents, input.cols());
+		ArrayXXd logNormOutScales(mNumComponents, input.cols());
 
-	#pragma omp parallel for
-	for(int i = 0; i < mNumComponents; ++i) {
-		scalesExp[i] = mScales.row(i).transpose().array().exp();
+		#pragma omp parallel for
+		for(int i = 0; i < mNumComponents; ++i) {
+			scalesExp[i] = mScales.row(i).transpose().array().exp();
 
-		// gate energy
-		ArrayXXd negEnergyGate = -scalesExp[i] / 2. * weightsSqrOutput.row(i);
-		negEnergyGate.colwise() += mPriors.row(i).transpose();
+			// gate energy
+			ArrayXXd negEnergyGate = -scalesExp[i] / 2. * weightsSqrOutput.row(i);
+			negEnergyGate.colwise() += mPriors.row(i).transpose();
 
-		predError[i] = mCholeskyFactors[i].transpose() * ((output - mPredictors[i] * input).colwise() - mMeans.col(i));
-		ArrayXXd negEnergyExpert = -scalesExp[i] / 2. * predError[i].colwise().squaredNorm();
+			predError[i] = mCholeskyFactors[i].transpose() * ((output - mPredictors[i] * input).colwise() - mMeans.col(i));
+			ArrayXXd negEnergyExpert = -scalesExp[i] / 2. * predError[i].colwise().squaredNorm();
 
-		// normalize expert energy
-		double logDet = mCholeskyFactors[i].diagonal().array().abs().log().sum();
-		negEnergyExpert.colwise() += mDimOut / 2. * mScales.row(i).transpose() 
-			+ logDet - mDimOut / 2. * log(2. * PI);
+			// normalize expert energy
+			double logDet = mCholeskyFactors[i].diagonal().array().abs().log().sum();
+			negEnergyExpert.colwise() += mDimOut / 2. * mScales.row(i).transpose()
+				+ logDet - mDimOut / 2. * log(2. * PI);
 
-		// unnormalized posterior
-		logPosteriorIn[i] = negEnergyGate;
-		logPosteriorOut[i] = negEnergyGate + negEnergyExpert;
+			// unnormalized posterior
+			logPosteriorIn[i] = negEnergyGate;
+			logPosteriorOut[i] = negEnergyGate + negEnergyExpert;
 
-		// compute normalization constants for posterior over scales
-		logNormInScales.row(i) = logSumExp(logPosteriorIn[i]);
-		logNormOutScales.row(i) = logSumExp(logPosteriorOut[i]);
-	}
-
-	Array<double, 1, Dynamic> logNormIn;
-	Array<double, 1, Dynamic> logNormOut;
-
-	// compute normalization constants
-	#pragma omp parallel sections
-	{
-		#pragma omp section
-		logNormIn = logSumExp(logNormInScales);
-		#pragma omp section
-		logNormOut = logSumExp(logNormOutScales);
-	}
-
-	Array<double, 1, Dynamic> logLikelihood = logNormOut - logNormIn;
-
-	ArrayXXd inputGradients = ArrayXXd::Zero(mDimIn, input.cols());
-	ArrayXXd outputGradients = ArrayXXd::Zero(mDimOut, output.cols());
-
-	#pragma omp parallel for
-	for(int i = 0; i < mNumComponents; ++i) {
-		// normalize posterior
-		logPosteriorIn[i].rowwise() -= logNormIn;
-		logPosteriorOut[i].rowwise() -= logNormOut;
-
-		// posterior over this component and all scales
-		MatrixXd posteriorIn = logPosteriorIn[i].exp();
-		MatrixXd posteriorOut = logPosteriorOut[i].exp();
-		MatrixXd posteriorDiff = posteriorOut - posteriorIn;
-
-		ArrayXXd dpdy = -mCholeskyFactors[i] * predError[i];
-		ArrayXXd dpdx = -mPredictors[i].transpose() * dpdy.matrix();
-		ArrayXXd dfdx = -(mFeatures.array().rowwise() * weightsSqr.row(i).array()).matrix() * featureOutput;
-		dfdx.colwise() += mLinearFeatures.col(i).array();
-
-		// weights for this component
-		Array<double, 1, Dynamic> weightsOut = scalesExp[i].transpose() * posteriorOut;
-		Array<double, 1, Dynamic> weightsDiff = scalesExp[i].transpose() * posteriorDiff;
-
-		#pragma omp critical
-		{
-			inputGradients += dpdx.rowwise() * weightsOut + dfdx.rowwise() * weightsDiff;
-			outputGradients += dpdy.rowwise() * weightsOut;
+			// compute normalization constants for posterior over scales
+			logNormInScales.row(i) = logSumExp(logPosteriorIn[i]);
+			logNormOutScales.row(i) = logSumExp(logPosteriorOut[i]);
 		}
-	}
 
-	return make_pair(make_pair(inputGradients, outputGradients), logLikelihood);
+		Array<double, 1, Dynamic> logNormIn;
+		Array<double, 1, Dynamic> logNormOut;
+
+		// compute normalization constants
+		#pragma omp parallel sections
+		{
+			#pragma omp section
+			logNormIn = logSumExp(logNormInScales);
+			#pragma omp section
+			logNormOut = logSumExp(logNormOutScales);
+		}
+
+		Array<double, 1, Dynamic> logLikelihood = logNormOut - logNormIn;
+
+		ArrayXXd inputGradients = ArrayXXd::Zero(mDimIn, input.cols());
+		ArrayXXd outputGradients = ArrayXXd::Zero(mDimOut, output.cols());
+
+		#pragma omp parallel for
+		for(int i = 0; i < mNumComponents; ++i) {
+			// normalize posterior
+			logPosteriorIn[i].rowwise() -= logNormIn;
+			logPosteriorOut[i].rowwise() -= logNormOut;
+
+			// posterior over this component and all scales
+			MatrixXd posteriorIn = logPosteriorIn[i].exp();
+			MatrixXd posteriorOut = logPosteriorOut[i].exp();
+			MatrixXd posteriorDiff = posteriorOut - posteriorIn;
+
+			ArrayXXd dpdy = -mCholeskyFactors[i] * predError[i];
+			ArrayXXd dpdx = -mPredictors[i].transpose() * dpdy.matrix();
+			ArrayXXd dfdx = -(mFeatures.array().rowwise() * weightsSqr.row(i).array()).matrix() * featureOutput;
+			dfdx.colwise() += mLinearFeatures.col(i).array();
+
+			// weights for this component
+			Array<double, 1, Dynamic> weightsOut = scalesExp[i].transpose() * posteriorOut;
+			Array<double, 1, Dynamic> weightsDiff = scalesExp[i].transpose() * posteriorDiff;
+
+			#pragma omp critical
+			{
+				inputGradients += dpdx.rowwise() * weightsOut + dfdx.rowwise() * weightsDiff;
+				outputGradients += dpdy.rowwise() * weightsOut;
+			}
+		}
+
+		return make_pair(make_pair(inputGradients, outputGradients), logLikelihood);
+	} else {
+		vector<VectorXd> scalesExp(mNumComponents);
+		vector<MatrixXd> predError(mNumComponents);
+		vector<ArrayXXd> logPosterior(mNumComponents);
+		ArrayXXd logNormScales(mNumComponents, output.cols());
+
+		#pragma omp parallel for
+		for(int i = 0; i < mNumComponents; ++i) {
+			scalesExp[i] = mScales.row(i).transpose().array().exp();
+			predError[i] = mCholeskyFactors[i].transpose() * (output.colwise() - mMeans.col(i));
+
+			ArrayXXd negEnergyExpert = -scalesExp[i] / 2. * predError[i].colwise().squaredNorm();
+
+			// normalize expert energy
+			double logDet = mCholeskyFactors[i].diagonal().array().abs().log().sum();
+			negEnergyExpert.colwise() += mDimOut / 2. * mScales.row(i).transpose()
+				+ logDet - mDimOut / 2. * log(2. * PI);
+
+			// posterior over scales and normalization constants
+			logPosterior[i] = negEnergyExpert.colwise() + mPriors.row(i).transpose();
+			logNormScales.row(i) = logSumExp(logPosterior[i]);
+		}
+
+		
+		Array<double, 1, Dynamic> logNorm = logSumExp(logNormScales);
+		Array<double, 1, Dynamic> logLikelihood = logNorm - logSumExp(VectorXd::Map(mPriors.data(), mPriors.size()))[0];
+
+		ArrayXXd inputGradients = ArrayXXd::Zero(mDimIn, input.cols());
+		ArrayXXd outputGradients = ArrayXXd::Zero(mDimOut, output.cols());
+
+		#pragma omp parallel for
+		for(int i = 0; i < mNumComponents; ++i) {
+			logPosterior[i].rowwise() -= logNorm;
+
+			// posterior over this component and scales
+			MatrixXd posterior = logPosterior[i].exp();
+
+			ArrayXXd dpdy = -mCholeskyFactors[i] * predError[i];
+			Array<double, 1, Dynamic> weights = scalesExp[i].transpose() * posterior;
+
+			#pragma omp critical
+			outputGradients += dpdy.rowwise() * weights;
+		}
+
+		return make_pair(make_pair(inputGradients, outputGradients), logLikelihood);
+	}
 }
 
 
