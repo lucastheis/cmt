@@ -1178,7 +1178,8 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::MCGSM::computeDa
 
 		
 		Array<double, 1, Dynamic> logNorm = logSumExp(logNormScales);
-		Array<double, 1, Dynamic> logLikelihood = logNorm - logSumExp(VectorXd::Map(mPriors.data(), mPriors.size()))[0];
+		Array<double, 1, Dynamic> logLikelihood = logNorm
+			- logSumExp(VectorXd::Map(mPriors.data(), mPriors.size()))[0];
 
 		ArrayXXd inputGradients = ArrayXXd::Zero(mDimIn, input.cols());
 		ArrayXXd outputGradients = ArrayXXd::Zero(mDimOut, output.cols());

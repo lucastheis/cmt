@@ -2192,6 +2192,7 @@ static PyMethodDef cmt_methods[] = {
 	{"random_select", (PyCFunction)random_select, METH_VARARGS | METH_KEYWORDS, random_select_doc},
 	{"generate_data_from_image", (PyCFunction)generate_data_from_image, METH_VARARGS | METH_KEYWORDS, generate_data_from_image_doc},
 	{"generate_data_from_video", (PyCFunction)generate_data_from_video, METH_VARARGS | METH_KEYWORDS, generate_data_from_video_doc},
+	{"density_gradient", (PyCFunction)density_gradient, METH_VARARGS | METH_KEYWORDS, density_gradient_doc},
 	{"sample_image", (PyCFunction)sample_image, METH_VARARGS | METH_KEYWORDS, sample_image_doc},
 	{"sample_image_conditionally", (PyCFunction)sample_image_conditionally, METH_VARARGS | METH_KEYWORDS, sample_image_conditionally_doc},
 	{"sample_labels_conditionally", (PyCFunction)sample_labels_conditionally, METH_VARARGS | METH_KEYWORDS, sample_labels_conditionally_doc},

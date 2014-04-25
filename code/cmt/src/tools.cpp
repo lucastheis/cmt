@@ -646,11 +646,18 @@ ArrayXXd CMT::densityGradient(
 	int m = img.rows() - inputMask.rows() + 1;
 	int n = img.cols() - inputMask.cols() + 1;
 
-	ArrayXXd inputs(inputIndices.size(), (m / h) * (n / w));
-	ArrayXXd outputs(outputIndices.size(), (m / h) * (n / w));
+	// number of outputs that fit into the image
+	int numRows = (m + h - 1) / h;
+	int numCols = (n + w - 1) / w;
 
-	for(int k = 0, i = 0; i < m; i += h)
-		for(int j = 0; j < n; j += w, ++k) {
+	ArrayXXd inputs = ArrayXXd::Zero(inputIndices.size(), numRows * numCols);
+	ArrayXXd outputs = ArrayXXd::Zero(outputIndices.size(), numRows * numCols);
+
+	for(int i = 0; i < m; i += h)
+		#pragma omp parallel for
+		for(int j = 0; j < n; j += w) {
+			int k = i / h * numCols + j / w;
+
 			// extract input and output
 			MatrixXd patch = img.block(i, j, inputMask.rows(), inputMask.cols());
 
@@ -678,8 +685,11 @@ ArrayXXd CMT::densityGradient(
 	// combine gradients into image
 	ArrayXXd gradient = ArrayXXd::Zero(img.rows(), img.cols());
 
-	for(int k = 0, i = 0; i < m; i += h)
-		for(int j = 0; j < n; j += w, ++k) {
+	for(int i = 0; i < m; i += h)
+		#pragma omp parallel for
+		for(int j = 0; j < n; j += w) {
+			int k = i / h * numCols + j / w;
+
 			Block<ArrayXXd> patch = gradient.block(
 				i, j, inputMask.rows(), inputMask.cols());
 
@@ -779,12 +789,18 @@ vector<ArrayXXd> CMT::densityGradient(
 	int m = img[0].rows() - inputMask[0].rows() + 1;
 	int n = img[0].cols() - inputMask[0].cols() + 1;
 
-	// extract inputs and outputs from image
-	ArrayXXd inputs(numInputs, (m / h) * (n / w));
-	ArrayXXd outputs(numOutputs, (m / h) * (n / w));
+	int numRows = (m + h - 1) / h;
+	int numCols = (n + w - 1) / w;
 
-	for(int k = 0, i = 0; i < m; i += h)
-		for(int j = 0; j < n; j += w, ++k) 
+	// extract inputs and outputs from image
+	ArrayXXd inputs(numInputs, numRows * numCols);
+	ArrayXXd outputs(numOutputs, numRows * numCols);
+
+	for(int i = 0; i < m; i += h)
+		#pragma omp parallel for
+		for(int j = 0; j < n; j += w) {
+			int k = i / h * numCols + j / w;
+
 			for(int c = 0, offIn = 0, offOut = 0; c < numChannels; ++c) {
 				// extract input and output
 				MatrixXd patch = img[c].block(i, j, inputMask[c].rows(), inputMask[c].cols());
@@ -797,6 +813,7 @@ vector<ArrayXXd> CMT::densityGradient(
 				offIn += inputIndices[c].size();
 				offOut += outputIndices[c].size();
 			}
+		}
 
 	// compute gradients of pixels
 	pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > results;
@@ -821,16 +838,19 @@ vector<ArrayXXd> CMT::densityGradient(
 	for(int c = 0; c < numChannels; ++c)
 		gradient.push_back(ArrayXXd::Zero(img[c].rows(), img[c].cols()));
 
-	for(int k = 0, i = 0; i < m; i += h)
-		for(int j = 0; j < n; j += w, ++k) {
+	for(int i = 0; i < m; i += h)
+		#pragma omp parallel for
+		for(int j = 0; j < n; j += w) {
+			int k = i / h * numCols + j / w;
+
 			for(int c = 0, offIn = 0, offOut = 0; c < numChannels; ++c) {
 				Block<ArrayXXd> patch = gradient[c].block(
 					i, j, inputMask[c].rows(), inputMask[c].cols());
 
-				for(int l = 0; l < inputIndices.size(); ++l)
+				for(int l = 0; l < inputIndices[c].size(); ++l)
 					patch(inputIndices[c][l].first, inputIndices[c][l].second) +=
 						inputGradients(offIn + l, k);
-				for(int l = 0; l < outputIndices.size(); ++l)
+				for(int l = 0; l < outputIndices[c].size(); ++l)
 					patch(outputIndices[c][l].first, outputIndices[c][l].second) +=
 						outputGradients(offOut + l, k);
 

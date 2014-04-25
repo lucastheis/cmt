@@ -1,6 +1,7 @@
 __all__ = [
 	"generate_data_from_image",
 	"generate_data_from_video",
+	"density_gradient",
 	"sample_image",
 	"sample_image_conditionally",
 	"sample_labels_conditionally",
@@ -21,6 +22,7 @@ __all__ = [
 
 from _cmt import generate_data_from_image
 from _cmt import generate_data_from_video
+from _cmt import density_gradient
 from _cmt import sample_image
 from _cmt import sample_image_conditionally
 from _cmt import sample_labels_conditionally
