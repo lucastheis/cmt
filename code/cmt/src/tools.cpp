@@ -854,8 +854,8 @@ vector<ArrayXXd> CMT::densityGradient(
 					patch(outputIndices[c][l].first, outputIndices[c][l].second) +=
 						outputGradients(offOut + l, k);
 
-				offIn += inputIndices.size();
-				offOut += outputIndices.size();
+				offIn += inputIndices[c].size();
+				offOut += outputIndices[c].size();
 			}
 		}
 
