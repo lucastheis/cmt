@@ -416,10 +416,10 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 	PyObject* input_mask;
 	PyObject* output_mask;
 	PyObject* preconditionerObj = 0;
-	double min_value = -numeric_limits<double>::infinity();
-	double max_value = numeric_limits<double>::infinity();
+	PyObject* min_value = 0;
+	PyObject* max_value = 0;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!OO|Odd", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!OO|OOO", const_cast<char**>(kwlist),
 		&img, &CD_type, &modelObj, &input_mask, &output_mask, &preconditionerObj, &min_value, &max_value))
 		return 0;
 
@@ -459,6 +459,35 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 	try {
 		PyObject* imgSample;
 		if(PyArray_NDIM(img) > 2) {
+			vector<double> minValues;
+			vector<double> maxValues;
+
+			if(min_value)
+				if(PyFloat_Check(min_value))
+					for(int k = 0; k < PyArray_SHAPE(reinterpret_cast<PyArrayObject*>(img))[2]; ++k)
+						minValues.push_back(PyFloat_AsDouble(min_value));
+				else if(PySequence_Check(min_value))
+					for(int k = 0; k < PySequence_Length(min_value); ++k) {
+						PyObject* item = PySequence_GetItem(min_value, k);
+						if(PyFloat_Check(item))
+							minValues.push_back(PyFloat_AsDouble(item));
+						else if(PyInt_Check(item))
+							minValues.push_back(static_cast<double>(PyInt_AsLong(item)));
+					}
+
+			if(max_value)
+				if(PyFloat_Check(max_value))
+					for(int k = 0; k < PyArray_SHAPE(reinterpret_cast<PyArrayObject*>(img))[2]; ++k)
+						maxValues.push_back(PyFloat_AsDouble(max_value));
+				else if(PySequence_Check(max_value))
+					for(int k = 0; k < PySequence_Length(max_value); ++k) {
+						PyObject* item = PySequence_GetItem(max_value, k);
+						if(PyFloat_Check(item))
+							maxValues.push_back(PyFloat_AsDouble(item));
+						else if(PyInt_Check(item))
+							maxValues.push_back(static_cast<double>(PyInt_AsLong(item)));
+					}
+
 			if(PyArray_NDIM(input_mask) > 2 && PyArray_NDIM(output_mask) > 2) {
 				// multi-channel image and multi-channel masks
 				imgSample = PyArray_FromArraysXXd(
@@ -468,8 +497,8 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 						PyArray_ToArraysXXb(input_mask),
 						PyArray_ToArraysXXb(output_mask),
 						preconditioner,
-						min_value,
-						max_value));
+						minValues,
+						maxValues));
 			} else {
 				// multi-channel image and single-channel masks
 				imgSample = PyArray_FromArraysXXd(
@@ -479,12 +508,30 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 						PyArray_ToMatrixXb(input_mask),
 						PyArray_ToMatrixXb(output_mask),
 						preconditioner,
-						min_value,
-						max_value));
+						minValues,
+						maxValues));
 			}
 		} else {
 			if(PyArray_NDIM(input_mask) > 2 || PyArray_NDIM(output_mask) > 2)
 				throw Exception("You cannot use multi-channel masks with single-channel images.");
+
+			double minValue = -numeric_limits<double>::infinity();
+			double maxValue = numeric_limits<double>::infinity();
+
+			if(PySequence_Check(min_value) && PySequence_Length(min_value) > 0) {
+				PyObject* item = PySequence_GetItem(min_value, 0);
+				if(PyFloat_Check(item))
+					minValue = PyFloat_AsDouble(item);
+				else if(PyInt_Check(item))
+					minValue = static_cast<double>(PyInt_AsLong(item));
+			}
+			if(PySequence_Check(max_value) && PySequence_Length(max_value) > 0) {
+				PyObject* item = PySequence_GetItem(max_value, 0);
+				if(PyFloat_Check(item))
+					maxValue = PyFloat_AsDouble(item);
+				else if(PyInt_Check(item))
+					maxValue = static_cast<double>(PyInt_AsLong(item));
+			}
 
 			// single-channel image and single-channel masks
 			imgSample = PyArray_FromMatrixXd(
@@ -494,8 +541,8 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 					PyArray_ToMatrixXb(input_mask),
 					PyArray_ToMatrixXb(output_mask),
 					preconditioner,
-					min_value,
-					max_value));
+					minValue,
+					maxValue));
 		}
 
 		Py_DECREF(img);

@@ -108,16 +108,16 @@ namespace CMT {
 		const ArrayXXb& inputMask,
 		const ArrayXXb& outputMask,
 		const Preconditioner* preconditioner = 0,
-		double minValue = -numeric_limits<double>::infinity(),
-		double maxValue = numeric_limits<double>::infinity());
+		vector<double> minValues = vector<double>(),
+		vector<double> maxValues = vector<double>());
 	vector<ArrayXXd> sampleImage(
 		vector<ArrayXXd> img,
 		const ConditionalDistribution& model,
 		const vector<ArrayXXb>& inputMask,
 		const vector<ArrayXXb>& outputMask,
 		const Preconditioner* preconditioner = 0,
-		double minValue = -numeric_limits<double>::infinity(),
-		double maxValue = numeric_limits<double>::infinity());
+		vector<double> minValues = vector<double>(),
+		vector<double> maxValues = vector<double>());
 
 	ArrayXXd sampleImageConditionally(
 		ArrayXXd img,

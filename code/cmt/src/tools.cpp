@@ -958,8 +958,8 @@ vector<ArrayXXd> CMT::sampleImage(
 	const ArrayXXb& inputMask,
 	const ArrayXXb& outputMask,
 	const Preconditioner* preconditioner,
-	double minValue,
-	double maxValue)
+	vector<double> minValues,
+	vector<double> maxValues)
 {
 	if(!img.size())
 		throw Exception("Image should have at least one channel.");
@@ -1009,6 +1009,16 @@ vector<ArrayXXd> CMT::sampleImage(
 	if(numOutputs != w * h)
 		throw Exception("Unsupported output mask.");
 
+	// add missing bounds
+	while(minValues.size() < numOutputs)
+		minValues.push_back(-numeric_limits<double>::infinity());
+	while(maxValues.size() < numOutputs)
+		maxValues.push_back(numeric_limits<double>::infinity());
+
+	for(int k = 0; k < numOutputs; ++k)
+		if(minValues[k] > maxValues[k])
+			throw Exception("Minimum value should be smaller than maximum value.");
+
 	if(preconditioner) {
 		if(numInputs * numChannels != preconditioner->dimIn() || numOutputs * numChannels != preconditioner->dimOut())
 			throw Exception("Preconditioner and masks are incompatible.");
@@ -1033,17 +1043,18 @@ vector<ArrayXXd> CMT::sampleImage(
 			VectorXd output;
 			
 			if(preconditioner) {
-				std::cout << "in: " << input.rows() << ", " << input.cols() << std::endl;
 				input = preconditioner->operator()(input);
 				output = model.sample(input);
-				std::cout << "ou: " << output.rows() << ", " << output.cols() << std::endl;
 				output = preconditioner->inverse(input, output).second;
 			} else {
 				output = model.sample(input);
 			}
 
-			output = output.cwiseMin(maxValue);
-			output = output.cwiseMax(minValue);
+			// bound outputs
+			for(int k = 0; k < numOutputs; ++k) {
+				output[k] = min(maxValues[k], output[k]);
+				output[k] = max(minValues[k], output[k]);
+			}
 
 			// replace pixels in image by output
 			#pragma omp parallel for
@@ -1063,8 +1074,8 @@ vector<ArrayXXd> CMT::sampleImage(
 	const vector<ArrayXXb>& inputMask,
 	const vector<ArrayXXb>& outputMask,
 	const Preconditioner* preconditioner,
-	double minValue,
-	double maxValue)
+	vector<double> minValues,
+	vector<double> maxValues)
 {
 	int numChannels = img.size();
 
@@ -1073,9 +1084,6 @@ vector<ArrayXXd> CMT::sampleImage(
 
 	if(inputMask.size() != numChannels || outputMask.size() != numChannels)
 		throw Exception("Image and masks need to have the same number of channels.");
-
-	if(minValue > maxValue)
-		throw Exception("Minimum value should be smaller than maximum value.");
 
 	vector<Tuples> inputIndices;
 	vector<Tuples> outputIndices;
@@ -1133,6 +1141,16 @@ vector<ArrayXXd> CMT::sampleImage(
 	if(numOutputs % (w * h))
 		throw Exception("Unsupported output mask.");
 
+	// add missing bounds
+	while(minValues.size() < numOutputs)
+		minValues.push_back(-numeric_limits<double>::infinity());
+	while(maxValues.size() < numOutputs)
+		maxValues.push_back(numeric_limits<double>::infinity());
+
+	for(int k = 0; k < numOutputs; ++k)
+		if(minValues[k] > maxValues[k])
+			throw Exception("Minimum value should be smaller than maximum value.");
+
 	if(preconditioner) {
 		if(numInputs != preconditioner->dimIn() || numOutputs != preconditioner->dimOut())
 			throw Exception("Preconditioner and masks are incompatible.");
@@ -1164,8 +1182,11 @@ vector<ArrayXXd> CMT::sampleImage(
 				output = model.sample(input);
 			}
 
-			output = output.cwiseMin(maxValue);
-			output = output.cwiseMax(minValue);
+			// bound outputs
+			for(int k = 0; k < numOutputs; ++k) {
+				output[k] = min(maxValues[k], output[k]);
+				output[k] = max(minValues[k], output[k]);
+			}
 
 			// replace pixels in image by model's output
 			for(int m = 0, offset = 0; m < numChannels; ++m) {
