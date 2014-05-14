@@ -686,7 +686,6 @@ ArrayXXd CMT::densityGradient(
 	ArrayXXd gradient = ArrayXXd::Zero(img.rows(), img.cols());
 
 	for(int i = 0; i < m; i += h)
-		#pragma omp parallel for
 		for(int j = 0; j < n; j += w) {
 			int k = i / h * numCols + j / w;
 
@@ -839,7 +838,6 @@ vector<ArrayXXd> CMT::densityGradient(
 		gradient.push_back(ArrayXXd::Zero(img[c].rows(), img[c].cols()));
 
 	for(int i = 0; i < m; i += h)
-		#pragma omp parallel for
 		for(int j = 0; j < n; j += w) {
 			int k = i / h * numCols + j / w;
 
