@@ -1,4 +1,4 @@
-function setup()
+function setup(varargin)
       %% Set up paths
       % The base cmt cpp implementition
       cmt_base = fileparts(mfilename('fullpath'));
@@ -61,6 +61,7 @@ function setup()
                    'pcapreconditioner.cpp', ...
                    'pcatransform.cpp', ...
                    'preconditioner.cpp', ...
+                   'regularizer.cpp', ...
                    'stm.cpp', ...
                    'tools.cpp', ...
                    'trainable.cpp', ...
@@ -94,8 +95,8 @@ function setup()
 
       % Check if any of the already exist and are lock (i.e. there are unfreed object of that interface)
       for mex_file = toMexName(trainable_intefaces)
-            if mislocked(fullfile(distrib_out, '+cmt', mex_file{:}))
-                  error('The mexfile "%s" seems to be locked. Please deleta all associated cmt object and try again.', fullfile(distrib_out, '+cmt', mex_file{1}));
+          if mislocked(fullfile(distrib_out, '+cmt', mex_file{:}))
+                  error('The mexfile "%s" seems to be locked. Please delete all associated cmt object and try again.', fullfile(distrib_out, '+cmt', mex_file{1}));
           end
       end
 
@@ -106,14 +107,21 @@ function setup()
                          ['-I', lbfgs_include], ...
                          ['-L', lbfgs_lib], ...
                          '-llbfgs', ...
-                         '-largeArrayDims', 'CXXFLAGS=""\$CXXFLAGS -std=c++0x""', ...
-                         '-v'};
+                         '-largeArrayDims', ... 
+                         'CXXFLAGS=$CXXFLAGS -std=c++0x'};
 
-      if isunix() && ~ismac()
+      if isunix() 
+          if ~ismac()
             % Relative path linking
             default_options = [default_options, {'-Wl,-rpath,''\$ORIGIN''', '-Wl,-z,origin'}];
+          else
+            % Link against libc++ instead on libstdc++
+            default_options = [default_options, {'CXXFLAGS=$CXXFLAGS -stdlib=libc++', '-lc++'}];              
+          end
       end
-
+      
+      default_options = [default_options, varargin];  
+      
       %% Create shared object files
       mex('-outdir', temp_out, '-c', default_options{:}, cmt_files{:});
       mex('-outdir', temp_out, '-c', default_options{:}, train_files{:});
