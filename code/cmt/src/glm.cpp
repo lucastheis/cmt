@@ -33,10 +33,7 @@ CMT::GLM::Parameters::Parameters() :
 	Trainable::Parameters::Parameters(),
 	trainWeights(true),
 	trainBias(true),
-	trainNonlinearity(false),
-	regularizeWeights(0.),
-	regularizeBias(0.),
-	regularizer(L2)
+	trainNonlinearity(false)
 {
 }
 
@@ -48,8 +45,7 @@ CMT::GLM::Parameters::Parameters(const Parameters& params) :
 	trainBias(params.trainBias),
 	trainNonlinearity(params.trainNonlinearity),
 	regularizeWeights(params.regularizeWeights),
-	regularizeBias(params.regularizeBias),
-	regularizer(params.regularizer)
+	regularizeBias(params.regularizeBias)
 {
 }
 
@@ -63,7 +59,6 @@ CMT::GLM::Parameters& CMT::GLM::Parameters::operator=(const Parameters& params) 
 	trainNonlinearity = params.trainNonlinearity;
 	regularizeWeights = params.regularizeWeights;
 	regularizeBias = params.regularizeBias;
-	regularizer = params.regularizer;
 
 	return *this;
 }
@@ -105,7 +100,7 @@ CMT::GLM::GLM(int dimIn) : mDimIn(dimIn) {
 
 
 
-CMT::GLM::GLM(int dimIn, const GLM& glm) :
+CMT::GLM::GLM(int dimIn, const GLM& glm) : 
 	mDimIn(dimIn),
 	mNonlinearity(glm.mNonlinearity),
 	mDistribution(glm.mDistribution)
@@ -168,8 +163,8 @@ MatrixXd CMT::GLM::predict(const MatrixXd& input) const {
 
 
 int CMT::GLM::numParameters(const Trainable::Parameters& params_) const {
-	const Parameters& params = static_cast<const Parameters&>(params_);
-
+	const Parameters& params = dynamic_cast<const Parameters&>(params_);
+	
 	int numParams = 0;
 
 	if(params.trainWeights)
@@ -191,7 +186,7 @@ int CMT::GLM::numParameters(const Trainable::Parameters& params_) const {
 
 
 lbfgsfloatval_t* CMT::GLM::parameters(const Trainable::Parameters& params_) const {
-	const Parameters& params = static_cast<const Parameters&>(params_);
+	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 
 	lbfgsfloatval_t* x = lbfgs_malloc(numParameters(params));
 
@@ -224,7 +219,7 @@ void CMT::GLM::setParameters(
 	const lbfgsfloatval_t* x,
 	const Trainable::Parameters& params_)
 {
-	const Parameters& params = static_cast<const Parameters&>(params_);
+	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 
 	int k = 0;
 
@@ -257,10 +252,10 @@ double CMT::GLM::parameterGradient(
 	lbfgsfloatval_t* g,
 	const Trainable::Parameters& params_) const
 {
-	const Parameters& params = static_cast<const Parameters&>(params_);
+	const Parameters& params = dynamic_cast<const Parameters&>(params_);
 
 	// check if nonlinearity is trainable and/or differentiable
-	TrainableNonlinearity* trainableNonlinearity =
+	TrainableNonlinearity* trainableNonlinearity = 
 		dynamic_cast<TrainableNonlinearity*>(mNonlinearity);
 	DifferentiableNonlinearity* differentiableNonlinearity =
 		dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
@@ -325,7 +320,7 @@ double CMT::GLM::parameterGradient(
 
 		if(g) {
 			Array<double, 1, Dynamic> tmp1 = mDistribution->gradient(output, means);
-
+			
 			if(params.trainWeights || params.trainBias) {
 				Array<double, 1, Dynamic> tmp2 = differentiableNonlinearity->derivative(responses);
 				Array<double, 1, Dynamic> tmp3 = tmp1 * tmp2;
@@ -362,51 +357,16 @@ double CMT::GLM::parameterGradient(
 		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
 
-		switch(params.regularizer) {
-			case Parameters::L1:
-				if(params.trainWeights && params.regularizeWeights > 0.)
-					weightsGrad += params.regularizeWeights * signum(weights);
-
-				if(params.trainBias && params.regularizeBias > 0.)
-					if(bias > 0.)
-						*biasGrad += params.regularizeBias;
-					else if(bias < 0.)
-						*biasGrad -= params.regularizeBias;
-
-				break;
-
-			case Parameters::L2:
-				if(params.trainWeights && params.regularizeWeights > 0.)
-					weightsGrad += params.regularizeWeights * 2. * weights;
-
-				if(params.trainBias && params.regularizeBias > 0.)
-					*biasGrad += params.regularizeBias * 2. * bias;
-
-				break;
-		}
+		if(params.trainWeights)
+			weightsGrad += params.regularizeWeights.gradient(weights);
+		if(params.trainBias)
+			*biasGrad += params.regularizeBias.gradient(MatrixXd::Constant(1, 1, bias))(0, 0);
 	}
 
 	double value = -logLik / normConst;
 
-	switch(params.regularizer) {
-		case Parameters::L1:
-			if(params.trainWeights && params.regularizeWeights > 0.)
-				value += params.regularizeWeights * weights.array().abs().sum();
-
-			if(params.trainBias && params.regularizeBias > 0.)
-				value += params.regularizeBias * abs(bias);
-
-			break;
-
-		case Parameters::L2:
-			if(params.trainWeights && params.regularizeWeights > 0.)
-				value += params.regularizeWeights * weights.array().square().sum();
-
-			if(params.trainBias && params.regularizeBias > 0.)
-				value += params.regularizeBias * bias * bias;
-
-			break;
-	}
+	value += params.regularizeWeights.evaluate(weights);
+	value += params.regularizeBias.evaluate(MatrixXd::Constant(1, 1, bias));
 
  	return value;
 }
@@ -417,9 +377,35 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::GLM::computeData
 	const MatrixXd& input,
 	const MatrixXd& output) const
 {
+	// make sure nonlinearity is differentiable
+	DifferentiableNonlinearity* nonlinearity =
+		dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
+	if(!nonlinearity)
+		throw Exception("Nonlinearity has to be differentiable.");
+
+	if(mDimIn && input.rows() != mDimIn)
+		throw Exception("Input has wrong dimensionality.");
+	if(output.rows() != 1)
+		throw Exception("Output has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("Number of inputs and outputs should be the same.");
+
+	if(!mDimIn)
+		return make_pair(
+			make_pair(
+				ArrayXXd::Zero(input.rows(), input.cols()),
+				ArrayXXd::Zero(output.rows(), output.cols())),
+			logLikelihood(input, output));
+
+	Array<double, 1, Dynamic> responses = (mWeights.transpose() * input).array() + mBias;
+
+	Array<double, 1, Dynamic> tmp0 = (*mNonlinearity)(responses);
+	Array<double, 1, Dynamic> tmp1 = -mDistribution->gradient(output, tmp0);
+	Array<double, 1, Dynamic> tmp2 = nonlinearity->derivative(responses);
+
 	return make_pair(
 		make_pair(
-			ArrayXXd::Zero(input.rows(), input.cols()),
+			mWeights * (tmp1 * tmp2).matrix(),
 			ArrayXXd::Zero(output.rows(), output.cols())),
-		logLikelihood(input, output));
+		mDistribution->logLikelihood(output, tmp0));
 }
