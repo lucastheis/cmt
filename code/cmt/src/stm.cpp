@@ -41,7 +41,7 @@ Nonlinearity* const STM::defaultNonlinearity = new LogisticFunction;
 UnivariateDistribution* const STM::defaultDistribution = new Bernoulli;
 
 CMT::STM::Parameters::Parameters() :
-	Trainable::Parameters::Parameters(),
+	Trainable::Parameters(),
 	trainSharpness(false),
 	trainBiases(true),
 	trainWeights(true),
@@ -59,7 +59,7 @@ CMT::STM::Parameters::Parameters() :
 
 
 CMT::STM::Parameters::Parameters(const Parameters& params) :
-	Trainable::Parameters::Parameters(params),
+	Trainable::Parameters(params),
 	trainSharpness(params.trainSharpness),
 	trainBiases(params.trainBiases),
 	trainWeights(params.trainWeights),

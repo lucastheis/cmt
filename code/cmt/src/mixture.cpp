@@ -100,7 +100,8 @@ MatrixXd CMT::Mixture::sample(int numSamples) const {
 	cdf[numComponents() - 1] = 1.0001;
 
 	// initialize sample from multinomial distribution
-	int numSamplesPerComp[numComponents()];
+	
+	int* numSamplesPerComp = new int[numComponents()];
 	for(int k = 0; k < numComponents(); ++k)
 		numSamplesPerComp[k] = 0;
 
@@ -123,6 +124,8 @@ MatrixXd CMT::Mixture::sample(int numSamples) const {
 	#pragma omp parallel for
 	for(int k = 0; k < numComponents(); ++k)
 		samples[k] = mComponents[k]->sample(numSamplesPerComp[k]);
+
+	delete[] numSamplesPerComp;
 
 	return concatenate(samples);
 }

@@ -4,7 +4,7 @@ spikes   = double(randn(1, 1000) > 0.7);
 
 
 %% Train model
-model = cmt.GLM(int32(10))
+model = cmt.STM(int32(10), int32(0))
 
 model.weights
 

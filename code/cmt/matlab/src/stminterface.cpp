@@ -14,7 +14,7 @@ CMT::STM* mexCreate(MEXInput input) {
     if(input.size() > 4)
         mexWarnMsgIdAndTxt("mexWrapper:ignoredArgurments", "Setting nonlinearity and distribution not supported yet.");
 
-    if(input.has(3) and input[3].isType(MEXInput::IntScalar)) {
+    if(input.has(3) && input[3].isType(MEXInput::IntScalar)) {
         return new CMT::STM(input[0], input[1], input[2], input[3]);
     }
 

@@ -33,7 +33,7 @@ bool conditionaldistributioninterface(CMT::ConditionalDistribution* obj, std::st
     }
 
     if(cmd == "evaluate") {
-        if(input.has(2) and !input[2].isEmpty())
+        if(input.has(2) && !input[2].isEmpty())
             mexWarnMsgTxt("Changing the preconditioner is currently not supported.");
 
         output[0] = obj->evaluate(input[0], input[1]);

@@ -27,7 +27,7 @@ using std::cout;
 using std::endl;
 
 CMT::MCGSM::Parameters::Parameters() :
-	Trainable::Parameters::Parameters(),
+	Trainable::Parameters(),
 	trainPriors(true),
 	trainScales(true),
 	trainWeights(true),
@@ -47,7 +47,7 @@ CMT::MCGSM::Parameters::Parameters() :
 
 
 CMT::MCGSM::Parameters::Parameters(const Parameters& params) :
-	Trainable::Parameters::Parameters(params),
+	Trainable::Parameters(params),
 	trainPriors(params.trainPriors),
 	trainScales(params.trainScales),
 	trainWeights(params.trainWeights),
