@@ -188,7 +188,7 @@ public:
          }
 
         operator VectorXd () {
-            if(!isType(MEXInput::FloatMatrix) or mxGetN(mData) != 1) {
+            if(!isType(MEXInput::FloatMatrix) || mxGetN(mData) != 1) {
                 mexErrMsgIdAndTxt("MEXInput:typeMismatch", "Argument #%d should be a single or double column vector.", mIndex + 1);
             }
 
