@@ -9,7 +9,6 @@
 #include "conditionaldistributioninterface.h"
 #include "trainableinterface.h"
 
-
 CMT::STM* mexCreate(MEXInput input) {
     if(input.size() > 4)
         mexWarnMsgIdAndTxt("mexWrapper:ignoredArgurments", "Setting nonlinearity and distribution not supported yet.");
@@ -19,11 +18,11 @@ CMT::STM* mexCreate(MEXInput input) {
     }
 
     if(input.has(2)) {
-        return new CMT::STM(input[0], input[1], input[2], 0, 0);
+        return new CMT::STM(input[0], input[1], input[2]);
     }
 
     if(input.has(1)) {
-        return new CMT::STM(input[0], input[1], 3, -1, 0, 0); // FixMe: Do not set default parameters here!
+        return new CMT::STM(input[0], input[1]);
     }
 
     return new CMT::STM(input[0]);

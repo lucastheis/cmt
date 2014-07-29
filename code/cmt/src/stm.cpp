@@ -97,36 +97,6 @@ CMT::STM::Parameters& CMT::STM::Parameters::operator=(const Parameters& params) 
 
 
 CMT::STM::STM(
-	int dimIn,
-	int numComponents,
-	int numFeatures,
-	Nonlinearity* nonlinearity,
-	UnivariateDistribution* distribution) :
-	mDimInNonlinear(dimIn),
-	mDimInLinear(0),
-	mNumComponents(numComponents),
-	mNumFeatures(numFeatures < 0 ? dimIn : numFeatures),
-	mNonlinearity(nonlinearity ? nonlinearity : defaultNonlinearity),
-	mDistribution(distribution ? distribution : defaultDistribution)
-{
-	// check hyperparameters
-	if(mDimInNonlinear < 0)
-		throw Exception("The input dimensionality has to be non-negative.");
-	if(mNumComponents < 1)
-		throw Exception("The number of components has to be positive.");
-
-	// initialize parameters
-	mSharpness = 1.;
-	mBiases = -10. * ArrayXd::Random(mNumComponents).abs() - log(mNumComponents);
-	mWeights = ArrayXXd::Random(mNumComponents, mNumFeatures).abs() / 100.;
-	mFeatures = sampleNormal(mDimInNonlinear, mNumFeatures) / 100.;
-	mPredictors = sampleNormal(mNumComponents, mDimInNonlinear) / 100.;
-	mLinearPredictor = VectorXd::Zero(mDimInLinear);
-}
-
-
-
-CMT::STM::STM(
 	int dimInNonlinear,
 	int dimInLinear,
 	int numComponents,

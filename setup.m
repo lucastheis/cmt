@@ -113,7 +113,7 @@ function setup(varargin)
       if isunix() 
           if ~ismac()
             % Relative path linking
-            default_options = [default_options, {'-Wl,-rpath,''\$ORIGIN''', '-Wl,-z,origin'}];
+            default_options = [default_options, {'LDFLAGS=$LDFLAGS -Wl,-rpath,''$ORIGIN'' -Wl,-z,origin'}];
           else
             % Link against libc++ instead on libstdc++
             default_options = [default_options, {'CXXFLAGS=$CXXFLAGS -stdlib=libc++', '-lc++'}];              
