@@ -75,23 +75,28 @@ set(MEX_SOURCE
 
 ADD_DEFINITIONS(
 	-std=c++0x
-	-fvisibility=default
-	-Bsymbolic
-)
+
+)#-Bsymbolic-fvisibility=hidden
 
 # make cmt library
-add_library(cmt SHARED ${CMT_SOURCE})
-target_link_libraries(cmt lbfgs)
+#add_library(cmt SHARED ${CMT_SOURCE})
+#target_link_libraries(cmt lbfgs)
 
-set_target_properties(cmt PROPERTIES MACOSX_RPATH "on" INSTALL_RPATH "@loader_path")
+#set_target_properties(cmt PROPERTIES MACOSX_RPATH "on" INSTALL_RPATH "@loader_path")
 
 # make mex files
-add_library(glminterface SHARED src/glminterface.cpp ${MEX_SOURCE})
-target_link_libraries(glminterface cmt ${MATLAB_LIBRARIES})
+add_library(glminterface SHARED src/glminterface.cpp ${MEX_SOURCE} ${CMT_SOURCE})
+target_link_libraries(glminterface lbfgs ${MATLAB_LIBRARIES})
 
 
-add_library(stminterface SHARED src/stminterface.cpp ${MEX_SOURCE})
-target_link_libraries(stminterface cmt ${MATLAB_LIBRARIES})
+add_library(stminterface SHARED src/stminterface.cpp ${MEX_SOURCE} ${CMT_SOURCE})
+target_link_libraries(stminterface lbfgs ${MATLAB_LIBRARIES})
 
 
 set_target_properties(glminterface stminterface PROPERTIES SUFFIX ".mexmaci64" PREFIX "" MACOSX_RPATH "on")
+
+# for install add:
+# install_name_tool -change "/usr/local/lib/liblbfgs-1.10.dylib" "@loader_path/liblbfgs-1.10.dylib" glminterface.mexmaci64
+# install_name_tool -change "/usr/local/lib/liblbfgs-1.10.dylib" "@loader_path/liblbfgs-1.10.dylib" stminterface.mexmaci64
+# install_name_tool -change "/usr/local/lib/liblbfgs-1.10.dylib" "@loader_path/liblbfgs-1.10.dylib" libcmt.dylib
+

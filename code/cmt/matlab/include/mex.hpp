@@ -307,7 +307,7 @@ public:
 
     MEXOutput::Converter operator[](int index) {
         if(!has(index)) {
-            mexErrMsgIdAndTxt("MEXOutput:missingArgument", "Not enough ouput argument required! Could not access argument #%d.", index + 1);
+            mexErrMsgIdAndTxt("MEXOutput:missingArgument", "Not enough output argument required! Could not access argument #%d.", index + 1);
         }
 
         return Converter(mData + index);
@@ -318,7 +318,7 @@ private:
     mxArray** mData;
 };
 
-// streambuffer that writes everything to mexPrintf. Usefull to reroute cout.
+// streambuffer that writes everything to mexPrintf. Useful to reroute cout to matlab.
 class mexstreambuf : public std::streambuf {
 protected:
     std::streamsize xsputn(const char *s, std::streamsize n) {
@@ -339,7 +339,7 @@ protected:
  * Mex wrapper function, that takes care of object creation, storage and deletion and passes everything else onto parser function.
  *
  * @param creator function that parses matlab data to call class constructor
- * @param parser function that parses matlab data and forwards the appropiate function
+ * @param parser function that parses matlab data and forwards the appropriate function
  */
 template<class BaseClass> inline void mexWrapper(BaseClass* (*creator)(MEXInput), bool (*parser)(BaseClass*, std::string, MEXOutput, MEXInput), int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
