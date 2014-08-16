@@ -21,16 +21,16 @@ namespace MEX {
                 Setter& operator=(const Eigen::MatrixXd& output);
 
                 // Converter& operator=(const Eigen::MatrixXb& output);
-
-                Setter& operator=(const bool& b);
-
+                
+                Setter& operator=(const std::string& s);
+                
+                Setter& operator=(const mxArray*& a);
+                
+                Setter& operator=(const double& d);
+                
                 Setter& operator=(const int& i);
 
-                Setter& operator=(const double& d);
-
-                Setter& operator=(const std::string& s);
-
-                Setter& operator=(const mxArray*& a);
+                Setter& operator=(const bool& b);
 
             private:
                 mxArray** mData;

@@ -17,7 +17,7 @@ MEX::Data::Data(const Data& other) {
 }
 
 MEX::Data::~Data() {
-    for(int i; i < mSize; i++) {
+    for(int i = 0; i < mSize; i++) {
         if(mData[i] != NULL) {
             mxDestroyArray(mData[i]);
             mData[i] = NULL;
@@ -29,7 +29,7 @@ MEX::Data::~Data() {
 
 MEX::Data& MEX::Data::operator=(const MEX::Data& other) {
     // Free all old data
-    for(int i; i < mSize; i++) {
+    for(int i = 0; i < mSize; i++) {
         if(mData[i] != NULL) {
             mxDestroyArray(mData[i]);
             mData[i] = NULL;

@@ -3,6 +3,7 @@
 
 #include <typeinfo>
 #include <string>
+#include <stdint.h>
 
 #include "mex.h"
 
@@ -33,7 +34,7 @@ namespace MEX {
 
         ~ClassHandle() {
             mSignature = 0;
-            delete mPointer; // ToDo: This probably should not be here!
+            //delete mPointer; // ToDo: This probably should not be here!
         }
 
         bool isValid() {
