@@ -96,6 +96,16 @@ bool mexParse(CMT::STM* obj, std::string cmd, const MEX::Output& output, const M
         return true;
     }
 
+    if(cmd == "callback") {
+        TrainableCallback callback(input[0]);
+        if(callback(10, *obj)) {
+            std::cout << "Success!" << std::endl;
+        } else {
+            std::cout << "Fail!" << std::endl;
+        }
+        return true;
+    }
+
     // Parameter setter and getter
     if(cmd == "sharpness") {
         output[0] = obj->sharpness();

@@ -89,7 +89,8 @@ function setup(varargin)
       mex_hpp_obj = fullfile(temp_out, mex_hpp_obj);
 
       train_files = { 'conditionaldistributioninterface.cpp', ...
-                      'trainableinterface.cpp'};
+                      'trainableinterface.cpp', ...
+                      'callbackinterface.cpp'};
 
       train_obj = toObjectName(train_files);
 
