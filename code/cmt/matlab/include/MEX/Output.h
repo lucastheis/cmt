@@ -24,14 +24,14 @@ namespace MEX {
                 
                 Setter& operator=(const std::string& s);
                 
-                Setter& operator=(const mxArray*& a);
+                Setter& operator=(const mxArray* a);
                 
                 Setter& operator=(const double& d);
                 
                 Setter& operator=(const int& i);
 
                 Setter& operator=(const bool& b);
-
+                
             private:
                 mxArray** mData;
         };

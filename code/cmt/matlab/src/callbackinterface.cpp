@@ -7,7 +7,7 @@ bool TrainableCallback::operator()(int cbIter, const CMT::Trainable& obj) {
 
     args[0] = cbIter;
 
-    // Testing structs //ToDo: Find out why this does not work!
+    // Testing structs
     const char *field_names[] = {"dimIn", "dimOut"};
     mxArray* test_struct = mxCreateStructMatrix(1, 1, 2, field_names);
 
@@ -21,7 +21,7 @@ bool TrainableCallback::operator()(int cbIter, const CMT::Trainable& obj) {
     *((int*) mxGetData(dim_out)) = obj.dimOut();
     mxSetFieldByNumber(test_struct, 0, 1, dim_out);
 
-    args[1] = (mxArray*) test_struct;
+	args[1] = test_struct;
 
     mxDestroyArray(test_struct);
 

@@ -77,9 +77,10 @@ MEX::Output::Setter& MEX::Output::Setter::operator=(const std::string& s) {
     return *this;
 }
 
-MEX::Output::Setter& MEX::Output::Setter::operator=(const mxArray*& a) {
-    (*mData) = mxDuplicateArray(a);
-    return *this;
+MEX::Output::Setter& MEX::Output::Setter::operator=(const mxArray* a) {
+	(*mData) = mxDuplicateArray(a);
+	return *this;
 }
+
 
 
