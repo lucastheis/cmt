@@ -35,7 +35,7 @@ bool trainableparameters(CMT::Trainable::Parameters* params, std::string key, ME
         if(params->callback != NULL) {
             delete params->callback;
         }
-        
+
         params->callback = new TrainableCallback(value);
         return true;
     }
@@ -64,24 +64,6 @@ bool trainableinterface(CMT::Trainable* obj, std::string cmd, const MEX::Output&
     // Methods
     if(cmd == "initialize") {
         obj->initialize(input[0], input[1]);
-        return true;
-    }
-
-    if(cmd == "train") {
-        if(input.has(4)){
-            mexWarnMsgIdAndTxt("mexWrapper:ignoredArgurments", "Setting parameters is not supported yet.");
-        }
-
-        if(input.has(3)){
-            output[0] = obj->train(input[0], input[1], input[2], input[3]);
-            return true;
-        }
-
-        if(input.has(2)){
-            mexWarnMsgIdAndTxt("mexWrapper:ignoredArgurments", "Setting parameters is not supported yet.");
-        }
-
-        output[0] = obj->train(input[0], input[1], CMT::Trainable::Parameters()); // Empty parameters are needed to avoid function matching problems.
         return true;
     }
 

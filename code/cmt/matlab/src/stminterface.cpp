@@ -91,11 +91,6 @@ CMT::STM* mexCreate(const MEX::Input& input) {
 
 bool mexParse(CMT::STM* obj, std::string cmd, const MEX::Output& output, const MEX::Input& input) {
 
-    if(cmd == "params") {
-        CMT::STM::Parameters params = input.toStruct<CMT::STM::Parameters>(0, &stmparameters);
-        return true;
-    }
-
     if(cmd == "callback") {
         TrainableCallback callback(input[0]);
         if(callback(10, *obj)) {
@@ -162,6 +157,35 @@ bool mexParse(CMT::STM* obj, std::string cmd, const MEX::Output& output, const M
     }
 
     // Methods
+    if(cmd == "train") {
+        bool converged;
+        CMT::STM::Parameters params;
+
+        // Check if user supplied a validation set
+        if(input.has(3) && input[2].isType(MEX::Type::FloatMatrix) && input[3].isType(MEX::Type::FloatMatrix)) {
+
+            // Check if there are extra parameters
+            if(input.has(4)) {
+                params = input.toStruct<CMT::STM::Parameters>(4, &stmparameters);
+            }
+
+            converged = obj->train(input[0], input[1], input[2], input[3], params);
+        } else {
+
+            // Check if there are extra parameters
+            if(input.has(2)) {
+                params = input.toStruct<CMT::STM::Parameters>(2, &stmparameters);
+            }
+
+            converged = obj->train(input[0], input[1], params);
+        }
+
+        if(output.has(0)) {
+            output[0] = converged;
+        }
+        return true;
+    }
+
     if(cmd == "response") {
         if(input.has(1)) {
             output[0] = obj->response(input[0], input[1]);
@@ -183,10 +207,10 @@ bool mexParse(CMT::STM* obj, std::string cmd, const MEX::Output& output, const M
     }
 
     // Superclasses
-    if(conditionaldistributioninterface(obj, cmd, output, input))
+    if(trainableinterface(obj, cmd, output, input))
         return true;
 
-    if(trainableinterface(obj, cmd, output, input))
+    if(conditionaldistributioninterface(obj, cmd, output, input))
         return true;
 
     // Got here, so command not recognized

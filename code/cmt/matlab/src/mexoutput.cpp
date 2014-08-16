@@ -62,14 +62,12 @@ MEX::Output::Setter& MEX::Output::Setter::operator=(const bool& b) {
 }
 
 MEX::Output::Setter& MEX::Output::Setter::operator=(const int& i) {
-    std::cout << "Integer: " << i << std::endl;
     (*mData) = mxCreateNumericMatrix(1, 1, mxINT32_CLASS, mxREAL);
     (*(int*)mxGetData(*mData)) = i;
     return *this;
 }
 
 MEX::Output::Setter& MEX::Output::Setter::operator=(const double& d) {
-    std::cout << "Double: " << d << std::endl;
     (*mData) = mxCreateDoubleScalar(d);
     return *this;
 }
