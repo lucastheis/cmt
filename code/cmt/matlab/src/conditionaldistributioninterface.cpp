@@ -3,7 +3,7 @@
 #include "mex.h"
 #include "mex.hpp"
 
-bool conditionaldistributioninterface(CMT::ConditionalDistribution* obj, std::string cmd, MEXOutput output, MEXInput input) {
+bool conditionaldistributioninterface(CMT::ConditionalDistribution* obj, std::string cmd, const MEX::Output& output, const MEX::Input& input) {
 
     // Parameter setter and getter
     if(cmd == "dimIn") {

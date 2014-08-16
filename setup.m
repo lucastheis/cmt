@@ -77,6 +77,16 @@ function setup(varargin)
 
       cmt_obj = fullfile(temp_out, cmt_obj);
 
+      mex_hpp_files = {'mexinput.cpp', ...
+                       'mexoutput.cpp',...
+                       'mexdata.cpp'};
+                      
+      mex_hpp_obj = toObjectName(mex_hpp_files); 
+      
+      % Add absolute path to files
+      mex_hpp_files = fullfile(mex_src, mex_hpp_files);
+
+      mex_hpp_obj = fullfile(temp_out, mex_hpp_obj);
 
       train_files = { 'conditionaldistributioninterface.cpp', ...
                       'trainableinterface.cpp'};
@@ -125,11 +135,12 @@ function setup(varargin)
       %% Create shared object files
       mex('-outdir', temp_out, '-c', default_options{:}, cmt_files{:});
       mex('-outdir', temp_out, '-c', default_options{:}, train_files{:});
+      mex('-outdir', temp_out, '-c', default_options{:}, mex_hpp_files{:});
 
       %% Build mex files
       mkdir('+cmt')
       for interface = trainable_intefaces
-            mex('-outdir', '+cmt', default_options{:}, fullfile(mex_src, interface{1}), train_obj{:}, cmt_obj{:});
+            mex('-outdir', '+cmt', default_options{:}, fullfile(mex_src, interface{1}), train_obj{:}, mex_hpp_obj{:}, cmt_obj{:});
       end
 
       %% Copy all other files

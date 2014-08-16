@@ -3,8 +3,63 @@
 #include "mex.h"
 #include "mex.hpp"
 
+#include "callbackinterface.h"
 
-bool trainableinterface(CMT::Trainable* obj, std::string cmd, MEXOutput output, MEXInput input) {
+bool trainableparameters(CMT::Trainable::Parameters* params, std::string key, MEX::Input::Getter value) {
+    if(key == "verbosity") {
+        params->verbosity = value;
+        return true;
+    }
+
+    if(key == "maxIter") {
+        params->maxIter = value;
+        return true;
+    }
+
+    if(key == "threshold") {
+        params->threshold = value;
+        return true;
+    }
+
+    if(key == "numGrad") {
+        params->numGrad = value;
+        return true;
+    }
+
+    if(key == "batchSize") {
+        params->batchSize = value;
+        return true;
+    }
+
+    if(key == "callback") {
+        if(params->callback != NULL) {
+            delete params->callback;
+        }
+        
+        params->callback = new TrainableCallback(value);
+        return true;
+    }
+
+    if(key == "cbIter") {
+        params->cbIter = value;
+        return true;
+    }
+
+    if(key == "valIter") {
+        params->valIter = value;
+        return true;
+    }
+
+    if(key == "valLookAhead") {
+        params->valLookAhead = value;
+        return true;
+    }
+
+    return false;
+}
+
+
+bool trainableinterface(CMT::Trainable* obj, std::string cmd, const MEX::Output& output, const MEX::Input& input) {
 
     // Methods
     if(cmd == "initialize") {

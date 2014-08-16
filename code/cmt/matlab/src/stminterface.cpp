@@ -8,12 +8,73 @@
 #include "stm.h"
 #include "conditionaldistributioninterface.h"
 #include "trainableinterface.h"
+#include "callbackinterface.h"
 
-CMT::STM* mexCreate(MEXInput input) {
+bool stmparameters(CMT::STM::Parameters* params, std::string key, MEX::Input::Getter value) {
+    if(key == "trainSharpness") {
+        params->trainSharpness = value;
+        return true;
+    }
+
+    if(key == "trainBiases") {
+        params->trainBiases = value;
+        return true;
+    }
+
+    if(key == "trainWeights") {
+        params->trainWeights = value;
+        return true;
+    }
+
+    if(key == "trainFeatures") {
+        params->trainFeatures = value;
+        return true;
+    }
+
+    if(key == "trainPredictors") {
+        params->trainPredictors = value;
+        return true;
+    }
+
+    if(key == "trainLinearPredictor") {
+        params->trainLinearPredictor = value;
+        return true;
+    }
+
+
+    // if(key == "regularizeBiases") {
+    //     params->regularizeBiases = value;
+    //     return true;
+    // }
+
+    // if(key == "regularizeWeights") {
+    //     params->regularizeWeights = value;
+    //     return true;
+    // }
+
+    // if(key == "regularizeFeatures") {
+    //     params->regularizeFeatures = value;
+    //     return true;
+    // }
+
+    // if(key == "regularizePredictors") {
+    //     params->regularizePredictors = value;
+    //     return true;
+    // }
+
+    // if(key == "regularizeLinearPredictor") {
+    //     params->regularizeLinearPredictor = value;
+    //     return true;
+    // }
+
+    return trainableparameters(params, key, value);
+}
+
+CMT::STM* mexCreate(const MEX::Input& input) {
     if(input.size() > 4)
         mexWarnMsgIdAndTxt("mexWrapper:ignoredArgurments", "Setting nonlinearity and distribution not supported yet.");
 
-    if(input.has(3) && input[3].isType(MEXInput::IntScalar)) {
+    if(input.has(3) && input[3].isType(MEX::Type::IntScalar)) {
         return new CMT::STM(input[0], input[1], input[2], input[3]);
     }
 
@@ -28,7 +89,12 @@ CMT::STM* mexCreate(MEXInput input) {
     return new CMT::STM(input[0]);
 }
 
-bool mexParse(CMT::STM* obj, std::string cmd, MEXOutput output, MEXInput input) {
+bool mexParse(CMT::STM* obj, std::string cmd, const MEX::Output& output, const MEX::Input& input) {
+
+    if(cmd == "params") {
+        CMT::STM::Parameters params = input.toStruct<CMT::STM::Parameters>(0, &stmparameters);
+        return true;
+    }
 
     // Parameter setter and getter
     if(cmd == "sharpness") {
