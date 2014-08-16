@@ -361,7 +361,7 @@ bool CMT::Trainable::train(
 	// wrap all additional arguments to optimization routine
 	InstanceLBFGS instance(this, &params, &input, &output, inputVal, outputVal);
 
-	if(params.verbosity > 0)
+	if(params.verbosity > 0) {
 		if(inputVal && outputVal) {
 			cout << setw(6) << 0;
 			cout << setw(11) << setprecision(5) << evaluateLBFGS(&instance, x, 0, 0, 0.);
@@ -370,6 +370,7 @@ bool CMT::Trainable::train(
 			cout << setw(6) << 0;
 			cout << setw(11) << setprecision(5) << evaluateLBFGS(&instance, x, 0, 0, 0.) << endl;
 		}
+	}
 
 	// start LBFGS optimization
 	int status = LBFGSERR_MAXIMUMITERATION;
