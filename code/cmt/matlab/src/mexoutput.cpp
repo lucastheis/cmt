@@ -82,5 +82,10 @@ MEX::Output::Setter& MEX::Output::Setter::operator=(const mxArray* a) {
 	return *this;
 }
 
+MEX::Output::Setter& MEX::Output::Setter::operator=(const MEX::Output::Setter& s) {
+    (*mData) = mxDuplicateArray(*s.mData);
+    return *this;
+}
+
 
 
