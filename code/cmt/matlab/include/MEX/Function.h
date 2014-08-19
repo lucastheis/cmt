@@ -10,10 +10,14 @@
 namespace MEX {
 	class Function {
 	public:
+
 		Function(const mxArray* handle) : mHandle(handle), mClassID(mxGetClassID(handle)){
 			if(mClassID != mxFUNCTION_CLASS && mClassID != mxCHAR_CLASS) {
 		    	mexErrMsgIdAndTxt("MEX:Function:invalidFunctionHandle", "Supplied argument must be a function handle or string.");
 			}
+		}
+
+		Function(const std::string command) : mHandle(mxCreateString(command.c_str())), mClassID(mxCHAR_CLASS){
 		}
 
 		mxArray* exception = NULL;
