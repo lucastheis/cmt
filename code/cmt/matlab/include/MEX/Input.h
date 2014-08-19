@@ -3,7 +3,7 @@
 
 #include "mex.h"
 
-#include "ClassHandle.h"
+#include "ObjectHandle.h"
 
 #include "Eigen/Core"
 using Eigen::Map;
@@ -49,7 +49,7 @@ namespace MEX {
 	        bool isType(MEX::Type::Type t);
 
 	        template<class BaseClass> BaseClass* unwrap() {
-            	return 	ClassHandle<BaseClass>::unwrap(mData);
+            	return 	ObjectHandle<BaseClass>::unwrap(mData);
 	        }
 
 	        operator MatrixXd ();

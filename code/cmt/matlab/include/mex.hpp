@@ -31,7 +31,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "mex.h"
 
-#include "MEX/ClassHandle.h"
+#include "MEX/ObjectHandle.h"
 #include "MEX/Input.h"
 #include "MEX/Output.h"
 
@@ -88,7 +88,7 @@ template<class BaseClass> inline void mexWrapper(BaseClass* (*creator)(const MEX
         try {
             BaseClass* ptr = creator(MEX::Input(nrhs - 1, prhs + 1));
             // Return a handle to a new C++ instance
-            plhs[0] = MEX::ClassHandle<BaseClass>::wrap(ptr);
+            plhs[0] = MEX::ObjectHandle<BaseClass>::wrap(ptr);
             return;
         } catch (std::exception& e) {
             mexErrMsgIdAndTxt("mexWrapper:constructor:exceptionCaught", "Exception in constructor: \n\t%s", e.what());
@@ -97,12 +97,12 @@ template<class BaseClass> inline void mexWrapper(BaseClass* (*creator)(const MEX
 
     // Check there is a second input, which should be the class instance handle
     if (nrhs < 2)
-        mexErrMsgIdAndTxt("mexWrapper:missingClassHandle", "Second input should be a class instance handle.");
+        mexErrMsgIdAndTxt("mexWrapper:missingObjectHandle", "Second input should be a class instance handle.");
 
     // Delete
     if (!strcmp("delete", cmd)) {
         // Destroy the C++ object
-        MEX::ClassHandle<BaseClass>::free(prhs[1]);
+        MEX::ObjectHandle<BaseClass>::free(prhs[1]);
         // Warn if other commands were ignored
         if (nlhs != 0 || nrhs != 2)
             mexWarnMsgIdAndTxt("mexWrapper:ignoredArgurments", "Delete: Unexpected arguments ignored.");
@@ -110,7 +110,7 @@ template<class BaseClass> inline void mexWrapper(BaseClass* (*creator)(const MEX
     }
 
     // Get the class instance pointer from the second input
-    BaseClass* instance = MEX::ClassHandle<BaseClass>::unwrap(prhs[1]);
+    BaseClass* instance = MEX::ObjectHandle<BaseClass>::unwrap(prhs[1]);
 
     try {
         if(!parser(instance, cmd, MEX::Output(nlhs, plhs), MEX::Input(nrhs - 2, prhs + 2)))
