@@ -13,11 +13,11 @@ namespace MEX {
     template<class BaseClass> class ObjectHandle {
     public:
 
-        static mxArray* share(const BaseClass* ptr) {
+        static mxArray* share(BaseClass* ptr) {
             return toMxArray(ptr, false);
         }
 
-        static mxArray* wrap(const BaseClass* ptr) {
+        static mxArray* wrap(BaseClass* ptr) {
             mexLock();
             return toMxArray(ptr, true);
         }
@@ -34,7 +34,7 @@ namespace MEX {
         }
 
     private:
-        ObjectHandle(const BaseClass* pointer, bool owner) : mPointer(pointer),
+        ObjectHandle(BaseClass* pointer, bool owner) : mPointer(pointer),
                                                        mName(typeid(BaseClass).name()),
                                                        mSignature(MEX_OBJECT_HANDLE_SIGNATURE),
                                                        mOwner(owner) {
@@ -54,7 +54,7 @@ namespace MEX {
             return mPointer;
         }
 
-        static mxArray* toMxArray(const BaseClass* ptr, bool owner) {
+        static mxArray* toMxArray(BaseClass* ptr, bool owner) {
             mxArray *out = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
             *((uint64_t *)mxGetData(out)) = reinterpret_cast<uint64_t>(new ObjectHandle<BaseClass>(ptr, owner));
             return out;
@@ -74,7 +74,7 @@ namespace MEX {
 
         uint32_t    mSignature;
         const std::string mName;
-        const BaseClass*  mPointer;
+        BaseClass* const mPointer;
         const bool mOwner;
     };
 }
