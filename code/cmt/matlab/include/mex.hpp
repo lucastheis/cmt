@@ -109,6 +109,18 @@ template<class BaseClass> inline void mexWrapper(BaseClass* (*creator)(const MEX
         return;
     }
 
+    if (!strcmp("validate", cmd)) {
+        plhs[0] = mxCreateLogicalScalar(MEX::ObjectHandle<BaseClass>::validate(prhs[1]));
+        return;
+    }
+
+    if (!strcmp("copy", cmd)) {
+        BaseClass* ptr = MEX::ObjectHandle<BaseClass>::unwrap(prhs[1]);
+        BaseClass* cpy = new BaseClass(*ptr);
+        plhs[0] = MEX::ObjectHandle<BaseClass>::wrap(cpy);
+        return;
+    }
+
     // Get the class instance pointer from the second input
     BaseClass* instance = MEX::ObjectHandle<BaseClass>::unwrap(prhs[1]);
 

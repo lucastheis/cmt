@@ -146,15 +146,27 @@ bool mexParse(CMT::STM* obj, std::string cmd, const MEX::Output& output, const M
     }
 
 
-    if(cmd == "linearPredictor") {
-        output[0] = obj->linearPredictor();
+    // Constant params
+    if(cmd == "dimInLinear") {
+        output[0] = obj->dimInLinear();
         return true;
     }
 
-    if(cmd == "setLinearPredictor") {
-        obj->setLinearPredictor(input[0]);
+    if(cmd == "dimInNonlinear") {
+        output[0] = obj->dimInNonlinear();
         return true;
     }
+
+    if(cmd == "numComponents") {
+        output[0] = obj->numComponents();
+        return true;
+    }
+
+    if(cmd == "numFeatures") {
+        output[0] = obj->numFeatures();
+        return true;
+    }
+
 
     // Methods
     if(cmd == "train") {

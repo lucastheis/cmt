@@ -38,6 +38,12 @@ link_directories(${CMAKE_SOURCE_DIR}/../../liblbfgs/lib/.libs)
 
 ## files to compile ##
 
+# wrapper library
+SET(WRAPPER_SOURCE
+	../src/mexdata.cpp
+	../src/mexinput.cpp
+	../src/mexoutput.cpp)
+
 # cmt source
 SET(CMT_SOURCE
 	../src/affinepreconditioner.cpp
@@ -68,6 +74,7 @@ SET(CMT_SOURCE
 
 # common interface source
 set(MEX_SOURCE
+	src/callbackinterface.cpp
 	src/conditionaldistributioninterface.cpp
 	src/trainableinterface.cpp
 )
@@ -85,11 +92,11 @@ ADD_DEFINITIONS(
 #set_target_properties(cmt PROPERTIES MACOSX_RPATH "on" INSTALL_RPATH "@loader_path")
 
 # make mex files
-add_library(glminterface SHARED src/glminterface.cpp ${MEX_SOURCE} ${CMT_SOURCE})
+add_library(glminterface SHARED src/glminterface.cpp ${MEX_SOURCE} ${WRAPPER_SOURCE} ${CMT_SOURCE})
 target_link_libraries(glminterface lbfgs ${MATLAB_LIBRARIES})
 
 
-add_library(stminterface SHARED src/stminterface.cpp ${MEX_SOURCE} ${CMT_SOURCE})
+add_library(stminterface SHARED src/stminterface.cpp ${MEX_SOURCE} ${WRAPPER_SOURCE} ${CMT_SOURCE})
 target_link_libraries(stminterface lbfgs ${MATLAB_LIBRARIES})
 
 

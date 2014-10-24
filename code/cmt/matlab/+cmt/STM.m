@@ -1,10 +1,23 @@
 classdef STM < cmt.Trainable
     %STM is an implementation of the spike-triggered mixture model.
-    %   The conditional distribution defined by the model is
-    %   $p(y \mid \mathbf{x}, \mathbf{z}) = q(y \mid g(f(\mathbf{x}, \mathbf{z})))$
+	%   The conditional distribution defined by the model is
+    %   <latex>
+	%   $p(y \mid \mathbf{x}, \mathbf{z}) = q(y \mid g(f(\mathbf{x}, \mathbf{z})))$
+	%   <\latex>
     %   where $y$ is a scalar, $\\mathbf{x} \\in \\mathbb{R}^N$, $\\mathbf{z} \\in \\mathbb{R}^M$,
     %   $q$ is a univariate distribution, $g$ is some nonlinearity, and
     %   $f(\\mathbf{x}, \\mathbf{z}) = \\log \\sum_k \\exp\\left( \\lambda \\left[ \\sum_l \\beta_{kl} (\\mathbf{u}_l^\\top \\mathbf{x})^2 + \\mathbf{w}_k \\mathbf{x} + a_k \\right] \\right) / \\lambda + \\mathbf{v}^\\top \\mathbf{z}.$$\n"
+
+    properties (SetAccess = private)
+        % Dimensionality of linear inputs.
+        dimInLinear;
+        % Dimensionality of nonlinear inputs.
+        dimInNonlinear;
+        % Numer of predictors.
+        numComponents;
+        % Number of features available to approximate input covariances.
+        numFeatures;
+    end
 
     properties
         % Controls the sharpness of the soft-maximum implemented by the log-sum-exp, $\lambda$.
@@ -20,16 +33,6 @@ classdef STM < cmt.Trainable
         % Bias terms controlling strength of each mixture component, $a_k$.
         biases;
 
-        % Dimensionality of linear inputs.
-        dim_in_linear;
-        % Dimensionality of nonlinear inputs.
-        dim_in_nonlinear;
-
-        % Numer of predictors.
-        num_components
-        % Number of features available to approximate input covariances.
-        num_features;
-
         % Distribution whose average value is determined by output of nonlinearity.
         distribution
         % Nonlinearity applied to output of log-sum-exp, $g$.
@@ -37,14 +40,14 @@ classdef STM < cmt.Trainable
     end
 
     methods
-        function self = STM(dimInNonlinear, dimInLinear, varargin)
-            % dim_in_nonlinear (int) - dimensionality of nonlinear portion of input
-            % dim_in_linear (int) - dimensionality of linear portion of input (default: 0)
-            % num_components (int) - number of components (default: 3)
-            % num_features (int) - number of quadratic features
+        function self = STM(varargin)
+            % dimNonlinear (int) - dimensionality of nonlinear portion of input
+            % dimLinear (int) - dimensionality of linear portion of input (default: 0)
+            % numComponents (int) - number of components (default: 3)
+            % numFeatures (int) - number of quadratic features
             % nonlinearity (Nonlinearity/type) - nonlinearity applied to log-sum-exp, g (default: LogisticFunction)
             % distribution (UnivariateDistribution/type) - distribution of outputs, q (default: Bernoulli)
-            self@cmt.Trainable(dimInNonlinear, dimInLinear, varargin{:});
+            self@cmt.Trainable(varargin{:});
         end
 
 
@@ -92,7 +95,24 @@ classdef STM < cmt.Trainable
             v = self.mexEval('linearPredictor');
         end
 
+        % Constant properties
+        function v = get.dimInLinear(self)
+            v = self.mexEval('dimInLinear');
+        end
 
+        function v = get.dimInNonlinear(self)
+            v = self.mexEval('dimInNonlinear');
+        end
+
+        function v = get.numComponents(self)
+            v = self.mexEval('numComponents');
+        end
+
+        function v = get.numFeatures(self)
+            v = self.mexEval('numFeatures');
+        end
+
+        % Methods
         function value = response(self, input, varargin)
             value = self.mexEval('response', input, varargin{:});
         end
@@ -107,7 +127,7 @@ classdef STM < cmt.Trainable
     end
     methods (Static)
         function obj = loadobj(S)
-            obj = cmt.STM.mexLoad(S, @cmt.STM);
+            obj = cmt.MexInterface.mexLoad(S, @cmt.STM, {'dimInNonlinear', 'dimInLinear', 'numComponents', 'numFeatures'});
         end
     end
 end
