@@ -220,12 +220,9 @@ int GLM_set_bias(GLMObject* self, PyObject* value, void*) {
 	try {
 		self->glm->setBias(bias);
 	} catch(Exception exception) {
-		Py_DECREF(value);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return -1;
 	}
-
-	Py_DECREF(value);
 
 	return 0;
 }

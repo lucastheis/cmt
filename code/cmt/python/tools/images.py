@@ -77,14 +77,15 @@ def imformat(img, symmetric=False, perc=100, vmin=None, vmax=None):
 				a = -vmin
 
 			a = float(percentile(abs(img), perc))
-			img = (img + a) / (2. * a) * 255. + 0.5
+			img = (img + a) / (2. * a) * 256.
+
 		else:
 			a, b = float(percentile(img, 100 - perc)), float(percentile(img, perc))
 			if vmin is not None:
 				a = vmin
 			if vmax is not None:
 				b = vmax
-			img = (img - a) / float(b - a) * 255. + 0.5
+			img = (img - a) / float(b - a) * 256.
 
 	img[img < 0] = 0
 	img[img > 255] = 255
