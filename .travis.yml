@@ -1,0 +1,16 @@
+language: python
+python:
+    - "2.7"
+virtualenv:
+  system_site_packages: true
+before_install:
+    - sudo apt-get -qq install python-numpy python-scipy
+install:
+    - cd code/liblbfgs
+    - ./autogen.sh
+    - ./configure --enable-sse2
+    - make CFLAGS="-fPIC"
+    - cd ../..
+    - python setup.py install
+script:
+    - nosetests code/cmt/python/tests/
