@@ -1648,10 +1648,10 @@ PyObject* PatchMCGSM_reduce(PatchMCGSMObject* self, PyObject*) {
 	for(int i = 0; i < rows; ++i)
 		for(int j = 0; j < cols; ++j) {
 			PyObject* index = Py_BuildValue("(ii)", i, j);
-			PyObject* mcbm = PatchMCGSM_subscript(self, index);
+			PyObject* mcgsm = PatchMCGSM_subscript(self, index);
 
 			// add MCGSM to list of models
-			PyTuple_SetItem(models, i * cols + j, mcbm);
+			PyTuple_SetItem(models, i * cols + j, mcgsm);
 
 			Py_DECREF(index);
 		}

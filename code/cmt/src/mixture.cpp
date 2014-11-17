@@ -15,12 +15,16 @@ using std::endl;
 using std::setw;
 using std::setprecision;
 
+#include <algorithm>
+using std::random_shuffle;
+
 #include "Eigen/Core"
 using Eigen::Dynamic;
 using Eigen::Array;
 using Eigen::ArrayXd;
 using Eigen::ArrayXXd;
 using Eigen::MatrixXd;
+using Eigen::PermutationMatrix;
 
 CMT::Mixture::Parameters::Parameters() :
 	verbosity(1),
@@ -113,6 +117,7 @@ MatrixXd CMT::Mixture::sample(int numSamples) const {
 		while(urand > cdf[j])
 			++j;
 
+		#pragma omp critical
 		numSamplesPerComp[j]++;
 	}
 
@@ -120,11 +125,15 @@ MatrixXd CMT::Mixture::sample(int numSamples) const {
 	vector<MatrixXd> samples(numComponents());
 
 	// sample each component
-	#pragma omp parallel for
 	for(int k = 0; k < numComponents(); ++k)
 		samples[k] = mComponents[k]->sample(numSamplesPerComp[k]);
 
-	return concatenate(samples);
+	// permute order of samples so that they become i.i.d.
+	PermutationMatrix<Dynamic,Dynamic> perm(numSamples);
+	perm.setIdentity();
+	random_shuffle(perm.indices().data(), perm.indices().data() + perm.indices().size());
+
+	return concatenate(samples) * perm;
 }
 
 
