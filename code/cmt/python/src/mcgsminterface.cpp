@@ -1400,7 +1400,7 @@ PyObject* PatchMCGSM_preconditioners(PatchMCGSMObject* self, void*) {
 
 int PatchMCGSM_set_preconditioners(PatchMCGSMObject* self, PyObject* value, void*) {
 	if(!PyDict_Check(value)) {
-		PyErr_SetString(PyExc_RuntimeError, "Preconditioners have to be stored in a dictionary."); 
+		PyErr_SetString(PyExc_RuntimeError, "Preconditioners have to be stored in a dictionary.");
 		return -1;
 	}
 

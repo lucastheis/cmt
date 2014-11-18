@@ -35,6 +35,7 @@ namespace CMT {
 					int cbIter;
 					int valIter;
 					int valLookAhead;
+					bool stationary;
 
 					ArrayXXd* valInput;
 					ArrayXXd* valOutput;

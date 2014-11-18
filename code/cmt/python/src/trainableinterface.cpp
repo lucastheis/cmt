@@ -98,6 +98,15 @@ Trainable::Parameters* PyObject_ToParameters(
 				params->valLookAhead = static_cast<int>(PyFloat_AsDouble(val_look_ahead));
 			else
 				throw Exception("val_look_ahead should be of type `int`.");
+
+		PyObject* stationary = PyDict_GetItemString(parameters, "stationary");
+		if(stationary)
+			if(PyBool_Check(stationary))
+				params->stationary = (stationary == Py_True);
+			else if(PyInt_Check(stationary))
+				params->stationary = PyInt_AsLong(stationary);
+			else
+				throw Exception("stationary should be of type `bool`.");
 	}
 
 	return params;
