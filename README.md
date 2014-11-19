@@ -23,7 +23,8 @@ I have tested the code with the above versions, but older versions might also wo
 ## Example
 
 ```python
-from cmt import MCGSM, WhiteningPreconditioner
+from cmt.models import MCGSM
+from cmt.transforms import WhiteningPreconditioner
 
 # load data
 input, output = load('data')
@@ -32,16 +33,15 @@ input, output = load('data')
 wt = WhiteningPreconditioner(input, output)
 
 # fit a conditional model to predict outputs from inputs
-model = MCGSM(
-	dim_in=input.shape[0],
-	dim_out=output.shape[0],
-	num_components=8,
-	num_scales=6,
-	num_features=40)
+model = MCGSM(dim_in=input.shape[0],
+              dim_out=output.shape[0],
+              num_components=8,
+	          num_scales=6,
+	          num_features=40)
 model.initialize(*wt(input, output))
-model.train(*wt(input, output), parameters={
-	'max_iter': 1000,
-	'threshold': 1e-5})
+model.train(*wt(input, output),
+            parameters={'max_iter': 1000,
+	                    'threshold': 1e-5})
 
 # evaluate log-likelihood [nats] on the training data
 loglik = model.loglikelihood(*wt(input, output)) + wt.logjacobian(input, output)
