@@ -17,6 +17,7 @@ Fast implementations of several probabilistic models. Examples:
 * NumPy >= 1.6.1
 * automake >= 1.11.0
 * libtool >= 2.4.0
+* Pillow >= 2.6.1 (optional)
 
 I have tested the code with the above versions, but older versions might also work.
 
@@ -36,12 +37,12 @@ wt = WhiteningPreconditioner(input, output)
 model = MCGSM(dim_in=input.shape[0],
               dim_out=output.shape[0],
               num_components=8,
-	          num_scales=6,
-	          num_features=40)
+              num_scales=6,
+              num_features=40)
 model.initialize(*wt(input, output))
-model.train(*wt(input, output),
-            parameters={'max_iter': 1000,
-	                    'threshold': 1e-5})
+model.train(*wt(input, output), parameters={
+        'max_iter': 1000,
+        'threshold': 1e-5})
 
 # evaluate log-likelihood [nats] on the training data
 loglik = model.loglikelihood(*wt(input, output)) + wt.logjacobian(input, output)

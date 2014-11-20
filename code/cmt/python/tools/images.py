@@ -1,4 +1,7 @@
-import Image
+try:
+	from PIL import Image
+except ImportError:
+	pass
 from numpy import array, asarray, squeeze, abs, min, max, percentile
 
 def imread(filename):
