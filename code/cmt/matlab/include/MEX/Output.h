@@ -4,6 +4,7 @@
 #include "mex.h"
 
 #include "Eigen/Core"
+#include <vector>
 
 namespace MEX {
     class Output {
@@ -20,18 +21,26 @@ namespace MEX {
 
                 Setter& operator=(const Eigen::MatrixXd& output);
 
-                // Converter& operator=(const Eigen::MatrixXb& output);
-                
+                // Setter& operator=(const Eigen::MatrixXb& output);
+
+                Setter& operator=(const Eigen::ArrayXXd& output);
+
+                Setter& operator=(const Eigen::ArrayXXi& output);
+
+                Setter& operator=(const std::vector<Eigen::MatrixXd>& output);
+
                 Setter& operator=(const std::string& s);
-                
+
                 Setter& operator=(const mxArray* a);
-                
+
+                Setter& operator=(const Setter& s);
+
                 Setter& operator=(const double& d);
-                
+
                 Setter& operator=(const int& i);
 
                 Setter& operator=(const bool& b);
-                
+
             private:
                 mxArray** mData;
         };

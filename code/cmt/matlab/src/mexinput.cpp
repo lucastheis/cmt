@@ -1,5 +1,15 @@
 #include "MEX/Input.h"
 
+using Eigen::Map;
+using Eigen::MatrixXd;
+using Eigen::MatrixXi;
+using Eigen::VectorXd;
+using Eigen::ArrayXXd;
+using Eigen::ArrayXXi;
+using Eigen::ColMajor;
+
+using std::vector;
+
 #include "MEX/Function.h"
 
 MEX::Input::Input(int size, const mxArray** data) : mSize(size), mData(data) {
@@ -72,6 +82,22 @@ MEX::Input::Getter::operator MatrixXd () {
     return Map<MatrixXd,ColMajor>(mxGetPr(mData), mxGetM(mData), mxGetN(mData));
  }
 
+MEX::Input::Getter::operator MatrixXi () {
+    if(mxGetClassID(mData) != mxINT32_CLASS) {
+        mexErrMsgIdAndTxt("MEX:Input:typeMismatch", "Argument #%d should be a 32-bit integer matrix.", mIndex + 1);
+    }
+
+    if(mxIsSparse(mData)) {
+        mexErrMsgIdAndTxt("MEX:Input:sparseMatrixNotSupported", "Sparse matrix are not supported (argument #%d).", mIndex + 1); // ToDo: Add sparse matrix support.
+    }
+
+    if(mxGetNumberOfDimensions(mData) > 2) {
+        mexErrMsgIdAndTxt("MEX:Input:moreThenTwoDimensions", "3D matrix are not supported (argument #%d).", mIndex + 1); // ToDo: Add 3d matrix support.
+    }
+
+    return Map<ArrayXXi,ColMajor>((int*) mxGetData(mData), mxGetM(mData), mxGetN(mData));
+}
+
 MEX::Input::Getter::operator VectorXd () {
     if(!isType(Type::FloatMatrix) || mxGetN(mData) != 1) {
         mexErrMsgIdAndTxt("MEX:Input:typeMismatch", "Argument #%d should be a single or double column vector.", mIndex + 1);
@@ -87,6 +113,72 @@ MEX::Input::Getter::operator VectorXd () {
 
     return Map<VectorXd,ColMajor>(mxGetPr(mData), mxGetM(mData));
 
+}
+
+MEX::Input::Getter::operator ArrayXXd () {
+    if(!isType(Type::FloatMatrix)) {
+        mexErrMsgIdAndTxt("MEX:Input:typeMismatch", "Argument #%d should be a single or double matrix.", mIndex + 1);
+    }
+
+    if(mxIsSparse(mData)) {
+        mexErrMsgIdAndTxt("MEX:Input:sparseMatrixNotSupported", "Sparse matrix are not supported (argument #%d).", mIndex + 1); // ToDo: Add sparse matrix support.
+    }
+
+    if(mxGetNumberOfDimensions(mData) > 2) {
+        mexErrMsgIdAndTxt("MEX:Input:moreThenTwoDimensions", "3D matrix are not supported (argument #%d).", mIndex + 1); // ToDo: Add 3d matrix support.
+    }
+
+    return Map<ArrayXXd,ColMajor>(mxGetPr(mData), mxGetM(mData), mxGetN(mData));
+}
+
+MEX::Input::Getter::operator ArrayXXi () {
+    if(mxGetClassID(mData) != mxINT32_CLASS) {
+        mexErrMsgIdAndTxt("MEX:Input:typeMismatch", "Argument #%d should be a 32-bit integer matrix.", mIndex + 1);
+    }
+
+    if(mxIsSparse(mData)) {
+        mexErrMsgIdAndTxt("MEX:Input:sparseMatrixNotSupported", "Sparse matrix are not supported (argument #%d).", mIndex + 1); // ToDo: Add sparse matrix support.
+    }
+
+    if(mxGetNumberOfDimensions(mData) > 2) {
+        mexErrMsgIdAndTxt("MEX:Input:moreThenTwoDimensions", "3D matrix are not supported (argument #%d).", mIndex + 1); // ToDo: Add 3d matrix support.
+    }
+
+    return Map<ArrayXXi,ColMajor>((int*) mxGetData(mData), mxGetM(mData), mxGetN(mData));
+}
+
+// ToDo: Fix API so this is not needed.
+MEX::Input::Getter::operator Eigen::Array<int, 1, Eigen::Dynamic> () {
+    if(mxGetClassID(mData) != mxINT32_CLASS || mxGetM(mData) > 1) {
+        mexErrMsgIdAndTxt("MEX:Input:typeMismatch", "Argument #%d should be a 32-bit integer vector.", mIndex + 1);
+    }
+
+    if(mxIsSparse(mData)) {
+        mexErrMsgIdAndTxt("MEX:Input:sparseMatrixNotSupported", "Sparse matrix are not supported (argument #%d).", mIndex + 1); // ToDo: Add sparse matrix support.
+    }
+
+    if(mxGetNumberOfDimensions(mData) > 2) {
+        mexErrMsgIdAndTxt("MEX:Input:moreThenTwoDimensions", "3D matrix are not supported (argument #%d).", mIndex + 1); // ToDo: Add 3d matrix support.
+    }
+
+    return Map<Eigen::Array<int, 1, Eigen::Dynamic>,ColMajor>((int*) mxGetData(mData), 1, mxGetN(mData));
+}
+
+
+MEX::Input::Getter::operator vector<MatrixXd> () {
+    if(!isType(Type::Cell)) {
+        mexErrMsgIdAndTxt("MEX:Input:typeMismatch", "Argument #%d should be a cell of single or double matrices.", mIndex + 1);
+    }
+
+    int num_cells = mxGetNumberOfElements(mData);
+
+    vector<MatrixXd> ret(num_cells);
+
+    for(int index = 0; index < num_cells; index++) {
+        ret[index] = Getter(mxGetCell(mData, index), mIndex);
+    }
+
+    return ret;
 }
 
 MEX::Input::Getter::operator double () {

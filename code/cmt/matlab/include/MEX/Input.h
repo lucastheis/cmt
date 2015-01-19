@@ -3,13 +3,10 @@
 
 #include "mex.h"
 
-#include "ClassHandle.h"
+#include "ObjectHandle.h"
 
 #include "Eigen/Core"
-using Eigen::Map;
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
-using Eigen::ColMajor;
+#include <vector>
 
 namespace MEX {
 	class Function;
@@ -49,12 +46,22 @@ namespace MEX {
 	        bool isType(MEX::Type::Type t);
 
 	        template<class BaseClass> BaseClass* unwrap() {
-            	return 	ClassHandle<BaseClass>::unwrap(mData);
+            	return 	ObjectHandle<BaseClass>::unwrap(mData);
 	        }
 
-	        operator MatrixXd ();
+	        operator Eigen::MatrixXd ();
 
-	        operator VectorXd ();
+	        operator Eigen::MatrixXi ();
+
+	        operator Eigen::VectorXd ();
+
+	        operator Eigen::ArrayXXd ();
+
+	        operator Eigen::ArrayXXi ();
+
+	        operator Eigen::Array<int, 1, Eigen::Dynamic> ();
+
+	        operator std::vector<Eigen::MatrixXd> ();
 
 	        operator double ();
 
@@ -78,21 +85,45 @@ namespace MEX {
 
 	        StructClass params;
 
-	        // ToDo: Add support for matlab structs here!
+	        // Check for struct
+	        if(mxIsStruct(mData[offset])) {
+	        	if(mxGetNumberOfElements(mData[offset]) > 1) {
+		            mexErrMsgIdAndTxt("mexWrapper:arrayOfStruct", "Options in %d must not be supplied as an array of structs.", offset);
+	        	}
 
-	        if((mSize - offset) % 2 != 0) {
-	            mexErrMsgIdAndTxt("mexWrapper:unpairedOptions", "Options must consist of name-value pairs.");
-	        }
+	        	// Go through all the fields
+	        	int num_field = mxGetNumberOfFields(mData[offset]);
 
-	        for(; offset < mSize; offset += 2) {
-	            std::string key = Getter(mData[offset], offset);
+				for(int field = 0; field < num_field; field++) {
 
-	            if(parser(&params, key, Getter(mData[offset + 1], offset + 1))) {
-	                continue;
-	            } else {
-	                mexErrMsgIdAndTxt("mexWrapper:unknownOption", "Unknown option: '%s'", key.c_str());
-	            }
-	        }
+				    const char* buffer = mxGetFieldNameByNumber(mData[offset], field);
+    				std::string key(buffer);
+
+				    const mxArray* field_ptr = mxGetFieldByNumber(mData[offset], 0, field);
+
+				    // ToDo: Fix error message for struct fields with wrong type
+		            if(parser(&params, key, Getter(field_ptr, offset))) {
+		                continue;
+		            } else {
+		                mexErrMsgIdAndTxt("mexWrapper:unknownOption", "Unknown option: '%s'", key.c_str());
+		            }
+		        }
+	        } else {
+		        // Params probably come as a cell array
+		        if((mSize - offset) % 2 != 0) {
+		            mexErrMsgIdAndTxt("mexWrapper:unpairedOptions", "Options must consist of name-value pairs.");
+		        }
+
+		        for(; offset < mSize; offset += 2) {
+		            std::string key = Getter(mData[offset], offset);
+
+		            if(parser(&params, key, Getter(mData[offset + 1], offset + 1))) {
+		                continue;
+		            } else {
+		                mexErrMsgIdAndTxt("mexWrapper:unknownOption", "Unknown option: '%s'", key.c_str());
+		            }
+		        }
+	    	}
 
 	        return params;
 	    }

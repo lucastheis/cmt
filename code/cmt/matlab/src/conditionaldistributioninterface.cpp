@@ -1,9 +1,14 @@
-#include "conditionaldistribution.h"
-
+// Official mex interface
 #include "mex.h"
+
+// Unofficial C++ mex extension
 #include "mex.hpp"
 
-bool conditionaldistributioninterface(CMT::ConditionalDistribution* obj, std::string cmd, const MEX::Output& output, const MEX::Input& input) {
+// The class we are going to wrap
+#include "conditionaldistribution.h"
+
+
+bool conditionaldistributionParse(CMT::ConditionalDistribution* obj, std::string cmd, const MEX::Output& output, const MEX::Input& input) {
 
     // Parameter setter and getter
     if(cmd == "dimIn") {
@@ -28,7 +33,7 @@ bool conditionaldistributioninterface(CMT::ConditionalDistribution* obj, std::st
     }
 
     if(cmd == "logLikelihood") {
-        output[0] = obj->logLikelihood(input[0], input[1]);
+        output[0] = (Eigen::MatrixXd) obj->logLikelihood(input[0], input[1]);
         return true;
     }
 

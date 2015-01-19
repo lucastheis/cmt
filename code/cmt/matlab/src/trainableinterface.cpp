@@ -1,11 +1,16 @@
-#include "trainable.h"
-
+// Official mex interface
 #include "mex.h"
+
+// Unofficial C++ mex extension
 #include "mex.hpp"
+
+// The class we are going to wrap
+#include "trainable.h"
+#include "conditionaldistributioninterface.h"
 
 #include "callbackinterface.h"
 
-bool trainableparameters(CMT::Trainable::Parameters* params, std::string key, MEX::Input::Getter value) {
+bool trainableParameters(CMT::Trainable::Parameters* params, std::string key, MEX::Input::Getter value) {
     if(key == "verbosity") {
         params->verbosity = value;
         return true;
@@ -31,15 +36,6 @@ bool trainableparameters(CMT::Trainable::Parameters* params, std::string key, ME
         return true;
     }
 
-    if(key == "callback") {
-        if(params->callback != NULL) {
-            delete params->callback;
-        }
-
-        params->callback = new TrainableCallback(value);
-        return true;
-    }
-
     if(key == "cbIter") {
         params->cbIter = value;
         return true;
@@ -58,8 +54,7 @@ bool trainableparameters(CMT::Trainable::Parameters* params, std::string key, ME
     return false;
 }
 
-
-bool trainableinterface(CMT::Trainable* obj, std::string cmd, const MEX::Output& output, const MEX::Input& input) {
+bool trainableParse(CMT::Trainable* obj, std::string cmd, const MEX::Output& output, const MEX::Input& input) {
 
     // Methods
     if(cmd == "initialize") {
@@ -104,5 +99,6 @@ bool trainableinterface(CMT::Trainable* obj, std::string cmd, const MEX::Output&
         return true;
     }
 
-    return false;
+    // Superclass
+    return conditionaldistributionParse(obj, cmd, output, input);
 }

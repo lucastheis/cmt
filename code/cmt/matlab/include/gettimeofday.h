@@ -42,6 +42,7 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
 			tzflag++;
 		}
 
+		// ToDo: Return error values properly, if there are any.
 		long timezone;
 		_get_timezone(&timezone);
 
