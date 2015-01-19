@@ -3,8 +3,6 @@
 
 #include "Data.h"
 
-#include <iostream>
-
 #include "mex.h"
 
 namespace MEX {
@@ -20,11 +18,12 @@ namespace MEX {
 		Function(const std::string command) : mHandle(mxCreateString(command.c_str())), mClassID(mxCHAR_CLASS){
 		}
 
-		mxArray* exception = NULL;
 		const Data operator()(int ret_count, Data args) {
 			// Allocate return values
 			Data result(ret_count);
 
+			// Execute function
+			mxArray* exception = NULL;
 			if(mClassID == mxFUNCTION_CLASS) {
 				// Prepare input by adding function handle to front
 				args.resize(args.size() + 1, true);
@@ -39,6 +38,7 @@ namespace MEX {
 			    mxFree(command);
 		    }
 
+		    // Check for errors
 		    if(exception != NULL) {
 		        mxArray* message_pointer = mxGetProperty(exception, 0, "message");
 

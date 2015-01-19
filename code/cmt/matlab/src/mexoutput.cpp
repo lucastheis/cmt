@@ -3,7 +3,11 @@
 using Eigen::Map;
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+using Eigen::ArrayXXd;
+using Eigen::ArrayXXi;
 using Eigen::ColMajor;
+
+using std::vector;
 
 #include <iostream>
 
@@ -49,12 +53,37 @@ MEX::Output::Setter& MEX::Output::Setter::operator=(const MatrixXd& output) {
     return *this;
 }
 
+MEX::Output::Setter& MEX::Output::Setter::operator=(const ArrayXXd& output) {
+    (*mData) = mxCreateDoubleMatrix(output.rows(), output.cols(), mxREAL);
+    Map<ArrayXXd,ColMajor> data_wrapper(mxGetPr(*mData), output.rows(), output.cols());
+    data_wrapper = output;
+    return *this;
+}
+
+MEX::Output::Setter& MEX::Output::Setter::operator=(const ArrayXXi& output) {
+    (*mData) = mxCreateNumericMatrix(output.rows(), output.cols(), mxINT32_CLASS, mxREAL);
+    Map<ArrayXXi,ColMajor> data_wrapper((int*) mxGetData(*mData), output.rows(), output.cols());
+    data_wrapper = output;
+    return *this;
+}
+
 // MEX::Output::Setter& MEX::Output::Setter::operator=(const MatrixXb& output) {
 //     (*mData) = mxCreateLogicalMatrix(output.rows(), output.cols());
 //     Map<MatrixXb,ColMajor> data_wrapper(mxGetPr(*mData), output.rows(), output.cols());
 //     data_wrapper = output;
 //     return *this;
 // }
+
+MEX::Output::Setter& MEX::Output::Setter::operator=(const vector<MatrixXd>& output) {
+    (*mData) = mxCreateCellMatrix(1, output.size());
+    for(int i = 0; i < output.size(); i++){
+        mxArray* data = mxCreateDoubleMatrix(output[i].rows(), output[i].cols(), mxREAL);
+        Map<MatrixXd,ColMajor> data_wrapper(mxGetPr(data), output[i].rows(), output[i].cols());
+        data_wrapper = output[i];
+        mxSetCell(*mData, i, data);
+    }
+    return *this;
+}
 
 MEX::Output::Setter& MEX::Output::Setter::operator=(const bool& b) {
     (*mData) = mxCreateLogicalScalar(b);

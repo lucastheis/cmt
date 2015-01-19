@@ -1,8 +1,9 @@
-#ifndef __MEX_CLASS_HANDLE_H__
+ #ifndef __MEX_CLASS_HANDLE_H__
 #define __MEX_CLASS_HANDLE_H__
 
 #include <typeinfo>
 #include <string>
+#include <cstring>
 #include <stdint.h>
 
 #include "mex.h"

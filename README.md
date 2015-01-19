@@ -13,14 +13,20 @@ Fast implementations of several probabilistic models. Examples:
 
 ## Requirements
 
+
+### Python Interface
 * Python >= 2.7.0
 * NumPy >= 1.6.1
 * automake >= 1.11.0
 * libtool >= 2.4.0
 
+### Matlab Interface
+* Matlab >= R2009b
+* MEX compatible compiler
+
 I have tested the code with the above versions, but older versions might also work.
 
-## Example
+## Python Example
 
 ```python
 from cmt import MCGSM, WhiteningPreconditioner
@@ -47,7 +53,19 @@ model.train(*wt(input, output), parameters={
 loglik = model.loglikelihood(*wt(input, output)) + wt.logjacobian(input, output)
 ```
 
-## Installation
+## Matlab Example
+
+```matlab
+% Load the data
+data = load('data.mat')
+
+% Fit a generalized linear model to the data
+model = GLM(10);
+model.train(data.input, data.output);
+
+```
+
+## Python Interface Installation
 
 ### Linux
 
@@ -104,3 +122,25 @@ Intel compiler.
 	./autogen.sh
 	CC=icc ./configure --enable-sse2
 	CC=icc make CFLAGS="-fPIC"
+
+## Matlab Interface Installation
+
+### Windows
+Open lbfgs.sln in code/liblbfgs in Visual Studio and compile liblbfgs.dll
+
+Open mex.sln in code/cmt/matlab in Visual Studio and compile the mex files.
+
+### Linux and Mac OS X
+First follow the above instructions to build liblbfgs for your platform.
+
+Next run matlab and make sure a valid mex compiler can be found
+
+	mex -setup
+
+Then run setup.m from the root folder of cmt in Matlab
+
+	setup
+
+The distribute folder should now contain all the files needed to run the CMT toolbox from within matlab. Add it to your matlab path to use it.
+
+

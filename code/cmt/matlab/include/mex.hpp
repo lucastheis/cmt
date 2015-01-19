@@ -77,7 +77,7 @@ template<class BaseClass> inline void mexWrapper(BaseClass* (*creator)(const MEX
     if (nrhs < 1 || mxGetString(prhs[0], cmd, sizeof(cmd)))
         mexErrMsgIdAndTxt("mexWrapper:invalidCommandstring", "First input should be a command string less than 64 characters long.");
 
-    std::cout << "+++ DEBUG: Call to '" << cmd << "' with " << nrhs << " inputs and " << nlhs << " output value(s). +++" << std::endl;
+    //std::cout << "+++ DEBUG: Call to '" << cmd << "' with " << nrhs << " inputs and " << nlhs << " output value(s). +++" << std::endl;
 
     // New
     if (!strcmp("new", cmd)) {

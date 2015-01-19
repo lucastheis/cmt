@@ -36,7 +36,9 @@ function setup(varargin)
       temp_del = onCleanup(@() rmdir(temp_out,'s'));
 
       % Target dir
-      mkdir(distrib_out);
+      if ~exist(distrib_out, 'dir')
+        mkdir(distrib_out);
+      end
       old_pwd = cd(distrib_out);
       pwd_reset = onCleanup(@() cd(old_pwd));
 
@@ -80,17 +82,16 @@ function setup(varargin)
       mex_hpp_files = {'mexinput.cpp', ...
                        'mexoutput.cpp',...
                        'mexdata.cpp'};
-                      
-      mex_hpp_obj = toObjectName(mex_hpp_files); 
-      
+
+      mex_hpp_obj = toObjectName(mex_hpp_files);
+
       % Add absolute path to files
       mex_hpp_files = fullfile(mex_src, mex_hpp_files);
 
       mex_hpp_obj = fullfile(temp_out, mex_hpp_obj);
 
       train_files = { 'conditionaldistributioninterface.cpp', ...
-                      'trainableinterface.cpp', ...
-                      'callbackinterface.cpp'};
+                      'trainableinterface.cpp'};
 
       train_obj = toObjectName(train_files);
 
@@ -101,7 +102,8 @@ function setup(varargin)
 
       %% List of mex interface files (each interface = one mex file)
       trainable_intefaces = {'glminterface.cpp', ...
-                             'stminterface.cpp'};
+                             'stminterface.cpp', ...
+                             'mcgsminterface.cpp'};
 
 
       % Check if any of the already exist and are lock (i.e. there are unfreed object of that interface)
@@ -118,28 +120,33 @@ function setup(varargin)
                          ['-I', lbfgs_include], ...
                          ['-L', lbfgs_lib], ...
                          '-llbfgs', ...
-                         '-largeArrayDims', ... 
+                         '-largeArrayDims', ...
                          'CXXFLAGS=$CXXFLAGS -std=c++0x'};
 
-      if isunix() 
+      if isunix()
           if ~ismac()
             % Relative path linking
             default_options = [default_options, {'LDFLAGS=$LDFLAGS -Wl,-rpath,''$ORIGIN'' -Wl,-z,origin'}];
           else
             % Link against libc++ instead on libstdc++
-            default_options = [default_options, {'CXXFLAGS=$CXXFLAGS -stdlib=libc++', '-lc++'}];              
+            default_options = [default_options, {'CXXFLAGS=$CXXFLAGS -stdlib=libc++', '-lc++'}];
           end
       end
-      
-      default_options = [default_options, varargin];  
-      
+
+      default_options = [default_options, varargin];
+
+      %% Disable warning on Linux
+      warning('off', 'MATLAB:mex:GccVersion_link');
+
       %% Create shared object files
       mex('-outdir', temp_out, '-c', default_options{:}, cmt_files{:});
       mex('-outdir', temp_out, '-c', default_options{:}, train_files{:});
       mex('-outdir', temp_out, '-c', default_options{:}, mex_hpp_files{:});
 
       %% Build mex files
-      mkdir('+cmt')
+      if ~exist('+cmt', 'dir')
+        mkdir('+cmt')
+      end
       for interface = trainable_intefaces
             mex('-outdir', '+cmt', default_options{:}, fullfile(mex_src, interface{1}), train_obj{:}, mex_hpp_obj{:}, cmt_obj{:});
       end
@@ -150,6 +157,7 @@ function setup(varargin)
 
       % Copy example and test script files
       copyfile(fullfile(mex_base,'test.m'), '.');
+      copyfile(fullfile(mex_base,'callback_test.m'), '.');
 
       % Copy lbfgs library
       copyfile(lbfgs_obj, '+cmt')
@@ -164,7 +172,7 @@ function setup(varargin)
       end
 
       %% Profit!
-      fprintf(['\nSucessfully build mex extension. ', ...
+      fprintf(['\nSucessfully built mex extension. ', ...
                'Copy the content of "%s" to your project folder ', ...
                'or add it to your Matlab path to be able ', ...
                'to use the "Conditional Modeling Toolkit" in matlab.\n'], distrib_out);

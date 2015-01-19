@@ -6,11 +6,12 @@
 
 // The class we are going to wrap
 #include "stm.h"
-#include "conditionaldistributioninterface.h"
 #include "trainableinterface.h"
+
 #include "callbackinterface.h"
 
-bool stmparameters(CMT::STM::Parameters* params, std::string key, MEX::Input::Getter value) {
+bool stmParameters(CMT::STM::Parameters* params, std::string key, MEX::Input::Getter value) {
+
     if(key == "trainSharpness") {
         params->trainSharpness = value;
         return true;
@@ -41,6 +42,14 @@ bool stmparameters(CMT::STM::Parameters* params, std::string key, MEX::Input::Ge
         return true;
     }
 
+    if(key == "callback") {
+        if(params->callback != NULL) {
+            delete params->callback;
+        }
+
+        params->callback = new TrainableCallback<CMT::STM>(MEX::Function("cmt.STM"), value);
+        return true;
+    }
 
     // if(key == "regularizeBiases") {
     //     params->regularizeBiases = value;
@@ -67,10 +76,10 @@ bool stmparameters(CMT::STM::Parameters* params, std::string key, MEX::Input::Ge
     //     return true;
     // }
 
-    return trainableparameters(params, key, value);
+    return trainableParameters(params, key, value);
 }
 
-CMT::STM* mexCreate(const MEX::Input& input) {
+CMT::STM* stmCreate(const MEX::Input& input) {
     if(input.size() > 4)
         mexWarnMsgIdAndTxt("mexWrapper:ignoredArgurments", "Setting nonlinearity and distribution not supported yet.");
 
@@ -89,17 +98,7 @@ CMT::STM* mexCreate(const MEX::Input& input) {
     return new CMT::STM(input[0]);
 }
 
-bool mexParse(CMT::STM* obj, std::string cmd, const MEX::Output& output, const MEX::Input& input) {
-
-    if(cmd == "callback") {
-        TrainableCallback callback(input[0]);
-        if(callback(10, *obj)) {
-            std::cout << "Success!" << std::endl;
-        } else {
-            std::cout << "Fail!" << std::endl;
-        }
-        return true;
-    }
+bool stmParse(CMT::STM* obj, std::string cmd, const MEX::Output& output, const MEX::Input& input) {
 
     // Parameter setter and getter
     if(cmd == "sharpness") {
@@ -145,6 +144,26 @@ bool mexParse(CMT::STM* obj, std::string cmd, const MEX::Output& output, const M
         return true;
     }
 
+    if(cmd == "linearPredictor") {
+        output[0] = (Eigen::MatrixXd) obj->linearPredictor();
+        return true;
+    }
+
+    if(cmd == "setLinearPredictor") {
+        obj->setLinearPredictor(input[0]);
+        return true;
+    }
+
+    if(cmd == "biases") {
+        output[0] = (Eigen::MatrixXd) obj->biases();
+        return true;
+    }
+
+    if(cmd == "setBiases") {
+        obj->setBiases(input[0]);
+        return true;
+    }
+
 
     // Constant params
     if(cmd == "dimInLinear") {
@@ -178,7 +197,7 @@ bool mexParse(CMT::STM* obj, std::string cmd, const MEX::Output& output, const M
 
             // Check if there are extra parameters
             if(input.has(4)) {
-                params = input.toStruct<CMT::STM::Parameters>(4, &stmparameters);
+                params = input.toStruct<CMT::STM::Parameters>(4, &stmParameters);
             }
 
             converged = obj->train(input[0], input[1], input[2], input[3], params);
@@ -186,7 +205,7 @@ bool mexParse(CMT::STM* obj, std::string cmd, const MEX::Output& output, const M
 
             // Check if there are extra parameters
             if(input.has(2)) {
-                params = input.toStruct<CMT::STM::Parameters>(2, &stmparameters);
+                params = input.toStruct<CMT::STM::Parameters>(2, &stmParameters);
             }
 
             converged = obj->train(input[0], input[1], params);
@@ -200,11 +219,11 @@ bool mexParse(CMT::STM* obj, std::string cmd, const MEX::Output& output, const M
 
     if(cmd == "response") {
         if(input.has(1)) {
-            output[0] = obj->response(input[0], input[1]);
+            output[0] = (Eigen::MatrixXd) obj->response(input[0], input[1]);
             return true;
         }
 
-        output[0] = obj->response(input[0]);
+        output[0] = (Eigen::MatrixXd) obj->response(input[0]);
         return true;
     }
 
@@ -219,19 +238,12 @@ bool mexParse(CMT::STM* obj, std::string cmd, const MEX::Output& output, const M
     }
 
     // Superclasses
-    if(trainableinterface(obj, cmd, output, input))
-        return true;
-
-    if(conditionaldistributioninterface(obj, cmd, output, input))
-        return true;
-
-    // Got here, so command not recognized
-    return false;
+    return trainableParse(obj, cmd, output, input);
 }
 
 // Give matlab something to call
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-    mexWrapper<CMT::STM>(&mexCreate, &mexParse, nlhs, plhs, nrhs, prhs);
+    mexWrapper<CMT::STM>(&stmCreate, &stmParse, nlhs, plhs, nrhs, prhs);
 }
 
 
