@@ -46,6 +46,7 @@ CMT::Trainable::Parameters::Parameters() {
 	cbIter = 25;
 	valIter = 5;
 	valLookAhead = 20;
+	stationary = false;
 }
 
 
@@ -66,7 +67,8 @@ CMT::Trainable::Parameters::Parameters(const Parameters& params) :
 	callback(0),
 	cbIter(params.cbIter),
 	valIter(params.valIter),
-	valLookAhead(params.valLookAhead)
+	valLookAhead(params.valLookAhead),
+	stationary(stationary)
 {
 	if(params.callback)
 		callback = params.callback->copy();
@@ -86,6 +88,7 @@ CMT::Trainable::Parameters& CMT::Trainable::Parameters::operator=(
 	cbIter = params.cbIter;
 	valIter = params.valIter;
 	valLookAhead = params.valLookAhead;
+	stationary = params.stationary;
 
 	return *this;
 }

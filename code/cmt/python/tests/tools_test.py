@@ -218,7 +218,7 @@ class ToolsTest(unittest.TestCase):
 
 		model = MCGSM(13, 1)
 
-		video_init = randn(64, 64, 5)
+		video_init = randn(16, 16, 5)
 		video_sample = sample_video(video_init, model, xmask, ymask)
 
 		# the first frame should be untouched

@@ -98,10 +98,10 @@ class Tests(unittest.TestCase):
 
 
 	def test_glm_fisher_information(self):
-		N = 2000
-		T = 1000
+		N = 1000
+		T = 100
 
-		glm = GLM(4)
+		glm = GLM(3)
 		glm.weights = randn(glm.dim_in, 1)
 		glm.bias = -2.
 

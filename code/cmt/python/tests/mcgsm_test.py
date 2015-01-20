@@ -9,6 +9,7 @@ from scipy.stats import kstest, ks_2samp, norm
 from pickle import dump, load
 from tempfile import mkstemp
 from cmt.models import MCGSM, MoGSM, PatchMCGSM, GSM
+from cmt.tools import generate_masks
 from cmt.transforms import WhiteningPreconditioner
 
 class Tests(unittest.TestCase):
@@ -36,7 +37,7 @@ class Tests(unittest.TestCase):
 		self.assertEqual(mcgsm.num_components, num_components)
 		self.assertEqual(mcgsm.num_scales, num_scales)
 		self.assertEqual(mcgsm.num_features, num_features)
-	
+
 		# check parameters
 		self.assertEqual(mcgsm.priors.shape[0], num_components)
 		self.assertEqual(mcgsm.priors.shape[1], num_scales)
@@ -474,6 +475,49 @@ class Tests(unittest.TestCase):
 		converged = model.train(data, parameters={'verbosity': 0, 'max_iter': 200, 'treshold': 1e-4})
 
 		self.assertTrue(converged)
+
+
+
+	def test_patchmcgsm_stationary(self):
+		xmask = ones([2, 2], dtype='bool')
+		ymask = zeros([2, 2], dtype='bool')
+		xmask[-1, -1] = False
+		ymask[-1, -1] = True
+
+		model = PatchMCGSM(3, 3, xmask, ymask, model=MCGSM(sum(xmask), 1, 2, 2))
+
+		data = randn(4, 10000)
+
+		model.initialize(data)
+		model.train(data, parameters={
+			'verbosity': 0,
+			'max_iter': 10,
+			'stationary': True,
+			'treshold': 1e-4})
+
+		self.assertTrue(all(model[0, 2].predictors == model[0, 1].predictors))
+		self.assertFalse(all(model[1, 0].predictors == model[0, 1].predictors))
+		self.assertTrue(all(model[1, 2].weights == model[1, 1].weights))
+		self.assertTrue(all(model[1, 2].features == model[1, 1].features))
+		self.assertTrue(all(model[1, 2].scales == model[1, 1].scales))
+		self.assertTrue(all(model[1, 2].priors == model[1, 1].priors))
+
+		xmask, ymask = generate_masks(3)
+
+		model = PatchMCGSM(3, 3, xmask, ymask, model=MCGSM(sum(xmask), 1, 2, 2))
+
+		data = randn(4, 10000)
+
+		model.initialize(data)
+		model.train(data, parameters={
+			'verbosity': 0,
+			'max_iter': 10,
+			'stationary': True,
+			'treshold': 1e-4})
+
+		self.assertTrue(all(model[0, 2].weights == model[0, 1].weights))
+		self.assertTrue(all(model[2, 0].features == model[1, 0].features))
+		self.assertTrue(all(model[2, 2].scales == model[1, 2].scales))
 
 
 
