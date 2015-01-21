@@ -148,6 +148,7 @@ namespace CMT {
 			vector<PC*> mPreconditioners;
 
 			int findIndex(int i, int j) const;
+			bool indicesMatch(int i, int j) const;
 	};
 }
 
@@ -641,6 +642,28 @@ bool CMT::PatchModel<CD, PC>::train(const MatrixXd& data, const Trainable::Param
 		MatrixXd output = data.row(m * mCols + n);
 		MatrixXd input(mInputIndices[i].size(), data.cols());
 
+		// check if an equivalent model has already been trained
+		if(params.stationary) {
+			bool copied = false;
+			for(int j = i - 1; j >= 0; --j)
+				if(indicesMatch(i, j)) {
+					if(params.verbosity > 0)
+						cout << "Copying model " << i / mCols << ", " << i % mCols << endl;
+
+					// copy model
+					mConditionalDistributions[i] = mConditionalDistributions[j];
+
+					// copy preconditioner
+					if(mMaxPCs >= 0)
+						mPreconditioners[i] = mPreconditioners[j];
+					copied = true;
+					break;
+				}
+			if(copied)
+				// don't train
+				continue;
+		}
+
 		// extract inputs and outputs from patches
 		#pragma omp parallel for
 		for(int j = 0; j < mInputIndices[i].size(); ++j) {
@@ -927,6 +950,30 @@ int CMT::PatchModel<CD, PC>::findIndex(int i, int j) const {
 		throw Exception("Invalid indices");
 
 	return distance(mOutputIndices.begin(), it);
+}
+
+
+
+template<class CD, class PC>
+bool CMT::PatchModel<CD, PC>::indicesMatch(int i, int j) const {
+	// check if indices are shifted versions of each other
+	// assuming that indices are stored in the same order
+	if(mInputIndices[i].size() != mInputIndices[j].size())
+		return false;
+	if(mInputIndices[i].size() == 0)
+		return true;
+
+	int m = mOutputIndices[i].first - mOutputIndices[j].first;
+	int n = mOutputIndices[i].second - mOutputIndices[j].second;
+
+	for(int k = 0; k < mInputIndices[i].size(); ++k) {
+		if(mInputIndices[j][k].first + m != mInputIndices[i][k].first)
+			return false;
+		if(mInputIndices[j][k].second + n != mInputIndices[i][k].second)
+			return false;
+	}
+
+	return true;
 }
 
 #endif

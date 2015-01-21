@@ -1,3 +1,5 @@
+__license__ = 'CC BY-SA 3.0 <http://creativecommons.org/licenses/by-sa/3.0/>'
+
 from multiprocessing import pool, cpu_count
 from random import random
 from time import sleep

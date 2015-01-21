@@ -202,6 +202,8 @@ inline Eigen::ArrayXXd CMT::MCGSM::weights() const {
 
 
 inline void CMT::MCGSM::setWeights(const ArrayXXd& weights) {
+	if(dimIn() == 0)
+		return;
 	if(weights.rows() != mNumComponents || weights.cols() != mNumFeatures)
 		throw Exception("Wrong number of weights.");
 	mWeights = weights;
@@ -230,6 +232,8 @@ inline Eigen::MatrixXd CMT::MCGSM::features() const {
 
 
 inline void CMT::MCGSM::setFeatures(const MatrixXd& features) {
+	if(dimIn() == 0)
+		return;
 	if(features.rows() != mDimIn)
 		throw Exception("Features have wrong dimensionality.");
 	if(features.cols() != mNumFeatures)
@@ -275,6 +279,9 @@ inline std::vector<Eigen::MatrixXd> CMT::MCGSM::predictors() const {
 
 
 inline void CMT::MCGSM::setPredictors(const vector<MatrixXd>& predictors) {
+	if(dimIn() == 0)
+		return;
+
 	if(predictors.size() != mNumComponents)
 		throw Exception("Wrong number of predictors.");
 

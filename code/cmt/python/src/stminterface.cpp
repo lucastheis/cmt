@@ -253,7 +253,6 @@ int STM_set_sharpness(STMObject* self, PyObject* value, void*) {
 	try {
 		self->stm->setSharpness(PyFloat_AsDouble(value));
 	} catch(Exception exception) {
-		Py_DECREF(value);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return -1;
 	}

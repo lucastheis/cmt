@@ -45,7 +45,7 @@ static PyMethodDef Distribution_methods[] = {
 PyTypeObject Distribution_type = {
 	PyObject_HEAD_INIT(0)
 	0,                                    /*ob_size*/
-	"cmt.models.ConditionalDistribution", /*tp_name*/
+	"cmt.models.Distribution",            /*tp_name*/
 	sizeof(DistributionObject),           /*tp_basicsize*/
 	0,                                    /*tp_itemsize*/
 	(destructor)Distribution_dealloc,     /*tp_dealloc*/

@@ -105,7 +105,7 @@ PyObject* PatchModel_loglikelihood(PatchModelObject* self, PyObject* args, PyObj
 
 	// read arguments
 	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiO", const_cast<char**>(kwlist),
-		&i, &j, &data)) 
+		&i, &j, &data))
 	{
 		PyErr_Clear();
 

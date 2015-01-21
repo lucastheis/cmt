@@ -1139,7 +1139,7 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::MCGSM::computeDa
 			ArrayXXd dpdy = -mCholeskyFactors[i] * predError[i];
 			ArrayXXd dpdx = -mPredictors[i].transpose() * dpdy.matrix();
 			ArrayXXd dfdx = -(mFeatures.array().rowwise() * weightsSqr.row(i).array()).matrix() * featureOutput;
-			dfdx.colwise() += mLinearFeatures.col(i).array();
+			dfdx.colwise() += mLinearFeatures.row(i).array().transpose();
 
 			// weights for this component
 			Array<double, 1, Dynamic> weightsOut = scalesExp[i].transpose() * posteriorOut;
