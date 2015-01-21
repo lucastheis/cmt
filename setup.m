@@ -18,7 +18,7 @@ function setup(varargin)
       lbfgs_base = fullfile(cmt_base, 'code', 'liblbfgs');
       lbfgs_include = fullfile(lbfgs_base, 'include');
       if ispc()
-        lbfgs_lib = fullfile(lbfgs_base, 'Release');
+        lbfgs_lib = fullfile(lbfgs_base, 'x64', 'Release');
         lbfgs_obj = fullfile(lbfgs_lib, 'lbfgs.lib');
       else
         lbfgs_lib = fullfile(lbfgs_base, 'lib', '.libs');

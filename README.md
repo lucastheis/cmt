@@ -125,22 +125,29 @@ Intel compiler.
 
 ## Matlab Interface Installation
 
-### Windows
-Open lbfgs.sln in code/liblbfgs in Visual Studio and compile liblbfgs.dll
+Normally it should be enough to download one of the prebuild binaries of our cmt matlab interface. If you for what ever
+reason want to build it yourself, the following instructions are for you.
 
-Open mex.sln in code/cmt/matlab in Visual Studio and compile the mex files.
+### Build lbfgs library 
+The first step is always to follow the above instructions to build liblbfgs for your platform.
 
-### Linux and Mac OS X
-First follow the above instructions to build liblbfgs for your platform.
+On Windows this is done by opening lbfgs.sln in code/liblbfgs in Visual Studio. In Visual Studio make 
+sure to select the "Release" configuration and the right platform (probably "x64" on most machines). Then
+build the "lib" project by selecting it with a right click and choosing "build". The resulting file "lbfgs.lib" should
+be found in the subfolder "x64\Release" (or "Release" for x86 systems, in which case you have to change that path in the setup script).
 
-Next run matlab and make sure a valid mex compiler can be found
+### Building the mex interface in Matlab
+
+Next open Matlab and make sure a valid mex compiler can be found:
 
 	mex -setup
 
-Then run setup.m from the root folder of cmt in Matlab
+If that is not the case, please follow the official MathWorks documentation to install a supported compiler 
+and check again.
+
+Then run the setup.m function from the root folder of cmt in Matlab
 
 	setup
 
-The distribute folder should now contain all the files needed to run the CMT toolbox from within matlab. Add it to your matlab path to use it.
-
-
+The distribute folder should now contain all the files needed to run the CMT toolbox from within matlab. Add 
+it to your matlab path to use it.
