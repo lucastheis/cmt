@@ -17,33 +17,31 @@ function setup(varargin)
       % liblbfgs L-BFGS library
       lbfgs_base = fullfile(cmt_base, 'code', 'liblbfgs');
       lbfgs_include = fullfile(lbfgs_base, 'include');
-      lbfgs_lib = fullfile(lbfgs_base, 'lib', '.libs');
-      lbfgs_obj = fullfile(lbfgs_lib, ['liblbfgs-1.10', system_dependent('GetSharedLibExt')]);
-
+      if ispc()
+        lbfgs_lib = fullfile(lbfgs_base, 'Release');
+        lbfgs_obj = fullfile(lbfgs_lib, 'lbfgs.lib');
+      else
+        lbfgs_lib = fullfile(lbfgs_base, 'lib', '.libs');
+        lbfgs_obj = fullfile(lbfgs_lib, ['liblbfgs-1.10', system_dependent('GetSharedLibExt')]);
+      end
+        
       % Build folder in temp
       [temp_base, rand_str] = fileparts(tempname);
       temp_out = fullfile(temp_base, ['cmt_build_', rand_str]);
 
       % target directory
       distrib_out = fullfile(cmt_base, 'distribute');
+      package_out = fullfile(distrib_out, '+cmt');
 
       %% Check dependencies: check if liblbfgs was build
       assert(logical(exist(lbfgs_obj, 'file')), 'liblbfgs could not be found in ''%s''.', lbfgs_obj);
 
-      %% Set up folder structur and move to target dir
-      % Build folder
-      mkdir(temp_out);
-      temp_del = onCleanup(@() rmdir(temp_out,'s'));
-
-      % Target dir
-      if ~exist(distrib_out, 'dir')
-        mkdir(distrib_out);
-      end
-      old_pwd = cd(distrib_out);
-      pwd_reset = onCleanup(@() cd(old_pwd));
-
       %% Define string helper functions
-      toObjectName = @(s)regexprep(s, '\.cpp', '\.o');
+      if ispc()
+          toObjectName = @(s)regexprep(s, '\.cpp', '\.obj');
+      else
+          toObjectName = @(s)regexprep(s, '\.cpp', '\.o');
+      end
       toMexName = @(s)regexprep(s, '\.cpp', ['\.', mexext()]);
 
       %% Source file lists for objects (normally used by multiple mex file)
@@ -133,41 +131,54 @@ function setup(varargin)
           end
       end
 
-      default_options = [default_options, varargin];
+      %default_options = [default_options, varargin];
 
       %% Disable warning on Linux
       warning('off', 'MATLAB:mex:GccVersion_link');
 
       %% Create shared object files
+      % Build folder
+      mkdir(temp_out);
+      temp_del = onCleanup(@() rmdir(temp_out,'s'));
+      
+      % Run mex compiler
       mex('-outdir', temp_out, '-c', default_options{:}, cmt_files{:});
       mex('-outdir', temp_out, '-c', default_options{:}, train_files{:});
       mex('-outdir', temp_out, '-c', default_options{:}, mex_hpp_files{:});
 
       %% Build mex files
-      if ~exist('+cmt', 'dir')
-        mkdir('+cmt')
+      % Create folders
+      if ~exist(distrib_out, 'dir')
+        mkdir(distrib_out);
       end
-      for interface = trainable_intefaces
-            mex('-outdir', '+cmt', default_options{:}, fullfile(mex_src, interface{1}), train_obj{:}, mex_hpp_obj{:}, cmt_obj{:});
+      if ~exist(package_out, 'dir')
+        mkdir(package_out)
+      end
+      
+      % Run mex compiler
+      for mex_file = trainable_intefaces
+            mex_file =  fullfile(mex_src, mex_file{1}); %#ok<FXSET>
+            mex('-outdir', package_out, default_options{:}, mex_file, train_obj{:}, mex_hpp_obj{:}, cmt_obj{:});
       end
 
       %% Copy all other files
       % Copy m files
-      copyfile(fullfile(mex_base, '+cmt', '*.m'), '+cmt');
+      copyfile(fullfile(mex_base, '+cmt', '*.m'), package_out);
 
       % Copy example and test script files
-      copyfile(fullfile(mex_base,'test.m'), '.');
-      copyfile(fullfile(mex_base,'callback_test.m'), '.');
+      copyfile(fullfile(mex_base,'test.m'), distrib_out);
+      copyfile(fullfile(mex_base,'callback_test.m'), distrib_out);
 
       % Copy lbfgs library
-      copyfile(lbfgs_obj, '+cmt')
+      copyfile(lbfgs_obj, package_out)
 
       % Change lbfgs library path on OS X
       if ismac()
             for mex_file = toMexName(trainable_intefaces)
+                  mex_file = fullfile(package_out, mex_file{1}); %#ok<FXSET>
                   system(['install_name_tool -change "/usr/local/lib/liblbfgs-1.10.dylib" ', ...
                                                     '"@loader_path/liblbfgs-1.10.dylib" ', ...
-                                                    '"+cmt/', mex_file{1}, '"']);
+                                                    '"', mex_file ,'"']);
             end
       end
 
