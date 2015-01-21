@@ -1,4 +1,7 @@
 function setup(varargin)
+      %% Current version
+      curr_ver = '1.0.0';
+
       %% Set up paths
       % The base cmt cpp implementition
       cmt_base = fileparts(mfilename('fullpath'));
@@ -182,6 +185,13 @@ function setup(varargin)
             end
       end
 
+      %% Zip resulting file
+      file_list = {package_out, ...
+                   fullfile(distrib_out, 'test.m'), ...
+                   fullfile(distrib_out, 'callback_test.m')};
+      zip_file = ['cmt-matlab_', curr_ver, '_', computer('arch'), '.zip'];
+      zip(zip_file, file_list, cmt_base);
+      
       %% Profit!
       fprintf(['\nSucessfully built mex extension. ', ...
                'Copy the content of "%s" to your project folder ', ...
