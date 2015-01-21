@@ -38,14 +38,8 @@ namespace CMT {
 			using Trainable::train;
 
 			STM(
-				int dimIn, 
-				int numComponents = 3,
-				int numFeatures = -1,
-				Nonlinearity* nonlinearity = 0,
-				UnivariateDistribution* distribution = 0);
-			STM(
-				int dimInNonlinear, 
-				int dimInLinear, 
+				int dimInNonlinear,
+				int dimInLinear = 0,
 				int numComponents = 3,
 				int numFeatures = -1,
 				Nonlinearity* nonlinearity = 0,

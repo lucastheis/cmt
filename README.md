@@ -13,15 +13,21 @@ Fast implementations of several probabilistic models. Examples:
 
 ## Requirements
 
+
+### Python Interface
 * Python >= 2.7.0
 * NumPy >= 1.6.1
 * automake >= 1.11.0
 * libtool >= 2.4.0
 * Pillow >= 2.6.1 (optional)
 
+### Matlab Interface
+* Matlab >= R2009b
+* MEX compatible compiler
+
 I have tested the code with the above versions, but older versions might also work.
 
-## Example
+## Python Example
 
 ```python
 from cmt.models import MCGSM
@@ -48,7 +54,19 @@ model.train(*wt(input, output), parameters={
 loglik = model.loglikelihood(*wt(input, output)) + wt.logjacobian(input, output)
 ```
 
-## Installation
+## Matlab Example
+
+```matlab
+% Load the data
+data = load('data.mat')
+
+% Fit a generalized linear model to the data
+model = GLM(10);
+model.train(data.input, data.output);
+
+```
+
+## Python Interface Installation
 
 ### Linux
 
@@ -105,3 +123,32 @@ Intel compiler.
 	./autogen.sh
 	CC=icc ./configure --enable-sse2
 	CC=icc make CFLAGS="-fPIC"
+
+## Matlab Interface Installation
+
+Normally it should be enough to download one of the prebuild binaries of our cmt matlab interface. If you for what ever
+reason want to build it yourself, the following instructions are for you.
+
+### Build lbfgs library 
+The first step is always to follow the above instructions to build liblbfgs for your platform.
+
+On Windows this is done by opening lbfgs.sln in code/liblbfgs in Visual Studio. In Visual Studio make 
+sure to select the "Release" configuration and the right platform (probably "x64" on most machines). Then
+build the "lib" project by selecting it with a right click and choosing "build". The resulting file "lbfgs.lib" should
+be found in the subfolder "x64\Release" (or "Release" for x86 systems, in which case you have to change that path in the setup script).
+
+### Building the mex interface in Matlab
+
+Next open Matlab and make sure a valid mex compiler can be found:
+
+	mex -setup
+
+If that is not the case, please follow the official MathWorks documentation to install a supported compiler 
+and check again.
+
+Then run the setup.m function from the root folder of cmt in Matlab
+
+	setup
+
+The distribute folder should now contain all the files needed to run the CMT toolbox from within matlab. Add 
+it to your matlab path to use it.

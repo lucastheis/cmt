@@ -30,7 +30,7 @@ Nonlinearity* const GLM::defaultNonlinearity = new LogisticFunction;
 UnivariateDistribution* const GLM::defaultDistribution = new Bernoulli;
 
 CMT::GLM::Parameters::Parameters() :
-	Trainable::Parameters::Parameters(),
+	Trainable::Parameters(),
 	trainWeights(true),
 	trainBias(true),
 	trainNonlinearity(false)
@@ -40,7 +40,7 @@ CMT::GLM::Parameters::Parameters() :
 
 
 CMT::GLM::Parameters::Parameters(const Parameters& params) :
-	Trainable::Parameters::Parameters(params),
+	Trainable::Parameters(params),
 	trainWeights(params.trainWeights),
 	trainBias(params.trainBias),
 	trainNonlinearity(params.trainNonlinearity),

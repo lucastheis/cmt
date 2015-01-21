@@ -60,7 +60,7 @@ CMT::Mixture::Component::Parameters::Parameters() :
 
 void CMT::Mixture::Component::initialize(
 	const MatrixXd& data,
-	const Parameters& parameters) 
+	const Parameters& parameters)
 {
 }
 
@@ -104,7 +104,7 @@ MatrixXd CMT::Mixture::sample(int numSamples) const {
 	cdf[numComponents() - 1] = 1.0001;
 
 	// initialize sample from multinomial distribution
-	int numSamplesPerComp[numComponents()];
+	int* numSamplesPerComp = new int[numComponents()];
 	for(int k = 0; k < numComponents(); ++k)
 		numSamplesPerComp[k] = 0;
 
@@ -127,6 +127,9 @@ MatrixXd CMT::Mixture::sample(int numSamples) const {
 	// sample each component
 	for(int k = 0; k < numComponents(); ++k)
 		samples[k] = mComponents[k]->sample(numSamplesPerComp[k]);
+
+	// Avoid memory leak
+	delete[] numSamplesPerComp;
 
 	// permute order of samples so that they become i.i.d.
 	PermutationMatrix<Dynamic,Dynamic> perm(numSamples);
@@ -172,7 +175,7 @@ void CMT::Mixture::initialize(
 		throw Exception("Data has wrong dimensionality.");
 
 	if(parameters.trainPriors)
-		mPriors.setConstant(1. / numComponents()); 
+		mPriors.setConstant(1. / numComponents());
 
 	#pragma omp parallel for
 	for(int k = 0; k < numComponents(); ++k)
@@ -338,7 +341,7 @@ bool CMT::Mixture::train(
 				priors = mPriors;
 				for(int k = 0; k < numComponents(); ++k)
 					*components[k] = *mComponents[k];
-				
+
 				avgLogLossValid = avgLogLossValidNew;
 			} else {
 				counter++;

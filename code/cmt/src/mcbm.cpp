@@ -19,7 +19,7 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
 CMT::MCBM::Parameters::Parameters() :
-	Trainable::Parameters::Parameters(),
+	Trainable::Parameters(),
 	trainPriors(true),
 	trainWeights(true),
 	trainFeatures(true),
@@ -35,7 +35,7 @@ CMT::MCBM::Parameters::Parameters() :
 
 
 CMT::MCBM::Parameters::Parameters(const Parameters& params) :
-	Trainable::Parameters::Parameters(params),
+	Trainable::Parameters(params),
 	trainPriors(params.trainPriors),
 	trainWeights(params.trainWeights),
 	trainFeatures(params.trainFeatures),
