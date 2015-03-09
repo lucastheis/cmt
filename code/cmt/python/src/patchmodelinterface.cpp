@@ -74,8 +74,8 @@ PyObject* PatchModel_output_mask(PatchModelObject* self, PyObject* args) {
 
 
 PyObject* PatchModel_input_indices(PatchModelObject* self, PyObject* args) {
-	int i;
-	int j;
+	int i = 0;
+	int j = 0;
 
 	if(args && !PyArg_ParseTuple(args, "ii", &i, &j))
 		return 0;

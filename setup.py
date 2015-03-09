@@ -14,8 +14,7 @@ from numpy.distutils.intelccompiler import IntelCCompiler
 from numpy import any
 from python import __version__
 
-#INTEL_PATH = '/opt/intel/'
-INTEL_PATH = '/kyb/agmb/lucas/intel/'
+INTEL_PATH = '/opt/intel/'
 
 # heuristic for figuring out which compiler is being used (icc, gcc)
 if any(['intel' in arg for arg in sys.argv]) or 'intel' in get_default_compiler():
@@ -127,6 +126,8 @@ modules = [
 			'-DEIGEN_NO_DEBUG',
 			'-Wno-sign-compare',
 			'-Wno-parentheses',
+			'-Wno-deprecated-register',
+			'-Wno-#warnings',
 			'-Wno-write-strings'] + extra_compile_args)]
 
 if 'CC_PARALLEL' in os.environ and os.environ['CC_PARALLEL'] == '1':

@@ -12,6 +12,9 @@ namespace CMT {
 
 	class UnivariateDistribution : public Distribution {
 		public:
+			using Distribution::sample;
+			using Distribution::logLikelihood;
+
 			inline int dim() const;
 
 			virtual double mean() const = 0;
