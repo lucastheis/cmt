@@ -89,7 +89,7 @@ MEX::Input::Getter MEX::Input::Getter::getObjectProperty(std::string name) {
 
 
 MEX::Input::Getter::operator MatrixXd () {
-    if(!isType(Type::FloatMatrix)){
+    if(!isType(Type::FloatMatrix) && !isType(Type::FloatScalar)){
         mexErrMsgIdAndTxt("MEX:Input:typeMismatch", "Argument #%d should be a single or double matrix.", mIndex + 1);
     }
 
@@ -121,7 +121,7 @@ MEX::Input::Getter::operator MatrixXi () {
 }
 
 MEX::Input::Getter::operator VectorXd () {
-    if(!isType(Type::FloatMatrix) || mxGetN(mData) != 1) {
+    if(!(isType(Type::FloatMatrix) || isType(Type::FloatScalar)) || mxGetN(mData) != 1) {
         mexErrMsgIdAndTxt("MEX:Input:typeMismatch", "Argument #%d should be a single or double column vector.", mIndex + 1);
     }
 
@@ -138,7 +138,7 @@ MEX::Input::Getter::operator VectorXd () {
 }
 
 MEX::Input::Getter::operator ArrayXXd () {
-    if(!isType(Type::FloatMatrix)) {
+    if(!isType(Type::FloatMatrix) && !isType(Type::FloatScalar)) {
         mexErrMsgIdAndTxt("MEX:Input:typeMismatch", "Argument #%d should be a single or double matrix.", mIndex + 1);
     }
 
