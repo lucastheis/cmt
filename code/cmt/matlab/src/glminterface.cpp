@@ -11,6 +11,22 @@
 #include "callbackinterface.h"
 
 bool glmParameters(CMT::GLM::Parameters* params, std::string key, MEX::Input::Getter value) {
+
+    if(key == "trainWeights") {
+        params->trainWeights = value;
+        return true;
+    }
+
+    if(key == "trainBias") {
+        params->trainBias = value;
+        return true;
+    }
+
+    if(key == "trainNonlinearity") {
+        params->trainNonlinearity = value;
+        return true;
+    }
+
     if(key == "callback") {
         if(params->callback != NULL) {
             delete params->callback;
