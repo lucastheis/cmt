@@ -9,6 +9,7 @@
 #include "trainableinterface.h"
 
 #include "callbackinterface.h"
+#include "regularizerinterface.h"
 
 bool mcgsmParameters(CMT::MCGSM::Parameters* params, std::string key, MEX::Input::Getter value) {
 
@@ -58,6 +59,36 @@ bool mcgsmParameters(CMT::MCGSM::Parameters* params, std::string key, MEX::Input
         }
 
         params->callback = new TrainableCallback<CMT::MCGSM>(MEX::Function("cmt.MCGSM"), value);
+        return true;
+    }
+
+    if(key == "regularizeFeatures") {
+        params->regularizeFeatures = toRegularizer(value);
+        return true;
+    }
+
+    if(key == "regularizePredictors") {
+        params->regularizePredictors = toRegularizer(value);
+        return true;
+    }
+
+    if(key == "regularizeWeights") {
+        params->regularizeWeights = toRegularizer(value);
+        return true;
+    }
+
+    if(key == "regularizeLinearFeatures") {
+        params->regularizeLinearFeatures = toRegularizer(value);
+        return true;
+    }
+
+    if(key == "regularizeMeans") {
+        params->regularizeMeans = toRegularizer(value);
+        return true;
+    }
+
+    if(key == "regularizer") {
+        params->regularizer = toRegularizer(value);
         return true;
     }
 

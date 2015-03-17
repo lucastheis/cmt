@@ -11,6 +11,7 @@
 #include "callbackinterface.h"
 #include "nonlinearitiesinterface.h"
 #include "univariatedistributionsinterface.h"
+#include "regularizerinterface.h"
 
 bool glmParameters(CMT::GLM::Parameters* params, std::string key, MEX::Input::Getter value) {
 
@@ -35,6 +36,16 @@ bool glmParameters(CMT::GLM::Parameters* params, std::string key, MEX::Input::Ge
         }
 
         params->callback = new TrainableCallback<CMT::GLM>(MEX::Function("cmt.GLM"), value);
+        return true;
+    }
+
+    if(key == "regularizeWeights") {
+        params->regularizeWeights = toRegularizer(value);
+        return true;
+    }
+
+    if(key == "regularizeBias") {
+        params->regularizeBias = toRegularizer(value);
         return true;
     }
 
