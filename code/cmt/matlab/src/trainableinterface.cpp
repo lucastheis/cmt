@@ -63,12 +63,14 @@ bool trainableParse(CMT::Trainable* obj, std::string cmd, const MEX::Output& out
     }
 
     if(cmd == "checkGradient") {
-        if(input.has(3)){
-            mexWarnMsgIdAndTxt("mexWrapper:ignoredArgurments", "Setting parameters is not supported yet.");
-        }
-
         if(input.has(2)) {
-            output[0] = obj->checkGradient(input[0], input[1], input[2]);
+            CMT::Trainable::Parameters params;
+
+            if(input.has(3)){
+                params = input.toStruct<CMT::Trainable::Parameters>(3, &trainableParameters);
+            }
+
+            output[0] = obj->checkGradient(input[0], input[1], input[2], params);
             return true;
         }
 
@@ -77,12 +79,14 @@ bool trainableParse(CMT::Trainable* obj, std::string cmd, const MEX::Output& out
     }
 
     if(cmd == "checkPerformance") {
-        if(input.has(3)){
-            mexWarnMsgIdAndTxt("mexWrapper:ignoredArgurments", "Setting parameters is not supported yet.");
-        }
-
         if(input.has(2)) {
-            output[0] = obj->checkPerformance(input[0], input[1], input[2]);
+            CMT::Trainable::Parameters params;
+
+            if(input.has(3)){
+                params = input.toStruct<CMT::Trainable::Parameters>(3, &trainableParameters);
+            }
+
+            output[0] = obj->checkPerformance(input[0], input[1], input[2], params);
             return true;
         }
 
@@ -91,11 +95,13 @@ bool trainableParse(CMT::Trainable* obj, std::string cmd, const MEX::Output& out
     }
 
     if(cmd == "fisherInformation") {
+        CMT::Trainable::Parameters params;
+
         if(input.has(2)){
-            mexWarnMsgIdAndTxt("mexWrapper:ignoredArgurments", "Setting parameters is not supported yet.");
+            params = input.toStruct<CMT::Trainable::Parameters>(2, &trainableParameters);
         }
 
-        output[0] = obj->checkPerformance(input[0], input[1]);
+        output[0] = obj->fisherInformation(input[0], input[1], params);
         return true;
     }
 
