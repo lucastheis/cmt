@@ -9,6 +9,8 @@
 #include "trainableinterface.h"
 
 #include "callbackinterface.h"
+#include "nonlinearitiesinterface.h"
+#include "univariatedistributionsinterface.h"
 
 bool glmParameters(CMT::GLM::Parameters* params, std::string key, MEX::Input::Getter value) {
 
@@ -40,8 +42,13 @@ bool glmParameters(CMT::GLM::Parameters* params, std::string key, MEX::Input::Ge
 }
 
 CMT::GLM* glmCreate(const MEX::Input& input) {
-    if(input.size() > 1)
-        mexWarnMsgIdAndTxt("mexWrapper:ignoredArgurments", "Setting nonlinearity and distribution not supported yet.");
+    if(input.has(2)) {
+        return new CMT::GLM(input[0], toNonlinearity(input[1]), toDistribution(input[2]));
+    }
+
+    if(input.has(1)) {
+        return new CMT::GLM(input[0], toNonlinearity(input[1]));
+    }
 
     return new CMT::GLM(input[0]);
 }

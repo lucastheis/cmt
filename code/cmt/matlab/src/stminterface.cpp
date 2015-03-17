@@ -9,6 +9,8 @@
 #include "trainableinterface.h"
 
 #include "callbackinterface.h"
+#include "nonlinearitiesinterface.h"
+#include "univariatedistributionsinterface.h"
 
 bool stmParameters(CMT::STM::Parameters* params, std::string key, MEX::Input::Getter value) {
 
@@ -80,10 +82,15 @@ bool stmParameters(CMT::STM::Parameters* params, std::string key, MEX::Input::Ge
 }
 
 CMT::STM* stmCreate(const MEX::Input& input) {
-    if(input.size() > 4)
-        mexWarnMsgIdAndTxt("mexWrapper:ignoredArgurments", "Setting nonlinearity and distribution not supported yet.");
+    if(input.has(5)) {
+        return new CMT::STM(input[0], input[1], input[2], input[3], toNonlinearity(input[4]), toDistribution(input[5]));
+    }
 
-    if(input.has(3) && input[3].isType(MEX::Type::IntScalar)) {
+    if(input.has(4)) {
+        return new CMT::STM(input[0], input[1], input[2], input[3], toNonlinearity(input[4]));
+    }
+
+    if(input.has(3)) {
         return new CMT::STM(input[0], input[1], input[2], input[3]);
     }
 

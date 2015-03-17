@@ -49,6 +49,12 @@ namespace MEX {
             	return 	ObjectHandle<BaseClass>::unwrap(mData);
 	        }
 
+	        Getter getObjectProperty(std::string name);
+
+	        bool isClass(std::string name);
+
+	        std::string getClass();
+
 	        operator Eigen::MatrixXd ();
 
 	        operator Eigen::MatrixXi ();
