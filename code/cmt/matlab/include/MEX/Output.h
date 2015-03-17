@@ -41,6 +41,8 @@ namespace MEX {
 
                 Setter& operator=(const bool& b);
 
+                void clear();
+
             private:
                 mxArray** mData;
         };
