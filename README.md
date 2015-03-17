@@ -61,8 +61,8 @@ loglik = model.loglikelihood(*wt(input, output)) + wt.logjacobian(input, output)
 data = load('data.mat')
 
 % Fit a generalized linear model to the data
-model = GLM(10);
-model.train(data.input, data.output);
+model = cmt.GLM(10, cmt.ExponentialFunction, cmt.Poisson));
+model.train(data.input, data.output, 'maxIter', 1000, 'threshold', 1e-5);
 
 ```
 

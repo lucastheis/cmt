@@ -189,9 +189,15 @@ classdef MCGSM < cmt.Trainable
             value = self.mexEval('samplePrior', input);
         end
     end
+
+    properties (Constant, Hidden)
+        constructor_arguments = {'dimIn', 'dimOut', 'numComponents', ...
+                                 'numScales', 'numFeatures'};
+    end
+
     methods (Static)
         function obj = loadobj(S)
-            obj = cmt.GLM.mexLoad(S, @cmt.GLM, {'dimIn', 'dimOut', 'numComponents', 'numScales', 'numFeatures'});
+            obj = cmt.MCGSM.mexLoad(S, @cmt.MCGSM, cmt.MCGSM.constructor_arguments);
         end
     end
 end
