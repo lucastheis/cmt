@@ -50,7 +50,7 @@ elif sys.platform == 'darwin':
 	libraries = []
 	extra_compile_args = [
 		'-std=c++0x',
-		'-stdlib=libc++'
+		'-stdlib=libc++',
 		'-Wno-deprecated-register',
 		'-Wno-#warnings']
 	extra_link_args = []
