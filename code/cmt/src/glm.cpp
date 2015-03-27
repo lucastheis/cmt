@@ -75,28 +75,10 @@ CMT::GLM::GLM(
 {
 	if(mDimIn < 0)
 		throw Exception("Input dimensionality should be non-negative.");
-	if(!mNonlinearity)
-		throw Exception("No nonlinearity specified.");
-	if(!mDistribution)
-		throw Exception("No distribution specified.");
 
 	mWeights = VectorXd::Random(dimIn) / 100.;
 	mBias = 0.;
 }
-
-
-
-CMT::GLM::GLM(int dimIn) : mDimIn(dimIn) {
-	if(mDimIn < 0)
-		throw Exception("Input dimensionality should be non-negative.");
-
-	mNonlinearity = defaultNonlinearity;
-	mDistribution = defaultDistribution;
-
-	mWeights = VectorXd::Random(dimIn) / 100.;
-	mBias = 0.;
-}
-
 
 
 

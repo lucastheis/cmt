@@ -9,8 +9,27 @@
 #include "trainableinterface.h"
 
 #include "callbackinterface.h"
+#include "nonlinearitiesinterface.h"
+#include "univariatedistributionsinterface.h"
+#include "regularizerinterface.h"
 
 bool glmParameters(CMT::GLM::Parameters* params, std::string key, MEX::Input::Getter value) {
+
+    if(key == "trainWeights") {
+        params->trainWeights = value;
+        return true;
+    }
+
+    if(key == "trainBias") {
+        params->trainBias = value;
+        return true;
+    }
+
+    if(key == "trainNonlinearity") {
+        params->trainNonlinearity = value;
+        return true;
+    }
+
     if(key == "callback") {
         if(params->callback != NULL) {
             delete params->callback;
@@ -20,12 +39,27 @@ bool glmParameters(CMT::GLM::Parameters* params, std::string key, MEX::Input::Ge
         return true;
     }
 
+    if(key == "regularizeWeights") {
+        params->regularizeWeights = toRegularizer(value);
+        return true;
+    }
+
+    if(key == "regularizeBias") {
+        params->regularizeBias = toRegularizer(value);
+        return true;
+    }
+
     return trainableParameters(params, key, value);
 }
 
 CMT::GLM* glmCreate(const MEX::Input& input) {
-    if(input.size() > 1)
-        mexWarnMsgIdAndTxt("mexWrapper:ignoredArgurments", "Setting nonlinearity and distribution not supported yet.");
+    if(input.has(2)) {
+        return new CMT::GLM(input[0], toNonlinearity(input[1]), toDistribution(input[2]));
+    }
+
+    if(input.has(1)) {
+        return new CMT::GLM(input[0], toNonlinearity(input[1]));
+    }
 
     return new CMT::GLM(input[0]);
 }

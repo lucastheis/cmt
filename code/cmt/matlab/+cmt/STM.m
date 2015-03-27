@@ -22,6 +22,11 @@ classdef STM < cmt.Trainable
         numComponents;
         % Number of features available to approximate input covariances.
         numFeatures;
+
+        % Nonlinearity applied to output of log-sum-exp, $g$.
+        nonlinearity = cmt.LogisticFunction;
+        % Distribution whose average value is determined by output of nonlinearity.
+        distribution = cmt.Bernoulli;
     end
 
     properties
@@ -37,11 +42,6 @@ classdef STM < cmt.Trainable
         linearPredictor;
         % Bias terms controlling strength of each mixture component, $a_k$.
         biases;
-
-        % Distribution whose average value is determined by output of nonlinearity.
-        %distribution
-        % Nonlinearity applied to output of log-sum-exp, $g$.
-        %nonlinearity
     end
 
     methods
@@ -57,6 +57,14 @@ classdef STM < cmt.Trainable
             %   Return:
             %       a new STM object
             self@cmt.Trainable(dimInNonlinear, varargin{:});
+
+            % These can not be read from the C++ object, so Matlab has to keep track of them.
+            if nargin > 4
+                self.nonlinearity = varargin{4};
+            end
+            if nargin > 5
+                self.distribution = varargin{5};
+            end
         end
 
         % Constant properties
@@ -163,9 +171,17 @@ classdef STM < cmt.Trainable
             value = self.mexEval('linearResponses', input);
         end
     end
+
+    properties (Constant, Hidden)
+        constructor_arguments = {'dimInNonlinear', 'dimInLinear', 'numComponents', ...
+                            'numFeatures', 'nonlinearity', 'distribution'};
+        dependend_properties = {'dimIn', 'dimOut'};
+    end
+
     methods (Static)
         function obj = loadobj(S)
-            obj = cmt.MexInterface.mexLoad(S, @cmt.STM, {'dimInNonlinear', 'dimInLinear', 'numComponents', 'numFeatures'});
+            obj = cmt.MexInterface.mexLoad(S, @cmt.STM, cmt.STM.constructor_arguments, ...
+                                                        cmt.STM.dependend_properties);
         end
     end
 end

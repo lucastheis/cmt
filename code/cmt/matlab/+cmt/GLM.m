@@ -8,6 +8,13 @@ classdef GLM < cmt.Trainable
     %
     %   See also: cmt.Trainable, cmt.ConditionalDistribution
 
+    properties (SetAccess = private)
+        % Nonlinearity applied to output of log-sum-exp, $g$.
+        nonlinearity = cmt.LogisticFunction;
+        % Distribution whose average value is determined by output of nonlinearity.
+        distribution = cmt.Bernoulli;
+    end
+
     properties
         % Linear filter, $w$.
         weights;
@@ -18,6 +25,14 @@ classdef GLM < cmt.Trainable
     methods
         function self = GLM(dimIn, varargin)
             self@cmt.Trainable(dimIn, varargin{:});
+
+            % These can not be read from the C++ object, so Matlab has to keep track of them.
+            if nargin > 1
+                self.nonlinearity = varargin{1};
+            end
+            if nargin > 2
+                self.distribution = varargin{2};
+            end
         end
 
 
@@ -38,9 +53,16 @@ classdef GLM < cmt.Trainable
             v = self.mexEval('bias');
         end
     end
+
+    properties (Constant, Hidden)
+        constructor_arguments = {'dimIn', 'nonlinearity', 'distribution'};
+        dependend_properties = {'dimOut'};
+    end
+
     methods (Static)
         function obj = loadobj(S)
-            obj = cmt.GLM.mexLoad(S, @cmt.GLM, {'dimIn'});
+            obj = cmt.GLM.mexLoad(S, @cmt.GLM, cmt.GLM.constructor_arguments, ...
+                                               cmt.GLM.dependend_properties);
         end
     end
 end
