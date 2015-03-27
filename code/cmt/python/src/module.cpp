@@ -103,7 +103,8 @@ static PyMethodDef CD_methods[] = {
 		CD_evaluate_doc},
 	{"_data_gradient",
 		(PyCFunction)CD_data_gradient,
-		METH_VARARGS | METH_KEYWORDS, 0},
+		METH_VARARGS | METH_KEYWORDS,
+		CD_data_gradient_doc},
 	{0}
 };
 
