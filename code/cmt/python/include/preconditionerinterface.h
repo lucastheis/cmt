@@ -81,6 +81,7 @@ struct BinningTransformObject {
 extern const char* Preconditioner_doc;
 extern const char* Preconditioner_inverse_doc;
 extern const char* Preconditioner_logjacobian_doc;
+extern const char* Preconditioner_adjust_gradient_doc;
 extern const char* AffinePreconditioner_doc;
 extern const char* AffineTransform_doc;
 extern const char* WhiteningPreconditioner_doc;
@@ -95,6 +96,7 @@ PyObject* Preconditioner_call(PreconditionerObject*, PyObject*, PyObject*);
 PyObject* Preconditioner_inverse(PreconditionerObject*, PyObject*, PyObject*);
 
 PyObject* Preconditioner_logjacobian(PreconditionerObject*, PyObject*, PyObject*);
+PyObject* Preconditioner_adjust_gradient(PreconditionerObject*, PyObject*, PyObject*);
 
 PyObject* Preconditioner_new(PyTypeObject*, PyObject*, PyObject*);
 void Preconditioner_dealloc(PreconditionerObject*);

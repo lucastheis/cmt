@@ -208,6 +208,67 @@ PyObject* Preconditioner_logjacobian(PreconditionerObject* self, PyObject* args,
 
 
 
+const char* Preconditioner_adjust_gradient_doc =
+	"inverse(self, input, output=None)\n"
+	"\n"
+	"Maps gradients computed in preconditioned space into original space."
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: preconditioned inputs stored in columns\n"
+	"\n"
+	"@type  output: C{ndarray}\n"
+	"@param output: preconditioned outputs stored in columns\n"
+	"\n"
+	"@rtype: tuple/C{ndarray}\n"
+	"@return: tuple or array containing inputs or inputs and outputs, respectively";
+
+PyObject* Preconditioner_adjust_gradient(PreconditionerObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", "output", 0};
+
+	PyObject* input;
+	PyObject* output;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output))
+		return 0;
+
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output) {
+		Py_XDECREF(input);
+		Py_XDECREF(output);
+		PyErr_SetString(PyExc_TypeError, "Input and output should be of type `ndarray`.");
+	}
+
+	try {
+		pair<ArrayXXd, ArrayXXd> data = self->preconditioner->adjustGradient(
+			PyArray_ToMatrixXd(input),
+			PyArray_ToMatrixXd(output));
+
+		PyObject* inputObj = PyArray_FromMatrixXd(data.first);
+		PyObject* outputObj = PyArray_FromMatrixXd(data.second);
+
+		PyObject* tuple = Py_BuildValue("(OO)", inputObj, outputObj);
+
+		Py_DECREF(input);
+		Py_DECREF(output);
+		Py_DECREF(inputObj);
+		Py_DECREF(outputObj);
+
+		return tuple;
+
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
 PyObject* Preconditioner_new(PyTypeObject* type, PyObject*, PyObject*) {
 	PyObject* self = type->tp_alloc(type, 0);
 
