@@ -209,7 +209,7 @@ PyObject* Preconditioner_logjacobian(PreconditionerObject* self, PyObject* args,
 
 
 const char* Preconditioner_adjust_gradient_doc =
-	"inverse(self, input, output=None)\n"
+	"adjust_gradient(self, input, output=None)\n"
 	"\n"
 	"Maps gradients computed in preconditioned space into original space."
 	"\n"
