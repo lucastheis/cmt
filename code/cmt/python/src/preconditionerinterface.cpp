@@ -10,6 +10,10 @@ using std::bad_alloc;
 #include "cmt/utils"
 using CMT::Exception;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+#endif
+
 PyObject* Preconditioner_call(PreconditionerObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"input", "output", 0};
 
@@ -237,7 +241,7 @@ void Preconditioner_dealloc(PreconditionerObject* self) {
 		delete self->preconditioner;
 
 	// delete Python object
-	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
+	Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
 

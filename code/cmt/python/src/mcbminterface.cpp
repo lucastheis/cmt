@@ -17,6 +17,10 @@ using CMT::Exception;
 #include "cmt/tools"
 using CMT::Tuples;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+#endif
+
 Trainable::Parameters* PyObject_ToMCBMParameters(PyObject* parameters) {
 	MCBM::Parameters* params = dynamic_cast<MCBM::Parameters*>(
 		PyObject_ToParameters(parameters, new MCBM::Parameters));

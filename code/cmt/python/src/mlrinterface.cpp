@@ -97,7 +97,7 @@ void MLR_dealloc(MLRObject* self) {
 		delete self->mlr;
 
 	// delete MLRObject
-	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
+	Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
 

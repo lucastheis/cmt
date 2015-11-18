@@ -37,7 +37,7 @@ void Nonlinearity_dealloc(NonlinearityObject* self) {
  		delete self->nonlinearity;
 
 	// delete NonlinearityObject
-	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
+	Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
 

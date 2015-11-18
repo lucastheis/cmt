@@ -43,8 +43,7 @@ static PyMethodDef Distribution_methods[] = {
 };
 
 PyTypeObject Distribution_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                    /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.Distribution",            /*tp_name*/
 	sizeof(DistributionObject),           /*tp_basicsize*/
 	0,                                    /*tp_itemsize*/
@@ -108,8 +107,7 @@ static PyMethodDef CD_methods[] = {
 };
 
 PyTypeObject CD_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                    /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.ConditionalDistribution", /*tp_name*/
 	sizeof(CDObject),                     /*tp_basicsize*/
 	0,                                    /*tp_itemsize*/
@@ -246,8 +244,7 @@ static PyMethodDef MCGSM_methods[] = {
 };
 
 PyTypeObject MCGSM_type = {
-	PyObject_HEAD_INIT(0)
-	0,                      /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.MCGSM",     /*tp_name*/
 	sizeof(MCGSMObject),    /*tp_basicsize*/
 	0,                      /*tp_itemsize*/
@@ -351,8 +348,7 @@ static PyMethodDef MCBM_methods[] = {
 };
 
 PyTypeObject MCBM_type = {
-	PyObject_HEAD_INIT(0)
-	0,                      /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.MCBM",      /*tp_name*/
 	sizeof(MCBMObject),     /*tp_basicsize*/
 	0,                      /*tp_itemsize*/
@@ -478,8 +474,7 @@ static PyMethodDef STM_methods[] = {
 };
 
 PyTypeObject STM_type = {
-	PyObject_HEAD_INIT(0)
-	0,                      /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.STM",       /*tp_name*/
 	sizeof(STMObject),      /*tp_basicsize*/
 	0,                      /*tp_itemsize*/
@@ -547,8 +542,7 @@ static PyMethodDef Mixture_methods[] = {
 };
 
 PyTypeObject Mixture_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.Mixture",             /*tp_name*/
 	sizeof(MixtureObject),            /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
@@ -602,8 +596,7 @@ static PyMethodDef MoGSM_methods[] = {
 };
 
 PyTypeObject MoGSM_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.MoGSM",               /*tp_name*/
 	sizeof(MoGSMObject),              /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
@@ -650,8 +643,7 @@ static PyMethodDef MixtureComponent_methods[] = {
 };
 
 PyTypeObject MixtureComponent_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.MixtureComponent",    /*tp_name*/
 	sizeof(MixtureComponentObject),   /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
@@ -722,8 +714,7 @@ static PyMethodDef GSM_methods[] = {
 };
 
 PyTypeObject GSM_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.GSM",                 /*tp_name*/
 	sizeof(GSMObject),                /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
@@ -779,8 +770,7 @@ static PyMethodDef PatchModel_methods[] = {
 };
 
 PyTypeObject PatchModel_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.PatchModel",          /*tp_name*/
 	sizeof(PatchModelObject),         /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
@@ -844,8 +834,7 @@ static PyMethodDef PatchMCBM_methods[] = {
 };
 
 PyTypeObject PatchMCBM_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.PatchMCBM",           /*tp_name*/
 	sizeof(PatchMCBMObject),          /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
@@ -909,8 +898,7 @@ static PyMethodDef PatchMCGSM_methods[] = {
 };
 
 PyTypeObject PatchMCGSM_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.PatchMCGSM",          /*tp_name*/
 	sizeof(PatchMCGSMObject),         /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
@@ -1002,8 +990,7 @@ static PyMethodDef GLM_methods[] = {
 };
 
 PyTypeObject GLM_type = {
-	PyObject_HEAD_INIT(0)
-	0,                       /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.GLM",        /*tp_name*/
 	sizeof(GLMObject),       /*tp_basicsize*/
 	0,                       /*tp_itemsize*/
@@ -1082,8 +1069,7 @@ static PyMethodDef MLR_methods[] = {
 };
 
 PyTypeObject MLR_type = {
-	PyObject_HEAD_INIT(0)
-	0,                       /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.MLR",        /*tp_name*/
 	sizeof(MLRObject),       /*tp_basicsize*/
 	0,                       /*tp_itemsize*/
@@ -1147,8 +1133,7 @@ static PyMethodDef FVBN_methods[] = {
 };
 
 PyTypeObject FVBN_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.FVBN",                /*tp_name*/
 	sizeof(FVBNObject),               /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
@@ -1194,8 +1179,7 @@ static PyMethodDef Nonlinearity_methods[] = {
 };
 
 PyTypeObject Nonlinearity_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.nonlinear.Nonlinearity",     /*tp_name*/
 	sizeof(NonlinearityObject),       /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
@@ -1236,8 +1220,7 @@ PyTypeObject Nonlinearity_type = {
 };
 
 PyTypeObject DifferentiableNonlinearity_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                          /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.nonlinear.DifferentiableNonlinearity", /*tp_name*/
 	sizeof(DifferentiableNonlinearityObject),   /*tp_basicsize*/
 	0,                                          /*tp_itemsize*/
@@ -1278,8 +1261,7 @@ PyTypeObject DifferentiableNonlinearity_type = {
 };
 
 PyTypeObject InvertibleNonlinearity_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                      /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.nonlinear.InvertibleNonlinearity", /*tp_name*/
 	sizeof(InvertibleNonlinearityObject),   /*tp_basicsize*/
 	0,                                      /*tp_itemsize*/
@@ -1320,8 +1302,7 @@ PyTypeObject InvertibleNonlinearity_type = {
 };
 
 PyTypeObject TrainableNonlinearity_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                     /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.nonlinear.TrainableNonlinearity", /*tp_name*/
 	sizeof(TrainableNonlinearityObject),   /*tp_basicsize*/
 	0,                                     /*tp_itemsize*/
@@ -1362,8 +1343,7 @@ PyTypeObject TrainableNonlinearity_type = {
 };
 
 PyTypeObject LogisticFunction_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.nonlinear.LogisticFunction", /*tp_name*/
 	sizeof(LogisticFunctionObject),   /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
@@ -1404,8 +1384,7 @@ PyTypeObject LogisticFunction_type = {
 };
 
 PyTypeObject ExponentialFunction_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                   /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.nonlinear.ExponentialFunction", /*tp_name*/
 	sizeof(ExponentialFunctionObject),   /*tp_basicsize*/
 	0,                                   /*tp_itemsize*/
@@ -1452,8 +1431,7 @@ static PyMethodDef HistogramNonlinearity_methods[] = {
 };
 
 PyTypeObject HistogramNonlinearity_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                     /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.nonlinear.HistogramNonlinearity", /*tp_name*/
 	sizeof(HistogramNonlinearityObject),   /*tp_basicsize*/
 	0,                                     /*tp_itemsize*/
@@ -1500,8 +1478,7 @@ static PyMethodDef BlobNonlinearity_methods[] = {
 };
 
 PyTypeObject BlobNonlinearity_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.nonlinear.BlobNonlinearity", /*tp_name*/
 	sizeof(BlobNonlinearityObject),   /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
@@ -1548,8 +1525,7 @@ static PyMethodDef TanhBlobNonlinearity_methods[] = {
 };
 
 PyTypeObject TanhBlobNonlinearity_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                    /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.nonlinear.TanhBlobNonlinearity", /*tp_name*/
 	sizeof(TanhBlobNonlinearityObject),   /*tp_basicsize*/
 	0,                                    /*tp_itemsize*/
@@ -1590,8 +1566,7 @@ PyTypeObject TanhBlobNonlinearity_type = {
 };
 
 PyTypeObject UnivariateDistribution_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                     /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.UnivariateDistribution",   /*tp_name*/
 	sizeof(UnivariateDistributionObject),  /*tp_basicsize*/
 	0,                                     /*tp_itemsize*/
@@ -1637,8 +1612,7 @@ static PyMethodDef Bernoulli_methods[] = {
 };
 
 PyTypeObject Bernoulli_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.Bernoulli",           /*tp_name*/
 	sizeof(BernoulliObject),          /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
@@ -1684,8 +1658,7 @@ static PyMethodDef Poisson_methods[] = {
 };
 
 PyTypeObject Poisson_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.Poisson",             /*tp_name*/
 	sizeof(PoissonObject),            /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
@@ -1731,8 +1704,7 @@ static PyMethodDef Binomial_methods[] = {
 };
 
 PyTypeObject Binomial_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.models.Binomial",            /*tp_name*/
 	sizeof(BinomialObject),           /*tp_basicsize*/
 	0,                                /*tp_itemsize*/
@@ -1787,8 +1759,7 @@ static PyMethodDef Preconditioner_methods[] = {
 };
 
 PyTypeObject Preconditioner_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                  /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.transforms.Preconditioner",    /*tp_name*/
 	sizeof(PreconditionerObject),       /*tp_basicsize*/
 	0,                                  /*tp_itemsize*/
@@ -1844,8 +1815,7 @@ static PyMethodDef AffinePreconditioner_methods[] = {
 };
 
 PyTypeObject AffinePreconditioner_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                     /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.transforms.AffinePreconditioner", /*tp_name*/
 	sizeof(AffinePreconditionerObject),    /*tp_basicsize*/
 	0,                                     /*tp_itemsize*/
@@ -1891,8 +1861,7 @@ static PyMethodDef AffineTransform_methods[] = {
 };
 
 PyTypeObject AffineTransform_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                  /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.transforms.AffineTransform",   /*tp_name*/
 	sizeof(AffineTransformObject),      /*tp_basicsize*/
 	0,                                  /*tp_itemsize*/
@@ -1933,8 +1902,7 @@ PyTypeObject AffineTransform_type = {
 };
 
 PyTypeObject WhiteningPreconditioner_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                        /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.transforms.WhiteningPreconditioner", /*tp_name*/
 	sizeof(WhiteningPreconditionerObject),    /*tp_basicsize*/
 	0,                                        /*tp_itemsize*/
@@ -1975,8 +1943,7 @@ PyTypeObject WhiteningPreconditioner_type = {
 };
 
 PyTypeObject WhiteningTransform_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                   /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.transforms.WhiteningTransform", /*tp_name*/
 	sizeof(WhiteningTransformObject),    /*tp_basicsize*/
 	0,                                   /*tp_itemsize*/
@@ -2027,8 +1994,7 @@ static PyMethodDef PCAPreconditioner_methods[] = {
 };
 
 PyTypeObject PCAPreconditioner_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                  /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.transforms.PCAPreconditioner", /*tp_name*/
 	sizeof(PCAPreconditionerObject),    /*tp_basicsize*/
 	0,                                  /*tp_itemsize*/
@@ -2079,8 +2045,7 @@ static PyMethodDef PCATransform_methods[] = {
 };
 
 PyTypeObject PCATransform_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                  /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.transforms.PCATransform",      /*tp_name*/
 	sizeof(PCATransformObject),         /*tp_basicsize*/
 	0,                                  /*tp_itemsize*/
@@ -2131,8 +2096,7 @@ static PyMethodDef BinningTransform_methods[] = {
 };
 
 PyTypeObject BinningTransform_type = {
-	PyObject_HEAD_INIT(0)
-	0,                                  /*ob_size*/
+	PyVarObject_HEAD_INIT(0, 0)
 	"cmt.transforms.BinningTransform",  /*tp_name*/
 	sizeof(BinningTransformObject),     /*tp_basicsize*/
 	0,                                  /*tp_itemsize*/
@@ -2204,7 +2168,25 @@ static PyMethodDef cmt_methods[] = {
 	{0}
 };
 
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+	PyModuleDef_HEAD_INIT,
+	"_cmt",           /* m_name */
+	cmt_doc,          /* m_doc */
+	-1,               /* m_size */
+	cmt_methods,      /* m_methods */
+	NULL,             /* m_reload */
+	NULL,             /* m_traverse */
+	NULL,             /* m_clear */
+	NULL,             /* m_free */
+};
+#endif
+
+#if PY_MAJOR_VERSION >= 3
+PyMODINIT_FUNC PyInit__cmt() {
+#else
 PyMODINIT_FUNC init_cmt() {
+#endif
 	// set random seed
 	timeval time;
 	gettimeofday(&time, 0);
@@ -2214,81 +2196,87 @@ PyMODINIT_FUNC init_cmt() {
 	import_array();
 
 	// create module object
+	#if PY_MAJOR_VERSION >= 3
+	PyObject* module = PyModule_Create(&moduledef);
+	#define RETVAL module
+	#else
 	PyObject* module = Py_InitModule3("_cmt", cmt_methods, cmt_doc);
+	#define RETVAL void
+	#endif
 
 	// initialize types
 	if(PyType_Ready(&AffinePreconditioner_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&AffineTransform_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&Bernoulli_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&BinningTransform_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&Binomial_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&BlobNonlinearity_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&CD_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&DifferentiableNonlinearity_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&Distribution_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&ExponentialFunction_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&FVBN_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&GLM_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&GSM_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&InvertibleNonlinearity_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&HistogramNonlinearity_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&LogisticFunction_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&MCBM_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&MCGSM_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&Mixture_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&MixtureComponent_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&MLR_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&MoGSM_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&Nonlinearity_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&PatchMCBM_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&PatchMCGSM_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&PatchModel_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&PCAPreconditioner_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&PCATransform_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&Poisson_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&Preconditioner_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&STM_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&TanhBlobNonlinearity_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&TrainableNonlinearity_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&UnivariateDistribution_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&WhiteningPreconditioner_type) < 0)
-		return;
+		return RETVAL;
 	if(PyType_Ready(&WhiteningTransform_type) < 0)
-		return;
+		return RETVAL;
 
 	// initialize Eigen
 	Eigen::initParallel();
@@ -2367,4 +2355,8 @@ PyMODINIT_FUNC init_cmt() {
 	PyModule_AddObject(module, "UnivariateDistribution", reinterpret_cast<PyObject*>(&UnivariateDistribution_type));
 	PyModule_AddObject(module, "WhiteningPreconditioner", reinterpret_cast<PyObject*>(&WhiteningPreconditioner_type));
 	PyModule_AddObject(module, "WhiteningTransform", reinterpret_cast<PyObject*>(&WhiteningTransform_type));
+
+	#if PY_MAJOR_VERSION >= 3
+	return module;
+	#endif
 }

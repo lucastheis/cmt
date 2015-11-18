@@ -5,6 +5,10 @@
 #include "cmt/utils"
 using CMT::Exception;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+#endif
+
 const char* PatchModel_doc =
 	"Abstract base class for models of image patches.";
 

@@ -164,7 +164,7 @@ void GLM_dealloc(GLMObject* self) {
 	}
 
 	// delete GLMObject
-	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
+	Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
 

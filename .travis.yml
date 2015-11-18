@@ -1,6 +1,7 @@
 language: python
 python:
     - "2.7"
+    - "3.4"
 virtualenv:
   system_site_packages: true
 before_install:
@@ -13,13 +14,17 @@ install:
     - cd ../..
     - python setup.py install
 script:
-    - python code/cmt/python/tests/univariate_test.py
-    - python code/cmt/python/tests/gsm_test.py
-    - python code/cmt/python/tests/mlr_test.py
+    - python code/cmt/python/tests/fvbn_test.py
     - python code/cmt/python/tests/glm_test.py
+    - python code/cmt/python/tests/gsm_test.py
+    - python code/cmt/python/tests/mcbm_test.py
     - python code/cmt/python/tests/mcgsm_test.py
+    - python code/cmt/python/tests/mixture_test.py
+    - python code/cmt/python/tests/mlr_test.py
+    - python code/cmt/python/tests/mogsm_test.py
+    - python code/cmt/python/tests/nonlinear_test.py
+    - python code/cmt/python/tests/preconditioner_test.py
+    - python code/cmt/python/tests/speed.py
     - python code/cmt/python/tests/stm_test.py
     - python code/cmt/python/tests/tools_test.py
-    - python code/cmt/python/tests/preconditioner_test.py
-    - python code/cmt/python/tests/fvbn_test.py
-    - python code/cmt/python/tests/mogsm_test.py
+    - python code/cmt/python/tests/univariate_test.py

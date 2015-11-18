@@ -33,6 +33,12 @@ using std::bad_alloc;
 #include <limits>
 using std::numeric_limits;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+	#define PyInt_AsLong PyLong_AsLong
+	#define PyInt_Check PyLong_Check
+#endif
+
 const char* random_select_doc =
 	"random_select(k, n)\n"
 	"\n"

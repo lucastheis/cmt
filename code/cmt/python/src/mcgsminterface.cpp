@@ -14,6 +14,10 @@ using std::pair;
 #include "cmt/utils"
 using CMT::Exception;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+#endif
+
 Trainable::Parameters* PyObject_ToMCGSMParameters(PyObject* parameters) {
 	MCGSM::Parameters* params = dynamic_cast<MCGSM::Parameters*>(
 		PyObject_ToParameters(parameters, new MCGSM::Parameters));

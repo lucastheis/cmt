@@ -12,6 +12,12 @@ using Eigen::Map;
 using std::cout;
 using std::endl;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+	#define PyInt_AsLong PyLong_AsLong
+	#define PyInt_Check PyLong_Check
+#endif
+
 Trainable::Parameters* PyObject_ToParameters(PyObject* parameters) {
 	return PyObject_ToParameters(parameters, new Trainable::Parameters);
 }

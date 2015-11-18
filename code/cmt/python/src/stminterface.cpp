@@ -9,6 +9,10 @@ using Eigen::Map;
 #include "cmt/utils"
 using CMT::Exception;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+#endif
+
 Trainable::Parameters* PyObject_ToSTMParameters(PyObject* parameters) {
 	STM::Parameters* params = dynamic_cast<STM::Parameters*>(
 		PyObject_ToParameters(parameters, new STM::Parameters));

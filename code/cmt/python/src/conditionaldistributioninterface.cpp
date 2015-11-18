@@ -11,6 +11,10 @@ using CMT::ConditionalDistribution;
 #include <map>
 using std::pair;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+#endif
+
 PyObject* CD_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	PyObject* self = type->tp_alloc(type, 0);
 
@@ -40,7 +44,7 @@ void CD_dealloc(CDObject* self) {
 		delete self->cd;
 
 	// delete CDObject
-	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
+	Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
 

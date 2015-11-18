@@ -6,6 +6,12 @@
 #include "cmt/utils"
 using CMT::Exception;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+	#define PyInt_AsLong PyLong_AsLong
+	#define PyInt_Check PyLong_Check
+#endif
+
 const char* Mixture_doc =
 	"Basic mixture class implementing expectation maximization.\n"
 	"\n"

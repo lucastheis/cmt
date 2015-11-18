@@ -14,8 +14,7 @@ from numpy.distutils.intelccompiler import IntelCCompiler
 from numpy import any
 from python import __version__
 
-#INTEL_PATH = '/opt/intel/'
-INTEL_PATH = '/kyb/agmb/lucas/intel/'
+INTEL_PATH = '/opt/intel/'
 
 # heuristic for figuring out which compiler is being used (icc, gcc)
 if any(['intel' in arg for arg in sys.argv]) or 'intel' in get_default_compiler():
@@ -61,7 +60,7 @@ else:
 	include_dirs = []
 	library_dirs = []
 	libraries = ['gomp']
-	extra_compile_args = ['-std=c++0x', '-Wno-cpp', '-fopenmp']
+	extra_compile_args = ['-std=c++0x', '-Wno-cpp', '-Wno-unused-local-typedefs', '-fopenmp']
 	extra_link_args = []
 
 

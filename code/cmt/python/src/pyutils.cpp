@@ -12,6 +12,14 @@ using Eigen::RowMajor;
 #include <utility>
 using std::make_pair;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+	#define PyInt_AsLong PyLong_AsLong
+	#define PyInt_Check PyLong_Check
+	#define PyString_Size PyBytes_Size
+	#define PyString_AsString PyBytes_AsString
+#endif
+
 PyObject* PyArray_FromMatrixXd(const MatrixXd& mat) {
 	// matrix dimensionality
 	npy_intp dims[2];
