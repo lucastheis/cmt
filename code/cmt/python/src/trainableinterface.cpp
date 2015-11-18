@@ -473,7 +473,8 @@ PyObject* Trainable_check_gradient(
 const char* Trainable_parameter_gradient_doc =
 	"_parameter_gradient(self, input, output, x=None, parameters=None)\n"
 	"\n"
-	"Computes the gradient of the parameters as returned by L{_parameters()}.\n"
+	"Computes the gradient of the average negative log-likelihood (in bits) with\n"
+	"respect to the parameters as returned by L{_parameters()}.\n"
 	"\n"
 	"If C{x} is not specified, the gradient will be evaluated for the current\n"
 	"parameters of the model.\n"
@@ -491,7 +492,9 @@ const char* Trainable_parameter_gradient_doc =
 	"@param parameters: a dictionary containing hyperparameters\n"
 	"\n"
 	"@rtype: C{ndarray}\n"
-	"@return: gradient of model parameters";
+	"@return: gradient of model parameters\n"
+	"\n"
+	"@seealso: L{evaluate()}";
 
 PyObject* Trainable_parameter_gradient(
 	TrainableObject* self,

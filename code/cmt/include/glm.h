@@ -35,9 +35,8 @@ namespace CMT {
 
 			GLM(
 				int dimIn,
-				Nonlinearity* nonlinearity,
-				UnivariateDistribution* distribution);
-			GLM(int dimIn);
+				Nonlinearity* nonlinearity = 0,
+				UnivariateDistribution* distribution = 0);
 			GLM(int dimIn, const GLM&);
 			virtual ~GLM();
 

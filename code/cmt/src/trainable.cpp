@@ -1,4 +1,9 @@
-#include <sys/time.h>
+#ifdef _WIN32
+	#include <gettimeofday.h>
+#else
+	#include <sys/time.h>
+#endif
+
 #include <cstdlib>
 #include "trainable.h"
 #include "exception.h"
@@ -9,6 +14,10 @@ using Eigen::MatrixXd;
 
 #include <limits>
 using std::numeric_limits;
+
+#ifdef _WIN32
+	#undef max
+#endif
 
 #include <cmath>
 using std::log;
@@ -355,7 +364,7 @@ bool CMT::Trainable::train(
 	// wrap all additional arguments to optimization routine
 	InstanceLBFGS instance(this, &params, &input, &output, inputVal, outputVal);
 
-	if(params.verbosity > 0)
+	if(params.verbosity > 0) {
 		if(inputVal && outputVal) {
 			cout << setw(6) << 0;
 			cout << setw(11) << setprecision(5) << evaluateLBFGS(&instance, x, 0, 0, 0.);
@@ -364,6 +373,7 @@ bool CMT::Trainable::train(
 			cout << setw(6) << 0;
 			cout << setw(11) << setprecision(5) << evaluateLBFGS(&instance, x, 0, 0, 0.) << endl;
 		}
+	}
 
 	// start LBFGS optimization
 	int status = LBFGSERR_MAXIMUMITERATION;
@@ -420,9 +430,9 @@ double CMT::Trainable::checkGradient(
 
 	int numParams = numParameters(params);
 
-	lbfgsfloatval_t y[numParams];
-	lbfgsfloatval_t g[numParams];
-	lbfgsfloatval_t n[numParams];
+	lbfgsfloatval_t* y = new lbfgsfloatval_t[numParams];
+	lbfgsfloatval_t* g = new lbfgsfloatval_t[numParams];
+	lbfgsfloatval_t* n = new lbfgsfloatval_t[numParams];
 	lbfgsfloatval_t val1;
 	lbfgsfloatval_t val2;
 
@@ -453,6 +463,9 @@ double CMT::Trainable::checkGradient(
 
 	// free memory created by call to parameters()
 	lbfgs_free(x);
+	delete[] y;
+	delete[] g;
+	delete[] n;
 
 	return sqrt(err);
 }

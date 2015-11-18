@@ -272,6 +272,22 @@ PyObject* CD_evaluate(CDObject* self, PyObject* args, PyObject* kwds) {
 
 
 
+const char* CD_data_gradient_doc =
+	"_data_gradient(self, input, output)\n"
+	"\n"
+	"Computes the gradient of the log-likelihood (in nats) with respect to the data.\n"
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: C{ndarray}\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@rtype: C{tuple}\n"
+	"@return: gradient of inputs and outputs\n"
+	"\n"
+	"@seealso: L{loglikelihood()}";
+
 PyObject* CD_data_gradient(CDObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"input", "output", 0};
 

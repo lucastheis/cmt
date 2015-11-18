@@ -48,7 +48,11 @@ elif sys.platform == 'darwin':
 	include_dirs = []
 	library_dirs = []
 	libraries = []
-	extra_compile_args = ['-std=c++0x', '-stdlib=libc++']
+	extra_compile_args = [
+		'-std=c++0x',
+		'-stdlib=libc++',
+		'-Wno-deprecated-register',
+		'-Wno-#warnings']
 	extra_link_args = []
 
 	os.environ['CC'] = 'clang++'

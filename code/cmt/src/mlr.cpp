@@ -21,7 +21,7 @@ using std::make_pair;
 #include <iostream>
 
 CMT::MLR::Parameters::Parameters() :
-	Trainable::Parameters::Parameters(),
+	Trainable::Parameters(),
 	trainWeights(true),
 	trainBiases(true),
 	regularizeWeights(0.),
@@ -32,7 +32,7 @@ CMT::MLR::Parameters::Parameters() :
 
 
 CMT::MLR::Parameters::Parameters(const Parameters& params) :
-	Trainable::Parameters::Parameters(params),
+	Trainable::Parameters(params),
 	trainWeights(params.trainWeights),
 	trainBiases(params.trainBiases),
 	regularizeWeights(params.regularizeWeights),

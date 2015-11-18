@@ -24,6 +24,7 @@ extern const char* CD_sample_doc;
 extern const char* CD_predict_doc;
 extern const char* CD_loglikelihood_doc;
 extern const char* CD_evaluate_doc;
+extern const char* CD_data_gradient_doc;
 
 PyObject* CD_new(PyTypeObject*, PyObject*, PyObject*);
 int CD_init(CDObject*, PyObject*, PyObject*);

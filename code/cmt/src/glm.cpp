@@ -30,7 +30,7 @@ Nonlinearity* const GLM::defaultNonlinearity = new LogisticFunction;
 UnivariateDistribution* const GLM::defaultDistribution = new Bernoulli;
 
 CMT::GLM::Parameters::Parameters() :
-	Trainable::Parameters::Parameters(),
+	Trainable::Parameters(),
 	trainWeights(true),
 	trainBias(true),
 	trainNonlinearity(false)
@@ -40,7 +40,7 @@ CMT::GLM::Parameters::Parameters() :
 
 
 CMT::GLM::Parameters::Parameters(const Parameters& params) :
-	Trainable::Parameters::Parameters(params),
+	Trainable::Parameters(params),
 	trainWeights(params.trainWeights),
 	trainBias(params.trainBias),
 	trainNonlinearity(params.trainNonlinearity),
@@ -75,28 +75,10 @@ CMT::GLM::GLM(
 {
 	if(mDimIn < 0)
 		throw Exception("Input dimensionality should be non-negative.");
-	if(!mNonlinearity)
-		throw Exception("No nonlinearity specified.");
-	if(!mDistribution)
-		throw Exception("No distribution specified.");
 
 	mWeights = VectorXd::Random(dimIn) / 100.;
 	mBias = 0.;
 }
-
-
-
-CMT::GLM::GLM(int dimIn) : mDimIn(dimIn) {
-	if(mDimIn < 0)
-		throw Exception("Input dimensionality should be non-negative.");
-
-	mNonlinearity = defaultNonlinearity;
-	mDistribution = defaultDistribution;
-
-	mWeights = VectorXd::Random(dimIn) / 100.;
-	mBias = 0.;
-}
-
 
 
 

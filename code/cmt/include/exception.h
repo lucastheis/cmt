@@ -1,26 +1,21 @@
 #ifndef CMT_EXCEPTION_H
 #define CMT_EXCEPTION_H
 
+#include <stdexcept>
+
 namespace CMT {
-	class Exception {
+	class Exception : public std::runtime_error {
 		public:
 			inline Exception(const char* message = "");
 
 			inline const char* message();
-
-		protected:
-			const char* mMessage;
 	};
 }
 
-
-inline CMT::Exception::Exception(const char* message) : mMessage(message) {
-}
-
-
+inline CMT::Exception::Exception(const char* message) : std::runtime_error(message) {}
 
 inline const char* CMT::Exception::message() {
-	return mMessage;
+	return what();
 }
 
 #endif

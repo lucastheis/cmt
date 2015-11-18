@@ -59,5 +59,5 @@ void CMT::WhiteningTransform::initialize(const ArrayXXd& input, int dimOut) {
 	mPreOutInv = MatrixXd::Identity(dimOut, dimOut);
 	mPredictor = MatrixXd::Zero(dimOut, input.rows());
 	mGradTransform = MatrixXd::Zero(dimOut, input.rows());
-	mLogJacobian = 1.;
+	mLogJacobian = 0.;
 }

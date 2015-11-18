@@ -108,6 +108,6 @@ $(OBJDIR)/%.o: %.cpp $(OBJDIR)/%.d
 $(OBJDIR)/%.d: %.cpp
 	@mkdir -p $(@D)
 	@echo $(CXX) -MM $< -MF $@
-	@$(CXX) $(INCLUDE) $(CXXFLAGS) -MM -MT '$(@:.d=.o)' $< -MF $@
+	@$(CXX) $(INCLUDE) -MM -MT '$(@:.d=.o)' $< -MF $@
 
 -include $(OBJECTS:.o=.d)

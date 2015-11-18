@@ -2,7 +2,7 @@ import sys
 import unittest
 
 from numpy import *
-from numpy import max, round
+from numpy import sum, max, round
 from numpy.random import *
 from numpy.linalg import inv, slogdet
 from pickle import dump, load
@@ -12,6 +12,49 @@ from cmt.transforms import AffineTransform, WhiteningTransform, PCATransform
 from cmt.transforms import BinningTransform
 
 class Tests(unittest.TestCase):
+	def test_adjust_gradient(self):
+		X = dot(randn(5, 5), randn(5, 1000)) + randn(5, 1)
+		Y = dot(randn(2, 2), randn(2, 1000)) + dot(randn(2, 5), X)
+
+		meanIn = randn(5, 1)
+		meanOut = randn(2, 1)
+		preIn = randn(5, 5)
+		preOut = randn(2, 2)
+		predictor = randn(2, 5)
+
+		pre = AffinePreconditioner(
+			meanIn,
+			meanOut,
+			preIn,
+			preOut,
+			predictor)
+
+		f = lambda X, Y: sum(hstack([p.ravel() for p in pre(X, Y)]))
+
+		# compute analytic gradient
+		dfdX, dfdY = pre.adjust_gradient(ones_like(X), ones_like(Y))
+
+		# compute numerical gradient
+		h = 0.1
+		dfdXn = zeros_like(X)
+		X_copy = X.copy()
+		for i in range(X.shape[0]):
+			for j in range(X.shape[1]):
+				X_copy[i, j] = X[i, j] + h
+				fp = f(X_copy, Y)
+
+				X_copy[i, j] = X[i, j] - h
+				fn = f(X_copy, Y)
+
+				dfdXn[i, j] = (fp - fn) / (2. * h)
+
+				X_copy[i, j] = X[i, j]
+
+		self.assertLess(max(abs(dfdXn - dfdX)), 1e-7)
+
+
+
+
 	def test_affine_preconditioner(self):
 		X = dot(randn(5, 5), randn(5, 1000)) + randn(5, 1)
 		Y = dot(randn(2, 2), randn(2, 1000)) + dot(randn(2, 5), X)
