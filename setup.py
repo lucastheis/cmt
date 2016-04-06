@@ -55,9 +55,12 @@ elif sys.platform == 'darwin':
 		'-Wno-#warnings']
 	extra_link_args = []
 
-	os.environ['CC'] = 'clang++'
-	os.environ['CXX'] = 'clang++'
-	os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.7'
+	if 'CC' not in os.environ:
+		os.environ['CC'] = 'clang++'
+	if 'CXX' not in os.environ:
+		os.environ['CXX'] = 'clang++'
+	if 'MACOSX_DEPLOYMENT_TARGET' not in os.environ:
+		os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.7'
 
 else:
 	# gcc-specific options
