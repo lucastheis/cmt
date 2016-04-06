@@ -57,10 +57,10 @@ loglik = model.loglikelihood(*wt(input, output)) + wt.logjacobian(input, output)
 ## Matlab Example
 
 ```matlab
-% Load the data
+% load the data
 data = load('data.mat')
 
-% Fit a generalized linear model to the data
+% fit a generalized linear model to the data
 model = cmt.GLM(10, cmt.ExponentialFunction, cmt.Poisson));
 model.train(data.input, data.output, 'maxIter', 1000, 'threshold', 1e-5);
 
@@ -105,37 +105,18 @@ Once the L-BFGS library is compiled, go back to the root directory and execute:
 	python setup.py build
 	python setup.py install
 
-### Building with the Intel compiler and MKL
-
-To get even better performance, you might want to try compiling the module with Intel's compiler and
-the MKL libraries. This probably requires some changes of the paths in `setup.py`. After that, use
-the following line to compile the code
-
-	python setup.py build --compiler=intelem
-
-on 64-bit systems and
-
-	python setup.py build --compiler=intel
-
-on 32-bit systems. The following might be helpful when trying to compile the L-BFGS library with the
-Intel compiler.
-
-	./autogen.sh
-	CC=icc ./configure --enable-sse2
-	CC=icc make CFLAGS="-fPIC"
-
 ## Matlab Interface Installation
 
-Normally it should be enough to download one of the prebuild binaries of our cmt matlab interface. If you for what ever
-reason want to build it yourself, the following instructions are for you.
+Normally it should be enough to download one of the prebuild binaries of our cmt matlab interface. If you
+want to build it yourself, the following instructions are for you.
 
 ### Build lbfgs library 
 The first step is always to follow the above instructions to build liblbfgs for your platform.
 
-On Windows this is done by opening lbfgs.sln in code/liblbfgs in Visual Studio. In Visual Studio make 
-sure to select the "Release" configuration and the right platform (probably "x64" on most machines). Then
-build the "lib" project by selecting it with a right click and choosing "build". The resulting file "lbfgs.lib" should
-be found in the subfolder "x64\Release" (or "Release" for x86 systems, in which case you have to change that path in the setup script).
+On Windows this is done by opening `code\liblbfgs\lbfgs.sln` in Visual Studio. In Visual Studio, make
+sure to select the "Release" configuration and the right platform (probably "x64"). Then
+build the "lib" project by selecting it with a right click and choosing "build". The resulting file `lbfgs.lib` should
+be found in the subfolder `x64\Release` (or "Release" for x86 systems, in which case you have to change that path in the setup script).
 
 ### Building the mex interface in Matlab
 
@@ -146,9 +127,9 @@ Next open Matlab and make sure a valid mex compiler can be found:
 If that is not the case, please follow the official MathWorks documentation to install a supported compiler 
 and check again.
 
-Then run the setup.m function from the root folder of cmt in Matlab
+Then execute `setup.m` from the root folder of cmt in Matlab:
 
 	setup
 
-The distribute folder should now contain all the files needed to run the CMT toolbox from within matlab. Add 
+The distribute folder should now contain all the files needed to run the CMT toolbox from within matlab. Add
 it to your matlab path to use it.
