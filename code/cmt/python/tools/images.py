@@ -1,4 +1,4 @@
-import Image
+from PIL import Image
 from numpy import array, asarray, squeeze, abs, min, max, percentile
 
 def imread(filename):
