@@ -11,17 +11,20 @@ ifeq ($(OS), Darwin)
 CXX = \
 	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CC')[0]);")
 CXXFLAGS = $(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);") \
-	-Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses# -fopenmp
+	-Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses -DEIGEN_NO_DEBUG
+LD = $(CXX)
+LDFLAGS = code/liblbfgs/lib/.libs/liblbfgs.a \
+	$(shell python -c "import sysconfig; print(' '.join(sysconfig.get_config_vars('LDSHARED')[0].split(' ')[1:]));")
 else
 CXX = \
 	$(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CXX')[0]);")
 CXXFLAGS = $(shell python -c "import sysconfig; print(sysconfig.get_config_vars('CFLAGS')[0]);") \
-	-Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses -Wno-cpp -fPIC -fopenmp
-endif
-
+	-std=c++0x -Wno-write-strings -Wno-sign-compare -Wno-unknown-pragmas -Wno-parentheses -Wno-cpp -fPIC -fopenmp -DEIGEN_NO_DEBUG
 LD = $(CXX)
 LDFLAGS = code/liblbfgs/lib/.libs/liblbfgs.a -lgomp \
 	$(shell python -c "import sysconfig; print(' '.join(sysconfig.get_config_vars('LDSHARED')[0].split(' ')[1:]));")
+endif
+
 
 # include paths
 INCPYTHON = \
@@ -54,6 +57,8 @@ SOURCES = \
 	$(PYSDIR)/mcbminterface.cpp \
 	$(SRCDIR)/mixture.cpp \
 	$(PYSDIR)/mixtureinterface.cpp \
+	$(SRCDIR)/mlr.cpp \
+	$(PYSDIR)/mlrinterface.cpp \
 	$(PYSDIR)/module.cpp \
 	$(SRCDIR)/nonlinearities.cpp \
 	$(PYSDIR)/nonlinearitiesinterface.cpp \
@@ -64,6 +69,7 @@ SOURCES = \
 	$(SRCDIR)/preconditioner.cpp \
 	$(PYSDIR)/preconditionerinterface.cpp \
 	$(PYSDIR)/pyutils.cpp \
+	$(SRCDIR)/regularizer.cpp \
 	$(SRCDIR)/stm.cpp \
 	$(PYSDIR)/stminterface.cpp \
 	$(SRCDIR)/tools.cpp \

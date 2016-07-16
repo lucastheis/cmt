@@ -6,6 +6,24 @@
 #include "cmt/utils"
 using CMT::Exception;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+	#define PyInt_AsLong PyLong_AsLong
+	#define PyInt_Check PyLong_Check
+#endif
+
+const char* Mixture_doc =
+	"Basic mixture class implementing expectation maximization.\n"
+	"\n"
+	"$$p(\\mathbf{x}) = \\sum_k \\pi_k p_k(\\mathbf{x})$$\n"
+	"\n"
+	"To access the parameters $\\pi_k$, use C{mixture.priors}. Mixture components are added\n"
+	"manually via C{mixture.add_component(component)}. To access component $k$, you can use\n"
+	"C{mixture[k]}.\n"
+	"\n"
+	"@type  dim: C{int}\n"
+	"@param dim: dimensionality of the data";
+
 int Mixture_init(MixtureObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"dim", 0};
 
@@ -25,6 +43,17 @@ int Mixture_init(MixtureObject* self, PyObject* args, PyObject* kwds) {
 }
 
 
+const char* MoGSM_doc =
+	"Mixture of L{Gaussian scale mixtures<models.GSM>}.\n"
+	"\n"
+	"@type  dim: C{int}\n"
+	"@param dim: dimensionality of the data\n"
+	"\n"
+	"@type  num_components: C{int}\n"
+	"@param num_components: number of initial mixture components\n"
+	"\n"
+	"@type  num_scales: C{int}\n"
+	"@param num_scales: number of scales per mixture component";
 
 int MoGSM_init(MoGSMObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"dim", "num_components", "num_scales", 0};
@@ -261,6 +290,7 @@ const char* Mixture_train_doc =
 	"\t>>> \tparameters={\n"
 	"\t>>> \t\t'verbosity': 1,\n"
 	"\t>>> \t\t'max_iter': 20,\n"
+	"\t>>> \t\t'threshold': 1e-8,\n"
 	"\t>>> \t\t'val_iter': 2,\n"
 	"\t>>> \t\t'val_look_ahead': 5,\n"
 	"\t>>> \t\t'initialize': True,\n"
@@ -582,6 +612,9 @@ PyObject* Mixture_setstate(MixtureObject* self, PyObject* state) {
 }
 
 
+
+const char* MixtureComponent_doc =
+	"Abstract base class for objects which can be used as mixture components.";
 
 int MixtureComponent_init(MixtureComponentObject*, PyObject*, PyObject*) {
 	PyErr_SetString(PyExc_NotImplementedError, "This is an abstract class.");

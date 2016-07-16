@@ -8,6 +8,13 @@ using CMT::Exception;
 #include "cmt/models"
 using CMT::ConditionalDistribution;
 
+#include <map>
+using std::pair;
+
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+#endif
+
 PyObject* CD_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	PyObject* self = type->tp_alloc(type, 0);
 
@@ -37,7 +44,7 @@ void CD_dealloc(CDObject* self) {
 		delete self->cd;
 
 	// delete CDObject
-	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
+	Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
 
@@ -82,6 +89,47 @@ PyObject* CD_sample(CDObject* self, PyObject* args, PyObject* kwds) {
 
 	try {
 		PyObject* result = PyArray_FromMatrixXd(self->cd->sample(PyArray_ToMatrixXd(input)));
+		Py_DECREF(input);
+		return result;
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		Py_DECREF(input);
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+const char* CD_predict_doc =
+	"predict(self, input)\n"
+	"\n"
+	"Computes the expectation value of the output.\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@rtype: ndarray\n"
+	"@return: expected value of outputs";
+
+PyObject* CD_predict(CDObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", 0};
+
+	PyObject* input;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &input))
+		return 0;
+
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in a NumPy array.");
+		return 0;
+	}
+
+	try {
+		PyObject* result = PyArray_FromMatrixXd(self->cd->predict(PyArray_ToMatrixXd(input)));
 		Py_DECREF(input);
 		return result;
 	} catch(Exception exception) {
@@ -220,4 +268,70 @@ PyObject* CD_evaluate(CDObject* self, PyObject* args, PyObject* kwds) {
 	}
 
 	return 0;
+}
+
+
+
+const char* CD_data_gradient_doc =
+	"_data_gradient(self, input, output)\n"
+	"\n"
+	"Computes the gradient of the log-likelihood (in nats) with respect to the data.\n"
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: C{ndarray}\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@rtype: C{tuple}\n"
+	"@return: gradient of inputs and outputs\n"
+	"\n"
+	"@seealso: L{loglikelihood()}";
+
+PyObject* CD_data_gradient(CDObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", "output", 0};
+
+	PyObject* input;
+	PyObject* output;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output) {
+		Py_XDECREF(input);
+		Py_XDECREF(output);
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > gradients =
+			 self->cd->computeDataGradient(
+				PyArray_ToMatrixXd(input),
+				PyArray_ToMatrixXd(output));
+
+		PyObject* inputGradient = PyArray_FromMatrixXd(gradients.first.first);
+		PyObject* outputGradient = PyArray_FromMatrixXd(gradients.first.second);
+		PyObject* logLikelihood = PyArray_FromMatrixXd(gradients.second);
+		PyObject* tuple = Py_BuildValue("(OOO)", inputGradient, outputGradient, logLikelihood);
+
+		Py_DECREF(inputGradient);
+		Py_DECREF(outputGradient);
+		Py_DECREF(logLikelihood);
+
+		Py_DECREF(input);
+		Py_DECREF(output);
+
+		return tuple;
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
 }

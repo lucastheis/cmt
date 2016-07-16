@@ -4,10 +4,14 @@
 #include "cmt/utils"
 using CMT::Exception;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+#endif
+
 const char* GSM_doc =
 	"An implementation of a finite Gaussian scale mixture.\n"
 	"\n"
-	"$$p(\\mathbf{x}) = \\sum_k \\pi_k \\mathcal{N}(\\mathbf{x}; \\mu_k, \\lambda_k^{-1} \\boldsymbol{\\Sigma}$$\n"
+	"$$p(\\mathbf{x}) = \\sum_k \\pi_k \\mathcal{N}(\\mathbf{x}; \\mu_k, \\lambda_k^{-1} \\boldsymbol{\\Sigma})$$\n"
 	"\n"
 	"This is a mixture of Gaussians which all share the same basic covariance\n"
 	"structure $\\boldsymbol{\\Sigma}$ scaled by the precision variables $\\lambda_k$.\n"

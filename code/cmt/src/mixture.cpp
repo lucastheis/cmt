@@ -15,17 +15,21 @@ using std::endl;
 using std::setw;
 using std::setprecision;
 
+#include <algorithm>
+using std::random_shuffle;
+
 #include "Eigen/Core"
 using Eigen::Dynamic;
 using Eigen::Array;
 using Eigen::ArrayXd;
 using Eigen::ArrayXXd;
 using Eigen::MatrixXd;
+using Eigen::PermutationMatrix;
 
 CMT::Mixture::Parameters::Parameters() :
 	verbosity(1),
 	maxIter(20),
-	threshold(1e-5),
+	threshold(1e-8),
 	valIter(2),
 	valLookAhead(5),
 	initialize(true),
@@ -40,7 +44,7 @@ CMT::Mixture::Parameters::Parameters() :
 CMT::Mixture::Component::Parameters::Parameters() :
 	verbosity(0),
 	maxIter(10),
-	threshold(1e-5),
+	threshold(1e-8),
 	trainPriors(true),
 	trainCovariance(true),
 	trainScales(true),
@@ -56,7 +60,7 @@ CMT::Mixture::Component::Parameters::Parameters() :
 
 void CMT::Mixture::Component::initialize(
 	const MatrixXd& data,
-	const Parameters& parameters) 
+	const Parameters& parameters)
 {
 }
 
@@ -100,19 +104,20 @@ MatrixXd CMT::Mixture::sample(int numSamples) const {
 	cdf[numComponents() - 1] = 1.0001;
 
 	// initialize sample from multinomial distribution
-	int numSamplesPerComp[numComponents()];
+	int* numSamplesPerComp = new int[numComponents()];
 	for(int k = 0; k < numComponents(); ++k)
 		numSamplesPerComp[k] = 0;
 
 	// generate sample from multinomial distribution
 	#pragma omp parallel for
 	for(int i = 0; i < numSamples; ++i) {
-		double urand = static_cast<double>(rand()) / (static_cast<long>(RAND_MAX) + 1l);
+		double urand = static_cast<double>(rand()) / RAND_MAX;
 
 		int j = 0;
 		while(urand > cdf[j])
 			++j;
 
+		#pragma omp critical
 		numSamplesPerComp[j]++;
 	}
 
@@ -120,11 +125,18 @@ MatrixXd CMT::Mixture::sample(int numSamples) const {
 	vector<MatrixXd> samples(numComponents());
 
 	// sample each component
-	#pragma omp parallel for
 	for(int k = 0; k < numComponents(); ++k)
 		samples[k] = mComponents[k]->sample(numSamplesPerComp[k]);
 
-	return concatenate(samples);
+	// Avoid memory leak
+	delete[] numSamplesPerComp;
+
+	// permute order of samples so that they become i.i.d.
+	PermutationMatrix<Dynamic,Dynamic> perm(numSamples);
+	perm.setIdentity();
+	random_shuffle(perm.indices().data(), perm.indices().data() + perm.indices().size());
+
+	return concatenate(samples) * perm;
 }
 
 
@@ -159,8 +171,11 @@ void CMT::Mixture::initialize(
 	const Parameters& parameters,
 	const Component::Parameters& componentParameters)
 {
+	if(data.rows() != dim())
+		throw Exception("Data has wrong dimensionality.");
+
 	if(parameters.trainPriors)
-		mPriors.setConstant(1. / numComponents()); 
+		mPriors.setConstant(1. / numComponents());
 
 	#pragma omp parallel for
 	for(int k = 0; k < numComponents(); ++k)
@@ -176,6 +191,9 @@ bool CMT::Mixture::train(
 	const Parameters& parameters,
 	const Component::Parameters& componentParameters)
 {
+	if(data.rows() != dim())
+		throw Exception("Data has wrong dimensionality.");
+
 	if(parameters.initialize && !initialized())
 		initialize(data, parameters, componentParameters);
 
@@ -323,7 +341,7 @@ bool CMT::Mixture::train(
 				priors = mPriors;
 				for(int k = 0; k < numComponents(); ++k)
 					*components[k] = *mComponents[k];
-				
+
 				avgLogLossValid = avgLogLossValidNew;
 			} else {
 				counter++;

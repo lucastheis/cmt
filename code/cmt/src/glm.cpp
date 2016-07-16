@@ -30,26 +30,22 @@ Nonlinearity* const GLM::defaultNonlinearity = new LogisticFunction;
 UnivariateDistribution* const GLM::defaultDistribution = new Bernoulli;
 
 CMT::GLM::Parameters::Parameters() :
-	Trainable::Parameters::Parameters(),
+	Trainable::Parameters(),
 	trainWeights(true),
 	trainBias(true),
-	trainNonlinearity(false),
-	regularizeWeights(0.),
-	regularizeBias(0.),
-	regularizer(L2)
+	trainNonlinearity(false)
 {
 }
 
 
 
 CMT::GLM::Parameters::Parameters(const Parameters& params) :
-	Trainable::Parameters::Parameters(params),
+	Trainable::Parameters(params),
 	trainWeights(params.trainWeights),
 	trainBias(params.trainBias),
 	trainNonlinearity(params.trainNonlinearity),
 	regularizeWeights(params.regularizeWeights),
-	regularizeBias(params.regularizeBias),
-	regularizer(params.regularizer)
+	regularizeBias(params.regularizeBias)
 {
 }
 
@@ -63,7 +59,6 @@ CMT::GLM::Parameters& CMT::GLM::Parameters::operator=(const Parameters& params) 
 	trainNonlinearity = params.trainNonlinearity;
 	regularizeWeights = params.regularizeWeights;
 	regularizeBias = params.regularizeBias;
-	regularizer = params.regularizer;
 
 	return *this;
 }
@@ -80,28 +75,10 @@ CMT::GLM::GLM(
 {
 	if(mDimIn < 0)
 		throw Exception("Input dimensionality should be non-negative.");
-	if(!mNonlinearity)
-		throw Exception("No nonlinearity specified.");
-	if(!mDistribution)
-		throw Exception("No distribution specified.");
 
 	mWeights = VectorXd::Random(dimIn) / 100.;
 	mBias = 0.;
 }
-
-
-
-CMT::GLM::GLM(int dimIn) : mDimIn(dimIn) {
-	if(mDimIn < 0)
-		throw Exception("Input dimensionality should be non-negative.");
-
-	mNonlinearity = defaultNonlinearity;
-	mDistribution = defaultDistribution;
-
-	mWeights = VectorXd::Random(dimIn) / 100.;
-	mBias = 0.;
-}
-
 
 
 
@@ -151,6 +128,18 @@ MatrixXd CMT::GLM::sample(const MatrixXd& input) const {
 		return mDistribution->sample(Array<double, 1, Dynamic>::Constant(input.cols(), mBias));
 
 	return mDistribution->sample((*mNonlinearity)((mWeights.transpose() * input).array() + mBias));
+}
+
+
+
+MatrixXd CMT::GLM::predict(const MatrixXd& input) const {
+	if(input.rows() != mDimIn)
+		throw Exception("Input has wrong dimensionality.");
+
+	if(!mDimIn)
+		return Array<double, 1, Dynamic>::Constant(input.cols(), mBias);
+
+	return (*mNonlinearity)((mWeights.transpose() * input).array() + mBias);
 }
 
 
@@ -264,6 +253,7 @@ double CMT::GLM::parameterGradient(
 	lbfgsfloatval_t* y = const_cast<lbfgsfloatval_t*>(x);
 	int offset = 0;
 
+	// interpret parameters
 	VectorLBFGS weights(params.trainWeights ? y : const_cast<double*>(mWeights.data()), mDimIn);
 	VectorLBFGS weightsGrad(g, mDimIn);
 	if(params.trainWeights)
@@ -349,52 +339,17 @@ double CMT::GLM::parameterGradient(
 		for(int i = 0; i < offset; ++i)
 			g[i] /= normConst;
 
-		switch(params.regularizer) {
-			case Parameters::L1:
-				if(params.trainWeights && params.regularizeWeights > 0.)
-					weightsGrad += params.regularizeWeights * signum(weights);
-
-				if(params.trainBias && params.regularizeBias > 0.)
-					if(bias > 0.)
-						*biasGrad += params.regularizeBias;
-					else if(bias < 0.)
-						*biasGrad -= params.regularizeBias;
-
-				break;
-
-			case Parameters::L2:
-				if(params.trainWeights && params.regularizeWeights > 0.)
-					weightsGrad += params.regularizeWeights * 2. * weights;
-
-				if(params.trainBias && params.regularizeBias > 0.)
-					*biasGrad += params.regularizeBias * 2. * bias;
-
-				break;
-		}
+		if(params.trainWeights)
+			weightsGrad += params.regularizeWeights.gradient(weights);
+		if(params.trainBias)
+			*biasGrad += params.regularizeBias.gradient(MatrixXd::Constant(1, 1, bias))(0, 0);
 	}
 
 	double value = -logLik / normConst;
 
-	switch(params.regularizer) {
-		case Parameters::L1:
-			if(params.trainWeights && params.regularizeWeights > 0.)
-				value += params.regularizeWeights * weights.array().abs().sum();
+	value += params.regularizeWeights.evaluate(weights);
+	value += params.regularizeBias.evaluate(MatrixXd::Constant(1, 1, bias));
 
-			if(params.trainBias && params.regularizeBias > 0.)
-				value += params.regularizeBias * abs(bias);
-
-			break;
-
-		case Parameters::L2:
-			if(params.trainWeights && params.regularizeWeights > 0.)
-				value += params.regularizeWeights * weights.array().square().sum();
-
-			if(params.trainBias && params.regularizeBias > 0.)
-				value += params.regularizeBias * bias * bias;
-			
-			break;
-	}
- 	
  	return value;
 }
 
@@ -404,9 +359,35 @@ pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > CMT::GLM::computeData
 	const MatrixXd& input,
 	const MatrixXd& output) const
 {
+	// make sure nonlinearity is differentiable
+	DifferentiableNonlinearity* nonlinearity =
+		dynamic_cast<DifferentiableNonlinearity*>(mNonlinearity);
+	if(!nonlinearity)
+		throw Exception("Nonlinearity has to be differentiable.");
+
+	if(mDimIn && input.rows() != mDimIn)
+		throw Exception("Input has wrong dimensionality.");
+	if(output.rows() != 1)
+		throw Exception("Output has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("Number of inputs and outputs should be the same.");
+
+	if(!mDimIn)
+		return make_pair(
+			make_pair(
+				ArrayXXd::Zero(input.rows(), input.cols()),
+				ArrayXXd::Zero(output.rows(), output.cols())),
+			logLikelihood(input, output));
+
+	Array<double, 1, Dynamic> responses = (mWeights.transpose() * input).array() + mBias;
+
+	Array<double, 1, Dynamic> tmp0 = (*mNonlinearity)(responses);
+	Array<double, 1, Dynamic> tmp1 = -mDistribution->gradient(output, tmp0);
+	Array<double, 1, Dynamic> tmp2 = nonlinearity->derivative(responses);
+
 	return make_pair(
 		make_pair(
-			ArrayXXd::Zero(input.rows(), input.cols()), 
-			ArrayXXd::Zero(output.rows(), output.cols())), 
-		logLikelihood(input, output));
+			mWeights * (tmp1 * tmp2).matrix(),
+			ArrayXXd::Zero(output.rows(), output.cols())),
+		mDistribution->logLikelihood(output, tmp0));
 }

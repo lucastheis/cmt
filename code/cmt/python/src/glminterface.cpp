@@ -42,35 +42,14 @@ Trainable::Parameters* PyObject_ToGLMParameters(PyObject* parameters) {
 
 		PyObject* regularize_weights = PyDict_GetItemString(parameters, "regularize_weights");
 		if(regularize_weights)
-			if(PyFloat_Check(regularize_weights))
-				params->regularizeWeights = PyFloat_AsDouble(regularize_weights);
-			else if(PyInt_Check(regularize_weights))
-				params->regularizeWeights = static_cast<double>(PyFloat_AsDouble(regularize_weights));
-			else
-				throw Exception("regularize_weights should be of type `float`.");
+			params->regularizeWeights = PyObject_ToRegularizer(regularize_weights);
 
 		PyObject* regularize_bias = PyDict_GetItemString(parameters, "regularize_bias");
 		if(regularize_bias)
-			if(PyFloat_Check(regularize_bias))
-				params->regularizeBias = PyFloat_AsDouble(regularize_bias);
-			else if(PyInt_Check(regularize_bias))
-				params->regularizeBias = static_cast<double>(PyFloat_AsDouble(regularize_bias));
-			else
-				throw Exception("regularize_bias should be of type `float`.");
+			params->regularizeBias = PyObject_ToRegularizer(regularize_bias);
 
-		PyObject* regularizer = PyDict_GetItemString(parameters, "regularizer");
-		if(regularizer)
-			if(PyString_Check(regularizer)) {
-				if(PyString_Size(regularizer) != 2)
-					throw Exception("Regularizer should be 'L1' or 'L2'.");
-
-				if(PyString_AsString(regularizer)[1] == '1')
-					params->regularizer = GLM::Parameters::L1;
-				else
-					params->regularizer = GLM::Parameters::L2;
-			} else {
-				throw Exception("regularizer should be of type `str`.");
-			}
+		if(PyDict_GetItemString(parameters, "regularizer"))
+			throw Exception("Please use the new interface for specifying regularizer norms.");
 	}
 
 	return params;
@@ -185,7 +164,7 @@ void GLM_dealloc(GLMObject* self) {
 	}
 
 	// delete GLMObject
-	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
+	Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
 
@@ -241,12 +220,9 @@ int GLM_set_bias(GLMObject* self, PyObject* value, void*) {
 	try {
 		self->glm->setBias(bias);
 	} catch(Exception exception) {
-		Py_DECREF(value);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return -1;
 	}
-
-	Py_DECREF(value);
 
 	return 0;
 }
@@ -347,15 +323,26 @@ const char* GLM_train_doc =
 	"\t>>> \t'train_weights': True,\n"
 	"\t>>> \t'train_bias': True,\n"
 	"\t>>> \t'train_nonlinearity': False,\n"
-	"\t>>> \t'regularizer': 'L2',\n"
-	"\t>>> \t'regularize_weights': 0.,\n"
-	"\t>>> \t'regularize_bias': 0.,\n"
+	"\t>>> \t'regularize_weights': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
+	"\t>>> \t'regularize_bias': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
 	"\t>>> })\n"
 	"\n"
 	"The optimization stops after C{max_iter} iterations or if the difference in\n"
 	"(penalized) log-likelihood is sufficiently small enough, as specified by\n"
 	"C{threshold}. C{num_grad} is the number of gradients used by L-BFGS to approximate\n"
 	"the inverse Hessian matrix.\n"
+	"\n"
+	"Regularization of parameters $\\mathbf{z}$ adds a penalty term\n"
+	"\n"
+	"$$\\eta ||\\mathbf{A} \\mathbf{z}||_p$$\n"
+	"\n"
+	"to the average log-likelihood, where $\\eta$ is given by C{strength}, $\\mathbf{A}$ is\n"
+	"given by C{transform}, and $p$ is controlled by C{norm}, which has to be either C{'L1'} or C{'L2'}.\n"
 	"\n"
 	"The parameter C{batch_size} has no effect on the solution of the optimization but\n"
 	"can affect speed by reducing the number of cache misses.\n"
@@ -417,6 +404,16 @@ PyObject* GLM_set_parameters(GLMObject* self, PyObject* args, PyObject* kwds) {
 
 PyObject* GLM_parameter_gradient(GLMObject* self, PyObject* args, PyObject* kwds) {
 	return Trainable_parameter_gradient(
+		reinterpret_cast<TrainableObject*>(self), 
+		args, 
+		kwds,
+		&PyObject_ToGLMParameters);
+}
+
+
+
+PyObject* GLM_fisher_information(GLMObject* self, PyObject* args, PyObject* kwds) {
+	return Trainable_fisher_information(
 		reinterpret_cast<TrainableObject*>(self), 
 		args, 
 		kwds,

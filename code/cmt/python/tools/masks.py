@@ -80,4 +80,8 @@ def generate_masks(input_size, output_size=1, observed=None):
 					tmp1 + tmp2 - i - 1,
 					tmp1 - tmp3:tmp1 + output_size // 2, k] = True
 
-	return squeeze(input_mask), squeeze(output_mask)
+	if input_mask.shape[2] == 1:
+		input_mask.resize(input_mask.shape[0], input_mask.shape[1])
+		output_mask.resize(output_mask.shape[0], output_mask.shape[1])
+
+	return input_mask, output_mask

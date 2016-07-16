@@ -6,6 +6,7 @@
 #include "trainable.h"
 #include "nonlinearities.h"
 #include "univariatedistributions.h"
+#include "regularizer.h"
 
 namespace CMT {
 	using Eigen::VectorXd;
@@ -15,18 +16,17 @@ namespace CMT {
 		public:
 			struct Parameters : public Trainable::Parameters {
 				public:
-					enum Regularizer { L1, L2 };
-
+					bool trainSharpness;
 					bool trainBiases;
 					bool trainWeights;
 					bool trainFeatures;
 					bool trainPredictors;
 					bool trainLinearPredictor;
-					double regularizeWeights;
-					double regularizeFeatures;
-					double regularizePredictors;
-					double regularizeLinearPredictor;
-					Regularizer regularizer;
+					Regularizer regularizeBiases;
+					Regularizer regularizeWeights;
+					Regularizer regularizeFeatures;
+					Regularizer regularizePredictors;
+					Regularizer regularizeLinearPredictor;
 
 					Parameters();
 					Parameters(const Parameters& params);
@@ -38,14 +38,8 @@ namespace CMT {
 			using Trainable::train;
 
 			STM(
-				int dimIn, 
-				int numComponents = 3,
-				int numFeatures = -1,
-				Nonlinearity* nonlinearity = 0,
-				UnivariateDistribution* distribution = 0);
-			STM(
-				int dimInNonlinear, 
-				int dimInLinear, 
+				int dimInNonlinear,
+				int dimInLinear = 0,
 				int numComponents = 3,
 				int numFeatures = -1,
 				Nonlinearity* nonlinearity = 0,
@@ -59,6 +53,9 @@ namespace CMT {
 
 			inline int numComponents() const;
 			inline int numFeatures() const;
+
+			inline double sharpness() const;
+			inline void setSharpness(double sharpness);
 
 			inline VectorXd biases() const;
 			inline void setBiases(const VectorXd& bias);
@@ -83,8 +80,22 @@ namespace CMT {
 
 			virtual void initialize(const MatrixXd& input, const MatrixXd& output);
 
+			virtual Array<double, 1, Dynamic> response(
+				const MatrixXd& input) const;
+			virtual Array<double, 1, Dynamic> response(
+				const MatrixXd& inputNonlinear,
+				const MatrixXd& inputLinear) const;
+			virtual ArrayXXd nonlinearResponses(
+				const MatrixXd& input) const;
+			virtual ArrayXXd linearResponse(
+				const MatrixXd& input) const;
+
 			virtual MatrixXd sample(const MatrixXd& input) const;
 			virtual MatrixXd sample(
+				const MatrixXd& inputNonlinear,
+				const MatrixXd& inputLinear) const;
+			virtual MatrixXd predict(const MatrixXd& input) const;
+			virtual MatrixXd predict(
 				const MatrixXd& inputNonlinear,
 				const MatrixXd& inputLinear) const;
 
@@ -140,6 +151,7 @@ namespace CMT {
 			Nonlinearity* mNonlinearity;
 			UnivariateDistribution* mDistribution;
 
+			double mSharpness;
 			VectorXd mBiases;
 			MatrixXd mWeights;
 			MatrixXd mFeatures;
@@ -152,12 +164,6 @@ namespace CMT {
 				const MatrixXd* inputVal,
 				const MatrixXd* outputVal,
 				const Trainable::Parameters& params);
-
-			Array<double, 1, Dynamic> response(
-				const MatrixXd& input) const;
-			Array<double, 1, Dynamic> response(
-				const MatrixXd& inputNonlinear,
-				const MatrixXd& inputLinear) const;
 	};
 }
 
@@ -195,6 +201,18 @@ inline int CMT::STM::numComponents() const {
 
 inline int CMT::STM::numFeatures() const {
 	return mNumFeatures;
+}
+
+
+
+inline double CMT::STM::sharpness() const {
+	return mSharpness;
+}
+
+
+
+inline void CMT::STM::setSharpness(double sharpness) {
+	mSharpness = sharpness;
 }
 
 

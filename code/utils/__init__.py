@@ -1,1 +1,1 @@
-from parallelcc import parallelCCompiler
+from .parallelcc import parallelCCompiler

@@ -34,10 +34,13 @@ struct MixtureComponentObject {
 extern PyTypeObject MixtureComponent_type;
 extern PyTypeObject GSM_type;
 
+extern const char* Mixture_doc;
 extern const char* Mixture_train_doc;
 extern const char* Mixture_initialize_doc;
+extern const char* MixtureComponent_doc;
 extern const char* MixtureComponent_train_doc;
 extern const char* MixtureComponent_initialize_doc;
+extern const char* MoGSM_doc;
 
 int Mixture_init(MixtureObject*, PyObject*, PyObject*);
 int MoGSM_init(MoGSMObject*, PyObject*, PyObject*);

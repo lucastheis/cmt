@@ -8,6 +8,16 @@ using Eigen::Dynamic;
 using Eigen::Matrix;
 using Eigen::Map;
 
+#include <iostream>
+using std::cout;
+using std::endl;
+
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+	#define PyInt_AsLong PyLong_AsLong
+	#define PyInt_Check PyLong_Check
+#endif
+
 Trainable::Parameters* PyObject_ToParameters(PyObject* parameters) {
 	return PyObject_ToParameters(parameters, new Trainable::Parameters);
 }
@@ -46,7 +56,7 @@ Trainable::Parameters* PyObject_ToParameters(
 			if(PyFloat_Check(threshold))
 				params->threshold = PyFloat_AsDouble(threshold);
 			else if(PyInt_Check(threshold))
-				params->threshold = static_cast<double>(PyFloat_AsDouble(threshold));
+				params->threshold = static_cast<double>(PyInt_AsLong(threshold));
 			else
 				throw Exception("threshold should be of type `float`.");
 
@@ -94,6 +104,15 @@ Trainable::Parameters* PyObject_ToParameters(
 				params->valLookAhead = static_cast<int>(PyFloat_AsDouble(val_look_ahead));
 			else
 				throw Exception("val_look_ahead should be of type `int`.");
+
+		PyObject* stationary = PyDict_GetItemString(parameters, "stationary");
+		if(stationary)
+			if(PyBool_Check(stationary))
+				params->stationary = (stationary == Py_True);
+			else if(PyInt_Check(stationary))
+				params->stationary = PyInt_AsLong(stationary);
+			else
+				throw Exception("stationary should be of type `bool`.");
 	}
 
 	return params;
@@ -192,6 +211,14 @@ PyObject* Trainable_train(
 		input_val = 0;
 	if(output_val == Py_None)
 		output_val = 0;
+
+	if((input_val && PyDict_Check(input_val)) || (output_val && PyDict_Check(output_val))) {
+		// for some reason PyArray_FROM_OTF segfaults when input_val is a dictionary
+		Py_DECREF(input);
+		Py_DECREF(output);
+		PyErr_SetString(PyExc_TypeError, "Validation data has to be stored in NumPy arrays.");
+		return 0;
+	}
 
 	if(input_val || output_val) {
 		input_val = PyArray_FROM_OTF(input_val, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
@@ -446,7 +473,8 @@ PyObject* Trainable_check_gradient(
 const char* Trainable_parameter_gradient_doc =
 	"_parameter_gradient(self, input, output, x=None, parameters=None)\n"
 	"\n"
-	"Computes the gradient of the parameters as returned by L{_parameters()}.\n"
+	"Computes the gradient of the average negative log-likelihood (in bits) with\n"
+	"respect to the parameters as returned by L{_parameters()}.\n"
 	"\n"
 	"If C{x} is not specified, the gradient will be evaluated for the current\n"
 	"parameters of the model.\n"
@@ -464,7 +492,9 @@ const char* Trainable_parameter_gradient_doc =
 	"@param parameters: a dictionary containing hyperparameters\n"
 	"\n"
 	"@rtype: C{ndarray}\n"
-	"@return: gradient of model parameters";
+	"@return: gradient of model parameters\n"
+	"\n"
+	"@seealso: L{evaluate()}";
 
 PyObject* Trainable_parameter_gradient(
 	TrainableObject* self,
@@ -580,6 +610,75 @@ PyObject* Trainable_parameter_gradient(
 		Py_DECREF(input);
 		Py_DECREF(output);
 		Py_XDECREF(x);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+}
+
+
+
+const char* Trainable_fisher_information_doc =
+	"_parameter_gradient(self, input, output, x=None, parameters=None)\n"
+	"\n"
+	"Estimates the Fisher information matrix of the parameters as returned by L{_parameters()}.\n"
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: C{ndarray}\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@type  parameters: C{dict}\n"
+	"@param parameters: a dictionary containing hyperparameters\n"
+	"\n"
+	"@rtype: C{ndarray}\n"
+	"@return: the Fisher information matrix";
+
+PyObject* Trainable_fisher_information(
+	TrainableObject* self,
+	PyObject* args,
+	PyObject* kwds,
+	Trainable::Parameters* (*PyObject_ToParameters)(PyObject*))
+{
+	const char* kwlist[] = {"input", "output", "parameters", 0};
+
+	PyObject* input;
+	PyObject* output;
+	PyObject* parameters = 0;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|O", const_cast<char**>(kwlist),
+		&input, &output, &parameters))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output) {
+		Py_XDECREF(input);
+		Py_XDECREF(output);
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		Trainable::Parameters* params = PyObject_ToParameters(parameters);
+
+		MatrixXd fisherInformation = self->distribution->fisherInformation(
+			PyArray_ToMatrixXd(input),
+			PyArray_ToMatrixXd(output),
+			*params);
+
+		delete params;
+
+		Py_DECREF(input);
+		Py_DECREF(output);
+
+		return PyArray_FromMatrixXd(fisherInformation);
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}

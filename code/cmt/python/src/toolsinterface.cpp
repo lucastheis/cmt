@@ -30,6 +30,15 @@ using std::set;
 #include <new>
 using std::bad_alloc;
 
+#include <limits>
+using std::numeric_limits;
+
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+	#define PyInt_AsLong PyLong_AsLong
+	#define PyInt_Check PyLong_Check
+#endif
+
 const char* random_select_doc =
 	"random_select(k, n)\n"
 	"\n"
@@ -289,8 +298,99 @@ PyObject* generate_data_from_video(PyObject* self, PyObject* args, PyObject* kwd
 }
 
 
+const char* density_gradient_doc =
+	"density_gradient(img, model, input_mask, output_mask, preconditioner=None)\n"
+	"\n"
+	"Computes the gradient of the density on images implemented by a conditional distribution.";
+
+PyObject* density_gradient(PyObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"img", "model", "input_mask", "output_mask", "preconditioner", 0};
+
+	PyObject* img;
+	PyObject* modelObj;
+	PyObject* input_mask;
+	PyObject* output_mask;
+	PyObject* preconditionerObj = 0;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!OO|O", const_cast<char**>(kwlist),
+		&img, &CD_type, &modelObj, &input_mask, &output_mask, &preconditionerObj))
+		return 0;
+
+	if(preconditionerObj == Py_None)
+		preconditionerObj = 0;
+
+	if(preconditionerObj && !PyObject_IsInstance(preconditionerObj, reinterpret_cast<PyObject*>(&Preconditioner_type))) {
+		PyErr_SetString(PyExc_TypeError, "`preconditioner` has to be of type `Preconditioner`.");
+		return 0;
+	}
+
+	const ConditionalDistribution& model = *reinterpret_cast<CDObject*>(modelObj)->cd;
+
+	Preconditioner* preconditioner = preconditionerObj ?
+		reinterpret_cast<PreconditionerObject*>(preconditionerObj)->preconditioner : 0;
+
+	// make sure data is stored in NumPy array
+	img = PyArray_FROM_OTF(img, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	input_mask = PyArray_FROM_OTF(input_mask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output_mask = PyArray_FROM_OTF(output_mask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!img) {
+		Py_XDECREF(input_mask);
+		Py_XDECREF(output_mask);
+		PyErr_SetString(PyExc_TypeError, "The image has to be given as an array.");
+		return 0;
+	}
+
+	if(!input_mask || !output_mask) {
+		Py_DECREF(img);
+		Py_XDECREF(input_mask);
+		Py_XDECREF(output_mask);
+		PyErr_SetString(PyExc_TypeError, "Masks have to be given as Boolean arrays.");
+		return 0;
+	}
+
+	try {
+		PyObject* imgGradient;
+
+		if(PyArray_NDIM(img) > 2) {
+			imgGradient = PyArray_FromArraysXXd(
+				densityGradient(
+					PyArray_ToArraysXXd(img),
+					model,
+					PyArray_ToArraysXXb(input_mask),
+					PyArray_ToArraysXXb(output_mask),
+					preconditioner));
+		} else {
+			// single-channel image and single-channel masks
+			imgGradient = PyArray_FromMatrixXd(
+				densityGradient(
+					PyArray_ToMatrixXd(img),
+					model,
+					PyArray_ToMatrixXb(input_mask),
+					PyArray_ToMatrixXb(output_mask),
+					preconditioner));
+		}
+
+		Py_DECREF(img);
+		Py_DECREF(input_mask);
+		Py_DECREF(output_mask);
+
+		return imgGradient;
+
+	} catch(Exception& exception) {
+		Py_DECREF(img);
+		Py_DECREF(input_mask);
+		Py_DECREF(output_mask);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
 const char* sample_image_doc =
-	"sample_image(img, model, input_mask, output_mask, preconditioner=None)\n"
+	"sample_image(img, model, input_mask, output_mask, preconditioner=None, min_value=-inf, max_value=inf)\n"
 	"\n"
 	"Generates an image using a conditional distribution. The initial image passed to\n"
 	"this function is used to initialize the boundaries and is also used to determine\n"
@@ -315,17 +415,27 @@ const char* sample_image_doc =
 	"@return: the sampled image";
 
 PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
-	const char* kwlist[] = {"img", "model", "input_mask", "output_mask", "preconditioner", 0};
+	const char* kwlist[] = {"img", "model", "input_mask", "output_mask", "preconditioner", "min_value", "max_value", 0};
 
 	PyObject* img;
 	PyObject* modelObj;
 	PyObject* input_mask;
 	PyObject* output_mask;
 	PyObject* preconditionerObj = 0;
+	PyObject* min_value = 0;
+	PyObject* max_value = 0;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!OO|O!", const_cast<char**>(kwlist),
-		&img, &CD_type, &modelObj, &input_mask, &output_mask, &Preconditioner_type, &preconditionerObj))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!OO|OOO", const_cast<char**>(kwlist),
+		&img, &CD_type, &modelObj, &input_mask, &output_mask, &preconditionerObj, &min_value, &max_value))
 		return 0;
+
+	if(preconditionerObj == Py_None)
+		preconditionerObj = 0;
+
+	if(preconditionerObj && !PyObject_IsInstance(preconditionerObj, reinterpret_cast<PyObject*>(&Preconditioner_type))) {
+		PyErr_SetString(PyExc_TypeError, "`preconditioner` should be of type `Preconditioner`.");
+		return 0;
+	}
 
 	const ConditionalDistribution& model = *reinterpret_cast<CDObject*>(modelObj)->cd;
 
@@ -355,6 +465,35 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 	try {
 		PyObject* imgSample;
 		if(PyArray_NDIM(img) > 2) {
+			vector<double> minValues;
+			vector<double> maxValues;
+
+			if(min_value)
+				if(PyFloat_Check(min_value))
+					for(int k = 0; k < PyArray_SHAPE(reinterpret_cast<PyArrayObject*>(img))[2]; ++k)
+						minValues.push_back(PyFloat_AsDouble(min_value));
+				else if(PySequence_Check(min_value))
+					for(int k = 0; k < PySequence_Length(min_value); ++k) {
+						PyObject* item = PySequence_GetItem(min_value, k);
+						if(PyFloat_Check(item))
+							minValues.push_back(PyFloat_AsDouble(item));
+						else if(PyInt_Check(item))
+							minValues.push_back(static_cast<double>(PyInt_AsLong(item)));
+					}
+
+			if(max_value)
+				if(PyFloat_Check(max_value))
+					for(int k = 0; k < PyArray_SHAPE(reinterpret_cast<PyArrayObject*>(img))[2]; ++k)
+						maxValues.push_back(PyFloat_AsDouble(max_value));
+				else if(PySequence_Check(max_value))
+					for(int k = 0; k < PySequence_Length(max_value); ++k) {
+						PyObject* item = PySequence_GetItem(max_value, k);
+						if(PyFloat_Check(item))
+							maxValues.push_back(PyFloat_AsDouble(item));
+						else if(PyInt_Check(item))
+							maxValues.push_back(static_cast<double>(PyInt_AsLong(item)));
+					}
+
 			if(PyArray_NDIM(input_mask) > 2 && PyArray_NDIM(output_mask) > 2) {
 				// multi-channel image and multi-channel masks
 				imgSample = PyArray_FromArraysXXd(
@@ -363,7 +502,9 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 						model,
 						PyArray_ToArraysXXb(input_mask),
 						PyArray_ToArraysXXb(output_mask),
-						preconditioner));
+						preconditioner,
+						minValues,
+						maxValues));
 			} else {
 				// multi-channel image and single-channel masks
 				imgSample = PyArray_FromArraysXXd(
@@ -372,11 +513,31 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 						model,
 						PyArray_ToMatrixXb(input_mask),
 						PyArray_ToMatrixXb(output_mask),
-						preconditioner));
+						preconditioner,
+						minValues,
+						maxValues));
 			}
 		} else {
 			if(PyArray_NDIM(input_mask) > 2 || PyArray_NDIM(output_mask) > 2)
 				throw Exception("You cannot use multi-channel masks with single-channel images.");
+
+			double minValue = -numeric_limits<double>::infinity();
+			double maxValue = numeric_limits<double>::infinity();
+
+			if(PySequence_Check(min_value) && PySequence_Length(min_value) > 0) {
+				PyObject* item = PySequence_GetItem(min_value, 0);
+				if(PyFloat_Check(item))
+					minValue = PyFloat_AsDouble(item);
+				else if(PyInt_Check(item))
+					minValue = static_cast<double>(PyInt_AsLong(item));
+			}
+			if(PySequence_Check(max_value) && PySequence_Length(max_value) > 0) {
+				PyObject* item = PySequence_GetItem(max_value, 0);
+				if(PyFloat_Check(item))
+					maxValue = PyFloat_AsDouble(item);
+				else if(PyInt_Check(item))
+					maxValue = static_cast<double>(PyInt_AsLong(item));
+			}
 
 			// single-channel image and single-channel masks
 			imgSample = PyArray_FromMatrixXd(
@@ -385,7 +546,9 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 					model,
 					PyArray_ToMatrixXb(input_mask),
 					PyArray_ToMatrixXb(output_mask),
-					preconditioner));
+					preconditioner,
+					minValue,
+					maxValue));
 		}
 
 		Py_DECREF(img);
@@ -393,6 +556,313 @@ PyObject* sample_image(PyObject* self, PyObject* args, PyObject* kwds) {
 		Py_DECREF(output_mask);
 
 		return imgSample;
+
+	} catch(Exception& exception) {
+		Py_DECREF(img);
+		Py_DECREF(input_mask);
+		Py_DECREF(output_mask);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	} catch(bad_alloc&) {
+		Py_DECREF(img);
+		Py_DECREF(input_mask);
+		Py_DECREF(output_mask);
+		PyErr_SetString(PyExc_RuntimeError, "Could not allocate memory.");
+		return 0;
+	}
+
+	Py_DECREF(img);
+	Py_DECREF(input_mask);
+	Py_DECREF(output_mask);
+	return 0;
+}
+
+
+
+const char* sample_image_conditionally_doc =
+	"sample_image(img, model, labels, input_mask, output_mask, preconditioner=None, num_iter=10, initialize=False)\n"
+	"\n"
+	"Conditionally samples an image from an L{MCGSM<models.MCGSM>} using Metropolis-within-Gibbs\n"
+	"sampling. The image passed to this function is used as the initialization of the Gibbs sampler.\n"
+	"\n"
+	"@type  img: C{ndarray}\n"
+	"@param img: initialization of image\n"
+	"\n"
+	"@type  labels: C{ndarray}\n"
+	"@param labels: labels as generated by L{sample_labels_conditionally}\n"
+	"\n"
+	"@type  model: L{MCGSM<models.MCGSM>}\n"
+	"@param model: the model defining the joint distribution over labels and images\n"
+	"\n"
+	"@type  input_mask: C{ndarray}\n"
+	"@param input_mask: a Boolean array describing the input pixels\n"
+	"\n"
+	"@type  output_mask: C{ndarray}\n"
+	"@param output_mask: a Boolean array describing the output pixels\n"
+	"\n"
+	"@type  preconditioner: L{Preconditioner<transforms.Preconditioner>}\n"
+	"@param preconditioner: transforms the input before feeding it into the model\n"
+	"\n"
+	"@type  num_iter: C{int}\n"
+	"@param num_iter: the number of Gibbs updates of each pixel\n"
+	"\n"
+	"@type  initialize: C{bool}\n"
+	"@param initialize: if true, accept all proposed pixel updates in the first iteration\n"
+	"\n"
+	"@rtype: C{ndarray}\n"
+	"@return: the sampled image";
+
+PyObject* sample_image_conditionally(PyObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {
+		"img",
+		"labels",
+		"model",
+		"input_mask",
+		"output_mask",
+		"preconditioner",
+		"num_iter",
+		"initialize", 0};
+
+	PyObject* img;
+	PyObject* labels;
+	PyObject* modelObj;
+	PyObject* input_mask;
+	PyObject* output_mask;
+	PyObject* preconditionerObj = 0;
+	int num_iter = 10;
+	bool initialize = false;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOO!OO|O!ib", const_cast<char**>(kwlist),
+		&img, 
+		&labels,
+		&MCGSM_type, &modelObj,
+		&input_mask,
+		&output_mask,
+		&Preconditioner_type, &preconditionerObj,
+		&num_iter,
+		&initialize))
+		return 0;
+
+	const MCGSM& model = *reinterpret_cast<MCGSMObject*>(modelObj)->mcgsm;
+
+	Preconditioner* preconditioner = preconditionerObj ?
+		reinterpret_cast<PreconditionerObject*>(preconditionerObj)->preconditioner : 0;
+
+	// make sure data is stored in NumPy array
+	img = PyArray_FROM_OTF(img, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	labels = PyArray_FROM_OTF(labels, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	input_mask = PyArray_FROM_OTF(input_mask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output_mask = PyArray_FROM_OTF(output_mask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!img) {
+		Py_XDECREF(labels);
+		Py_XDECREF(input_mask);
+		Py_XDECREF(output_mask);
+		PyErr_SetString(PyExc_TypeError, "The initial image has to be given as an array.");
+		return 0;
+	}
+
+	if(!labels) {
+		Py_DECREF(img);
+		Py_XDECREF(input_mask);
+		Py_XDECREF(output_mask);
+		PyErr_SetString(PyExc_TypeError, "The labels have to be stored in an integer array.");
+		return 0;
+	}
+
+	if(!input_mask || !output_mask) {
+		Py_DECREF(img);
+		Py_DECREF(labels);
+		Py_XDECREF(input_mask);
+		Py_XDECREF(output_mask);
+		PyErr_SetString(PyExc_TypeError, "Masks have to be given as Boolean arrays.");
+		return 0;
+	}
+
+	try {
+		PyObject* imgSample;
+
+//		if(PyArray_NDIM(img) > 2) {
+//			if(PyArray_NDIM(input_mask) > 2 && PyArray_NDIM(output_mask) > 2) {
+//				// multi-channel image and multi-channel masks
+//				imgSample = PyArray_FromArraysXXd(
+//					sampleImage(
+//						PyArray_ToArraysXXd(img),
+//						model,
+//						PyArray_ToArraysXXb(input_mask),
+//						PyArray_ToArraysXXb(output_mask),
+//						preconditioner));
+//			} else {
+//				// multi-channel image and single-channel masks
+//				imgSample = PyArray_FromArraysXXd(
+//					sampleImage(
+//						PyArray_ToArraysXXd(img),
+//						model,
+//						PyArray_ToMatrixXb(input_mask),
+//						PyArray_ToMatrixXb(output_mask),
+//						preconditioner));
+//			}
+//		} else {
+//			if(PyArray_NDIM(input_mask) > 2 || PyArray_NDIM(output_mask) > 2)
+//				throw Exception("You cannot use multi-channel masks with single-channel images.");
+//
+			// single-channel image and single-channel masks
+			imgSample = PyArray_FromMatrixXd(
+				sampleImageConditionally(
+					PyArray_ToMatrixXd(img),
+					PyArray_ToMatrixXi(labels),
+					model,
+					PyArray_ToMatrixXb(input_mask),
+					PyArray_ToMatrixXb(output_mask),
+					preconditioner,
+					num_iter,
+					initialize));
+//		}
+
+		Py_DECREF(img);
+		Py_DECREF(labels);
+		Py_DECREF(input_mask);
+		Py_DECREF(output_mask);
+
+		return imgSample;
+
+	} catch(Exception& exception) {
+		Py_DECREF(img);
+		Py_DECREF(labels);
+		Py_DECREF(input_mask);
+		Py_DECREF(output_mask);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	} catch(bad_alloc&) {
+		Py_DECREF(img);
+		Py_DECREF(labels);
+		Py_DECREF(input_mask);
+		Py_DECREF(output_mask);
+		PyErr_SetString(PyExc_RuntimeError, "Could not allocate memory.");
+		return 0;
+	}
+
+	Py_DECREF(img);
+	Py_DECREF(labels);
+	Py_DECREF(input_mask);
+	Py_DECREF(output_mask);
+	return 0;
+}
+
+
+
+const char* sample_labels_conditionally_doc =
+	"sample_labels_conditionally(img, model, input_mask, output_mask, preconditioner=None)\n"
+	"\n"
+	"Samples component labels from an L{MCGSM<models.MCGSM>} for a given image.\n"
+	"\n"
+	"@type  img: C{ndarray}\n"
+	"@param img: initialization of image\n"
+	"\n"
+	"@type  model: L{MCGSM<models.MCGSM>}\n"
+	"@param model: the model defining the joint distribution over labels and images\n"
+	"\n"
+	"@type  input_mask: C{ndarray}\n"
+	"@param input_mask: a Boolean array describing the input pixels\n"
+	"\n"
+	"@type  output_mask: C{ndarray}\n"
+	"@param output_mask: a Boolean array describing the output pixels\n"
+	"\n"
+	"@type  preconditioner: L{Preconditioner<transforms.Preconditioner>}\n"
+	"@param preconditioner: transforms the input before feeding it into the model\n"
+	"\n"
+	"@rtype: C{ndarray}\n"
+	"@return: sampled component labels";
+
+PyObject* sample_labels_conditionally(PyObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {
+		"img",
+		"model",
+		"input_mask",
+		"output_mask",
+		"preconditioner", 0};
+
+	PyObject* img;
+	PyObject* modelObj;
+	PyObject* input_mask;
+	PyObject* output_mask;
+	PyObject* preconditionerObj = 0;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO!OO|O!", const_cast<char**>(kwlist),
+		&img, 
+		&MCGSM_type, &modelObj,
+		&input_mask,
+		&output_mask,
+		&Preconditioner_type, &preconditionerObj))
+		return 0;
+
+	const MCGSM& model = *reinterpret_cast<MCGSMObject*>(modelObj)->mcgsm;
+
+	Preconditioner* preconditioner = preconditionerObj ?
+		reinterpret_cast<PreconditionerObject*>(preconditionerObj)->preconditioner : 0;
+
+	// make sure data is stored in NumPy array
+	img = PyArray_FROM_OTF(img, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	input_mask = PyArray_FROM_OTF(input_mask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output_mask = PyArray_FROM_OTF(output_mask, NPY_BOOL, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!img) {
+		Py_XDECREF(input_mask);
+		Py_XDECREF(output_mask);
+		PyErr_SetString(PyExc_TypeError, "The initial image has to be given as an array.");
+		return 0;
+	}
+
+	if(!input_mask || !output_mask) {
+		Py_DECREF(img);
+		Py_XDECREF(input_mask);
+		Py_XDECREF(output_mask);
+		PyErr_SetString(PyExc_TypeError, "Masks have to be given as Boolean arrays.");
+		return 0;
+	}
+
+	try {
+		PyObject* labels;
+
+//		if(PyArray_NDIM(img) > 2) {
+//			if(PyArray_NDIM(input_mask) > 2 && PyArray_NDIM(output_mask) > 2) {
+//				// multi-channel image and multi-channel masks
+//				imgSample = PyArray_FromArraysXXd(
+//					sampleImage(
+//						PyArray_ToArraysXXd(img),
+//						model,
+//						PyArray_ToArraysXXb(input_mask),
+//						PyArray_ToArraysXXb(output_mask),
+//						preconditioner));
+//			} else {
+//				// multi-channel image and single-channel masks
+//				imgSample = PyArray_FromArraysXXd(
+//					sampleImage(
+//						PyArray_ToArraysXXd(img),
+//						model,
+//						PyArray_ToMatrixXb(input_mask),
+//						PyArray_ToMatrixXb(output_mask),
+//						preconditioner));
+//			}
+//		} else {
+//			if(PyArray_NDIM(input_mask) > 2 || PyArray_NDIM(output_mask) > 2)
+//				throw Exception("You cannot use multi-channel masks with single-channel images.");
+//
+			// single-channel image and single-channel masks
+			labels = PyArray_FromMatrixXi(
+				sampleLabelsConditionally(
+					PyArray_ToMatrixXd(img),
+					model,
+					PyArray_ToMatrixXb(input_mask),
+					PyArray_ToMatrixXb(output_mask),
+					preconditioner));
+//		}
+
+		Py_DECREF(img);
+		Py_DECREF(input_mask);
+		Py_DECREF(output_mask);
+
+		return labels;
 
 	} catch(Exception& exception) {
 		Py_DECREF(img);
@@ -837,7 +1307,7 @@ const char* sample_spike_train_doc =
 	"@type  preconditioner: L{Preconditioner<transforms.Preconditioner>}\n"
 	"@param preconditioner: transforms the spike history before appending it to the input\n"
 	"\n"
-	"@rtype: C{tuple}\n"
+	"@rtype: C{ndarray}\n"
 	"@return: sampled spike train";
 
 PyObject* sample_spike_train(PyObject* self, PyObject* args, PyObject* kwds) {

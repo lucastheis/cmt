@@ -5,7 +5,7 @@ Tools for converting color images.
 __license__ = 'MIT License <http://www.opensource.org/licenses/mit-license.php>'
 __author__ = 'Lucas Theis <lucas@theis.io>'
 __docformat__ = 'epytext'
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 from numpy import array, dot
 from numpy.linalg import inv, det
@@ -17,7 +17,7 @@ Kb = 1. - Kr - Kg
 # color matrix
 YCbCr = array([
 	[Kr, -Kr / (1. - Kb) / 2.,              1. / 2.],
-	[Kg, -Kg / (1. - Kb) / 2., -Kg / (1. - Kb) / 2.],
+	[Kg, -Kg / (1. - Kb) / 2., -Kg / (1. - Kr) / 2.],
 	[Kb,              1. / 2., -Kb / (1. - Kr) / 2.]])
 
 # make volume preserving

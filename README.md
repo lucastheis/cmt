@@ -8,21 +8,30 @@ Fast implementations of several probabilistic models. Examples:
 * MCBM (mixture of conditional Boltzmann machines)
 * FVBN (fully-visible belief network; Neal, 1992)
 * GLM (generalized linear model; Nelder & Wedderburn, 1972)
+* MLR (multinomial logistic regression)
 * STM (spike-triggered mixture model; Theis et al., 2013)
 
 ## Requirements
 
+
+### Python Interface
 * Python >= 2.7.0
 * NumPy >= 1.6.1
 * automake >= 1.11.0
 * libtool >= 2.4.0
+* Pillow >= 2.6.1 (optional)
+
+### Matlab Interface
+* Matlab >= R2009b
+* MEX compatible compiler
 
 I have tested the code with the above versions, but older versions might also work.
 
-## Example
+## Python Example
 
 ```python
-from cmt import MCGSM, WhiteningPreconditioner
+from cmt.models import MCGSM
+from cmt.transforms import WhiteningPreconditioner
 
 # load data
 input, output = load('data')
@@ -31,22 +40,33 @@ input, output = load('data')
 wt = WhiteningPreconditioner(input, output)
 
 # fit a conditional model to predict outputs from inputs
-model = MCGSM(
-	dim_in=input.shape[0],
-	dim_out=output.shape[0],
-	num_components=8,
-	num_scales=6,
-	num_features=40)
+model = MCGSM(dim_in=input.shape[0],
+              dim_out=output.shape[0],
+              num_components=8,
+              num_scales=6,
+              num_features=40)
 model.initialize(*wt(input, output))
 model.train(*wt(input, output), parameters={
-	'max_iter': 1000,
-	'threshold': 1e-5})
+        'max_iter': 1000,
+        'threshold': 1e-5})
 
 # evaluate log-likelihood [nats] on the training data
 loglik = model.loglikelihood(*wt(input, output)) + wt.logjacobian(input, output)
 ```
 
-## Installation
+## Matlab Example
+
+```matlab
+% load the data
+data = load('data.mat')
+
+% fit a generalized linear model to the data
+model = cmt.GLM(10, cmt.ExponentialFunction, cmt.Poisson));
+model.train(data.input, data.output, 'maxIter', 1000, 'threshold', 1e-5);
+
+```
+
+## Python Interface Installation
 
 ### Linux
 
@@ -85,21 +105,31 @@ Once the L-BFGS library is compiled, go back to the root directory and execute:
 	python setup.py build
 	python setup.py install
 
-### Building with the Intel compiler and MKL
+## Matlab Interface Installation
 
-To get even better performance, you might want to try compiling the module with Intel's compiler and
-the MKL libraries. This probably requires some changes of the paths in `setup.py`. After that, use
-the following line to compile the code
+Normally it should be enough to download one of the prebuild binaries of our cmt matlab interface. If you
+want to build it yourself, the following instructions are for you.
 
-	python setup.py build --compiler=intelem
+### Build lbfgs library 
+The first step is always to follow the above instructions to build liblbfgs for your platform.
 
-on 64-bit systems and
+On Windows this is done by opening `code\liblbfgs\lbfgs.sln` in Visual Studio. In Visual Studio, make
+sure to select the "Release" configuration and the right platform (probably "x64"). Then
+build the "lib" project by selecting it with a right click and choosing "build". The resulting file `lbfgs.lib` should
+be found in the subfolder `x64\Release` (or "Release" for x86 systems, in which case you have to change that path in the setup script).
 
-	python setup.py build --compiler=intel
+### Building the mex interface in Matlab
 
-on 32-bit systems. The following might be helpful when trying to compile the L-BFGS library with the
-Intel compiler.
+Next open Matlab and make sure a valid mex compiler can be found:
 
-	./autogen.sh
-	CC=icc ./configure --enable-sse2
-	CC=icc make CFLAGS="-fPIC"
+	mex -setup
+
+If that is not the case, please follow the official MathWorks documentation to install a supported compiler 
+and check again.
+
+Then execute `setup.m` from the root folder of cmt in Matlab:
+
+	setup
+
+The distribute folder should now contain all the files needed to run the CMT toolbox from within matlab. Add
+it to your matlab path to use it.

@@ -68,7 +68,7 @@ typedef double lbfgsfloatval_t;
 
 /**
  * Return values of lbfgs().
- *
+ * 
  *  Roughly speaking, a negative value indicates an error.
  */
 enum {
@@ -129,13 +129,13 @@ enum {
     /** A rounding error occurred; alternatively, no line-search step
         satisfies the sufficient decrease and curvature conditions. */
     LBFGSERR_ROUNDING_ERROR,
-    /** The line-search step became smaller than lbfgs_parameter_t::min_step (-1000). */
+    /** The line-search step became smaller than lbfgs_parameter_t::min_step. */
     LBFGSERR_MINIMUMSTEP,
     /** The line-search step became larger than lbfgs_parameter_t::max_step. */
     LBFGSERR_MAXIMUMSTEP,
     /** The line-search routine reaches the maximum number of evaluations. */
     LBFGSERR_MAXIMUMLINESEARCH,
-    /** The algorithm routine reaches the maximum number of iterations (-997). */
+    /** The algorithm routine reaches the maximum number of iterations. */
     LBFGSERR_MAXIMUMITERATION,
     /** Relative width of the interval of uncertainty is at most
         lbfgs_parameter_t::xtol. */

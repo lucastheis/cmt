@@ -12,6 +12,14 @@ using Eigen::RowMajor;
 #include <utility>
 using std::make_pair;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+	#define PyInt_AsLong PyLong_AsLong
+	#define PyInt_Check PyLong_Check
+	#define PyString_Size PyBytes_Size
+	#define PyString_AsString PyBytes_AsString
+#endif
+
 PyObject* PyArray_FromMatrixXd(const MatrixXd& mat) {
 	// matrix dimensionality
 	npy_intp dims[2];
@@ -348,4 +356,73 @@ PyObject* PyList_FromTuples(const Tuples& tuples) {
 			Py_BuildValue("(ii)", tuples[i].first, tuples[i].second));
 
 	return list;
+}
+
+
+
+Regularizer PyObject_ToRegularizer(PyObject* regularizer) {
+	if(PyFloat_Check(regularizer))
+		return Regularizer(PyFloat_AsDouble(regularizer));
+
+	if(PyInt_Check(regularizer))
+		return Regularizer(static_cast<double>(PyInt_AsLong(regularizer)));
+
+	if(PyDict_Check(regularizer)) {
+		PyObject* r_strength = PyDict_GetItemString(regularizer, "strength");
+		PyObject* r_transform = PyDict_GetItemString(regularizer, "transform");
+		PyObject* r_norm = PyDict_GetItemString(regularizer, "norm");
+
+		if(r_transform == Py_None)
+			r_transform = 0;
+
+		Regularizer::Norm norm = Regularizer::L2;
+
+		if(r_norm) {
+			if(PyString_Size(r_norm) != 2)
+				throw Exception("Regularizer norm should be 'L1' or 'L2'.");
+
+			switch(PyString_AsString(r_norm)[1]) {
+				default:
+					throw Exception("Regularizer norm should be 'L1' or 'L2'.");
+
+				case '1':
+					norm = Regularizer::L1;
+					break;
+
+				case '2':
+					norm = Regularizer::L2;
+					break;
+			}
+		}
+
+		double strength = r_transform ? 1. : 0.;
+
+		if(r_strength) {
+			if(PyInt_Check(r_strength)) {
+				strength = static_cast<double>(PyInt_AsLong(r_strength));
+			} else {
+				if(!PyFloat_Check(r_strength))
+					throw Exception("Regularizer strength should be of type `float`.");
+				strength = PyFloat_AsDouble(r_strength);
+			}
+		}
+
+		if(r_transform) {
+			PyObject* matrix = PyArray_FROM_OTF(r_transform, NPY_DOUBLE, NPY_IN_ARRAY);
+
+			if(!matrix)
+				throw Exception("Regularizer transform should be of type `ndarray`.");
+
+			return Regularizer(PyArray_ToMatrixXd(matrix), norm, strength);
+		} else {
+			return Regularizer(strength, norm);
+		}
+	}
+
+	PyObject* matrix = PyArray_FROM_OTF(regularizer, NPY_DOUBLE, NPY_IN_ARRAY);
+
+	if(matrix)
+		return Regularizer(PyArray_ToMatrixXd(matrix));
+
+	throw Exception("Regularizer should be of type `dict`, `float` or `ndarray`.");
 }

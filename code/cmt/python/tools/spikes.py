@@ -7,7 +7,7 @@ __author__ = 'Lucas Theis <lucas@theis.io>'
 __docformat__ = 'epytext'
 __version__ = '0.1.0'
 
-from cmt.tools import extract_windows
+from . import extract_windows
 
 def generate_data_from_spike_train(stimulus, stimulus_history, spike_train=None, spike_history=0):
 	"""

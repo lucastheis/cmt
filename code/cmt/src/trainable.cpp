@@ -1,10 +1,27 @@
-#include <sys/time.h>
+#ifdef _WIN32
+	#include <gettimeofday.h>
+#else
+	#include <sys/time.h>
+#endif
+
 #include <cstdlib>
 #include "trainable.h"
 #include "exception.h"
 
+#include "Eigen/Core"
+using Eigen::ColMajor;
+using Eigen::MatrixXd;
+
 #include <limits>
 using std::numeric_limits;
+
+#ifdef _WIN32
+	#undef max
+#endif
+
+#include <cmath>
+using std::log;
+using std::pow;
 
 #include <iostream>
 using std::cout;
@@ -29,6 +46,7 @@ CMT::Trainable::Parameters::Parameters() {
 	cbIter = 25;
 	valIter = 5;
 	valLookAhead = 20;
+	stationary = false;
 }
 
 
@@ -49,7 +67,8 @@ CMT::Trainable::Parameters::Parameters(const Parameters& params) :
 	callback(0),
 	cbIter(params.cbIter),
 	valIter(params.valIter),
-	valLookAhead(params.valLookAhead)
+	valLookAhead(params.valLookAhead),
+	stationary(params.stationary)
 {
 	if(params.callback)
 		callback = params.callback->copy();
@@ -69,6 +88,7 @@ CMT::Trainable::Parameters& CMT::Trainable::Parameters::operator=(
 	cbIter = params.cbIter;
 	valIter = params.valIter;
 	valLookAhead = params.valLookAhead;
+	stationary = params.stationary;
 
 	return *this;
 }
@@ -212,6 +232,35 @@ lbfgsfloatval_t CMT::Trainable::evaluateLBFGS(
 
 
 
+MatrixXd CMT::Trainable::fisherInformation( 
+	const MatrixXd& input,
+	const MatrixXd& output,
+	const Parameters& params)
+{
+	if(input.rows() != dimIn() || output.rows() != dimOut())
+		throw Exception("Data has wrong dimensionality.");
+	if(input.cols() != output.cols())
+		throw Exception("The number of inputs and outputs should be the same.");
+
+	Matrix<double, Dynamic, Dynamic, ColMajor> gradients(numParameters(params), input.cols());
+
+	int n = numParameters(params);
+
+	// get parameters and allocate memory for gradient
+	lbfgsfloatval_t* x = parameters(params);
+
+	for(int i = 0; i < output.cols(); ++i)
+		// compute gradient for a single data point (assumes F-major ordering)
+		parameterGradient(input.col(i), output.col(i), x, gradients.data() + i * n, params);
+
+	lbfgs_free(x);
+
+	// estimate Fisher information matrix (correcting that gradients are for base two log-likelihood)
+	return gradients * gradients.transpose() * pow(log(2.), 2);
+}
+
+
+
 void CMT::Trainable::initialize(const MatrixXd& input, const MatrixXd& output) {
 }
 
@@ -307,15 +356,15 @@ bool CMT::Trainable::train(
 	lbfgs_parameter_init(&hyperparams);
 	hyperparams.max_iterations = params.maxIter;
 	hyperparams.m = params.numGrad;
-	hyperparams.epsilon = 1e-7;
-	hyperparams.linesearch = LBFGS_LINESEARCH_MORETHUENTE;
+	hyperparams.epsilon = 1e-9;
+	hyperparams.linesearch = LBFGS_LINESEARCH_BACKTRACKING;
 	hyperparams.max_linesearch = 100;
 	hyperparams.ftol = 1e-4;
 
 	// wrap all additional arguments to optimization routine
 	InstanceLBFGS instance(this, &params, &input, &output, inputVal, outputVal);
 
-	if(params.verbosity > 0)
+	if(params.verbosity > 0) {
 		if(inputVal && outputVal) {
 			cout << setw(6) << 0;
 			cout << setw(11) << setprecision(5) << evaluateLBFGS(&instance, x, 0, 0, 0.);
@@ -324,6 +373,7 @@ bool CMT::Trainable::train(
 			cout << setw(6) << 0;
 			cout << setw(11) << setprecision(5) << evaluateLBFGS(&instance, x, 0, 0, 0.) << endl;
 		}
+	}
 
 	// start LBFGS optimization
 	int status = LBFGSERR_MAXIMUMITERATION;
@@ -380,9 +430,9 @@ double CMT::Trainable::checkGradient(
 
 	int numParams = numParameters(params);
 
-	lbfgsfloatval_t y[numParams];
-	lbfgsfloatval_t g[numParams];
-	lbfgsfloatval_t n[numParams];
+	lbfgsfloatval_t* y = new lbfgsfloatval_t[numParams];
+	lbfgsfloatval_t* g = new lbfgsfloatval_t[numParams];
+	lbfgsfloatval_t* n = new lbfgsfloatval_t[numParams];
 	lbfgsfloatval_t val1;
 	lbfgsfloatval_t val2;
 
@@ -410,6 +460,12 @@ double CMT::Trainable::checkGradient(
 	double err = 0.;
 	for(int i = 0; i < numParams; ++i)
 		err += (g[i] - n[i]) * (g[i] - n[i]);
+
+	// free memory created by call to parameters()
+	lbfgs_free(x);
+	delete[] y;
+	delete[] g;
+	delete[] n;
 
 	return sqrt(err);
 }
@@ -439,7 +495,7 @@ double CMT::Trainable::checkPerformance(
 	// wrap additional arguments
 	InstanceLBFGS instance(this, &params, &input, &output);
 
-	// measure time it takes to evaluate gradient in seconds
+	// repeatedly evaluate gradient
 	lbfgsfloatval_t* g = lbfgs_malloc(numParameters(params));
 	timeval from, to;
 
@@ -450,6 +506,8 @@ double CMT::Trainable::checkPerformance(
 
 	// free memory used by LBFGS
 	lbfgs_free(x);
+	lbfgs_free(g);
 
+	// return average time it took to compute gradient (in seconds)
 	return (to.tv_sec + to.tv_usec / 1E6 - from.tv_sec - from.tv_usec / 1E6) / repetitions;
 }

@@ -40,6 +40,8 @@ namespace CMT {
 	ArrayXXd sampleGamma(int m = 1, int n = 1, int k = 1);
 	ArrayXXi samplePoisson(int m = 1, int n = 1, double lambda = 1.);
 	ArrayXXi samplePoisson(const ArrayXXd& lambda);
+	ArrayXXi sampleBinomial(int w = 1, int h = 1, int n = 10, double p = .5);
+	ArrayXXi sampleBinomial(const ArrayXXi& n, const ArrayXXd& p);
 	set<int> randomSelect(int k, int n);
 
 	VectorXi argSort(const VectorXd& data);

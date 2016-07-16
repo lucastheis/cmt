@@ -10,6 +10,10 @@ using std::bad_alloc;
 #include "cmt/utils"
 using CMT::Exception;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+#endif
+
 PyObject* Preconditioner_call(PreconditionerObject* self, PyObject* args, PyObject* kwds) {
 	const char* kwlist[] = {"input", "output", 0};
 
@@ -208,6 +212,67 @@ PyObject* Preconditioner_logjacobian(PreconditionerObject* self, PyObject* args,
 
 
 
+const char* Preconditioner_adjust_gradient_doc =
+	"adjust_gradient(self, input, output=None)\n"
+	"\n"
+	"Maps gradients computed in preconditioned space into original space."
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: preconditioned inputs stored in columns\n"
+	"\n"
+	"@type  output: C{ndarray}\n"
+	"@param output: preconditioned outputs stored in columns\n"
+	"\n"
+	"@rtype: tuple/C{ndarray}\n"
+	"@return: tuple or array containing inputs or inputs and outputs, respectively";
+
+PyObject* Preconditioner_adjust_gradient(PreconditionerObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", "output", 0};
+
+	PyObject* input;
+	PyObject* output;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO", const_cast<char**>(kwlist), &input, &output))
+		return 0;
+
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output) {
+		Py_XDECREF(input);
+		Py_XDECREF(output);
+		PyErr_SetString(PyExc_TypeError, "Input and output should be of type `ndarray`.");
+	}
+
+	try {
+		pair<ArrayXXd, ArrayXXd> data = self->preconditioner->adjustGradient(
+			PyArray_ToMatrixXd(input),
+			PyArray_ToMatrixXd(output));
+
+		PyObject* inputObj = PyArray_FromMatrixXd(data.first);
+		PyObject* outputObj = PyArray_FromMatrixXd(data.second);
+
+		PyObject* tuple = Py_BuildValue("(OO)", inputObj, outputObj);
+
+		Py_DECREF(input);
+		Py_DECREF(output);
+		Py_DECREF(inputObj);
+		Py_DECREF(outputObj);
+
+		return tuple;
+
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
 PyObject* Preconditioner_new(PyTypeObject* type, PyObject*, PyObject*) {
 	PyObject* self = type->tp_alloc(type, 0);
 
@@ -237,7 +302,7 @@ void Preconditioner_dealloc(PreconditionerObject* self) {
 		delete self->preconditioner;
 
 	// delete Python object
-	self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
+	Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
 
@@ -857,7 +922,7 @@ const char* PCAPreconditioner_doc =
 	"@param output: outputs stored in columns\n"
 	"\n"
 	"@type  var_explained: C{double}\n"
-	"@param var_explained: the amount of variance retained after dimensionality reduction\n"
+	"@param var_explained: the amount of variance retained after dimensionality reduction (in percent)\n"
 	"\n"
 	"@type  num_pcs: C{int}\n"
 	"@param num_pcs: the number of principal components of the input kept";
@@ -997,7 +1062,7 @@ const char* PCATransform_doc =
 	"@param dim_out: number of outputs (default: 1)\n"
 	"\n"
 	"@type  var_explained: C{double}\n"
-	"@param var_explained: the amount of variance retained after dimensionality reduction\n"
+	"@param var_explained: the amount of variance retained after dimensionality reduction (in percent)\n"
 	"\n"
 	"@type  num_pcs: C{int}\n"
 	"@param num_pcs: the number of principal components of the input kept";

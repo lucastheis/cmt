@@ -32,6 +32,8 @@ extern PyTypeObject UnivariateDistribution_type;
 extern PyTypeObject Bernoulli_type;
 
 extern const char* STM_doc;
+extern const char* STM_nonlinear_responses_doc;
+extern const char* STM_linear_response_doc;
 extern const char* STM_train_doc;
 extern const char* STM_sample_posterior_doc;
 extern const char* STM_reduce_doc;
@@ -43,6 +45,9 @@ PyObject* STM_dim_in_nonlinear(STMObject*, void*);
 PyObject* STM_dim_in_linear(STMObject*, void*);
 PyObject* STM_num_components(STMObject*, void*);
 PyObject* STM_num_features(STMObject*, void*);
+
+PyObject* STM_sharpness(STMObject*, void*);
+int STM_set_sharpness(STMObject*, PyObject*, void*);
 
 PyObject* STM_biases(STMObject*, void*);
 int STM_set_biases(STMObject*, PyObject*, void*);
@@ -65,11 +70,15 @@ int STM_set_nonlinearity(STMObject*, PyObject*, void*);
 PyObject* STM_distribution(STMObject*, void*);
 int STM_set_distribution(STMObject*, PyObject*, void*);
 
+PyObject* STM_linear_response(STMObject*, PyObject*, PyObject*);
+PyObject* STM_nonlinear_responses(STMObject*, PyObject*, PyObject*);
+
 PyObject* STM_train(STMObject*, PyObject*, PyObject*);
 
 PyObject* STM_parameters(STMObject*, PyObject*, PyObject*);
 PyObject* STM_set_parameters(STMObject*, PyObject*, PyObject*);
 PyObject* STM_parameter_gradient(STMObject*, PyObject*, PyObject*);
+PyObject* STM_fisher_information(STMObject*, PyObject*, PyObject*);
 PyObject* STM_check_gradient(STMObject*, PyObject*, PyObject*);
 PyObject* STM_check_performance(STMObject* self, PyObject* args, PyObject* kwds);
 

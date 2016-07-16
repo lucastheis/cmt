@@ -17,6 +17,10 @@ using CMT::Exception;
 #include "cmt/tools"
 using CMT::Tuples;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+#endif
+
 Trainable::Parameters* PyObject_ToMCBMParameters(PyObject* parameters) {
 	MCBM::Parameters* params = dynamic_cast<MCBM::Parameters*>(
 		PyObject_ToParameters(parameters, new MCBM::Parameters));
@@ -74,44 +78,15 @@ Trainable::Parameters* PyObject_ToMCBMParameters(PyObject* parameters) {
 
 		PyObject* regularize_features = PyDict_GetItemString(parameters, "regularize_features");
 		if(regularize_features)
-			if(PyFloat_Check(regularize_features))
-				params->regularizeFeatures = PyFloat_AsDouble(regularize_features);
-			else if(PyInt_Check(regularize_features))
-				params->regularizeFeatures = static_cast<double>(PyFloat_AsDouble(regularize_features));
-			else
-				throw Exception("regularize_features should be of type `float`.");
+			params->regularizeFeatures = PyObject_ToRegularizer(regularize_features);
 
 		PyObject* regularize_predictors = PyDict_GetItemString(parameters, "regularize_predictors");
 		if(regularize_predictors)
-			if(PyFloat_Check(regularize_predictors))
-				params->regularizePredictors = PyFloat_AsDouble(regularize_predictors);
-			else if(PyInt_Check(regularize_predictors))
-				params->regularizePredictors = static_cast<double>(PyFloat_AsDouble(regularize_predictors));
-			else
-				throw Exception("regularize_predictors should be of type `float`.");
+			params->regularizePredictors = PyObject_ToRegularizer(regularize_predictors);
 
 		PyObject* regularize_weights = PyDict_GetItemString(parameters, "regularize_weights");
 		if(regularize_weights)
-			if(PyFloat_Check(regularize_weights))
-				params->regularizeWeights = PyFloat_AsDouble(regularize_weights);
-			else if(PyInt_Check(regularize_weights))
-				params->regularizeWeights = static_cast<double>(PyFloat_AsDouble(regularize_weights));
-			else
-				throw Exception("regularize_weights should be of type `float`.");
-
-		PyObject* regularizer = PyDict_GetItemString(parameters, "regularizer");
-		if(regularizer)
-			if(PyString_Check(regularizer)) {
-				if(PyString_Size(regularizer) != 2)
-					throw Exception("Regularizer should be 'L1' or 'L2'.");
-
-				if(PyString_AsString(regularizer)[1] == '1')
-					params->regularizer = MCBM::Parameters::L1;
-				else
-					params->regularizer = MCBM::Parameters::L2;
-			} else {
-				throw Exception("regularizer should be of type `str`.");
-			}
+			params->regularizeWeights = PyObject_ToRegularizer(regularize_weights);
 	}
 
 	return params;
@@ -124,7 +99,7 @@ const char* MCBM_doc =
 	"\n"
 	"The conditional distribution defined by the model is\n"
 	"\n"
-	"$$p(\\mathbf{y} \\mid \\mathbf{x}) \\propto \\sum_{c} \\exp\\left(\\eta_c + \\sum_i \\beta_{ci} \\left(\\mathbf{b}_i^\\top \\mathbf{x}\\right)^2 + \\mathbf{w}_c^\\top \\mathbf{x} + \\mathbf{y}_c^\\top \\mathbf{A}_c \\mathbf{x} + v_c y\\right),$$\n"
+	"$$p(y \\mid \\mathbf{x}) \\propto \\sum_{c} \\exp\\left(\\eta_c + \\sum_i \\beta_{ci} \\left(\\mathbf{b}_i^\\top \\mathbf{x}\\right)^2 + \\mathbf{w}_c^\\top \\mathbf{x} + \\mathbf{y}_c^\\top \\mathbf{A}_c \\mathbf{x} + v_c y\\right),$$\n"
 	"\n"
 	"where $y \\in \\{0, 1\\}$ and $\\mathbf{x} \\in \\mathbb{R}^N$ (although typically $\\mathbf{x} \\in \\{0, 1\\}^N$).\n"
 	"\n"
@@ -135,7 +110,7 @@ const char* MCBM_doc =
 	"To access the different parameters, you can use\n"
 	"\n"
 	"\t>>> mcbm.priors\n"
-	"\t>>> mcbm.weights\n"
+	"\t>>> mcbm.eights\n"
 	"\t>>> mcbm.features\n"
 	"\t>>> mcbm.predictors\n"
 	"\t>>> mcbm.input_bias\n"
@@ -417,10 +392,18 @@ const char* MCBM_train_doc =
 	"\t>>> \t'train_predictors': True,\n"
 	"\t>>> \t'train_input_bias': True,\n"
 	"\t>>> \t'train_output_bias': True,\n"
-	"\t>>> \t'regularizer': 'L2',\n"
-	"\t>>> \t'regularize_features': 0.,\n"
-	"\t>>> \t'regularize_weights': 0.,\n"
-	"\t>>> \t'regularize_predictors': 0.\n"
+	"\t>>> \t'regularize_features': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
+	"\t>>> \t'regularize_weights': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
+	"\t>>> \t'regularize_predictors': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
 	"\t>>> })\n"
 	"\n"
 	"The parameters C{train_priors}, C{train_weights}, and so on can be used to control which "
@@ -428,6 +411,13 @@ const char* MCBM_train_doc =
 	"the difference in (penalized) log-likelihood is sufficiently small enough, as specified by "
 	"C{threshold}. C{num_grad} is the number of gradients used by L-BFGS to approximate the inverse "
 	"Hessian matrix.\n"
+	"\n"
+	"Regularization of parameters $\\mathbf{z}$ adds a penalty term\n"
+	"\n"
+	"$$\\eta ||\\mathbf{A} \\mathbf{z}||_p$$\n"
+	"\n"
+	"to the average log-likelihood, where $\\eta$ is given by C{strength}, $\\mathbf{A}$ is\n"
+	"given by C{transform}, and $p$ is controlled by C{norm}, which has to be either C{'L1'} or C{'L2'}.\n"
 	"\n"
 	"The parameter C{batch_size} has no effect on the solution of the optimization but "
 	"can affect speed by reducing the number of cache misses.\n"

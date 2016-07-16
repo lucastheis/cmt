@@ -1,5 +1,6 @@
 __all__ = [
 	"Bernoulli",
+	"Binomial",
 	"ConditionalDistribution",
 	"Distribution",
 	"FVBN",
@@ -9,6 +10,7 @@ __all__ = [
 	"MCGSM",
 	"Mixture",
 	"MixtureComponent",
+	"MLR",
 	"MoGSM",
 	"PatchMCBM",
 	"PatchMCGSM",
@@ -18,6 +20,7 @@ __all__ = [
 	"UnivariateDistribution"]
 
 from _cmt import Bernoulli
+from _cmt import Binomial
 from _cmt import ConditionalDistribution
 from _cmt import Distribution
 from _cmt import FVBN
@@ -27,6 +30,7 @@ from _cmt import MCBM
 from _cmt import MCGSM
 from _cmt import Mixture
 from _cmt import MixtureComponent
+from _cmt import MLR
 from _cmt import MoGSM
 from _cmt import PatchMCBM
 from _cmt import PatchMCGSM

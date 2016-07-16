@@ -35,6 +35,7 @@ namespace CMT {
 					int cbIter;
 					int valIter;
 					int valLookAhead;
+					bool stationary;
 
 					ArrayXXd* valInput;
 					ArrayXXd* valOutput;
@@ -91,6 +92,11 @@ namespace CMT {
 				const lbfgsfloatval_t* x,
 				lbfgsfloatval_t* g,
 				const Parameters& params) const = 0;
+
+			virtual MatrixXd fisherInformation(
+				const MatrixXd& input,
+				const MatrixXd& output,
+				const Parameters& params = Parameters());
 
 		protected:
 			typedef Map<Matrix<lbfgsfloatval_t, Dynamic, Dynamic> > MatrixLBFGS;

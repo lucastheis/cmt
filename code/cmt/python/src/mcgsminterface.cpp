@@ -14,6 +14,10 @@ using std::pair;
 #include "cmt/utils"
 using CMT::Exception;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+#endif
+
 Trainable::Parameters* PyObject_ToMCGSMParameters(PyObject* parameters) {
 	MCGSM::Parameters* params = dynamic_cast<MCGSM::Parameters*>(
 		PyObject_ToParameters(parameters, new MCGSM::Parameters));
@@ -69,46 +73,39 @@ Trainable::Parameters* PyObject_ToMCGSMParameters(PyObject* parameters) {
 			else
 				throw Exception("train_predictors should be of type `bool`.");
 
+		PyObject* train_linear_features = PyDict_GetItemString(parameters, "train_linear_features");
+		if(train_linear_features)
+			if(PyBool_Check(train_linear_features))
+				params->trainLinearFeatures = (train_linear_features == Py_True);
+			else
+				throw Exception("train_linear_features should be of type `bool`.");
+
+		PyObject* train_means = PyDict_GetItemString(parameters, "train_means");
+		if(train_means)
+			if(PyBool_Check(train_means))
+				params->trainMeans = (train_means == Py_True);
+			else
+				throw Exception("train_means should be of type `bool`.");
+
 		PyObject* regularize_features = PyDict_GetItemString(parameters, "regularize_features");
 		if(regularize_features)
-			if(PyFloat_Check(regularize_features))
-				params->regularizeFeatures = PyFloat_AsDouble(regularize_features);
-			else if(PyInt_Check(regularize_features))
-				params->regularizeFeatures = static_cast<double>(PyFloat_AsDouble(regularize_features));
-			else
-				throw Exception("regularize_features should be of type `float`.");
-
-		PyObject* regularize_weights = PyDict_GetItemString(parameters, "regularize_weights");
-		if(regularize_weights)
-			if(PyFloat_Check(regularize_weights))
-				params->regularizeWeights = PyFloat_AsDouble(regularize_weights);
-			else if(PyInt_Check(regularize_weights))
-				params->regularizeWeights = static_cast<double>(PyFloat_AsDouble(regularize_weights));
-			else
-				throw Exception("regularize_weights should be of type `float`.");
+			params->regularizeFeatures = PyObject_ToRegularizer(regularize_features);
 
 		PyObject* regularize_predictors = PyDict_GetItemString(parameters, "regularize_predictors");
 		if(regularize_predictors)
-			if(PyFloat_Check(regularize_predictors))
-				params->regularizePredictors = PyFloat_AsDouble(regularize_predictors);
-			else if(PyInt_Check(regularize_predictors))
-				params->regularizePredictors = static_cast<double>(PyFloat_AsDouble(regularize_predictors));
-			else
-				throw Exception("regularize_predictors should be of type `float`.");
+			params->regularizePredictors = PyObject_ToRegularizer(regularize_predictors);
 
-		PyObject* regularizer = PyDict_GetItemString(parameters, "regularizer");
-		if(regularizer)
-			if(PyString_Check(regularizer)) {
-				if(PyString_Size(regularizer) != 2)
-					throw Exception("Regularizer should be 'L1' or 'L2'.");
+		PyObject* regularize_weights = PyDict_GetItemString(parameters, "regularize_weights");
+		if(regularize_weights)
+			params->regularizeWeights = PyObject_ToRegularizer(regularize_weights);
 
-				if(PyString_AsString(regularizer)[1] == '1')
-					params->regularizer = MCGSM::Parameters::L1;
-				else
-					params->regularizer = MCGSM::Parameters::L2;
-			} else {
-				throw Exception("regularizer should be of type `str`.");
-			}
+		PyObject* regularize_linear_features = PyDict_GetItemString(parameters, "regularize_linear_features");
+		if(regularize_linear_features)
+			params->regularizeLinearFeatures = PyObject_ToRegularizer(regularize_linear_features);
+
+		PyObject* regularize_means = PyDict_GetItemString(parameters, "regularize_means");
+		if(regularize_means)
+			params->regularizeMeans = PyObject_ToRegularizer(regularize_means);
 	}
 
 	return params;
@@ -125,8 +122,8 @@ const char* MCGSM_doc =
 	"where\n"
 	"\n"
 	"\\begin{align}\n"
-	"p(c, s \\mid \\mathbf{x}) &\\propto \\exp\\left(\\eta_{cs} - \\frac{1}{2} e^{\\alpha_{cs}} \\sum_i \\beta_{ci}^2 \\left(\\mathbf{b}_i^\\top \\mathbf{x}\\right)^2 \\right),\\\\\n"
-	"p(\\mathbf{y} \\mid c, s, \\mathbf{x}) &= |\\mathbf{L}_c| \\exp\\left(\\frac{M}{2}\\alpha_{cs} - \\frac{1}{2} e^{\\alpha_{cs}} (\\mathbf{y} - \\mathbf{A}_c \\mathbf{x})^\\top \\mathbf{L}_c \\mathbf{L}_c^\\top (\\mathbf{y} - \\mathbf{A}_c \\mathbf{x})\\right) / (2\\pi)^\\frac{M}{2}.\n"
+	"p(c, s \\mid \\mathbf{x}) &\\propto \\exp\\left(\\eta_{cs} - \\frac{1}{2} e^{\\alpha_{cs}} \\sum_i \\beta_{ci}^2 \\left(\\mathbf{b}_i^\\top \\mathbf{x}\\right)^2 + e^{\\alpha_{cs}} \\mathbf{w}_c^\\top \\mathbf{x} \\right),\\\\\n"
+	"p(\\mathbf{y} \\mid c, s, \\mathbf{x}) &= |\\mathbf{L}_c| \\exp\\left(\\frac{M}{2}\\alpha_{cs} - \\frac{1}{2} e^{\\alpha_{cs}} (\\mathbf{y} - \\mathbf{A}_c \\mathbf{x} - \\mathbf{u}_c)^\\top \\mathbf{L}_c \\mathbf{L}_c^\\top (\\mathbf{y} - \\mathbf{A}_c \\mathbf{x} - \\mathbf{u}_c)\\right) / (2\\pi)^\\frac{M}{2}.\n"
 	"\\end{align}\n"
 	"\n"
 	"To create an MCGSM for $N$-dimensional inputs $\\mathbf{x} \\in \\mathbb{R}^N$ "
@@ -143,6 +140,8 @@ const char* MCGSM_doc =
 	"\t>>> mcgsm.features\n"
 	"\t>>> mcgsm.cholesky_factors\n"
 	"\t>>> mcgsm.predictors\n"
+	"\t>>> mcgsm.linear_features\n"
+	"\t>>> mcgsm.means\n"
 	"\n"
 	"which correspond to $\\eta_{cs}$, $\\alpha_{cs}$, $\\beta_{ci}$, $\\mathbf{b}_i$, "
 	"$\\mathbf{L}_c$, and $\\mathbf{A}_c$, respectively.\n"
@@ -462,6 +461,74 @@ int MCGSM_set_predictors(MCGSMObject* self, PyObject* value, void*) {
 
 
 
+PyObject* MCGSM_linear_features(MCGSMObject* self, PyObject*, void*) {
+	PyObject* array = PyArray_FromMatrixXd(self->mcgsm->linearFeatures());
+
+	// make array immutable
+	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
+
+	return array;
+}
+
+
+
+int MCGSM_set_linear_features(MCGSMObject* self, PyObject* value, void*) {
+	value = PyArray_FROM_OTF(value, NPY_DOUBLE, NPY_IN_ARRAY);
+
+	if(!value) {
+		PyErr_SetString(PyExc_TypeError, "Linear features should be of type `ndarray`.");
+		return -1;
+	}
+
+	try {
+		self->mcgsm->setLinearFeatures(PyArray_ToMatrixXd(value));
+	} catch(Exception exception) {
+		Py_DECREF(value);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+
+	Py_DECREF(value);
+
+	return 0;
+}
+
+
+
+PyObject* MCGSM_means(MCGSMObject* self, PyObject*, void*) {
+	PyObject* array = PyArray_FromMatrixXd(self->mcgsm->means());
+
+	// make array immutable
+	reinterpret_cast<PyArrayObject*>(array)->flags &= ~NPY_WRITEABLE;
+
+	return array;
+}
+
+
+
+int MCGSM_set_means(MCGSMObject* self, PyObject* value, void*) {
+	value = PyArray_FROM_OTF(value, NPY_DOUBLE, NPY_IN_ARRAY);
+
+	if(!value) {
+		PyErr_SetString(PyExc_TypeError, "Means should be of type `ndarray`.");
+		return -1;
+	}
+
+	try {
+		self->mcgsm->setMeans(PyArray_ToMatrixXd(value));
+	} catch(Exception exception) {
+		Py_DECREF(value);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return -1;
+	}
+
+	Py_DECREF(value);
+
+	return 0;
+}
+
+
+
 const char* MCGSM_train_doc =
 	"train(self, input, output, input_val=None, output_val=None, parameters=None)\n"
 	"\n"
@@ -485,10 +552,28 @@ const char* MCGSM_train_doc =
 	"\t>>> \t'train_features': True,\n"
 	"\t>>> \t'train_cholesky_factors': True,\n"
 	"\t>>> \t'train_predictors': True,\n"
-	"\t>>> \t'regularizer': 'L2',\n"
-	"\t>>> \t'regularize_features': 0.,\n"
-	"\t>>> \t'regularize_weights': 0.,\n"
-	"\t>>> \t'regularize_predictors': 0.\n"
+	"\t>>> \t'train_linear_features': False,\n"
+	"\t>>> \t'train_means': False,\n"
+	"\t>>> \t'regularize_features': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
+	"\t>>> \t'regularize_weights': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
+	"\t>>> \t'regularize_predictors': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
+	"\t>>> \t'regularize_linear_features': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
+	"\t>>> \t'regularize_means': {\n"
+	"\t>>> \t\t'strength': 0.,\n"
+	"\t>>> \t\t'transform': None,\n"
+	"\t>>> \t\t'norm': 'L2'},\n"
 	"\t>>> })\n"
 	"\n"
 	"The parameters C{train_priors}, C{train_scales}, and so on can be used to control which "
@@ -496,6 +581,13 @@ const char* MCGSM_train_doc =
 	"the gradient is sufficiently small enough, as specified by C{threshold}."
 	"C{num_grad} is the number of gradients used by L-BFGS to approximate the inverse Hessian "
 	"matrix.\n"
+	"\n"
+	"Regularization of parameters $\\mathbf{z}$ adds a penalty term\n"
+	"\n"
+	"$$\\eta ||\\mathbf{A} \\mathbf{z}||_p$$\n"
+	"\n"
+	"to the average log-likelihood, where $\\eta$ is given by C{strength}, $\\mathbf{A}$ is\n"
+	"given by C{transform}, and $p$ is controlled by C{norm}, which has to be either C{'L1'} or C{'L2'}.\n"
 	"\n"
 	"The parameter C{batch_size} has no effect on the solution of the optimization but "
 	"can affect speed by reducing the number of cache misses.\n"
@@ -555,6 +647,205 @@ PyObject* MCGSM_check_gradient(MCGSMObject* self, PyObject* args, PyObject* kwds
 
 
 
+const char* MCGSM_loglikelihood_doc =
+	"loglikelihood(self, input, output, labels=None)\n"
+	"\n"
+	"Computes the conditional log-likelihood for the given data points in nats.\n"
+	"If labels are specified, the log-likelihood of the corresponding mixture\n"
+	"component is computed.\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  output: ndarray\n"
+	"@param output: outputs stored in columns\n"
+	"\n"
+	"@type  labels: ndarray\n"
+	"@param labels: indices indicating mixture components\n"
+	"\n"
+	"@rtype: ndarray\n"
+	"@return: log-likelihood of the model evaluated for each data point";
+
+PyObject* MCGSM_loglikelihood(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", "output", "labels", 0};
+
+	PyObject* input;
+	PyObject* output;
+	PyObject* labels = 0;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OO|O",
+		const_cast<char**>(kwlist), &input, &output, &labels))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+	output = PyArray_FROM_OTF(output, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input || !output) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	if(labels == Py_None)
+		labels = 0;
+
+	if(labels) {
+		labels = PyArray_FROM_OTF(labels, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!labels) {
+			PyErr_SetString(PyExc_TypeError, "Labels have to be stored in an integer NumPy array.");
+			return 0;
+		} else if(PyArray_DIM(labels, 0) > 1) {
+			PyErr_SetString(PyExc_TypeError, "Labels have to be stored in one row.");
+			return 0;
+		}
+	}
+
+	try {
+		PyObject* result;
+		if(labels)
+			result = PyArray_FromMatrixXd(
+				self->mcgsm->logLikelihood(
+					PyArray_ToMatrixXd(input),
+					PyArray_ToMatrixXd(output),
+					PyArray_ToMatrixXi(labels)));
+		else
+			result = PyArray_FromMatrixXd(
+				self->mcgsm->logLikelihood(
+					PyArray_ToMatrixXd(input),
+					PyArray_ToMatrixXd(output)));
+		Py_DECREF(input);
+		Py_DECREF(output);
+		return result;
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+const char* MCGSM_sample_doc =
+	"sample(self, input, labels=None)\n"
+	"\n"
+	"Generates outputs for given inputs.\n"
+	"If labels are specified, uses the given mixture component to generate outputs.\n"
+	"\n"
+	"@type  input: ndarray\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@type  labels: ndarray\n"
+	"@param labels: indices indicating mixture components\n"
+	"\n"
+	"@rtype: ndarray\n"
+	"@return: sampled outputs";
+
+PyObject* MCGSM_sample(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", "labels", 0};
+
+	PyObject* input;
+	PyObject* labels = 0;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", 
+		const_cast<char**>(kwlist), &input, &labels))
+		return 0;
+
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in a NumPy array.");
+		return 0;
+	}
+
+	if(labels == Py_None)
+		labels = 0;
+
+	if(labels) {
+		labels = PyArray_FROM_OTF(labels, NPY_INT64, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+		if(!labels) {
+			PyErr_SetString(PyExc_TypeError, "Labels have to be stored in an integer NumPy array.");
+			return 0;
+		}
+
+		if(PyArray_DIM(labels, 0) > 1) {
+			PyErr_SetString(PyExc_TypeError, "Labels have to be stored in one row.");
+			return 0;
+		}
+	}
+
+	try {
+		PyObject* result;
+		if(labels)
+			result = PyArray_FromMatrixXd(
+				self->mcgsm->sample(
+					PyArray_ToMatrixXd(input),
+					PyArray_ToMatrixXi(labels)));
+		else
+			result = PyArray_FromMatrixXd(
+				self->mcgsm->sample(PyArray_ToMatrixXd(input)));
+		Py_DECREF(input);
+		return result;
+	} catch(Exception exception) {
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		Py_DECREF(input);
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+const char* MCGSM_prior_doc =
+	"prior(self, input)\n"
+	"\n"
+	"Computes the prior distribution over component labels, $p(c \\mid \\mathbf{x})$\n"
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@rtype: C{ndarray}\n"
+	"@return: a distribution over labels for each given input";
+
+PyObject* MCGSM_prior(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", 0};
+
+	PyObject* input;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &input))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input) {
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		PyObject* result = PyArray_FromMatrixXd(
+			self->mcgsm->prior(PyArray_ToMatrixXd(input)));
+		Py_DECREF(input);
+		return result;
+	} catch(Exception exception) {
+		Py_DECREF(input);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
 const char* MCGSM_posterior_doc =
 	"posterior(self, input, output)\n"
 	"\n"
@@ -597,6 +888,51 @@ PyObject* MCGSM_posterior(MCGSMObject* self, PyObject* args, PyObject* kwds) {
 	} catch(Exception exception) {
 		Py_DECREF(input);
 		Py_DECREF(output);
+		PyErr_SetString(PyExc_RuntimeError, exception.message());
+		return 0;
+	}
+
+	return 0;
+}
+
+
+
+const char* MCGSM_sample_prior_doc =
+	"sample_prior(self, input)\n"
+	"\n"
+	"Samples component labels $c$ from the distribution $p(c \\mid \\mathbf{x})$.\n"
+	"\n"
+	"@type  input: C{ndarray}\n"
+	"@param input: inputs stored in columns\n"
+	"\n"
+	"@rtype: C{ndarray}\n"
+	"@return: an integer array containing a sampled index for each input and output pair";
+
+PyObject* MCGSM_sample_prior(MCGSMObject* self, PyObject* args, PyObject* kwds) {
+	const char* kwlist[] = {"input", 0};
+
+	PyObject* input;
+
+	// read arguments
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &input))
+		return 0;
+
+	// make sure data is stored in NumPy array
+	input = PyArray_FROM_OTF(input, NPY_DOUBLE, NPY_F_CONTIGUOUS | NPY_ALIGNED);
+
+	if(!input) {
+		Py_XDECREF(input);
+		PyErr_SetString(PyExc_TypeError, "Data has to be stored in NumPy arrays.");
+		return 0;
+	}
+
+	try {
+		PyObject* result = PyArray_FromMatrixXi(
+			self->mcgsm->samplePrior(PyArray_ToMatrixXd(input)));
+		Py_DECREF(input);
+		return result;
+	} catch(Exception exception) {
+		Py_DECREF(input);
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
 	}
@@ -760,14 +1096,18 @@ PyObject* MCGSM_reduce(MCGSMObject* self, PyObject*, PyObject*) {
 	PyObject* features = MCGSM_features(self, 0, 0);
 	PyObject* cholesky_factors = MCGSM_cholesky_factors(self, 0, 0);
 	PyObject* predictors = MCGSM_predictors(self, 0, 0);
-	PyObject* state = Py_BuildValue("(OOOOOO)", 
-		priors, scales, weights, features, cholesky_factors, predictors);
+	PyObject* linear_features = MCGSM_linear_features(self, 0, 0);
+	PyObject* means = MCGSM_means(self, 0, 0);
+	PyObject* state = Py_BuildValue("(OOOOOOOO)", 
+		priors, scales, weights, features, cholesky_factors, predictors, linear_features, means);
 	Py_DECREF(priors);
 	Py_DECREF(scales);
 	Py_DECREF(weights);
 	Py_DECREF(features);
 	Py_DECREF(cholesky_factors);
 	Py_DECREF(predictors);
+	Py_DECREF(linear_features);
+	Py_DECREF(means);
 
 	PyObject* result = Py_BuildValue("(OOO)", Py_TYPE(self), args, state);
 	Py_DECREF(args);
@@ -790,10 +1130,16 @@ PyObject* MCGSM_setstate(MCGSMObject* self, PyObject* state, PyObject*) {
 	PyObject* features;
 	PyObject* cholesky_factors;
 	PyObject* predictors;
+	PyObject* linear_features = 0;
+	PyObject* means = 0;
 
-	if(!PyArg_ParseTuple(state, "(OOOOOO)",
-		&priors, &scales, &weights, &features, &cholesky_factors, &predictors))
-		return 0;
+	if(!PyArg_ParseTuple(state, "(OOOOOOOO)", &priors, &scales, &weights, &features, &cholesky_factors, &predictors, &linear_features, &means)) {
+		PyErr_Clear();
+
+		// try without means for backwards-compatibility reasons
+		if(!PyArg_ParseTuple(state, "(OOOOOO)", &priors, &scales, &weights, &features, &cholesky_factors, &predictors))
+			return 0;
+	}
 
 	try {
 		MCGSM_set_priors(self, priors, 0);
@@ -802,6 +1148,10 @@ PyObject* MCGSM_setstate(MCGSMObject* self, PyObject* state, PyObject*) {
 		MCGSM_set_features(self, features, 0);
 		MCGSM_set_cholesky_factors(self, cholesky_factors, 0);
 		MCGSM_set_predictors(self, predictors, 0);
+		if(linear_features && means) {
+			MCGSM_set_linear_features(self, linear_features, 0);
+			MCGSM_set_means(self, means, 0);
+		}
 	} catch(Exception exception) {
 		PyErr_SetString(PyExc_RuntimeError, exception.message());
 		return 0;
@@ -1054,7 +1404,7 @@ PyObject* PatchMCGSM_preconditioners(PatchMCGSMObject* self, void*) {
 
 int PatchMCGSM_set_preconditioners(PatchMCGSMObject* self, PyObject* value, void*) {
 	if(!PyDict_Check(value)) {
-		PyErr_SetString(PyExc_RuntimeError, "Preconditioners have to be stored in a dictionary."); 
+		PyErr_SetString(PyExc_RuntimeError, "Preconditioners have to be stored in a dictionary.");
 		return -1;
 	}
 
@@ -1302,10 +1652,10 @@ PyObject* PatchMCGSM_reduce(PatchMCGSMObject* self, PyObject*) {
 	for(int i = 0; i < rows; ++i)
 		for(int j = 0; j < cols; ++j) {
 			PyObject* index = Py_BuildValue("(ii)", i, j);
-			PyObject* mcbm = PatchMCGSM_subscript(self, index);
+			PyObject* mcgsm = PatchMCGSM_subscript(self, index);
 
 			// add MCGSM to list of models
-			PyTuple_SetItem(models, i * cols + j, mcbm);
+			PyTuple_SetItem(models, i * cols + j, mcgsm);
 
 			Py_DECREF(index);
 		}

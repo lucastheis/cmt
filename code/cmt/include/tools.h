@@ -2,7 +2,9 @@
 #define CMT_TOOLS_H
 
 #include <vector>
+#include <limits>
 #include "conditionaldistribution.h"
+#include "mcgsm.h"
 #include "preconditioner.h"
 #include "Eigen/Core"
 
@@ -13,8 +15,10 @@ namespace Eigen {
 namespace CMT {
 	using std::vector;
 	using std::pair;
+	using std::numeric_limits;
 
 	using Eigen::ArrayXXb;
+	using Eigen::ArrayXXi;
 	using Eigen::VectorXd;
 	using Eigen::ArrayXXd;
 	using Eigen::Array;
@@ -28,6 +32,15 @@ namespace CMT {
 		const ArrayXXb& inputMask,
 		const ArrayXXb& outputMask);
 
+	/**
+	 * Extracts pixels from an image and returns them in a vector.
+	 * 
+	 * The order of the pixels in the vector corresponds to the order of the pixels
+	 * in the given list of indices. Function odes not test for validity of indices.
+	 * 
+	 * @param img image from which to extract pixels
+	 * @param indices list of pixel locations
+	 */
 	VectorXd extractFromImage(const ArrayXXd& img, const Tuples& indices);
 
 	pair<ArrayXXd, ArrayXXd> generateDataFromImage(
@@ -68,23 +81,59 @@ namespace CMT {
 		const vector<ArrayXXb>& outputMask,
 		int numSamples);
 
+	ArrayXXd densityGradient(
+		const ArrayXXd& img,
+		const ConditionalDistribution& model,
+		const ArrayXXb& inputMask,
+		const ArrayXXb& outputMask,
+		const Preconditioner* preconditioner = 0);
+	vector<ArrayXXd> densityGradient(
+		const vector<ArrayXXd>& img,
+		const ConditionalDistribution& model,
+		const vector<ArrayXXb>& inputMask,
+		const vector<ArrayXXb>& outputMask,
+		const Preconditioner* preconditioner = 0);
+
 	ArrayXXd sampleImage(
 		ArrayXXd img,
 		const ConditionalDistribution& model,
 		const ArrayXXb& inputMask,
 		const ArrayXXb& outputMask,
-		const Preconditioner* preconditioner = 0);
+		const Preconditioner* preconditioner = 0,
+		double minValue = -numeric_limits<double>::infinity(),
+		double maxValue = numeric_limits<double>::infinity());
 	vector<ArrayXXd> sampleImage(
 		vector<ArrayXXd> img,
 		const ConditionalDistribution& model,
 		const ArrayXXb& inputMask,
 		const ArrayXXb& outputMask,
-		const Preconditioner* preconditioner = 0);
+		const Preconditioner* preconditioner = 0,
+		vector<double> minValues = vector<double>(),
+		vector<double> maxValues = vector<double>());
 	vector<ArrayXXd> sampleImage(
 		vector<ArrayXXd> img,
 		const ConditionalDistribution& model,
 		const vector<ArrayXXb>& inputMask,
 		const vector<ArrayXXb>& outputMask,
+		const Preconditioner* preconditioner = 0,
+		vector<double> minValues = vector<double>(),
+		vector<double> maxValues = vector<double>());
+
+	ArrayXXd sampleImageConditionally(
+		ArrayXXd img,
+		ArrayXXi labels,
+		const MCGSM& model,
+		const ArrayXXb& inputMask,
+		const ArrayXXb& outputMask,
+		const Preconditioner* preconditioner = 0,
+		int numIter = 10,
+		bool initialize = false);
+
+	ArrayXXi sampleLabelsConditionally(
+		ArrayXXd img,
+		const MCGSM& model,
+		const ArrayXXb& inputMask,
+		const ArrayXXb& outputMask,
 		const Preconditioner* preconditioner = 0);
 
 	vector<ArrayXXd> sampleVideo(

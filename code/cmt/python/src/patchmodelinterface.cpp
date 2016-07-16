@@ -5,6 +5,10 @@
 #include "cmt/utils"
 using CMT::Exception;
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+#endif
+
 const char* PatchModel_doc =
 	"Abstract base class for models of image patches.";
 
@@ -74,8 +78,8 @@ PyObject* PatchModel_output_mask(PatchModelObject* self, PyObject* args) {
 
 
 PyObject* PatchModel_input_indices(PatchModelObject* self, PyObject* args) {
-	int i;
-	int j;
+	int i = 0;
+	int j = 0;
 
 	if(args && !PyArg_ParseTuple(args, "ii", &i, &j))
 		return 0;
@@ -105,7 +109,7 @@ PyObject* PatchModel_loglikelihood(PatchModelObject* self, PyObject* args, PyObj
 
 	// read arguments
 	if(!PyArg_ParseTupleAndKeywords(args, kwds, "iiO", const_cast<char**>(kwlist),
-		&i, &j, &data)) 
+		&i, &j, &data))
 	{
 		PyErr_Clear();
 

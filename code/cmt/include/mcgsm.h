@@ -6,7 +6,7 @@
 #include "Eigen/Core"
 #include "trainable.h"
 #include "exception.h"
-#include "lbfgs.h"
+#include "regularizer.h"
 
 namespace CMT {
 	using std::vector;
@@ -21,17 +21,19 @@ namespace CMT {
 		public:
 			struct Parameters : public Trainable::Parameters {
 				public:
-					enum Regularizer { L1, L2 };
-
 					bool trainPriors;
 					bool trainScales;
 					bool trainWeights;
 					bool trainFeatures;
 					bool trainCholeskyFactors;
 					bool trainPredictors;
-					double regularizeFeatures;
-					double regularizePredictors;
-					double regularizeWeights;
+					bool trainLinearFeatures;
+					bool trainMeans;
+					Regularizer regularizeFeatures;
+					Regularizer regularizePredictors;
+					Regularizer regularizeWeights;
+					Regularizer regularizeLinearFeatures;
+					Regularizer regularizeMeans;
 					Regularizer regularizer;
 
 					Parameters();
@@ -77,6 +79,12 @@ namespace CMT {
 			inline vector<MatrixXd> predictors() const;
 			inline void setPredictors(const vector<MatrixXd>& predictors);
 
+			inline MatrixXd linearFeatures() const;
+			inline void setLinearFeatures(const MatrixXd& linearFeatures);
+
+			inline MatrixXd means() const;
+			inline void setMeans(const MatrixXd& means);
+
 			virtual void initialize(const MatrixXd& input, const MatrixXd& output);
 
 			virtual MatrixXd sample(const MatrixXd& input) const;
@@ -95,6 +103,10 @@ namespace CMT {
 			virtual Array<double, 1, Dynamic> logLikelihood(
 				const MatrixXd& input,
 				const MatrixXd& output) const;
+			virtual Array<double, 1, Dynamic> logLikelihood(
+				const MatrixXd& input,
+				const MatrixXd& output,
+				const Array<int, 1, Dynamic>& labels) const;
 
 			virtual pair<pair<ArrayXXd, ArrayXXd>, Array<double, 1, Dynamic> > computeDataGradient(
 				const MatrixXd& input,
@@ -125,6 +137,8 @@ namespace CMT {
 			MatrixXd mFeatures;
 			vector<MatrixXd> mCholeskyFactors;
 			vector<MatrixXd> mPredictors;
+			MatrixXd mLinearFeatures;
+			MatrixXd mMeans;
 
 			virtual bool train(
 				const MatrixXd& input,
@@ -188,6 +202,8 @@ inline Eigen::ArrayXXd CMT::MCGSM::weights() const {
 
 
 inline void CMT::MCGSM::setWeights(const ArrayXXd& weights) {
+	if(dimIn() == 0)
+		return;
 	if(weights.rows() != mNumComponents || weights.cols() != mNumFeatures)
 		throw Exception("Wrong number of weights.");
 	mWeights = weights;
@@ -216,6 +232,8 @@ inline Eigen::MatrixXd CMT::MCGSM::features() const {
 
 
 inline void CMT::MCGSM::setFeatures(const MatrixXd& features) {
+	if(dimIn() == 0)
+		return;
 	if(features.rows() != mDimIn)
 		throw Exception("Features have wrong dimensionality.");
 	if(features.cols() != mNumFeatures)
@@ -261,6 +279,9 @@ inline std::vector<Eigen::MatrixXd> CMT::MCGSM::predictors() const {
 
 
 inline void CMT::MCGSM::setPredictors(const vector<MatrixXd>& predictors) {
+	if(dimIn() == 0)
+		return;
+
 	if(predictors.size() != mNumComponents)
 		throw Exception("Wrong number of predictors.");
 
@@ -269,6 +290,34 @@ inline void CMT::MCGSM::setPredictors(const vector<MatrixXd>& predictors) {
 			throw Exception("Predictor has wrong dimensionality.");
 
 	mPredictors = predictors;
+}
+
+
+
+inline Eigen::MatrixXd CMT::MCGSM::linearFeatures() const {
+	return mLinearFeatures;
+}
+
+
+
+inline void CMT::MCGSM::setLinearFeatures(const MatrixXd& linearFeatures) {
+	if(linearFeatures.rows() != mNumComponents || linearFeatures.cols() != mDimIn)
+		throw Exception("Linear features have wrong dimensionality.");
+	mLinearFeatures = linearFeatures;
+}
+
+
+
+inline Eigen::MatrixXd CMT::MCGSM::means() const {
+	return mMeans;
+}
+
+
+
+inline void CMT::MCGSM::setMeans(const MatrixXd& means) {
+	if(means.cols() != mNumComponents || means.rows() != mDimOut)
+		throw Exception("Means have wrong dimensionality.");
+	mMeans = means;
 }
 
 #endif

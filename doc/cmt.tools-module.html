@@ -134,6 +134,28 @@
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="density_gradient"></a><span class="summary-sig-name">density_gradient</span>(<span class="summary-sig-arg">img</span>,
+        <span class="summary-sig-arg">model</span>,
+        <span class="summary-sig-arg">input_mask</span>,
+        <span class="summary-sig-arg">output_mask</span>,
+        <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Computes the gradient of the density on images implemented by a 
+      conditional distribution.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type"><code>ndarray</code></span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -142,8 +164,59 @@
         <span class="summary-sig-arg">model</span>,
         <span class="summary-sig-arg">input_mask</span>,
         <span class="summary-sig-arg">output_mask</span>,
-        <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>)</span><br />
+        <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">min_value</span>=<span class="summary-sig-default">-inf</span>,
+        <span class="summary-sig-arg">max_value</span>=<span class="summary-sig-default">inf</span>)</span><br />
       Generates an image using a conditional distribution.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>ndarray</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#sample_image_conditionally" class="summary-sig-name">sample_image_conditionally</a>(<span class="summary-sig-arg">img</span>,
+        <span class="summary-sig-arg">model</span>,
+        <span class="summary-sig-arg">labels</span>,
+        <span class="summary-sig-arg">input_mask</span>,
+        <span class="summary-sig-arg">output_mask</span>,
+        <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">num_iter</span>=<span class="summary-sig-default">10</span>,
+        <span class="summary-sig-arg">initialize</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Conditionally samples an image from an <a 
+      href="cmt.models.MCGSM-class.html" class="link">MCGSM</a> using 
+      Metropolis-within-Gibbs sampling.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>ndarray</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="cmt.tools-module.html#sample_labels_conditionally" class="summary-sig-name">sample_labels_conditionally</a>(<span class="summary-sig-arg">img</span>,
+        <span class="summary-sig-arg">model</span>,
+        <span class="summary-sig-arg">input_mask</span>,
+        <span class="summary-sig-arg">output_mask</span>,
+        <span class="summary-sig-arg">preconditioner</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Samples component labels from an <a 
+      href="cmt.models.MCGSM-class.html" class="link">MCGSM</a> for a given
+      image.</td>
           <td align="right" valign="top">
             
             
@@ -234,7 +307,7 @@
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type"><code>tuple</code></span>
+      <span class="summary-type"><code>ndarray</code></span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
@@ -533,7 +606,9 @@
         <span class="sig-arg">model</span>,
         <span class="sig-arg">input_mask</span>,
         <span class="sig-arg">output_mask</span>,
-        <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>)</span>
+        <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">min_value</span>=<span class="sig-default">-inf</span>,
+        <span class="sig-arg">max_value</span>=<span class="sig-default">inf</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     >&nbsp;
@@ -557,6 +632,86 @@
     </ul></dd>
     <dt>Returns: <code>ndarray</code></dt>
         <dd>the sampled image</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="sample_image_conditionally"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">sample_image_conditionally</span>(<span class="sig-arg">img</span>,
+        <span class="sig-arg">model</span>,
+        <span class="sig-arg">labels</span>,
+        <span class="sig-arg">input_mask</span>,
+        <span class="sig-arg">output_mask</span>,
+        <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">num_iter</span>=<span class="sig-default">10</span>,
+        <span class="sig-arg">initialize</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Conditionally samples an image from an <a 
+  href="cmt.models.MCGSM-class.html" class="link">MCGSM</a> using 
+  Metropolis-within-Gibbs sampling. The image passed to this function is 
+  used as the initialization of the Gibbs sampler.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>img</code></strong> (<code>ndarray</code>) - initialization of image</li>
+        <li><strong class="pname"><code>labels</code></strong> (<code>ndarray</code>) - labels as generated by <a 
+          href="cmt.tools-module.html#sample_labels_conditionally" 
+          class="link">sample_labels_conditionally</a></li>
+        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.models.MCGSM-class.html" class="link">MCGSM</a>) - the model defining the joint distribution over labels and images</li>
+        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
+        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
+        <li><strong class="pname"><code>preconditioner</code></strong> (<a href="cmt.transforms.Preconditioner-class.html" 
+          class="link">Preconditioner</a>) - transforms the input before feeding it into the model</li>
+        <li><strong class="pname"><code>num_iter</code></strong> (<code>int</code>) - the number of Gibbs updates of each pixel</li>
+        <li><strong class="pname"><code>initialize</code></strong> (<code>bool</code>) - if true, accept all proposed pixel updates in the first iteration</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>the sampled image</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="sample_labels_conditionally"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">sample_labels_conditionally</span>(<span class="sig-arg">img</span>,
+        <span class="sig-arg">model</span>,
+        <span class="sig-arg">input_mask</span>,
+        <span class="sig-arg">output_mask</span>,
+        <span class="sig-arg">preconditioner</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Samples component labels from an <a href="cmt.models.MCGSM-class.html"
+  class="link">MCGSM</a> for a given image.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>img</code></strong> (<code>ndarray</code>) - initialization of image</li>
+        <li><strong class="pname"><code>model</code></strong> (<a href="cmt.models.MCGSM-class.html" class="link">MCGSM</a>) - the model defining the joint distribution over labels and images</li>
+        <li><strong class="pname"><code>input_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the input pixels</li>
+        <li><strong class="pname"><code>output_mask</code></strong> (<code>ndarray</code>) - a Boolean array describing the output pixels</li>
+        <li><strong class="pname"><code>preconditioner</code></strong> (<a href="cmt.transforms.Preconditioner-class.html" 
+          class="link">Preconditioner</a>) - transforms the input before feeding it into the model</li>
+    </ul></dd>
+    <dt>Returns: <code>ndarray</code></dt>
+        <dd>sampled component labels</dd>
   </dl>
 </td></tr></table>
 </div>
@@ -718,12 +873,11 @@
         <li><strong class="pname"><code>model</code></strong> (<a href="cmt.models.ConditionalDistribution-class.html" 
           class="link">ConditionalDistribution</a>) - a conditional distribution such as an <a 
           href="cmt.models.STM-class.html" class="link">STM</a></li>
-        <li><strong class="pname"><code>spike_history</code></strong> (<a href="cmt.models.ConditionalDistribution-class.html" 
-          class="link">ConditionalDistribution</a>) - number of spikes used as input to the model</li>
+        <li><strong class="pname"><code>spike_history</code></strong> (<code>int</code>) - number of bins used as input to the model</li>
         <li><strong class="pname"><code>preconditioner</code></strong> (<a href="cmt.transforms.Preconditioner-class.html" 
           class="link">Preconditioner</a>) - transforms the spike history before appending it to the input</li>
     </ul></dd>
-    <dt>Returns: <code>tuple</code></dt>
+    <dt>Returns: <code>ndarray</code></dt>
         <dd>sampled spike train</dd>
   </dl>
 </td></tr></table>
@@ -1040,7 +1194,7 @@ array([[ 0.49415309, -0.27886743,  0.82634296],
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Sun Sep 15 16:28:16 2013
+    Generated by Epydoc 3.0.1 on Fri Mar 27 13:26:27 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

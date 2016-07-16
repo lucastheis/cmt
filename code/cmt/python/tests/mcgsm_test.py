@@ -9,6 +9,7 @@ from scipy.stats import kstest, ks_2samp, norm
 from pickle import dump, load
 from tempfile import mkstemp
 from cmt.models import MCGSM, MoGSM, PatchMCGSM, GSM
+from cmt.tools import generate_masks
 from cmt.transforms import WhiteningPreconditioner
 
 class Tests(unittest.TestCase):
@@ -36,7 +37,7 @@ class Tests(unittest.TestCase):
 		self.assertEqual(mcgsm.num_components, num_components)
 		self.assertEqual(mcgsm.num_scales, num_scales)
 		self.assertEqual(mcgsm.num_features, num_features)
-	
+
 		# check parameters
 		self.assertEqual(mcgsm.priors.shape[0], num_components)
 		self.assertEqual(mcgsm.priors.shape[1], num_scales)
@@ -52,6 +53,10 @@ class Tests(unittest.TestCase):
 		self.assertEqual(mcgsm.cholesky_factors[0].shape[1], dim_out)
 		self.assertEqual(mcgsm.predictors[0].shape[0], dim_out)
 		self.assertEqual(mcgsm.predictors[0].shape[1], dim_in)
+		self.assertEqual(mcgsm.linear_features.shape[0], num_components)
+		self.assertEqual(mcgsm.linear_features.shape[1], dim_in)
+		self.assertEqual(mcgsm.means.shape[0], dim_out)
+		self.assertEqual(mcgsm.means.shape[1], num_components)
 
 		# check dimensionality of output
 		self.assertEqual(output.shape[0], dim_out)
@@ -146,7 +151,10 @@ class Tests(unittest.TestCase):
 			dot(cholesky(C0), randn(mcgsm.dim_out, round(p0 * N))) + m0,
 			dot(cholesky(C1), randn(mcgsm.dim_out, round(p1 * N))) + m1]) * (rand(1, N) + 0.5)
 
-		mcgsm.train(input, output, parameters={'verbosity': 0, 'max_iter': 10})
+		mcgsm.train(input, output, parameters={
+			'verbosity': 0,
+			'max_iter': 10,
+			'train_means': True})
 
 		mogsm = MoGSM(3, 2, 2)
 
@@ -154,7 +162,7 @@ class Tests(unittest.TestCase):
 		mogsm.priors = sum(exp(mcgsm.priors), 1) / sum(exp(mcgsm.priors))
 
 		for k in range(mogsm.num_components):
-			mogsm[k].mean = zeros([mogsm.dim, 1])
+			mogsm[k].mean = mcgsm.means[:, k]
 			mogsm[k].covariance = inv(dot(mcgsm.cholesky_factors[k], mcgsm.cholesky_factors[k].T))
 			mogsm[k].scales = exp(mcgsm.scales[k, :])
 			mogsm[k].priors = exp(mcgsm.priors[k, :]) / sum(exp(mcgsm.priors[k, :]))
@@ -192,6 +200,60 @@ class Tests(unittest.TestCase):
 
 
 
+	def test_sample_conditionally(self):
+		mcgsm = MCGSM(3, 2, 2, 2, 4)
+
+		# make sure there are differences between components
+		mcgsm.weights = -log(rand(*mcgsm.weights.shape)) * 10.
+		mcgsm.scales = square(mcgsm.scales * 3.)
+
+		inputs = randn(mcgsm.dim_in, 100000)
+
+		# sample directly
+		outputs0 = mcgsm.sample(inputs)
+
+		# sample indirectly
+		labels = mcgsm.sample_prior(inputs)
+		outputs1 = mcgsm.sample(inputs, labels)
+
+		p = ks_2samp(outputs0.ravel(), outputs1.ravel())[1]
+
+		self.assertGreater(p, 1e-5)
+
+
+
+	def test_conditional_loglikelihood(self):
+		mcgsm = MCGSM(3, 1, 2, 1, 4)
+
+		mcgsm.linear_features = randn(mcgsm.num_components, mcgsm.dim_in) / 5.
+		mcgsm.means = randn(mcgsm.dim_out, mcgsm.num_components) / 5.
+
+		M = 100
+
+		inputs = randn(mcgsm.dim_in, M)
+		outputs = mcgsm.sample(inputs)
+
+		loglik0 = mcgsm.loglikelihood(inputs, outputs)
+		loglik1 = []
+
+		N = 1000
+
+		# estimate log-likelihood via sampling
+		for _ in range(N):
+			labels = mcgsm.sample_prior(inputs)
+			loglik1.append(mcgsm.loglikelihood(inputs, outputs, labels))
+
+		loglik1 = vstack(loglik1)
+
+		d = abs(logmeanexp(loglik1, 0) - loglik0).ravel()
+		s = std(loglik1, 0, ddof=1).ravel()
+
+		for i in range(M):
+			self.assertLess(d[i], 6. * s[i] / sqrt(N))
+
+
+
+
 	def test_gradient(self):
 		mcgsm = MCGSM(5, 2, 2, 4, 10)
 
@@ -200,13 +262,16 @@ class Tests(unittest.TestCase):
 			cholesky_factors.append(cholesky(cov(randn(mcgsm.dim_out, mcgsm.dim_out**2))))
 		mcgsm.cholesky_factors = cholesky_factors
 
+		mcgsm.linear_features = randn(mcgsm.num_components, mcgsm.dim_in) / 5.
+		mcgsm.means = randn(mcgsm.dim_out, mcgsm.num_components) / 5.
+
 		err = mcgsm._check_gradient(
 			randn(mcgsm.dim_in, 1000),
 			randn(mcgsm.dim_out, 1000), 1e-5)
 		self.assertLess(err, 1e-8)
 
 		# without regularization
-		for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred']:
+		for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred', 'linear_features', 'means']:
 			err = mcgsm._check_gradient(
 				randn(mcgsm.dim_in, 1000),
 				randn(mcgsm.dim_out, 1000),
@@ -218,12 +283,14 @@ class Tests(unittest.TestCase):
 					'train_features': param == 'features',
 					'train_cholesky_factors': param == 'chol',
 					'train_predictors': param == 'pred',
+					'train_linear_features': param == 'linear_features',
+					'train_means': param == 'means',
 				})
 			self.assertLess(err, 1e-8)
 
 		# with regularization
-		for regularizer in ['L1', 'L2']:
-			for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred']:
+		for norm in ['L1', 'L2']:
+			for param in ['priors', 'scales', 'weights', 'features', 'chol', 'pred', 'linear_features', 'means']:
 				err = mcgsm._check_gradient(
 					randn(mcgsm.dim_in, 1000),
 					randn(mcgsm.dim_out, 1000),
@@ -235,10 +302,13 @@ class Tests(unittest.TestCase):
 						'train_features': param == 'features',
 						'train_cholesky_factors': param == 'chol',
 						'train_predictors': param == 'pred',
-						'regularizer': regularizer,
-						'regularize_features': 0.4,
-						'regularize_predictors': 0.5,
-						'regularize_weights': 0.7,
+						'train_linear_features': param == 'linear_features',
+						'train_means': param == 'means',
+						'regularize_features': {'strength': 0.4, 'norm': norm},
+						'regularize_predictors': {'strength': 0.5, 'norm': norm},
+						'regularize_weights': {'strength': 0.7, 'norm': norm},
+						'regularize_linear_features': {'strength': 0.3, 'norm': norm},
+						'regularize_means': {'strength': 0.6, 'norm': norm},
 					})
 				self.assertLess(err, 1e-6)
 
@@ -261,51 +331,56 @@ class Tests(unittest.TestCase):
 
 
 	def test_data_gradient(self):
-		mcgsm = MCGSM(5, 3, 4, 5, 10)
+		for dim_in in [5, 0]:
+			mcgsm = MCGSM(dim_in, 3, 4, 5, 10)
 
-		cholesky_factors = []
-		for k in range(mcgsm.num_components):
-			cholesky_factors.append(cholesky(cov(randn(mcgsm.dim_out, mcgsm.dim_out**2))))
-		mcgsm.cholesky_factors = cholesky_factors
+			cholesky_factors = []
+			for k in range(mcgsm.num_components):
+				cholesky_factors.append(cholesky(cov(randn(mcgsm.dim_out, mcgsm.dim_out**2))))
+			mcgsm.cholesky_factors = cholesky_factors
 
-		inputs = randn(mcgsm.dim_in, 100)
-		outputs = ones_like(mcgsm.sample(inputs))
+			inputs = randn(mcgsm.dim_in, 100)
+			outputs = ones_like(mcgsm.sample(inputs))
 
-		# compute density gradient and loglikelihood
-		dx, dy, ll = mcgsm._compute_data_gradient(inputs, outputs)
+			# compute density gradient and loglikelihood
+			dx, dy, ll = mcgsm._data_gradient(inputs, outputs)
 
-		self.assertLess(max(abs(ll - mcgsm.loglikelihood(inputs, outputs))), 1e-8)
+			self.assertLess(max(abs(ll - mcgsm.loglikelihood(inputs, outputs))), 1e-8)
 
-		h = 1e-5
+			h = 1e-5
 
-		dx_ = zeros_like(dx)
-		dy_ = zeros_like(dy)
+			dx_ = zeros_like(dx)
+			dy_ = zeros_like(dy)
 
-		for i in range(mcgsm.dim_in):
-			inputs_p = inputs.copy()
-			inputs_m = inputs.copy()
-			inputs_p[i] += h
-			inputs_m[i] -= h
-			dx_[i] = (
-				mcgsm.loglikelihood(inputs_p, outputs) -
-				mcgsm.loglikelihood(inputs_m, outputs)) / (2. * h)
+			for i in range(mcgsm.dim_in):
+				inputs_p = inputs.copy()
+				inputs_m = inputs.copy()
+				inputs_p[i] += h
+				inputs_m[i] -= h
+				dx_[i] = (
+					mcgsm.loglikelihood(inputs_p, outputs) -
+					mcgsm.loglikelihood(inputs_m, outputs)) / (2. * h)
 
-		for i in range(mcgsm.dim_out):
-			outputs_p = outputs.copy()
-			outputs_m = outputs.copy()
-			outputs_p[i] += h
-			outputs_m[i] -= h
-			dy_[i] = (
-				mcgsm.loglikelihood(inputs, outputs_p) -
-				mcgsm.loglikelihood(inputs, outputs_m)) / (2. * h)
+			for i in range(mcgsm.dim_out):
+				outputs_p = outputs.copy()
+				outputs_m = outputs.copy()
+				outputs_p[i] += h
+				outputs_m[i] -= h
+				dy_[i] = (
+					mcgsm.loglikelihood(inputs, outputs_p) -
+					mcgsm.loglikelihood(inputs, outputs_m)) / (2. * h)
 
-		self.assertLess(max(abs(dy_ - dy)), 1e-8)
-		self.assertLess(max(abs(dx_ - dx)), 1e-8)
+			self.assertLess(max(abs(dy_ - dy)), 1e-8)
+			if mcgsm.dim_in > 0:
+				self.assertLess(max(abs(dx_ - dx)), 1e-8)
 
 
 
 	def test_pickle(self):
 		mcgsm0 = MCGSM(11, 2, 4, 7, 21)
+
+		mcgsm0.linear_features = randn(mcgsm0.num_components, mcgsm0.dim_in)
+		mcgsm0.means = randn(mcgsm0.dim_out, mcgsm0.num_components)
 
 		tmp_file = mkstemp()[1]
 
@@ -327,6 +402,8 @@ class Tests(unittest.TestCase):
 		self.assertLess(max(abs(mcgsm0.scales - mcgsm1.scales)), 1e-20)
 		self.assertLess(max(abs(mcgsm0.weights - mcgsm1.weights)), 1e-20)
 		self.assertLess(max(abs(mcgsm0.features - mcgsm1.features)), 1e-20)
+		self.assertLess(max(abs(mcgsm0.linear_features - mcgsm1.linear_features)), 1e-20)
+		self.assertLess(max(abs(mcgsm0.means - mcgsm1.means)), 1e-20)
 
 		for chol0, chol1 in zip(mcgsm0.cholesky_factors, mcgsm1.cholesky_factors):
 			self.assertLess(max(abs(chol0 - chol1)), 1e-20)
@@ -398,6 +475,99 @@ class Tests(unittest.TestCase):
 		converged = model.train(data, parameters={'verbosity': 0, 'max_iter': 200, 'treshold': 1e-4})
 
 		self.assertTrue(converged)
+
+
+
+	def test_patchmcgsm_stationary(self):
+		xmask = ones([2, 2], dtype='bool')
+		ymask = zeros([2, 2], dtype='bool')
+		xmask[-1, -1] = False
+		ymask[-1, -1] = True
+
+		model = PatchMCGSM(3, 3, xmask, ymask, model=MCGSM(sum(xmask), 1, 2, 2))
+
+		data = randn(4, 10000)
+
+		model.initialize(data)
+		model.train(data, parameters={
+			'verbosity': 0,
+			'max_iter': 10,
+			'stationary': True,
+			'treshold': 1e-4})
+
+		self.assertTrue(all(model[0, 2].predictors == model[0, 1].predictors))
+		self.assertFalse(all(model[1, 0].predictors == model[0, 1].predictors))
+		self.assertTrue(all(model[1, 2].weights == model[1, 1].weights))
+		self.assertTrue(all(model[1, 2].features == model[1, 1].features))
+		self.assertTrue(all(model[1, 2].scales == model[1, 1].scales))
+		self.assertTrue(all(model[1, 2].priors == model[1, 1].priors))
+
+		xmask, ymask = generate_masks(3)
+
+		model = PatchMCGSM(3, 3, xmask, ymask, model=MCGSM(sum(xmask), 1, 2, 2))
+
+		data = randn(4, 10000)
+
+		model.initialize(data)
+		model.train(data, parameters={
+			'verbosity': 0,
+			'max_iter': 10,
+			'stationary': True,
+			'treshold': 1e-4})
+
+		self.assertTrue(all(model[0, 2].weights == model[0, 1].weights))
+		self.assertTrue(all(model[2, 0].features == model[1, 0].features))
+		self.assertTrue(all(model[2, 2].scales == model[1, 2].scales))
+
+
+
+def logsumexp(x, ax=None):
+	"""
+	Computes the log of the sum of the exp of the entries in x in a numerically
+	stable way.
+
+	@type  x: array_like
+	@param x: a list, array or matrix of numbers
+
+	@type  ax: integer
+	@param ax: axis along which the sum is applied
+
+	@rtype: array
+	@return: an array containing the results
+	"""
+
+	if ax is None:
+		x_max = max(x, ax)
+		return x_max + log(sum(exp(x - x_max)))
+
+	else:
+		x_max_shape = list(x.shape)
+		x_max_shape[ax] = 1
+
+		x_max = asarray(max(x, ax))
+		return x_max + log(sum(exp(x - x_max.reshape(x_max_shape)), ax))
+
+
+
+def logmeanexp(x, ax=None):
+	"""
+	Computes the log of the mean of the exp of the entries in x in a numerically
+	stable way. Uses logsumexp.
+
+	@type  x: array_like
+	@param x: a list, array or matrix of numbers
+
+	@type  ax: integer
+	@param ax: axis along which the values are averaged
+
+	@rtype: array
+	@return: an array containing the results
+	"""
+
+	x = asarray(x)
+	n = x.size if ax is None else x.shape[ax]
+
+	return logsumexp(x, ax) - log(n)
 
 
 
