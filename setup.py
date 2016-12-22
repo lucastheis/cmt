@@ -28,16 +28,17 @@ if any(['intel' in arg for arg in sys.argv]) or 'intel' in get_default_compiler(
 		'mkl_intel_lp64',
 		'mkl_intel_thread',
 		'mkl_core',
-		'mkl_def',
-		'iomp5']
+		'mkl_def']
 	extra_compile_args = [
 		'-DEIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS',
 		'-DEIGEN_USE_MKL_ALL',
 		'-Wno-deprecated',
 		'-wd1224',
-		'-openmp',
 		'-std=c++0x']
 	extra_link_args = []
+	if 'CMT_NO_OMP' not in os.environ:
+		libraries += ['iomp5']
+		extra_compile_args += ['-openmp']
 
 	for path in [os.path.join(INTEL_PATH, 'mkl/lib/intel64'), os.path.join(INTEL_PATH, 'lib/intel64')]:
 		if os.path.exists(path):
@@ -66,9 +67,12 @@ else:
 	# gcc-specific options
 	include_dirs = []
 	library_dirs = []
-	libraries = ['gomp']
-	extra_compile_args = ['-std=c++0x', '-Wno-cpp', '-Wno-unused-local-typedefs', '-fopenmp']
+	libraries = []
+	extra_compile_args = ['-std=c++0x', '-Wno-cpp', '-Wno-unused-local-typedefs']
 	extra_link_args = []
+	if 'CMT_NO_OMP' not in os.environ:
+		libraries += ['gomp']
+		extra_compile_args += ['-fopenmp']
 
 
 modules = [
