@@ -174,9 +174,9 @@ class Tests(unittest.TestCase):
 
 		# generated samples should have the same distribution
 		for i in range(mogsm.dim):
-			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[0]) > 0.0001)
-			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[1]) > 0.0001)
-			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[2]) > 0.0001)
+			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[0]).pvalue > 0.0001)
+			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[1]).pvalue > 0.0001)
+			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[2]).pvalue > 0.0001)
 
 		posterior = mcgsm.posterior(input, mcgsm_samples)
 
