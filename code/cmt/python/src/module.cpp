@@ -762,7 +762,7 @@ static PyGetSetDef PatchModel_getset[] = {
 };
 
 static PyMethodDef PatchModel_methods[] = {
-	{"loglikelihood", (PyCFunction)PatchModel_loglikelihood, METH_KEYWORDS, 0},
+	{"loglikelihood", (PyCFunction)PatchModel_loglikelihood, METH_VARARGS | METH_KEYWORDS, 0},
 	{"input_mask", (PyCFunction)PatchModel_input_mask, METH_VARARGS, 0},
 	{"output_mask", (PyCFunction)PatchModel_output_mask, METH_VARARGS, 0},
 	{"input_indices", (PyCFunction)PatchModel_input_indices, 0, 0},
@@ -825,9 +825,9 @@ static PyGetSetDef PatchMCBM_getset[] = {
 };
 
 static PyMethodDef PatchMCBM_methods[] = {
-	{"initialize", (PyCFunction)PatchMCBM_initialize, METH_KEYWORDS, PatchMCBM_initialize_doc},
-	{"train", (PyCFunction)PatchMCBM_train, METH_KEYWORDS, PatchMCBM_train_doc},
-	{"preconditioner", (PyCFunction)PatchMCBM_preconditioner, METH_VARARGS, 0},
+	{"initialize", (PyCFunction)PatchMCBM_initialize, METH_VARARGS | METH_KEYWORDS, PatchMCBM_initialize_doc},
+	{"train", (PyCFunction)PatchMCBM_train, METH_VARARGS | METH_KEYWORDS, PatchMCBM_train_doc},
+	{"preconditioner", (PyCFunction)PatchMCBM_preconditioner, METH_VARARGS | METH_VARARGS, 0},
 	{"__reduce__", (PyCFunction)PatchMCBM_reduce, METH_NOARGS, PatchMCBM_reduce_doc},
 	{"__setstate__", (PyCFunction)PatchMCBM_setstate, METH_VARARGS, PatchMCBM_setstate_doc},
 	{0}
@@ -889,8 +889,8 @@ static PyGetSetDef PatchMCGSM_getset[] = {
 };
 
 static PyMethodDef PatchMCGSM_methods[] = {
-	{"initialize", (PyCFunction)PatchMCGSM_initialize, METH_KEYWORDS, PatchMCGSM_initialize_doc},
-	{"train", (PyCFunction)PatchMCGSM_train, METH_KEYWORDS, PatchMCGSM_train_doc},
+	{"initialize", (PyCFunction)PatchMCGSM_initialize, METH_VARARGS | METH_KEYWORDS, PatchMCGSM_initialize_doc},
+	{"train", (PyCFunction)PatchMCGSM_train, METH_VARARGS | METH_KEYWORDS, PatchMCGSM_train_doc},
 	{"preconditioner", (PyCFunction)PatchMCGSM_preconditioner, METH_VARARGS, 0},
 	{"__reduce__", (PyCFunction)PatchMCGSM_reduce, METH_NOARGS, PatchMCGSM_reduce_doc},
 	{"__setstate__", (PyCFunction)PatchMCGSM_setstate, METH_VARARGS, PatchMCGSM_setstate_doc},
@@ -1124,8 +1124,8 @@ static PyGetSetDef FVBN_getset[] = {
 };
 
 static PyMethodDef FVBN_methods[] = {
-	{"initialize", (PyCFunction)FVBN_initialize, METH_KEYWORDS, FVBN_initialize_doc},
-	{"train", (PyCFunction)FVBN_train, METH_KEYWORDS, FVBN_train_doc},
+	{"initialize", (PyCFunction)FVBN_initialize, METH_VARARGS | METH_KEYWORDS, FVBN_initialize_doc},
+	{"train", (PyCFunction)FVBN_train, METH_VARARGS | METH_KEYWORDS, FVBN_train_doc},
 	{"preconditioner", (PyCFunction)FVBN_preconditioner, METH_VARARGS, 0},
 	{"__reduce__", (PyCFunction)FVBN_reduce, METH_NOARGS, FVBN_reduce_doc},
 	{"__setstate__", (PyCFunction)FVBN_setstate, METH_VARARGS, FVBN_setstate_doc},
