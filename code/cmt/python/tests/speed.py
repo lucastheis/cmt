@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import sys
 import socket
 
@@ -16,10 +18,10 @@ parser.add_argument('--repetitions', '-r', type=int, default=2)
 args = parser.parse_args(sys.argv[1:])
 
 ###
-print socket.gethostname()
-print datetime.now()
-print args
-print
+print(socket.gethostname())
+print(datetime.now())
+print(args)
+print()
 
 ###
 data = randn(args.dim_in, args.num_data), randn(args.dim_out, args.num_data)
@@ -32,24 +34,24 @@ model = MCGSM(
 	num_scales=6)
 
 ###
-print 'model.loglikelihood'
+print('model.loglikelihood')
 t = time()
 for r in range(args.repetitions):
 	model.loglikelihood(*data)
-print '{0:12.8f} seconds'.format((time() - t) / float(args.repetitions))
-print
+print('{0:12.8f} seconds'.format((time() - t) / float(args.repetitions)))
+print()
 
 ###
-print 'model._check_performance'
+print('model._check_performance')
 for batch_size in [1000, 2000, 5000]:
 	t = model._check_performance(*data, repetitions=args.repetitions, parameters={'batch_size': batch_size})
-	print '{0:12.8f} seconds ({1})'.format(t, batch_size)
-print
+	print('{0:12.8f} seconds ({1})'.format(t, batch_size))
+print()
 
 ###
-print 'model.posterior'
+print('model.posterior')
 t = time()
 for r in range(args.repetitions):
 	model.posterior(*data)
-print '{0:12.8f} seconds'.format((time() - t) / float(args.repetitions))
-print
+print('{0:12.8f} seconds'.format((time() - t) / float(args.repetitions)))
+print()
