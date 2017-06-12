@@ -127,7 +127,7 @@ class Tests(unittest.TestCase):
 				})
 
 		# test callback
-		self.assertTrue(range(cb_iter, max_iter + 1, cb_iter) == count)
+		self.assertTrue(list(range(cb_iter, max_iter + 1, cb_iter)) == count)
 
 
 
