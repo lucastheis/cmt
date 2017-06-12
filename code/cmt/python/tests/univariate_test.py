@@ -25,10 +25,10 @@ class Tests(unittest.TestCase):
 
 		p0 = Bernoulli(.3)
 
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'p': p0}, handle)
 
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			p1 = load(handle)['p']
 
 		x = p0.sample(100)
@@ -78,10 +78,10 @@ class Tests(unittest.TestCase):
 
 		p0 = Poisson(2.5)
 
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'p': p0}, handle)
 
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			p1 = load(handle)['p']
 
 		x = p0.sample(100)
@@ -126,10 +126,10 @@ class Tests(unittest.TestCase):
 
 		p0 = Binomial(13, .76)
 
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'p': p0}, handle)
 
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			p1 = load(handle)['p']
 
 		x = p0.sample(100)
