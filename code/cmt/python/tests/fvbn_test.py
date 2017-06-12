@@ -18,8 +18,8 @@ class Tests(unittest.TestCase):
 
 		model = FVBN(8, 8, xmask, ymask)
 
-		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
-		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)
+		self.assertLess(max(abs(model.input_mask() ^ xmask)), 1e-8)
+		self.assertLess(max(abs(model.output_mask() ^ ymask)), 1e-8)
 
 		for i in range(8):
 			for j in range(8):
