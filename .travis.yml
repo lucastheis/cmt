@@ -5,6 +5,7 @@ python:
     - "3.5"
     - "3.6"
 install:
+    - python -m pip install -U pip
     - pip install --only-binary=":all:" numpy scipy
     - cd code/liblbfgs
     - ./autogen.sh
