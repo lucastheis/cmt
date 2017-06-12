@@ -1755,6 +1755,7 @@ static PyGetSetDef Preconditioner_getset[] = {
 static PyMethodDef Preconditioner_methods[] = {
 	{"inverse", (PyCFunction)Preconditioner_inverse, METH_VARARGS | METH_KEYWORDS, Preconditioner_inverse_doc},
 	{"logjacobian", (PyCFunction)Preconditioner_logjacobian, METH_VARARGS | METH_KEYWORDS, Preconditioner_logjacobian_doc},
+	{"adjust_gradient", (PyCFunction)Preconditioner_adjust_gradient, METH_VARARGS | METH_KEYWORDS, Preconditioner_adjust_gradient_doc},
 	{0}
 };
 
