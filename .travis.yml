@@ -3,8 +3,6 @@ python:
     - "2.7"
     - "3.5"
     - "3.6"
-before_install:
-    - sudo apt-get -qq install python-numpy python-scipy
 install:
     - cd code/liblbfgs
     - ./autogen.sh
