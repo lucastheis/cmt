@@ -378,7 +378,11 @@ Regularizer PyObject_ToRegularizer(PyObject* regularizer) {
 		Regularizer::Norm norm = Regularizer::L2;
 
 		if(r_norm) {
+			if(PyUnicode_Check(r_norm))
+				r_norm = PyUnicode_AsASCIIString(r_norm);
+
 			if(PyString_Size(r_norm) != 2)
+				PyErr_Clear();
 				throw Exception("Regularizer norm should be 'L1' or 'L2'.");
 
 			switch(PyString_AsString(r_norm)[1]) {
