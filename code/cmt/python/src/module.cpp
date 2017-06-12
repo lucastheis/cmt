@@ -765,7 +765,7 @@ static PyMethodDef PatchModel_methods[] = {
 	{"loglikelihood", (PyCFunction)PatchModel_loglikelihood, METH_VARARGS | METH_KEYWORDS, 0},
 	{"input_mask", (PyCFunction)PatchModel_input_mask, METH_VARARGS, 0},
 	{"output_mask", (PyCFunction)PatchModel_output_mask, METH_VARARGS, 0},
-	{"input_indices", (PyCFunction)PatchModel_input_indices, 0, 0},
+	{"input_indices", (PyCFunction)PatchModel_input_indices, METH_VARARGS, 0},
 	{0}
 };
 
