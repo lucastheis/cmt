@@ -5,7 +5,7 @@ python:
     - "3.5"
     - "3.6"
 install:
-    - pip install numpy scipy
+    - pip install --only-binary=":all:" numpy scipy
     - cd code/liblbfgs
     - ./autogen.sh
     - ./configure --enable-sse2
