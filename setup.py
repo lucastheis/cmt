@@ -50,7 +50,6 @@ elif sys.platform == 'darwin':
 	libraries = []
 	extra_compile_args = [
 		'-std=c++0x',
-		'-stdlib=libc++',
 		'-Wno-deprecated-register',
 		'-Wno-#warnings']
 	extra_link_args = []
@@ -59,6 +58,7 @@ elif sys.platform == 'darwin':
 		os.environ['CC'] = 'clang++'
 	if 'CXX' not in os.environ:
 		os.environ['CXX'] = 'clang++'
+		extra_compile_args.append('-stdlib=libc++')
 	if 'MACOSX_DEPLOYMENT_TARGET' not in os.environ:
 		os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.7'
 
