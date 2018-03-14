@@ -127,7 +127,7 @@ class Tests(unittest.TestCase):
 				})
 
 		# test callback
-		self.assertTrue(range(cb_iter, max_iter + 1, cb_iter) == count)
+		self.assertTrue(list(range(cb_iter, max_iter + 1, cb_iter)) == count)
 
 
 
@@ -174,9 +174,9 @@ class Tests(unittest.TestCase):
 
 		# generated samples should have the same distribution
 		for i in range(mogsm.dim):
-			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[0]) > 0.0001)
-			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[1]) > 0.0001)
-			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[2]) > 0.0001)
+			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[0]).pvalue > 0.0001)
+			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[1]).pvalue > 0.0001)
+			self.assertTrue(ks_2samp(mogsm_samples[i], mcgsm_samples[2]).pvalue > 0.0001)
 
 		posterior = mcgsm.posterior(input, mcgsm_samples)
 
@@ -385,11 +385,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'mcgsm': mcgsm0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			mcgsm1 = load(handle)['mcgsm']
 
 		# make sure parameters haven't changed
@@ -421,8 +421,8 @@ class Tests(unittest.TestCase):
 
 		model = PatchMCGSM(8, 8, xmask, ymask, model=MCGSM(sum(xmask), 1))
 
-		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
-		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)
+		self.assertLess(max(abs(model.input_mask() ^ xmask)), 1e-8)
+		self.assertLess(max(abs(model.output_mask() ^ ymask)), 1e-8)
 
 		for i in range(8):
 			for j in range(8):
@@ -435,8 +435,8 @@ class Tests(unittest.TestCase):
 
 		model = PatchMCGSM(rows, cols, xmask, ymask, order, MCGSM(sum(xmask), 1))
 
-		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
-		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)
+		self.assertLess(max(abs(model.input_mask() ^ xmask)), 1e-8)
+		self.assertLess(max(abs(model.output_mask() ^ ymask)), 1e-8)
 
 		for i in range(rows):
 			for j in range(cols):
@@ -446,8 +446,8 @@ class Tests(unittest.TestCase):
 		model0 = PatchMCGSM(rows, cols, max_pcs=3)
 		model1 = PatchMCGSM(rows, cols, model0.input_mask(), model0.output_mask(), model0.order)
 
-		self.assertLess(max(abs(model0.input_mask() - model1.input_mask())), 1e-8)
-		self.assertLess(max(abs(model0.output_mask() - model1.output_mask())), 1e-8)
+		self.assertLess(max(abs(model0.input_mask() ^ model1.input_mask())), 1e-8)
+		self.assertLess(max(abs(model0.output_mask() ^ model1.output_mask())), 1e-8)
 		self.assertLess(max(abs(asarray(model0.order) - asarray(model1.order))), 1e-8)
 
 		# test computation of input masks
@@ -456,7 +456,7 @@ class Tests(unittest.TestCase):
 		i, j = model0.order[0]
 		input_mask = model.input_mask(i, j)
 		for i, j in model.order[1:]:
-			self.assertEqual(sum(model.input_mask(i, j) - input_mask), 1)
+			self.assertEqual(sum(model.input_mask(i, j) ^ input_mask), 1)
 			input_mask = model.input_mask(i, j)
 
 

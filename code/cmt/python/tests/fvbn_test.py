@@ -18,8 +18,8 @@ class Tests(unittest.TestCase):
 
 		model = FVBN(8, 8, xmask, ymask)
 
-		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
-		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)
+		self.assertLess(max(abs(model.input_mask() ^ xmask)), 1e-8)
+		self.assertLess(max(abs(model.output_mask() ^ ymask)), 1e-8)
 
 		for i in range(8):
 			for j in range(8):
@@ -67,11 +67,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'model': model0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			model1 = load(handle)['model']
 
 		# make sure parameters haven't changed

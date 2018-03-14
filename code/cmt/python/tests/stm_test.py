@@ -283,11 +283,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'stm': stm0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			stm1 = load(handle)['stm']
 
 		# make sure parameters haven't changed

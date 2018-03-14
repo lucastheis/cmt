@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 """
 Trains an MCGSM on a single grayscale image.
 """
@@ -64,8 +66,8 @@ def main(argv):
 		})
 
 	# evaluate model
-	print 'Average log-likelihood: {0:.4f} [bit/px]'.format(
-			-model.evaluate(data_test[0], data_test[1], pre))
+	print('Average log-likelihood: {0:.4f} [bit/px]'.format(
+			-model.evaluate(data_test[0], data_test[1], pre)))
 
 	# synthesize a new image
 	img_sample = sample_image(img, model, input_mask, output_mask, pre)

@@ -16,6 +16,7 @@ using std::make_pair;
 	#define PyInt_FromLong PyLong_FromLong
 	#define PyInt_AsLong PyLong_AsLong
 	#define PyInt_Check PyLong_Check
+	#define PyString_Check PyBytes_Check
 	#define PyString_Size PyBytes_Size
 	#define PyString_AsString PyBytes_AsString
 #endif
@@ -378,10 +379,21 @@ Regularizer PyObject_ToRegularizer(PyObject* regularizer) {
 		Regularizer::Norm norm = Regularizer::L2;
 
 		if(r_norm) {
-			if(PyString_Size(r_norm) != 2)
-				throw Exception("Regularizer norm should be 'L1' or 'L2'.");
+			if(PyUnicode_Check(r_norm))
+				r_norm = PyUnicode_AsASCIIString(r_norm);
 
-			switch(PyString_AsString(r_norm)[1]) {
+			if((r_norm == NULL) || (!PyString_Check(r_norm)) || (PyString_Size(r_norm) != 2)) {
+				PyErr_Clear();
+				throw Exception("Regularizer norm should be 'L1' or 'L2'.");
+			}
+
+			char* r_norm_str = PyString_AsString(r_norm);
+			if(r_norm_str == NULL) {
+				PyErr_Clear();
+				throw Exception("Regularizer norm should be 'L1' or 'L2'.");
+			}
+
+			switch(r_norm_str[1]) {
 				default:
 					throw Exception("Regularizer norm should be 'L1' or 'L2'.");
 

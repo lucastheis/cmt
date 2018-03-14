@@ -149,11 +149,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'mcbm': mcbm0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			mcbm1 = load(handle)['mcbm']
 
 		# make sure parameters haven't changed
@@ -178,8 +178,8 @@ class Tests(unittest.TestCase):
 
 		model = PatchMCBM(8, 8, xmask, ymask, model=MCBM(sum(xmask), 1))
 
-		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
-		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)
+		self.assertLess(max(abs(model.input_mask() ^ xmask)), 1e-8)
+		self.assertLess(max(abs(model.output_mask() ^ ymask)), 1e-8)
 
 		for i in range(8):
 			for j in range(8):
@@ -192,8 +192,8 @@ class Tests(unittest.TestCase):
 
 		model = PatchMCBM(rows, cols, xmask, ymask, order, MCBM(sum(xmask), 1))
 
-		self.assertLess(max(abs(model.input_mask() - xmask)), 1e-8)
-		self.assertLess(max(abs(model.output_mask() - ymask)), 1e-8)
+		self.assertLess(max(abs(model.input_mask() ^ xmask)), 1e-8)
+		self.assertLess(max(abs(model.output_mask() ^ ymask)), 1e-8)
 
 		for i in range(rows):
 			for j in range(cols):
@@ -203,8 +203,8 @@ class Tests(unittest.TestCase):
 		model0 = PatchMCBM(rows, cols, max_pcs=3)
 		model1 = PatchMCBM(rows, cols, model0.input_mask(), model0.output_mask(), model0.order)
 
-		self.assertLess(max(abs(model0.input_mask() - model1.input_mask())), 1e-8)
-		self.assertLess(max(abs(model0.output_mask() - model1.output_mask())), 1e-8)
+		self.assertLess(max(abs(model0.input_mask() ^ model1.input_mask())), 1e-8)
+		self.assertLess(max(abs(model0.output_mask() ^ model1.output_mask())), 1e-8)
 		self.assertLess(max(abs(asarray(model0.order) - asarray(model1.order))), 1e-8)
 
 		# test computation of input masks
@@ -213,7 +213,7 @@ class Tests(unittest.TestCase):
 		i, j = model0.order[0]
 		input_mask = model.input_mask(i, j)
 		for i, j in model.order[1:]:
-			self.assertEqual(sum(model.input_mask(i, j) - input_mask), 1)
+			self.assertEqual(sum(model.input_mask(i, j) ^ input_mask), 1)
 			input_mask = model.input_mask(i, j)
 
 
@@ -329,11 +329,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'model': model0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			model1 = load(handle)['model']
 
 		# make sure parameters haven't changed
@@ -360,19 +360,19 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'model': model0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			model1 = load(handle)['model']
 
 		# make sure parameters haven't changed
 		self.assertEqual(model0.rows, model1.rows)
 		self.assertEqual(model0.cols, model1.cols)
 		self.assertLess(max(abs(asarray(model1.order) - asarray(model0.order))), 1e-20)
-		self.assertLess(max(abs(model0.input_mask() - model1.input_mask())), 1e-20)
-		self.assertLess(max(abs(model0.output_mask() - model1.output_mask())), 1e-20)
+		self.assertLess(max(abs(model0.input_mask() ^ model1.input_mask())), 1e-20)
+		self.assertLess(max(abs(model0.output_mask() ^ model1.output_mask())), 1e-20)
 
 		for i in range(model0.rows):
 			for j in range(model0.cols):
@@ -389,11 +389,11 @@ class Tests(unittest.TestCase):
 		logLik = mean(model0.loglikelihood(samples))
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'model': model0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			model1 = load(handle)['model']
 
 		self.assertAlmostEqual(mean(model1.loglikelihood(samples)), logLik)
@@ -404,11 +404,11 @@ class Tests(unittest.TestCase):
 		model0 = PatchMCBM(rows, cols, xmask, ymask, order)
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'model': model0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			model1 = load(handle)['model']
 
 		for i in range(rows):
