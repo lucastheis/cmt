@@ -49,7 +49,7 @@ class Tests(unittest.TestCase):
 			self.assertLess(err, 1e-8)
 
 		# with regularization
-		for norm in ['L1', 'L2']:
+		for norm in [b'L1', b'L2']:
 			for param in ['weights', 'biases']:
 				err = mlr._check_gradient(
 					inputs,
@@ -73,11 +73,11 @@ class Tests(unittest.TestCase):
 		model0.biases = randn(*model0.biases.shape)
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'model': model0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			model1 = load(handle)['model']
 
 		# make sure parameters haven't changed

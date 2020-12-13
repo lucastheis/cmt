@@ -67,7 +67,11 @@ else:
 	include_dirs = []
 	library_dirs = []
 	libraries = ['gomp']
-	extra_compile_args = ['-std=c++0x', '-Wno-cpp', '-Wno-unused-local-typedefs', '-fopenmp']
+	extra_compile_args = [
+		'-std=c++0x',
+		'-Wno-cpp',
+		'-Wno-unused-local-typedefs',
+		'-fopenmp']
 	extra_link_args = []
 
 
@@ -132,6 +136,7 @@ modules = [
 		extra_compile_args=[
 			'-DEIGEN_NO_DEBUG',
 			'-Wno-sign-compare',
+			'-Wno-int-in-bool-context',
 			'-Wno-parentheses',
 			'-Wno-write-strings'] + extra_compile_args)]
 

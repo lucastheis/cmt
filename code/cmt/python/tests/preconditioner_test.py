@@ -144,11 +144,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store transformation
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'pre': pre0}, handle)
 
 		# load transformation
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			pre1 = load(handle)['pre']
 
 		X, Y = randn(5, 100), randn(2, 100)
@@ -179,11 +179,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store transformation
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'pre': pre0}, handle)
 
 		# load transformation
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			pre1 = load(handle)['pre']
 
 		X, Y = randn(5, 100), randn(3, 100)
@@ -241,11 +241,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store transformation
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'wt': wt0}, handle)
 
 		# load transformation
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			wt1 = load(handle)['wt']
 
 		X, Y = randn(5, 100), randn(2, 100)
@@ -287,11 +287,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store transformation
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'wt': wt0}, handle)
 
 		# load transformation
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			wt1 = load(handle)['wt']
 
 		X, Y = randn(5, 100), randn(2, 100)
@@ -339,11 +339,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store transformation
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'wt': wt0}, handle)
 
 		# load transformation
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			wt1 = load(handle)['wt']
 
 		X, Y = randn(5, 100), randn(2, 100)
@@ -428,11 +428,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store transformation
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'wt': wt0}, handle)
 
 		# load transformation
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			wt1 = load(handle)['wt']
 
 		X, Y = randn(5, 100), randn(2, 100)
@@ -467,11 +467,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store transformation
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'pre': pre0}, handle)
 
 		# load transformation
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			pre1 = load(handle)['pre']
 
 		# make sure linear transformation hasn't changed

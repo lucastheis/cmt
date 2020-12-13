@@ -166,7 +166,7 @@ class Tests(unittest.TestCase):
 			self.assertLess(err, 1e-7)
 
 		# test with regularization turned on
-		for norm in ['L1', 'L2']:
+		for norm in [b'L1', b'L2']:
 			for param in ['priors', 'weights', 'features', 'pred', 'input_bias', 'output_bias']:
 				err = stm._check_gradient(
 					randint(2, size=[stm.dim_in, 1000]),
@@ -283,11 +283,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'stm': stm0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			stm1 = load(handle)['stm']
 
 		# make sure parameters haven't changed

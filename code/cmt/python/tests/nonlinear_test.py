@@ -24,10 +24,10 @@ class Tests(unittest.TestCase):
 
 		f0 = LogisticFunction()
 
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'f': f0}, handle)
 
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			f1 = load(handle)['f']
 
 		x = randn(100)
@@ -50,10 +50,10 @@ class Tests(unittest.TestCase):
 
 		f0 = ExponentialFunction()
 
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'f': f0}, handle)
 
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			f1 = load(handle)['f']
 
 		x = randn(100)
@@ -78,11 +78,11 @@ class Tests(unittest.TestCase):
 		f0 = HistogramNonlinearity(randn(1, 100), rand(1, 100), 10)
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'f': f0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			f1 = load(handle)['f']
 
 		x = randn(1, 100)
@@ -118,11 +118,11 @@ class Tests(unittest.TestCase):
 		f0 = BlobNonlinearity(4, 0.1)
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'f': f0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			f1 = load(handle)['f']
 
 		x = randn(1, 100)
@@ -158,11 +158,11 @@ class Tests(unittest.TestCase):
 		f0 = TanhBlobNonlinearity(4, 0.1)
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'f': f0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			f1 = load(handle)['f']
 
 		x = randn(1, 100)

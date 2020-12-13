@@ -149,11 +149,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'mcbm': mcbm0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			mcbm1 = load(handle)['mcbm']
 
 		# make sure parameters haven't changed
@@ -329,11 +329,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'model': model0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			model1 = load(handle)['model']
 
 		# make sure parameters haven't changed
@@ -360,11 +360,11 @@ class Tests(unittest.TestCase):
 		tmp_file = mkstemp()[1]
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'model': model0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			model1 = load(handle)['model']
 
 		# make sure parameters haven't changed
@@ -389,11 +389,11 @@ class Tests(unittest.TestCase):
 		logLik = mean(model0.loglikelihood(samples))
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'model': model0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			model1 = load(handle)['model']
 
 		self.assertAlmostEqual(mean(model1.loglikelihood(samples)), logLik)
@@ -404,11 +404,11 @@ class Tests(unittest.TestCase):
 		model0 = PatchMCBM(rows, cols, xmask, ymask, order)
 
 		# store model
-		with open(tmp_file, 'w') as handle:
+		with open(tmp_file, 'wb') as handle:
 			dump({'model': model0}, handle)
 
 		# load model
-		with open(tmp_file) as handle:
+		with open(tmp_file, 'rb') as handle:
 			model1 = load(handle)['model']
 
 		for i in range(rows):

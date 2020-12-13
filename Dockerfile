@@ -1,4 +1,4 @@
-FROM ubuntu:17.10
+FROM ubuntu:18.04
 MAINTAINER Lucas Theis
 
 RUN apt-get update
@@ -6,7 +6,7 @@ RUN apt-get upgrade -y
 
 RUN apt-get install -y git
 RUN apt-get install -y libjpeg-dev libpng-dev
-RUN apt-get install -y python3.6 python3-pip
+RUN apt-get install -y python3 python3-pip
 RUN apt-get install -y libopenblas-base
 
 RUN apt-get install -y autoconf automake libtool
@@ -24,5 +24,5 @@ RUN \
 	make CFLAGS="-fPIC"
 RUN \
 	cd cmt && \
-	python3 setup.py build && \
-	python3 setup.py install
+	python2 setup.py build && \
+	python2 setup.py install
