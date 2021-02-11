@@ -254,6 +254,9 @@ class Tests(unittest.TestCase):
 
 
 
+        @unittest.skip("Skipping test as it has a sporadic numerical error."
+                       "See issue ( https://github.com/lucastheis/cmt/issues/16 )."
+        )
 	def test_gradient(self):
 		mcgsm = MCGSM(5, 2, 2, 4, 10)
 
